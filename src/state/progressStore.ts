@@ -4,21 +4,25 @@ import { create } from 'zustand';
 // src/state/progressStore.ts — the PERSISTENCE SPINE (the retention mechanism).
 //
 // Durable, cross-session progress, saved to localStorage as one versioned JSON
-// blob. This is deliberately a SEPARATE store from sceneStore: scene state is
-// ephemeral (it resets every session — see enterWorld/exitWorld), while progress
-// is the site *remembering you* across visits. The reference is BrowserQuest's
-// localStorage save — zero backend.
+// blob. Deliberately SEPARATE from sceneStore: scene state is ephemeral (resets
+// each session), while progress is the site *remembering you* across visits.
+// The reference is BrowserQuest's localStorage save — zero backend.
 //
 // SSR-safe: every localStorage touch is guarded so the store can be created
-// during the static prerender (no `window`/`localStorage`), where it just yields
-// the cold defaults. Nothing here ever changes the prerendered HTML — consumers
-// gate on useMounted() so the durable state only shows up as a post-hydration
-// enhancement, never in the crawlable / JS-off page.
+// during the static prerender, where it just yields the cold defaults. Nothing
+// here ever changes the prerendered HTML — consumers gate on useMounted() so the
+// durable state is a post-hydration enhancement only, never in the crawlable /
+// JS-off page.
 //
-// Phase map (docs/PHASES.md): this is the early cross-cutting dependency. Phase 5
-// reads `maxUnease` for the persistence-gated curdled copy; Phase 6 door-games
-// write `clearedGames`. Recording more is a one-line action here, never a schema
-// migration — unknown keys merge over the defaults.
+// Every field is MONOTONIC (counts only go up, booleans only go true, arrays
+// only grow). That lets save() merge against fresh localStorage on every write,
+// so a second open tab can never regress another tab's progress. read() also
+// normalizes each field, so a malformed/old blob degrades to defaults instead of
+// crashing a later action (e.g. `.includes` on a non-array).
+//
+// Phase map (docs/PHASES.md): the early cross-cutting dependency. Phase 5 reads
+// `maxUnease` for the persistence-gated curdled copy; Phase 6 door-games write
+// `clearedGames`. Recording more is a one-line action here — never a migration.
 // ───────────────────────────────────────────────────────────────────────────
 
 const KEY = 'sdp_progress_v1';
@@ -50,13 +54,26 @@ const DEFAULTS: Progress = {
   clearedGames: [],
 };
 
+// ── field normalizers: a malformed blob degrades to defaults, never crashes ──
+const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
+const bool = (v: unknown, d: boolean): boolean => (typeof v === 'boolean' ? v : d);
+const strArr = (v: unknown): string[] =>
+  Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+
 function read(): Progress {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { ...DEFAULTS };
-    // Merge over defaults so a blob written by an older build (missing a newer
-    // field) still hydrates cleanly — no migrations needed to add a key.
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Progress>) };
+    const p = JSON.parse(raw) as Partial<Progress>;
+    return {
+      visits: num(p.visits, 0),
+      everEnteredWorld: bool(p.everEnteredWorld, false),
+      visitedRooms: strArr(p.visitedRooms),
+      secretsFound: strArr(p.secretsFound),
+      maxFloor: num(p.maxFloor, 0),
+      maxUnease: num(p.maxUnease, 0),
+      clearedGames: strArr(p.clearedGames),
+    };
   } catch {
     return { ...DEFAULTS };
   }
@@ -70,6 +87,21 @@ function write(p: Progress) {
   }
 }
 
+const uniq = (a: string[], b: string[]): string[] => Array.from(new Set([...a, ...b]));
+
+/** Monotonic merge: the "furthest" value of each field wins — never regresses. */
+function mergeProgress(a: Progress, b: Progress): Progress {
+  return {
+    visits: Math.max(a.visits, b.visits),
+    everEnteredWorld: a.everEnteredWorld || b.everEnteredWorld,
+    visitedRooms: uniq(a.visitedRooms, b.visitedRooms),
+    secretsFound: uniq(a.secretsFound, b.secretsFound),
+    maxFloor: Math.max(a.maxFloor, b.maxFloor),
+    maxUnease: Math.max(a.maxUnease, b.maxUnease),
+    clearedGames: uniq(a.clearedGames, b.clearedGames),
+  };
+}
+
 type ProgressState = Progress & {
   /** Count a page load. Call once per real load (ProgressTracker guards this). */
   recordVisit: () => void;
@@ -81,58 +113,53 @@ type ProgressState = Progress & {
   clearGame: (id: string) => void;
 };
 
+const snapshot = (s: ProgressState): Progress => ({
+  visits: s.visits,
+  everEnteredWorld: s.everEnteredWorld,
+  visitedRooms: s.visitedRooms,
+  secretsFound: s.secretsFound,
+  maxFloor: s.maxFloor,
+  maxUnease: s.maxUnease,
+  clearedGames: s.clearedGames,
+});
+
 export const useProgressStore = create<ProgressState>((set, get) => {
-  // Persist the durable fields after any mutation. set() is synchronous, so by
-  // the time save() runs, get() already reflects the change.
-  const save = () => {
-    const s = get();
-    write({
-      visits: s.visits,
-      everEnteredWorld: s.everEnteredWorld,
-      visitedRooms: s.visitedRooms,
-      secretsFound: s.secretsFound,
-      maxFloor: s.maxFloor,
-      maxUnease: s.maxUnease,
-      clearedGames: s.clearedGames,
-    });
+  // Apply a patch, then merge against FRESH localStorage before persisting, so a
+  // concurrent tab's progress is never clobbered. set() keeps in-memory == disk.
+  const apply = (patch: Partial<Progress>) => {
+    const next = { ...snapshot(get()), ...patch };
+    const merged = mergeProgress(read(), next);
+    set(merged);
+    write(merged);
   };
 
   return {
     ...read(),
 
-    recordVisit: () => {
-      set((s) => ({ visits: s.visits + 1 }));
-      save();
-    },
+    recordVisit: () => apply({ visits: get().visits + 1 }),
     markEnteredWorld: () => {
       if (get().everEnteredWorld) return;
-      set({ everEnteredWorld: true });
-      save();
+      apply({ everEnteredWorld: true });
     },
     visitRoom: (id) => {
       if (get().visitedRooms.includes(id)) return;
-      set((s) => ({ visitedRooms: [...s.visitedRooms, id] }));
-      save();
+      apply({ visitedRooms: [...get().visitedRooms, id] });
     },
     findSecret: (id) => {
       if (get().secretsFound.includes(id)) return;
-      set((s) => ({ secretsFound: [...s.secretsFound, id] }));
-      save();
+      apply({ secretsFound: [...get().secretsFound, id] });
     },
     recordFloor: (n) => {
       if (n <= get().maxFloor) return;
-      set({ maxFloor: n });
-      save();
+      apply({ maxFloor: n });
     },
     recordUnease: (v) => {
       if (v <= get().maxUnease) return;
-      set({ maxUnease: v });
-      save();
+      apply({ maxUnease: v });
     },
     clearGame: (id) => {
       if (get().clearedGames.includes(id)) return;
-      set((s) => ({ clearedGames: [...s.clearedGames, id] }));
-      save();
+      apply({ clearedGames: [...get().clearedGames, id] });
     },
   };
 });
