@@ -89,6 +89,9 @@ export type Room = {
   palette: RoomPalette;
   /** If set, this room IS a GLB level (GlbRoom renders it behind the loader). */
   glb?: RoomGlb;
+  /** Render ambient water dripping from the ceiling (the watery descent's
+   *  aftermath). Opt-in per room so it isn't coupled to a room kind. */
+  drips?: boolean;
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -263,8 +266,9 @@ export const ROOMS: Room[] = [
       // facing -Z across the still pool toward the far wall.
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromShop: { position: [0, EYE, 5], yaw: Math.PI },
-      // Back up from the deeper liminal level: by the -Z door, facing +Z.
-      fromLiminal: { position: [0, EYE, -5], yaw: 0 },
+      // Climbing back up out of the liminal level — you surface near the centre
+      // door, a step clear of its radius, facing the room (-Z).
+      fromLiminal: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Stumbling back out of the looping corridor: by the +X door, facing into
       // the room (-X), clear of every door radius.
       fromMobius: { position: [4.5, EYE, 5], yaw: -Math.PI / 2 },
@@ -283,10 +287,13 @@ export const ROOMS: Room[] = [
         id: 'pool-to-liminal',
         to: 'liminal',
         toSpawn: 'fromPool',
-        position: [0, 0, -8.95], // far (-Z) wall — deeper down
-        rotationY: Math.PI,
-        label: 'go deeper',
-        radius: 3.2,
+        // DEAD CENTRE, standing on the false water — the only way deeper is to
+        // walk out across the pool to it (PoolroomsRoom renders the water). Faces
+        // +Z toward the entry so you walk straight into it.
+        position: [0, 0, 0],
+        rotationY: 0,
+        label: 'step through the door on the water',
+        radius: 2.8,
       },
       {
         id: 'pool-to-mobius',
@@ -311,6 +318,8 @@ export const ROOMS: Room[] = [
       // If the model fails to load, send the player back up to the pool.
       recoverTo: { to: 'poolrooms', spawn: 'fromLiminal' },
     },
+    // You rode the waterfall down — water drips from this ceiling (CeilingDrips).
+    drips: true,
     dims: { halfW: 8.5, halfD: 8.5, height: 6, eye: EYE },
     // Pale beige nothing — the backrooms register.
     palette: { background: '#d6cfb8', fog: '#d6cfb8', fogNear: 6, fogFar: 34 },

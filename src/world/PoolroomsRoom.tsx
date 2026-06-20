@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { useDreadStore } from '../state/dreadStore';
 import type { Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PoolroomsRoom — Phase 6, the first level "below the shop". An ORIGINAL,
 // procedurally-built liminal poolrooms (we don't ship the unprovenanced
-// third-party GLBs): white-tiled everywhere, a still recessed pool, too-evenly
-// over-lit, empty, and a beat wrong. Same PS1 toolkit as every other room
-// (vertex snap, affine floor swim, ≤128px NearestFilter tile, fog). The Phase 5
-// dread layer (fog close-in + sub-bass + vignette) modulates it for free as you
-// linger. Doors are rendered by Doors.tsx; this is the shell + the pool.
+// third-party GLBs): white-tiled everywhere, too-evenly over-lit, empty, a beat
+// wrong. Same PS1 toolkit as every other room (vertex snap, affine floor swim,
+// ≤128px NearestFilter tile, fog).
+//
+// THE FALSE POOL (Luke): the pool is NOT a recess you go into — it's a flat sheet
+// of "water" set FLUSH with the deck that you simply WALK ACROSS. It only LOOKS
+// like water (scrolling caustics + a gentle surface wave); your feet stay on the
+// floor. Dead center, standing ON the water, is the door down to the liminal
+// level — the only way deeper. Walking out across an impossible still pool to a
+// freestanding door is the whole liminal beat. The dread layer speeds/curdles the
+// ripple as unease rises. Doors are rendered by Doors.tsx; this is the shell +
+// the false pool.
 // ───────────────────────────────────────────────────────────────────────────
 
 function flatMat(color: string, map?: THREE.Texture): THREE.Material {
@@ -19,10 +28,41 @@ function flatMat(color: string, map?: THREE.Texture): THREE.Material {
   return m;
 }
 
-// Half-extent of the recessed pool opening (centred) and how deep the basin goes.
-const POOL = 4.5;
-const BASIN_Y = -1.6;
-const WATER_Y = -0.35;
+// Half-extent of the (flat, walk-on) water sheet, centred. Big enough that you
+// genuinely cross water to reach the centre door, with a tiled deck border.
+const POOL = 5;
+const WATER_Y = 0.05; // a hair above the deck so it reads as a surface, not a hole
+
+// A low-res caustic-ish ripple texture (PS1: tiny + NearestFilter). Interfering
+// sine bands read as light dancing on water once it's scrolled.
+function makeRippleTexture(): THREE.Texture {
+  const S = 64;
+  const c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d')!;
+  const img = ctx.createImageData(S, S);
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const v =
+        Math.sin((x / S) * Math.PI * 4) * Math.cos((y / S) * Math.PI * 4) +
+        Math.sin(((x + y) / S) * Math.PI * 6);
+      const t = (v + 2) / 4; // 0..1
+      const i = (y * S + x) * 4;
+      img.data[i] = 90 + t * 120; // R
+      img.data[i + 1] = 190 + t * 60; // G
+      img.data[i + 2] = 205 + t * 50; // B
+      img.data[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(img, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  tex.repeat.set(2, 2);
+  return tex;
+}
 
 export function PoolroomsRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
@@ -30,52 +70,65 @@ export function PoolroomsRoom({ room }: { room: Room }) {
   const H = room.dims.height;
   const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
 
-  // Pale wall/deck tile + a smaller-grid basin tile, both nearest-filtered.
+  // Pale wall/deck tile, nearest-filtered.
   const wallTex = useMemo(() => {
     const t = makeCheckerTexture(6, '#e7f1f4', '#d2e3ea'); // bright white-aqua tile
     t.repeat.set(Math.round(W / 1.5), 2);
     return t;
   }, [W]);
   const deckTex = useMemo(() => makeCheckerTexture(8, '#e9f2f5', '#cfe1e8'), []);
-  const basinTex = useMemo(() => makeCheckerTexture(6, '#bfe0ea', '#a9d2df'), []); // cooler, wet
 
-  // Affine deck + basin floors (the PS1 swim), carrying the room's pale fog.
   const deckMat = useMemo(
     () => makeAffineTexturedMaterial(deckTex, 1, fog),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [deckTex, fog.color, fog.near, fog.far],
   );
-  const basinFloorMat = useMemo(
-    () => makeAffineTexturedMaterial(basinTex, 1, fog),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [basinTex, fog.color, fog.near, fog.far],
-  );
   const wallMat = useMemo(() => flatMat('#ffffff', wallTex), [wallTex]);
   const ceilMat = useMemo(() => flatMat('#eef5f7'), []);
   const lightMat = useMemo(() => flatMat('#ffffff'), []); // flat fluorescent quads
-  const basinWallMat = useMemo(() => flatMat('#cfe6ee'), []);
   const pillarMat = useMemo(() => flatMat('#e3eef1'), []);
+
+  // The false water: scrolling caustic map + a gentle vertex wave. Walk-on, so
+  // the wave is tiny (cosmetic) — your feet never leave the flat floor.
+  const rippleTex = useMemo(() => makeRippleTexture(), []);
   const waterMat = useMemo(() => {
     const m = new THREE.MeshLambertMaterial({
       color: '#37b9cf',
+      map: rippleTex,
       transparent: true,
-      opacity: 0.62,
+      opacity: 0.9,
       flatShading: true,
       side: THREE.DoubleSide,
     });
     applyVertexSnap(m, 64);
     return m;
-  }, []);
+  }, [rippleTex]);
+  const waterRef = useRef<THREE.Mesh>(null);
+  const baseZ = useRef<Float32Array | null>(null);
 
-  // The deck is four strips around the pool opening (a hole in the middle so the
-  // recessed basin + water read as below the floor).
-  const decks: Array<[number, number, number, number]> = [
-    // [centerX, centerZ, sizeX, sizeZ]
-    [0, (POOL + D) / 2, W * 2, D - POOL], // far (+Z)
-    [0, -(POOL + D) / 2, W * 2, D - POOL], // near (-Z)
-    [-(POOL + W) / 2, 0, W - POOL, POOL * 2], // left (-X)
-    [(POOL + W) / 2, 0, W - POOL, POOL * 2], // right (+X)
-  ];
+  useFrame((state, delta) => {
+    // Unease drives the ripple from a calm shimmer toward a faster, wrong churn.
+    const unease = useDreadStore.getState().unease;
+    const speed = 0.04 + unease * 0.12;
+    rippleTex.offset.x += delta * speed;
+    rippleTex.offset.y += delta * speed * 0.6;
+
+    const mesh = waterRef.current;
+    if (!mesh) return;
+    const geo = mesh.geometry as THREE.PlaneGeometry;
+    const pos = geo.attributes.position as THREE.BufferAttribute;
+    if (!baseZ.current) {
+      baseZ.current = Float32Array.from({ length: pos.count }, (_, i) => pos.getZ(i));
+    }
+    const t = state.clock.elapsedTime;
+    const amp = 0.04 + unease * 0.06; // tiny — apparent motion, never a hazard
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      pos.setZ(i, baseZ.current[i] + Math.sin(x * 1.3 + t * 1.6) * Math.cos(y * 1.1 + t * 1.2) * amp);
+    }
+    pos.needsUpdate = true;
+  });
 
   return (
     <group>
@@ -84,31 +137,15 @@ export function PoolroomsRoom({ room }: { room: Room }) {
       <pointLight position={[0, H - 0.3, 0]} intensity={0.5} distance={26} color="#ffffff" />
       <pointLight position={[-W + 2, H - 0.3, D - 3]} intensity={0.3} distance={16} color="#dff2f7" />
 
-      {/* deck (four strips around the pool) */}
-      {decks.map(([cx, cz, sx, sz], i) => (
-        <mesh key={i} material={deckMat} rotation-x={-Math.PI / 2} position={[cx, 0, cz]}>
-          <planeGeometry args={[sx, sz]} />
-        </mesh>
-      ))}
+      {/* full tiled deck floor — you walk on this everywhere, water included */}
+      <mesh material={deckMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
+        <planeGeometry args={[W * 2, D * 2]} />
+      </mesh>
 
-      {/* the pool — recessed basin floor + four basin walls + a still water plane */}
-      <mesh material={basinFloorMat} rotation-x={-Math.PI / 2} position={[0, BASIN_Y, 0]}>
-        <planeGeometry args={[POOL * 2, POOL * 2]} />
-      </mesh>
-      <mesh material={basinWallMat} position={[0, BASIN_Y / 2, POOL]}>
-        <planeGeometry args={[POOL * 2, -BASIN_Y]} />
-      </mesh>
-      <mesh material={basinWallMat} rotation-y={Math.PI} position={[0, BASIN_Y / 2, -POOL]}>
-        <planeGeometry args={[POOL * 2, -BASIN_Y]} />
-      </mesh>
-      <mesh material={basinWallMat} rotation-y={-Math.PI / 2} position={[POOL, BASIN_Y / 2, 0]}>
-        <planeGeometry args={[POOL * 2, -BASIN_Y]} />
-      </mesh>
-      <mesh material={basinWallMat} rotation-y={Math.PI / 2} position={[-POOL, BASIN_Y / 2, 0]}>
-        <planeGeometry args={[POOL * 2, -BASIN_Y]} />
-      </mesh>
-      <mesh material={waterMat} rotation-x={-Math.PI / 2} position={[0, WATER_Y, 0]}>
-        <planeGeometry args={[POOL * 2 - 0.1, POOL * 2 - 0.1]} />
+      {/* the FALSE pool — a flat sheet of "water" flush with the deck you walk
+          across; only the scrolling caustics + faint wave say it's water */}
+      <mesh ref={waterRef} material={waterMat} rotation-x={-Math.PI / 2} position={[0, WATER_Y, 0]}>
+        <planeGeometry args={[POOL * 2, POOL * 2, 12, 12]} />
       </mesh>
 
       {/* ceiling */}

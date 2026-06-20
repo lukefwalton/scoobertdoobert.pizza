@@ -58,6 +58,51 @@
   }
 }
 
+/* The waterfall plunge into the liminal level: rushing water sheeting downward,
+   riding just over the black wipe. Pure cosmetic overlay (pointer-events none).
+   Sits above .hud-fade (78) so you fall THROUGH water into the dark. */
+.hud-waterfall {
+  position: fixed;
+  inset: 0;
+  z-index: 79;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease-in;
+  background-color: rgba(40, 120, 150, 0.4);
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(225, 250, 255, 0) 0px,
+    rgba(225, 250, 255, 0.3) 2px,
+    rgba(150, 215, 230, 0) 7px,
+    rgba(255, 255, 255, 0.18) 11px,
+    rgba(150, 215, 230, 0) 18px
+  );
+  background-size: 100% 140px;
+}
+.hud-waterfall--on {
+  opacity: 1;
+  animation: hud-waterfall-rush 0.45s linear infinite;
+}
+@keyframes hud-waterfall-rush {
+  from {
+    background-position-y: 0;
+  }
+  to {
+    background-position-y: 280px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* no rushing motion (WCAG); a faint static cyan veil still tints the wipe */
+  .hud-waterfall {
+    transition: none;
+    background-image: none;
+    background-color: rgba(40, 120, 150, 0.3);
+  }
+  .hud-waterfall--on {
+    animation: none;
+  }
+}
+
 .hud-menu-btn {
   position: fixed;
   top: 12px;

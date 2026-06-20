@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
 import { roomById, FIRST_ROOM } from '../data/rooms';
@@ -25,25 +25,55 @@ export function LevelLoader() {
   const room = roomById(currentRoom);
   const isGlb = !!room.glb;
   const [dismissed, setDismissed] = useState(false);
+  // Latches a TURN BACK so repeated clicks can't enqueue overlapping recovery
+  // polls / double-navigate. Reset when a new room is entered. `abortTimer` holds
+  // the pending recovery poll so it can be cancelled on room change / unmount —
+  // a stale poll must never fire goToRoom after we've moved on.
+  const aborting = useRef(false);
+  const abortTimer = useRef<number | undefined>(undefined);
 
   // New room → show the loader again (until tapped in) and clear the overlay
   // state. Note this does NOT reset `ready` — GlbRoom owns that via mount/unmount
   // (see levelStore), which is what makes cached re-entry safe.
   useEffect(() => {
     setDismissed(false);
+    aborting.current = false;
+    if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
     useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
+
+  // Belt-and-suspenders: cancel any pending recovery poll if we unmount.
+  useEffect(
+    () => () => {
+      if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
+    },
+    [],
+  );
 
   if (!isGlb || dismissed) return null;
 
   // Recovery: bounce out the room's EXPLICIT recover target if it has one, else
   // its first door, else the shop. Explicit metadata so a future door reorder
   // can't silently change where a failed load drops the player.
+  //
+  // A GLB can fail (and the loader offer TURN BACK) BEFORE the door-wipe INTO it
+  // has finished — goToRoom debounces while `transitioning`, so an instant abort
+  // would be swallowed. Wait for the entry wipe to settle, then navigate cleanly
+  // (the loader overlay is up + input frozen throughout, so the wait is unseen).
   const onAbort = () => {
-    const recover = room.glb?.recoverTo;
-    if (recover) goToRoom(recover.to, recover.spawn ?? 'default');
-    else if (room.doors[0]) goToRoom(room.doors[0].to, room.doors[0].toSpawn ?? 'default');
-    else goToRoom(FIRST_ROOM, 'default');
+    if (aborting.current) return; // already recovering — ignore repeat clicks
+    aborting.current = true;
+    const go = () => {
+      if (useSceneStore.getState().transitioning) {
+        abortTimer.current = window.setTimeout(go, 60);
+        return;
+      }
+      const recover = room.glb?.recoverTo;
+      if (recover) goToRoom(recover.to, recover.spawn ?? 'default');
+      else if (room.doors[0]) goToRoom(room.doors[0].to, room.doors[0].toSpawn ?? 'default');
+      else goToRoom(FIRST_ROOM, 'default');
+    };
+    go();
   };
 
   return (
