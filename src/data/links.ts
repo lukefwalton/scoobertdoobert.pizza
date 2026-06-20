@@ -83,11 +83,10 @@ export const DESTINATIONS: Dest[] = [
   {
     id: 'contact',
     label: 'submit a comment to the webmaster',
-    href: 'https://www.instagram.com/scoobertdoobert.pizza/',
+    href: 'mailto:beformer@aol.com',
     blurb: 'The webmaster reads every comment. The webmaster may also be the rat.',
     topping: 'onion',
     era: '1994',
-    external: true,
   },
   {
     id: 'beformer',

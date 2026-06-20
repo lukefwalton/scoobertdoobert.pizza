@@ -172,6 +172,43 @@ h2 {
   color: #555555;
 }
 
+/* Logo + title header (the SD monogram up top, name beside it). */
+.store-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.store-logo {
+  width: 84px;
+  height: auto;
+  flex-shrink: 0;
+}
+.store-titlebar h1 {
+  font-size: 1.7rem;
+  margin: 0;
+}
+@media (max-width: 480px) {
+  .store-titlebar {
+    gap: 12px;
+  }
+  .store-logo {
+    width: 58px;
+  }
+  .store-titlebar h1 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Love Music More badge in the footer. */
+.lmm {
+  margin: 12px 0 4px;
+}
+.lmm-logo {
+  width: 110px;
+  height: auto;
+}
+
 .slogan {
   margin-top: 10px;
 }
