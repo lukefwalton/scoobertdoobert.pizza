@@ -25,7 +25,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   const descend = useSceneStore((s) => s.descend);
 
   return (
-    <div className="store">
+    <div className="store" data-floor={floor.id}>
       <p className="util">
         <a href="/text">text only version of this page</a>
         <MuteToggle />

@@ -9,7 +9,7 @@
 // template component in src/floors/). Never special-case a floor in scene code.
 // Mirrors the links.ts / hotspots.ts single-source pattern.
 // ───────────────────────────────────────────────────────────────────────────
-import { MENU_DESTINATIONS } from './links';
+import { MENU_DESTINATIONS, destById } from './links';
 
 export type FloorTemplate = 'plain' | 'starburst' | 'tableLayout' | 'machineRoom';
 
@@ -75,3 +75,16 @@ export const FLOORS: Floor[] = [
 
 export const FLOOR_COUNT = FLOORS.length;
 export const BOTTOM_FLOOR = FLOORS.length - 1;
+
+// Dev guardrail: every floor's link ids must resolve, or the nav silently
+// shrinks (resolveLinks drops unknown ids). Fail loudly in development so a
+// FLOORS typo surfaces at the source instead of as a missing nav item.
+if (import.meta.env?.DEV) {
+  for (const f of FLOORS) {
+    for (const id of f.links) {
+      if (!destById(id)) {
+        console.warn(`[floors] FLOORS["${f.id}"] references unknown link id "${id}"`);
+      }
+    }
+  }
+}
