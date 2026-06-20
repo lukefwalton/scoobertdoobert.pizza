@@ -4,6 +4,9 @@ import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
 import { destById, type Dest } from '../data/links';
 import type { Floor } from '../data/floors';
+import { useSceneStore } from '../state/sceneStore';
+import { audio } from '../audio/engine';
+import { FloorDoor } from './FloorDoor';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Floor 0 — the `plain` template. The offensively plain 1995–97 commercial web
@@ -19,6 +22,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   // not at lukefwalton.com — that stays a subtle footer/schema backlink.
   const insideScoop = destById('podcast')?.href ?? '/text';
   const dests = floor.links.map((id) => destById(id)).filter(Boolean) as Dest[];
+  const descend = useSceneStore((s) => s.descend);
 
   return (
     <div className="store">
@@ -116,6 +120,21 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           </a>
         </p>
       </aside>
+
+      <hr />
+
+      <section className="floor-down floor-down--plain" aria-label="Downstairs">
+        <p className="floor-down__sign">STAFF ONLY &mdash; the rest of the building is downstairs.</p>
+        <FloorDoor
+          direction="down"
+          label={floor.descendLabel}
+          className="floor-door--plain"
+          onActivate={() => {
+            audio.unlock();
+            descend();
+          }}
+        />
+      </section>
 
       <hr />
 

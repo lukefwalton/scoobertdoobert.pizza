@@ -203,6 +203,30 @@ class PizzaAudio {
       this.lowpass.frequency.linearRampToValueAtTime(REST_CUTOFF, now + durationMs / 1000);
     }
   }
+
+  /**
+   * Progressive era decay across the descent floors. depth 0 = the storefront
+   * (normal); depth === maxDepth ≈ the machine room (slowed + nearly pure
+   * degraded-MIDI murk). Ramps both ways, so ascending un-rots it.
+   */
+  bendToDepth(depth: number, maxDepth: number, durationMs = 650): void {
+    if (!this.ctx) return;
+    const f = maxDepth > 0 ? Math.max(0, Math.min(1, depth / maxDepth)) : 0;
+    const rate = 1 - 0.5 * f; // 1 → 0.5
+    const cutoff = REST_CUTOFF - (REST_CUTOFF - 700) * f; // REST_CUTOFF → 700
+    const now = this.ctx.currentTime;
+    if (this.source) {
+      const r = this.source.playbackRate;
+      r.cancelScheduledValues(now);
+      r.setValueAtTime(r.value, now);
+      r.linearRampToValueAtTime(rate, now + durationMs / 1000);
+    }
+    if (this.lowpass) {
+      this.lowpass.frequency.cancelScheduledValues(now);
+      this.lowpass.frequency.setValueAtTime(this.lowpass.frequency.value, now);
+      this.lowpass.frequency.linearRampToValueAtTime(cutoff, now + durationMs / 1000);
+    }
+  }
 }
 
 // Constructor is inert, so a module-level singleton is SSR-safe.

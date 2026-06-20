@@ -32,6 +32,8 @@ export type Floor = {
 // Ordered top → bottom (floor 0 is the front door; the descent goes forward in
 // time as it goes down). The 1999 / 2000 / machine-room floors land in later
 // Phase 2 checkpoints — the system is built so they're just entries here.
+const ALL_MENU = MENU_DESTINATIONS.map((d) => d.id);
+
 export const FLOORS: Floor[] = [
   {
     id: 'storefront',
@@ -39,8 +41,35 @@ export const FLOORS: Floor[] = [
     template: 'plain',
     title: 'Scoobert Doobert’s Electronic Pizza Storefront',
     copy: 'A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)',
-    links: MENU_DESTINATIONS.map((d) => d.id),
-    descendLabel: 'Continue ▶',
+    links: ALL_MENU,
+    descendLabel: 'Down to the basement',
+  },
+  {
+    id: 'y1999',
+    era: '1999',
+    template: 'starburst',
+    title: 'Scoobert Doobert ONLINE!!',
+    copy: 'Now serving six unreleased demos under one roof. Best viewed in Netscape.',
+    links: ALL_MENU,
+    descendLabel: 'THE NEXT STEP ▶',
+  },
+  {
+    id: 'y2000',
+    era: '2000',
+    template: 'tableLayout',
+    title: 'Scoobert Doobert :: Welcome',
+    copy: 'Please select your party.',
+    links: ALL_MENU,
+    descendLabel: 'Down to the freezer ▾',
+  },
+  {
+    id: 'machine',
+    era: 'SGI',
+    template: 'machineRoom',
+    title: 'SILICON SLICE™',
+    copy: 'see what’s possible',
+    links: ALL_MENU,
+    descendLabel: 'Install ▶',
   },
 ];
 
