@@ -102,8 +102,10 @@ export function D20({
         g.position.y = 0;
         settle();
       }
-    } else {
-      g.rotation.y += delta * 0.4; // idle slow spin so it reads as interactive
+    } else if (!reduced.current) {
+      // Idle slow spin so it reads as interactive — but reduced-motion means NO
+      // die animation at all (no tumble AND no idle spin); it sits dead still.
+      g.rotation.y += delta * 0.4;
     }
   });
 
