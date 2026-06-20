@@ -3,6 +3,7 @@ import Storefront from './pages/Storefront';
 import TextOnly from './pages/TextOnly';
 import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
+import Arcade from './pages/Arcade';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
 //   /       -> the dead-plain Electronic Pizza Storefront (the fallback layer)
@@ -17,4 +18,7 @@ export const routes: RouteRecord[] = [
   { path: '/text', element: <TextOnly /> },
   { path: '/links', element: <LinkArchive /> },
   { path: '/about', element: <About /> },
+  // /arcade -> the touch-first Pizza Run minigame (the mobile reward). A real,
+  // crawlable route; the live canvas game is a post-hydration enhancement.
+  { path: '/arcade', element: <Arcade /> },
 ];

@@ -1,0 +1,187 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   /arcade — the Pizza Arcade cabinet. A dark CRT-cabinet shell that frames the
+   touch-first Pizza Run runner. Period-flavored but deliberately simple: the
+   joke is a goofy late-90s "GAMES!" page, not a polished modern game UI. Mobile
+   is the headline use, so everything is touch-sized and fills the small screen.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.arcade-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 12px 12px 28px;
+  background: #06060b;
+  color: #cfe9ef;
+  font: 13px/1.5 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.arcade-util {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+}
+.arcade-util a {
+  color: #8aa0ff;
+}
+
+/* The cabinet body */
+.arcade-cabinet {
+  width: 100%;
+  max-width: 460px;
+  background: #14141f;
+  border: 2px solid #2b2b3d;
+  border-radius: 14px 14px 8px 8px;
+  box-shadow: inset 0 0 0 2px #0b0b12, 0 8px 24px rgba(0, 0, 0, 0.6);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.arcade-marquee {
+  text-align: center;
+  padding: 8px 6px;
+  background: linear-gradient(#1d1430, #120c20);
+  border: 1px solid #3a2b5a;
+  border-radius: 6px;
+}
+.arcade-marquee__neon {
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #ff7ad9;
+  text-shadow: 0 0 6px #ff3cc0, 0 0 12px #b02890;
+}
+
+/* The screen + game */
+.arcade-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.arcade-hud {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9aa0c0;
+  padding: 0 2px;
+}
+
+.arcade-stage {
+  position: relative;
+  width: 100%;
+  background: #0b0b12;
+  border: 1px solid #20303a;
+  border-radius: 4px;
+  overflow: hidden;
+  /* keep the CRT screen aspect close to the 320×180 logical canvas */
+  aspect-ratio: 320 / 180;
+}
+.arcade-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.arcade-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  background: rgba(6, 6, 11, 0.72);
+  padding: 10px;
+  pointer-events: none; /* taps fall through to the canvas */
+}
+.arcade-title {
+  margin: 0;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #ffcf4d;
+}
+.arcade-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #9fb6bd;
+}
+.arcade-sub a {
+  color: #8aa0ff;
+}
+.arcade-blink {
+  margin: 4px 0 0;
+  color: #37e0a0;
+  font-weight: bold;
+  animation: arcadeBlink 1s steps(1, end) infinite;
+}
+@keyframes arcadeBlink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .arcade-blink {
+    animation: none;
+  }
+}
+
+/* The big touch button — the whole screen also jumps, but a labeled control
+   makes the affordance obvious on a phone. */
+.arcade-jump {
+  appearance: none;
+  margin-top: 2px;
+  padding: 14px;
+  width: 100%;
+  font: bold 16px 'Courier New', monospace;
+  letter-spacing: 2px;
+  color: #06060b;
+  background: #37e0a0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.arcade-jump:active {
+  background: #2bbf86;
+}
+
+.arcade-coinslot {
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #5b6675;
+}
+
+/* No-JS / pre-hydration cold screen */
+.arcade-screen--cold {
+  min-height: 180px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+}
+
+.arcade-foot {
+  max-width: 460px;
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #7a8290;
+}
+.arcade-foot--copy {
+  color: #4a5160;
+}
