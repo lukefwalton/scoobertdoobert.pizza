@@ -82,12 +82,6 @@ export function HallwayRoom({ room }: { room: Room }) {
           <planeGeometry args={[1.1, 2.4]} />
         </mesh>
       ))}
-
-      {/* a blank EMPLOYEES-ONLY-ish panel at the far (-Z) end: where the music is
-          coming from. The door that opens it lands next checkpoint. */}
-      <mesh material={signMat} position={[0, 2.1, -D + 0.12]}>
-        <planeGeometry args={[2.2, 0.7]} />
-      </mesh>
     </group>
   );
 }

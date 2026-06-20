@@ -6,6 +6,7 @@ import { roomById, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
+import { JukeboxRoom } from './JukeboxRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
 
@@ -33,6 +34,8 @@ function RoomScene({ room }: { room: Room }) {
   switch (room.kind) {
     case 'hallway':
       return <HallwayRoom room={room} />;
+    case 'jukebox':
+      return <JukeboxRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;

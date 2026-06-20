@@ -381,9 +381,17 @@ swim) and back. Doors = `src/world/Doors.tsx` (proximity prompt + E/click →
 `goToRoom` → black-wipe fade → `commitRoom` swaps the room behind the black →
 camera re-spawns). `Controls` is room-aware (clamps to the current room, respawns
 per door). Per-room fog/bg in `World.tsx` (`RoomEnvironment`). Quiet `.hud-room`
-label. Smoke: `npm run shoot:rooms` (shop→hall→shop). ⬜ ckpt2 jukebox room
-(PositionalAudio swell) · ⬜ ckpt3 the rat (boids guide) · ⬜ ckpt4 the secret
-(rat knocks panel → classified room) · ⬜ ckpt5 mobile + README.
+label. Smoke: `npm run shoot:rooms` (shop→hall→jukebox).
+✅ **ckpt2 jukebox room + the music swell.** Third room at the end of the hall
+(`src/world/JukeboxRoom.tsx`): warm/dim magenta shrine, a glowing low-poly
+jukebox + the MTV-M2 "WHAT DO YOU / WANT TO HEAR?" marquee (`makeTextTexture`).
+The music payoff is REAL now without new assets: the engine gained a proximity
+duck (`audio.setProximityGain`, composed with mute) and the jukebox room drives
+it from camera distance, so the site's song (the boot loop) swells as you cross
+the room to the jukebox and fades as you leave. The drei `<PositionalAudio>` +
+real-catalog swap drops in here later (the hook is `JUKEBOX_POS` + the room's
+`JukeboxAudio`). ⬜ ckpt3 the rat (boids guide down the hall) · ⬜ ckpt4 the
+secret (rat knocks panel → classified room) · ⬜ ckpt5 mobile + README.
 
 ### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
 - The era FLOORS are universal — responsive pages; descend on any device (the
