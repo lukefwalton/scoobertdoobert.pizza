@@ -7,21 +7,25 @@ import { useMounted } from '../lib/useMounted';
 export function MuteToggle() {
   const mounted = useMounted();
   const muted = useAudioStore((s) => s.muted);
+  const ready = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
 
   if (!mounted) return null;
 
+  // Disabled until the track is decoded — you can't enable music that isn't
+  // loaded, and if it never loads the control never lights up.
   return (
     <button
       type="button"
       className="mute-toggle"
       aria-pressed={!muted}
+      disabled={!ready}
       onClick={() => {
         audio.unlock();
         toggleMute();
       }}
     >
-      ♪ music: {muted ? 'off' : 'on'}
+      ♪ music: {!ready ? 'loading…' : muted ? 'off' : 'on'}
     </button>
   );
 }

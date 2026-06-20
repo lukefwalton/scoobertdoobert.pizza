@@ -3,20 +3,17 @@ import { audio } from '../audio/engine';
 import { useAudioStore } from '../state/audioStore';
 
 // Wires audio on EVERY client load, not just the first-boot path. Syncs the
-// persisted mute preference and starts the degraded-MIDI loop on the first user
-// gesture when unmuted. This is why a same-session reload with music still "on"
-// comes back with sound: the boot card may be skipped, but audio bootstrap is
-// not. Renders nothing.
+// persisted mute preference, lazy-loads the boot track, and unlocks the audio
+// context on the first user gesture. The loop starts itself once it's both
+// unlocked and decoded (engine.maybeStart), so order doesn't matter. Renders
+// nothing.
 export function AudioBootstrap() {
   useEffect(() => {
     audio.muted = useAudioStore.getState().muted;
-    // Warm the boot-track network immediately (no gesture needed) so the loop
-    // starts on the real song, not a synth note, the moment audio unlocks.
-    audio.prefetchTrack();
-    const unlock = () => {
-      audio.unlock();
-      if (!useAudioStore.getState().muted) audio.startBootLoop();
-    };
+    // Lazy-load + decode the track in the background (no gesture needed). The
+    // music toggle stays disabled until this resolves; if it fails, no music.
+    void audio.preload().then((ok) => useAudioStore.getState().setReady(ok));
+    const unlock = () => audio.unlock();
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
     return () => {

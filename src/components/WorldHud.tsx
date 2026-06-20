@@ -18,6 +18,7 @@ export function WorldHud() {
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
   const muted = useAudioStore((s) => s.muted);
+  const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
 
   useEffect(() => {
@@ -85,12 +86,13 @@ export function WorldHud() {
               </ul>
               <div className="hud-pause__actions">
                 <button
+                  disabled={!audioReady}
                   onClick={() => {
                     audio.unlock();
                     toggleMute();
                   }}
                 >
-                  ♪ music: {muted ? 'off' : 'on'}
+                  ♪ music: {!audioReady ? 'loading…' : muted ? 'off' : 'on'}
                 </button>
                 <button onClick={() => setPaused(false)}>Resume</button>
                 <button
