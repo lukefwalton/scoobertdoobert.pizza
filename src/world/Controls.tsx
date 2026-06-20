@@ -1,28 +1,57 @@
 import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ROOM } from './constants';
+import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 
-// True when a modal overlay (pause menu or hotspot dialog) should freeze input.
+// True when a modal overlay (pause / hotspot dialog) or a room transition should
+// freeze input. `transitioning` covers the WHOLE door wipe (fade-out + commit +
+// fade-in), so you can't walk or look during the reveal half, not just until the
+// swap.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
-  return st.paused || st.openHotspot !== null;
+  return st.paused || st.openHotspot !== null || st.transitioning;
 }
 
-// First-person look + move. Drag to look (no pointer-lock, so it never traps the
-// cursor and works fine for screenshots + the pause menu), WASD / arrows to walk,
-// clamped to the room interior so you can't pass through the window wall.
+// First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
+// never traps the cursor and works for screenshots + menus), WASD / arrows to
+// walk, clamped to the CURRENT room's interior. Re-spawns the camera whenever the
+// room (or arrival spawn) changes — i.e. after stepping through a door.
 export function Controls() {
   const { camera, gl } = useThree();
-  const yaw = useRef(Math.PI); // face -Z (the window) on spawn
+  const currentRoom = useSceneStore((s) => s.currentRoom);
+  const currentSpawn = useSceneStore((s) => s.currentSpawn);
+
+  const yaw = useRef(Math.PI);
   const pitch = useRef(-0.04);
   const keys = useRef<Record<string, boolean>>({});
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  // Current room half-extents, read each frame for the clamp.
+  const dims = useRef(roomById(currentRoom).dims);
+
+  // Re-spawn on room / spawn change (initial mount included). This is what makes
+  // a door feel like a door: you arrive at the target's spawn, facing its way.
+  useEffect(() => {
+    const room = roomById(currentRoom);
+    dims.current = room.dims;
+    const spawn = room.spawns[currentSpawn] ?? room.spawns.default;
+    camera.position.set(spawn.position[0], spawn.position[1], spawn.position[2]);
+    yaw.current = spawn.yaw;
+    pitch.current = -0.04;
+    // Apply the heading NOW, not just in useFrame() — useFrame returns early
+    // while `transitioning`, so without this the camera would keep its old
+    // facing through the whole fade-in and snap to the spawn heading only when
+    // the freeze lifts (visible on doors where arrival ≠ approach heading).
+    const dir = new THREE.Vector3(
+      Math.sin(yaw.current) * Math.cos(pitch.current),
+      Math.sin(pitch.current),
+      Math.cos(yaw.current) * Math.cos(pitch.current),
+    );
+    camera.lookAt(camera.position.x + dir.x, camera.position.y + dir.y, camera.position.z + dir.z);
+  }, [currentRoom, currentSpawn, camera]);
 
   useEffect(() => {
-    camera.position.set(0, ROOM.eye, ROOM.halfD - 1.5);
     const el = gl.domElement;
     const down = (e: PointerEvent) => {
       if (inputFrozen()) return;
@@ -56,7 +85,7 @@ export function Controls() {
       window.removeEventListener('keydown', kd);
       window.removeEventListener('keyup', ku);
     };
-  }, [camera, gl]);
+  }, [gl]);
 
   useFrame((_, delta) => {
     // Expose camera position for automated "pause freezes input" checks.
@@ -64,7 +93,6 @@ export function Controls() {
       x: camera.position.x,
       z: camera.position.z,
     };
-    // Pause menu / hotspot dialog are modal: no movement or look underneath them.
     if (inputFrozen()) return;
     const speed = 6 * Math.min(delta, 0.05);
     const k = keys.current;
@@ -78,9 +106,10 @@ export function Controls() {
     camera.position.x += (fx * fwd + rx * strafe) * speed;
     camera.position.z += (fz * fwd + rz * strafe) * speed;
 
-    camera.position.x = Math.max(-ROOM.halfW + 0.6, Math.min(ROOM.halfW - 0.6, camera.position.x));
-    camera.position.z = Math.max(ROOM.frontZ + 0.9, Math.min(ROOM.halfD - 0.6, camera.position.z));
-    camera.position.y = ROOM.eye;
+    const d = dims.current;
+    camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
+    camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
+    camera.position.y = d.eye;
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

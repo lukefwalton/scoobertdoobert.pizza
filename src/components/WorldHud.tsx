@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
+import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { audio } from '../audio/engine';
@@ -30,6 +31,12 @@ export function WorldHud() {
   const near = useSceneStore((s) => s.nearHotspot);
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
+  const nearDoor = useSceneStore((s) => s.nearDoor);
+  const pendingRoom = useSceneStore((s) => s.pendingRoom);
+  const transitioning = useSceneStore((s) => s.transitioning);
+  const currentRoom = useSceneStore((s) => s.currentRoom);
+  const commitRoom = useSceneStore((s) => s.commitRoom);
+  const endTransition = useSceneStore((s) => s.endTransition);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
@@ -76,16 +83,50 @@ export function WorldHud() {
     };
   }, [typed]);
 
+  // A door was activated: the screen is fading to black — commit the room swap at
+  // the midpoint (behind the black) so the geometry change is never seen, then
+  // the overlay fades back up on the new room.
+  // The door wipe runs in two halves: fade-out → commit (swap behind the black)
+  // → fade-in. Input stays frozen (transitioning) for BOTH halves, not just
+  // until the commit, so you can't walk/look/pause during the reveal.
+  useEffect(() => {
+    if (!transitioning) return;
+    // Reduced-motion gets no black pause (the CSS fade is disabled for them).
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const fade = reduced ? 0 : ROOM_FADE_MS;
+    const tCommit = window.setTimeout(() => commitRoom(), fade);
+    const tEnd = window.setTimeout(() => endTransition(), fade * 2 + 20);
+    return () => {
+      window.clearTimeout(tCommit);
+      window.clearTimeout(tEnd);
+    };
+  }, [transitioning, commitRoom, endTransition]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Ignore auto-repeat from a held key: one press = one action. Without this
+      // a held E re-fires after the fade clears and can bounce you straight back
+      // through the door you just used.
+      if (e.repeat) return;
       const st = useSceneStore.getState();
+      // No input during the door wipe (E or Esc) — modal for the full fade.
+      if (st.transitioning) return;
       if (e.key === 'Escape') {
         if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
-      if ((e.key === 'e' || e.key === 'E') && st.nearHotspot && !st.openHotspot && !st.paused) {
-        st.openHotspotDialog(st.nearHotspot);
+      if (e.key === 'e' || e.key === 'E') {
+        if (st.paused || st.openHotspot) return;
+        // A door takes priority over a hotspot if you're somehow near both.
+        if (st.nearDoor) {
+          audio.unlock();
+          st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+        } else if (st.nearHotspot) {
+          st.openHotspotDialog(st.nearHotspot);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -124,7 +165,19 @@ export function WorldHud() {
         </div>
       )}
 
-      {nearHs && !open && !paused && <div className="hud-prompt">{nearHs.prompt}</div>}
+      {!pendingRoom && (
+        <div className="hud-room" aria-hidden="true">
+          {roomById(currentRoom).title}
+        </div>
+      )}
+
+      {nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
+      )}
+
+      {nearHs && !nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt">{nearHs.prompt}</div>
+      )}
 
       {openDest && (
         <div className="hud-dialog window" role="dialog" aria-label={openDest.label}>
@@ -189,6 +242,15 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {/* room-to-room transition: black wipe that hides the geometry swap. The
+          fade duration is single-sourced from ROOM_FADE_MS (also the commit
+          timer above) via a CSS custom property. */}
+      <div
+        className={`hud-fade${pendingRoom ? ' hud-fade--cover' : ''}`}
+        aria-hidden="true"
+        style={{ ['--room-fade-ms' as string]: `${ROOM_FADE_MS}ms` }}
+      />
     </>
   );
 }
