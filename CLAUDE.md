@@ -231,9 +231,11 @@ floors slot in without touching scene code.
       water, DEGRADED to PS1 (vertex snap, affine floor, ordered dither, fog,
       low-res). Window to the sea, pizza-slice school, FP drag-look + WASD, leva
       panel (?debug). Lazy-loaded chunk — initial bundle stays three-free. ✓
-- [ ] **5. Boids establishing shot + three hotspots.** Reskinned boids out the
-      window; jukebox→Listen, window→Videos, counter→About via hotspots.ts.
-      Pause menu (Esc) overlays the full links.ts list as real anchors.
+- [x] **5. Boids establishing shot + three hotspots.** Pizza-slice school out
+      the window; jukebox→Listen, window→Videos, counter→About via hotspots.ts
+      (proximity prompt + E/click → 98.css dialog w/ real anchor). Pause menu
+      (Esc) overlays the full links.ts list as real anchors + mute + exit. ✓
+      (PositionalAudio jukebox deferred — wiring in, real catalog audio later.)
 - [ ] **6. Mobile + reduced-motion fallback.** Skip descent/3D; storefront +
       destination card list.
 - [ ] **7. README.** Run/deploy, where links + hotspots live, asset/licensing.

@@ -19,7 +19,7 @@ import { useSceneStore } from '../state/sceneStore';
 // left alone and just navigates to /text (the step-6 fallback).
 // ───────────────────────────────────────────────────────────────────────────
 
-type Phase = 'idle' | 'aging' | 'crash' | 'prompt' | 'installing' | 'cut' | 'reveal';
+type Phase = 'idle' | 'aging' | 'crash' | 'prompt' | 'installing' | 'cut' | 'reveal' | 'error';
 
 const STATUS_LINES = [
   'Reticulating crusts…',
@@ -31,7 +31,7 @@ const STATUS_LINES = [
   'Calibrating reverb…',
 ];
 
-const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing'];
+const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing', 'error'];
 
 export function Descent() {
   const [phase, setPhase] = useState<Phase>('idle');
@@ -68,10 +68,20 @@ export function Descent() {
       return () => window.clearTimeout(t);
     }
     if (phase === 'installing') {
-      // The actual download behind the gag: warm the three.js World chunk.
-      void import('../world/World').then(() => {
-        worldReady.current = true;
-      });
+      // The actual download behind the gag: warm the three.js World chunk. If it
+      // rejects (chunk 404 / offline), bail to an error dialog instead of
+      // sitting at 100% forever.
+      let failed = false;
+      void import('../world/World').then(
+        () => {
+          worldReady.current = true;
+        },
+        (err) => {
+          failed = true;
+          console.error('Calzone Player (World chunk) failed to load:', err);
+          setPhase('error');
+        },
+      );
       let p = 0;
       let li = 0;
       const tick = window.setInterval(() => {
@@ -86,7 +96,15 @@ export function Descent() {
           setPhase('cut');
         }
       }, 180);
-      return () => window.clearInterval(tick);
+      // Safety: if the chunk never resolves, don't strand the user on the fake
+      // installer.
+      const bail = window.setTimeout(() => {
+        if (!worldReady.current && !failed) setPhase('error');
+      }, 15000);
+      return () => {
+        window.clearInterval(tick);
+        window.clearTimeout(bail);
+      };
     }
     if (phase === 'cut') {
       audio.pitchBendDown(1600, 0.4);
@@ -166,6 +184,29 @@ export function Descent() {
               <div className="descent__bar" style={{ width: `${progress}%` }} />
             </div>
             <p className="descent__fine">{Math.floor(progress)}% complete</p>
+          </div>
+        </div>
+      )}
+
+      {phase === 'error' && (
+        <div className="descent__dialog window" role="alertdialog" aria-label="Install failed">
+          <div className="title-bar">
+            <div className="title-bar-text">Calzone Player&trade; Setup</div>
+          </div>
+          <div className="window-body">
+            <p>Calzone Player&trade; could not be installed. The oven may be offline.</p>
+            <p className="descent__fine">You can still browse the flat menu.</p>
+            <div className="descent__btnrow">
+              <button onClick={() => window.location.assign('/text')}>View text menu</button>
+              <button
+                onClick={() => {
+                  setPhase('idle');
+                  setProgress(0);
+                }}
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       )}

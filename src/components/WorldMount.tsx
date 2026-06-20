@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react';
 import { Leva } from 'leva';
 import { useMounted } from '../lib/useMounted';
 import { useSceneStore } from '../state/sceneStore';
+import { WorldHud } from './WorldHud';
 import '../styles/world.css';
 
 // The 3D world lives behind a dynamic import, so three.js is a separate chunk
@@ -13,7 +14,7 @@ export function WorldMount() {
   const mounted = useMounted();
   const active = useSceneStore((s) => s.worldActive);
   const enter = useSceneStore((s) => s.enterWorld);
-  const exit = useSceneStore((s) => s.exitWorld);
+  const setPaused = useSceneStore((s) => s.setPaused);
 
   const debug =
     mounted &&
@@ -36,13 +37,14 @@ export function WorldMount() {
       {active && (
         <Suspense fallback={<div className="world-loading">entering&hellip;</div>}>
           <World />
+          <WorldHud />
           <button
             type="button"
-            className="world-exit"
-            onClick={() => exit()}
-            aria-label="Exit to storefront"
+            className="hud-menu-btn"
+            onClick={() => setPaused(true)}
+            aria-label="Open menu"
           >
-            ✕ exit
+            &#9776; menu (Esc)
           </button>
         </Suspense>
       )}
