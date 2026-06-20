@@ -2,7 +2,7 @@ import { SampleMenu } from '../components/SampleMenu';
 import { SocialLinks } from '../components/SocialLinks';
 import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
-import { destById, type Dest } from '../data/links';
+import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
@@ -20,14 +20,14 @@ import { FloorDoor } from './FloorDoor';
 export function PlainFloor({ floor }: { floor: Floor }) {
   // The "inside scoop" points at the podcast (the behind-the-scenes talk show),
   // not at lukefwalton.com — that stays a subtle footer/schema backlink.
-  const insideScoop = destById('podcast')?.href ?? '/text';
-  const dests = floor.links.map((id) => destById(id)).filter(Boolean) as Dest[];
+  const insideScoop = destById('podcast')?.href ?? TEXT_ONLY_PATH;
+  const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
 
   return (
-    <div className="store">
+    <div className="store" data-floor={floor.id}>
       <p className="util">
-        <a href="/text">text only version of this page</a>
+        <a href={TEXT_ONLY_PATH}>text only version of this page</a>
         <MuteToggle />
       </p>
 
@@ -103,6 +103,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           <p className="slogan">
             <b>The Best Songs Under One Roof!&trade;</b> &nbsp; Lo-Fi &bull; Hi-Fi
             &bull; Stuffed Crust
+          </p>
+          <p className="recipe">
+            <a href="/about">Our Secret Recipe &raquo;</a>
           </p>
         </section>
       </main>

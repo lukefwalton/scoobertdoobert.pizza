@@ -165,10 +165,27 @@ export const MENU_DESTINATIONS = DESTINATIONS.filter((d) => d.group !== 'social'
 /** Secondary platform links for the compact social row. */
 export const SOCIAL_DESTINATIONS = DESTINATIONS.filter((d) => d.group === 'social');
 
-/** The flat fallback page. Its own in-site route, linked from the corner. */
+/** The flat text-only fallback route — the canonical "no JS / mobile / reduced
+ *  motion / install-unavailable" destination. Use this constant rather than
+ *  hardcoding the path so the branches can't drift. */
 export const TEXT_ONLY_PATH = '/text';
 
 /** Convenience lookup used by the storefront news blurb + later hotspots. */
 export function destById(id: string): Dest | undefined {
   return DESTINATIONS.find((d) => d.id === id);
+}
+
+/**
+ * Resolve a floor/room's `links` (Dest ids) to real destinations. Unknown ids
+ * are dropped, but warned about in dev so a typo in FLOORS/ROOMS surfaces
+ * instead of silently rendering a short nav.
+ */
+export function resolveLinks(ids: string[]): Dest[] {
+  const out: Dest[] = [];
+  for (const id of ids) {
+    const d = destById(id);
+    if (d) out.push(d);
+    else if (import.meta.env?.DEV) console.warn(`[links] unknown link id: "${id}"`);
+  }
+  return out;
 }

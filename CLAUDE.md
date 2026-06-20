@@ -298,3 +298,112 @@ floors slot in without touching scene code.
   `legacy/`. The loose source media should nest (e.g. `media/masters/`,
   `media/photos/`) once #4 merges — doing it from this divergent branch risks
   add/add duplicates. `fun/` (half-built JS music apps) is its own later PR.
+
+---
+
+## LONG-RUNNING BUILD — roadmap, principles, loop (Luke, 2026-06-20)
+
+Mode: **long-running**. Drive autonomously, one PR per chunk, use the Surmado
+review bot as the feedback loop. Don't stop at every checkpoint for sign-off.
+
+### The review-bot loop (operational)
+- The bot runs ~3 min after a push and **edits its single comment in place** — it
+  does NOT post a new comment, so **webhooks won't fire for the edit. Don't rely
+  on webhooks.** After pushing: do other work (or a background timer — foreground
+  `sleep` is blocked here), then **re-fetch the PR comment via the GitHub API**
+  (`pull_request_read` get_comments / the issue comment) and act on it.
+- Known recurring false positive: the bot flags `/PIZZA.png` as a 404 because its
+  diff is truncated; the file IS in `public/` → `dist/`. Ignore it.
+
+### Phase roadmap (build in order; each its own branch + PR)
+- **Phase 2 (finishing now):** era floors between storefront and world.
+  - ✅ ckpt1 floors system; ✅ ckpt2 descent mechanic + doors + entry rewire.
+  - ⬜ ckpt3 **1999 starburst** floor + **SGI machine room** (parody "Silicon
+    Slice"/"Pizza Graphics Workstation", starfield, chrome word-art, comet
+    pizza-guy; corner CRT showing a mini live render of water+boids; the Calzone
+    install RELOCATES here; on complete the camera pushes through the CRT into
+    the beach shop). ⬜ ckpt4 **2000 table-layout** floor (two gags only:
+    section-gate fork + pizza-box image map). ⬜ ckpt5 README.
+- **Phase 3 — THE WORLD GROWS:** rooms system (`src/data/rooms.ts`, `currentRoom`).
+  beach shop (=ROOMS[0]) → **rat hallway** (3D-Maze red brick, corridor not maze)
+  → **jukebox room** (the music payoff: real catalog via drei `<PositionalAudio>`
+  swelling on approach; MTV-M2 "what do you want to hear?" voice). The **rat** =
+  one boids agent (seek waypoint ahead / flee when close) that guides, then knocks
+  a blank wall panel → the ONE secret: a hidden door to a tiny "classified" room
+  (X-Files file-room: rejected demos). **3D doors are the room exits** (same
+  metaphor as the floor doors — doors all the way down). The shop's old jukebox
+  hotspot becomes a doorway/signpost toward the hallway (ONE music destination).
+- **Phase 4 — THE TERMINAL (my pick):** a hidden SGI/X-Files command line
+  (machine room and/or a `/` console). Real commands, dead-web flavor. Some
+  commands become Phase 5 unease triggers.
+- **Phase 5 — DEEPER IN (dread conductor):** a single `unease` 0→1 (`src/data/
+  dread.ts`) rising with depth/dwell/triggers, decaying in safe zones, that
+  MODULATES existing systems — sub-bass dread bed FIRST (felt not heard), then
+  PS1 shader uniforms→worse, fog closes in, camera bob/shake/vignette, the rat
+  TURNS (same agent, inverted boids), and ONE set-piece: the machine-room CRT
+  renders the player (faked render-to-texture). Modulation, not new systems.
+  **TASTE GUARDRAIL (hard):** funny-uncanny not traumatic; surface zones
+  (storefront/jukebox) stay safe + goofy; the contrast is the whole effect;
+  **NEVER real camera/mic** (the "sees you" beat is faked); restraint is the craft.
+- **Post-loop: wire up / borrow from `fun/`** (git submodule — half-built JS music
+  apps). Init the submodule first; borrow tastefully.
+
+### Aesthetic principles (apply everywhere)
+- **A MEMORY of the 90s/2000s, not the time itself** — hazy, dreamlike, wrong.
+- **Imperfection is the ideal. It's backrooms.** Degrade on purpose.
+- **Pristine GLBs beside crunched ones** — the contrast is the vibe. PS1 the lot
+  (vertex snap, affine, ≤128px NearestFilter, fog).
+- **Doors everywhere** are the connective tissue (flat floors + 3D rooms alike).
+- **Möbius motif** threaded in to plug Luke's album "Mobius".
+- **Open-source/copyleft is welcome** (Luke OK'd GPL/public). Credit in
+  `THIRD_PARTY_NOTICES.md`, keep isolated, **never lift proprietary assets**.
+
+### GLB asset troves on `main` (source, optimize before shipping)
+`newglb/` (vaporwave-Greek: sofokles vaporwave, underwater broken statue, Hades
+head, columns, lyre, kiddie pool, palms, vaporwave mountains, arcade cabinet),
+möbius glbs, `legacy/julius_caesar.glb` (the "bust"). Crunch via `gltf-transform`
+to PS1 fidelity; only optimized derivatives go in `public/models/`. Bust → beach
+shop counter; vaporwave-Greek → the level below the shop (Phase 3+).
+
+### Phase 2 status (2026-06-20)
+✅ ckpt1 floors system · ✅ ckpt2 doors + descent mechanic · ✅ ckpt3 1999
+starburst + SGI machine room (install relocated here, live CRT render of
+water+boids, lazy three) · ✅ ckpt4 2000 table floor (section gate + pizza image
+map) · ✅ ckpt5 README → **Phase 2 done.**
+
+### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
+- The era FLOORS are universal — responsive pages; descend on any device (the
+  rot transition is instant under reduced-motion). The descent through web
+  history works on a phone.
+- The 3D WORLD is the one "less feature" mobile skips: the machine-room CRT live
+  render (WebGL) is NOT mounted on mobile/reduced-motion, and Install hands off
+  to /text instead of the 3D world. Desktop + motion-OK gets the full world.
+
+### New asset direction (Luke, merged to main — for later levels)
+- **Animatronic-horror GLBs** → the LOWER / dread levels (Phase 5: the rat
+  turns, the machine sees you). Save for depth; the surface stays goofy.
+- **A pool level** (the kiddie-pool GLB) → a room/level idea for Phase 3+.
+
+### TODO — the plain /about page (Luke)
+A normal, crawlable page (the thing a search engine sees) at /about that tells
+the Scoobert Doobert story PLAINLY; linked as "Our Secret Recipe →". Inform the
+copy from lukefwalton.com/music/#scoobert, lukefwalton.com/love-music-more/, and
+lovemusicmore.substack.com (research before writing).
+
+### More level GLBs on main (Luke — for the levels below the shop)
+- **`couldbewholelevels/`** — full liminal/backrooms/pool environments:
+  abandoned_pool, backrooms_vr, dreamcore_liminal_space, liminal_space (+other),
+  metro_tunnel, pool_5/6, poolrooms — the "pool level" + backrooms direction for
+  Phase 3+. Plus a standalone 3D **door** GLB (perfect for the room exits).
+  **NOTE: `max_and_ruby_house.glb` is copyrighted Nickelodeon IP** — flag before
+  any public use; the rest are generic liminal aesthetics (fine).
+
+### Doom / Freedoom shrine — copyleft protections (Luke asked)
+Still on, as a hidden lazy route (Phase 3+ secret). When built it needs:
+- **Freedoom (BSD) assets ONLY** — never id's original Doom WADs / sprites /
+  sounds / music. (Or a cursed home-made pizza WAD.)
+- Engine/port lineage is **GPL — fine** (Luke OK'd GPL/public for this repo).
+- Add **`THIRD_PARTY_NOTICES.md`** crediting id Software (engine lineage), the
+  WASM/Chocolate-Doom port authors, and Freedoom (content + copyright).
+- Keep it **isolated** behind the lazy route; never mix GPL/Doom code into
+  reusable Surmado/business code. Build the protections WITH the shrine.

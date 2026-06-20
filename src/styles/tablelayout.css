@@ -1,0 +1,156 @@
+/* tablelayout.css — the 2000 floor. Sliced-GIF brand bar, beveled gradient
+   buttons, a centered table layout, silver chrome. Two gags: the section gate
+   and the pizza image map. A memory of 2000. */
+
+.tl {
+  min-height: 100vh;
+  background: #b9c0c9 linear-gradient(180deg, #cdd4dc 0%, #aab2bd 100%);
+  color: #11203a;
+  font-family: Verdana, Geneva, Arial, sans-serif;
+  padding-bottom: 48px;
+}
+
+/* sliced-GIF brand bar — segmented color strip + embossed name */
+.tl__brandbar {
+  position: relative;
+  display: flex;
+  height: 46px;
+  border-bottom: 2px solid #3a4a66;
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.25);
+}
+.tl__brandbar-slice {
+  flex: 1 1 auto;
+  background: linear-gradient(180deg, #3f6fd4, #1c3f8f);
+}
+.tl__brandbar-slice:nth-child(2n) {
+  background: linear-gradient(180deg, #d44, #9c1c1c);
+}
+.tl__brandbar-slice:nth-child(3n) {
+  background: linear-gradient(180deg, #e8b23a, #b6831a);
+}
+.tl__brandbar-name {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #ffffff;
+  text-shadow: 1px 1px 0 #000, 0 0 8px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.02em;
+}
+
+.tl__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 18px auto 0;
+  width: min(680px, 92vw);
+  background: #d7dce3;
+  border: 3px outset #eef1f5;
+}
+.tl__cell {
+  border: 2px groove #b6bdc7;
+  padding: 16px 18px;
+  vertical-align: top;
+}
+.tl__h {
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  color: #1c3f8f;
+}
+
+/* gag 1 — section gate */
+.tl__gate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.tl__btn {
+  font-family: Verdana, Arial, sans-serif;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #11203a;
+  padding: 10px 18px;
+  cursor: inherit;
+  border: 2px solid #6b7686;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #fbfdff 0%, #d3dae3 48%, #aeb8c6 52%, #ccd4de 100%);
+  box-shadow: inset 0 1px 0 #ffffff, 0 2px 3px rgba(0, 0, 0, 0.3);
+}
+.tl__btn:active {
+  background: linear-gradient(180deg, #aeb8c6 0%, #ccd4de 100%);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+.tl__fine {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #4a5568;
+}
+
+/* gag 2 — pizza image map */
+.tl__pizzawrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+}
+.tl-pizza {
+  width: 220px;
+  height: 220px;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+.tl-pizza__crust {
+  fill: #d99a3a;
+  stroke: #8a5a18;
+  stroke-width: 3;
+}
+.tl-slice path {
+  stroke: #b5701f;
+  stroke-width: 1.5;
+  transition: filter 0.12s ease;
+}
+.tl-slice--0 path {
+  fill: #f0c674;
+}
+.tl-slice--1 path {
+  fill: #e7b14e;
+}
+.tl-slice:hover path,
+.tl-slice:focus path {
+  filter: brightness(1.12) drop-shadow(0 0 4px rgba(255, 60, 40, 0.8));
+}
+.tl-slice__num {
+  fill: #7a1f12;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  text-anchor: middle;
+  pointer-events: none;
+}
+.tl__legend {
+  margin: 0;
+  padding-left: 1.4em;
+  font-size: 0.9rem;
+}
+.tl__legend li {
+  margin: 3px 0;
+}
+.tl__legend a {
+  color: #0a2f8f;
+}
+
+.tl__doors {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 22px;
+}
+
+@media (max-width: 520px) {
+  .tl__pizzawrap {
+    justify-content: center;
+  }
+}

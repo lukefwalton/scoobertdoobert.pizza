@@ -30,6 +30,9 @@ export default function TextOnly() {
       <h1>Scoobert Doobert &mdash; Text-Only Menu</h1>
       <p>Everything on this site, flat. No images, no scripts, no plug-ins.</p>
       <p>
+        New here? Read <a href="/about">the story (Our Secret Recipe)</a>.
+      </p>
+      <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>
       </p>
 
