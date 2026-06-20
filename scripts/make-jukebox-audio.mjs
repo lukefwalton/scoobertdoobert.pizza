@@ -14,13 +14,13 @@ const TARGET_SR = 11025;
 const LOOP_SECONDS = 18;
 const OUT_DIR = 'public/audio/jukebox';
 
-// master filename in media/masters/ -> output slug (must match src/data/jukebox.ts)
-const TRACKS = [
-  { file: '09 Jolly Roger Bay (64).mp3', slug: 'jolly-roger-bay' },
-  { file: '05 Information.mp3', slug: 'information' },
-  { file: '21 1101.mp3', slug: '1101' },
-  { file: 'bestdayeverRKmaster.mp3', slug: 'best-day-ever' },
-];
+// Single source of truth for the catalog (shared with src/data/jukebox.ts), so a
+// slug can't drift between what we render here and what the app asks for. Each
+// row: { slug, title, source } — `source` is the master in media/masters/, `slug`
+// is the output filename. (`title` is the app's concern; ignored here.)
+const TRACKS = JSON.parse(readFileSync(new URL('../src/data/jukebox.catalog.json', import.meta.url))).map(
+  ({ source, slug }) => ({ file: source, slug }),
+);
 
 const browser = await chromium.launch();
 const page = await browser.newPage();

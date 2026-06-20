@@ -30,8 +30,10 @@ class PizzaAudio {
   // track. When set, it overrides trackBuffer; cleared (restoreBoot) on leaving.
   private activeBuffer?: AudioBuffer;
   private jukeboxActive = false;
-  private jukeboxCache = new Map<string, AudioBuffer>(); // decoded catalog tracks
-  private jukeboxGen = 0; // rapid-cycle guard: only the latest selection wins
+  // Per-URL decode promises (in-flight or resolved), so preloadJukebox and the
+  // initial playJukeboxTrack share ONE decode of a track instead of racing two.
+  private jukeboxLoads = new Map<string, Promise<AudioBuffer | undefined>>();
+  private jukeboxGen = 0; // cancels stale selections: only the latest one wins
   private source?: AudioBufferSourceNode;
   private started = false;
   private unlocked = false;
@@ -189,57 +191,77 @@ class PizzaAudio {
   // duck + mute keep applying, so the selected track still swells as you cross
   // the room to the cabinet.
 
+  /** Decode a catalog track, deduped per URL: concurrent callers (preload + the
+   *  initial select) share one decode/promise. A failed load is evicted so a
+   *  later attempt can retry. */
+  private decodeJukebox(url: string): Promise<AudioBuffer | undefined> {
+    let p = this.jukeboxLoads.get(url);
+    if (!p) {
+      p = this.decodeUrl(url);
+      this.jukeboxLoads.set(url, p);
+      void p.then((buf) => {
+        if (!buf) this.jukeboxLoads.delete(url);
+      });
+    }
+    return p;
+  }
+
   /** Warm the cache by decoding the given track urls up front (on entering the
    *  jukebox room) so click-to-cycle is instant. Best-effort; a miss just falls
    *  back to decode-on-select. */
   async preloadJukebox(urls: string[]): Promise<void> {
-    await Promise.all(
-      urls.map(async (url) => {
-        if (this.jukeboxCache.has(url)) return;
-        const buf = await this.decodeUrl(url);
-        if (buf) this.jukeboxCache.set(url, buf);
-      }),
-    );
+    await Promise.all(urls.map((url) => this.decodeJukebox(url)));
   }
 
-  /** Make `url` the active loop voice (the jukebox playing). Decodes + caches on
+  /** Make `url` the active loop voice (the jukebox playing). Decodes (deduped) on
    *  first use, then plays it clean(ish) — the warble/slow-down is baked into the
    *  file, so we lift the descent's pitch-bend back off rather than stack it. The
    *  proximity duck + mute still apply. A generation guard makes rapid cycling
-   *  last-click-wins. */
+   *  last-click-wins AND makes a leave-before-decode bail (restoreBoot bumps the
+   *  generation, so a load still in flight when the room unmounts can't switch the
+   *  voice afterward). */
   async playJukeboxTrack(url: string): Promise<void> {
     this.unlock(); // ctx + resume (clicking the cabinet is the gesture)
     if (!this.ctx || !this.lowpass) return;
     const gen = ++this.jukeboxGen;
-    let buf = this.jukeboxCache.get(url);
-    if (!buf) {
-      buf = await this.decodeUrl(url);
-      if (!buf) return; // couldn't load — leave whatever's playing
-      this.jukeboxCache.set(url, buf);
-    }
-    if (gen !== this.jukeboxGen) return; // a newer selection superseded us
+    const buf = await this.decodeJukebox(url);
+    if (!buf) return; // couldn't load — leave whatever's playing
+    if (gen !== this.jukeboxGen) return; // superseded by a newer select OR a leave
     this.activeBuffer = buf;
     this.jukeboxActive = true;
     this.started = true;
     this.restartLoop();
     this.restorePitch(300); // clean rate + full brightness (warble is in the file)
     this.applyGain(); // honors mute + the current proximity duck
+    this.publishJukeboxState();
   }
 
-  /** Leave the jukebox: hand the loop voice back to the ambient boot loop. The
-   *  selected track stops; the boot loop resumes (at clean pitch — the world has
-   *  warmed up). No-op if the jukebox was never active. */
+  /** Leave the jukebox: hand the loop voice back to the ambient boot loop. Always
+   *  invalidates any in-flight selection FIRST — even one that hasn't set
+   *  `jukeboxActive` yet — so a decode still running when the room unmounts can't
+   *  start a jukebox track after the fact. Then, if a track was actually playing,
+   *  swap the voice back to the boot loop. */
   restoreBoot(): void {
+    this.jukeboxGen++; // cancel any pending select, active or not (the race fix)
     if (!this.jukeboxActive) return;
     this.jukeboxActive = false;
     this.activeBuffer = undefined; // currentBuffer() → the boot loop
-    this.jukeboxGen++; // cancel any in-flight selection
     if (this.started) this.restartLoop();
+    this.publishJukeboxState();
   }
 
   /** Whether a jukebox track is currently the loop voice (exposed for tests). */
   get isJukeboxPlaying(): boolean {
     return this.jukeboxActive;
+  }
+
+  /** Mirror the jukebox voice state to a window global for the rooms smoke (it
+   *  asserts a leave-before-decode never switches the voice post-unmount). Gated
+   *  to the test entrances so it isn't part of the normal global surface. */
+  private publishJukeboxState(): void {
+    if (typeof window === 'undefined') return;
+    if (!/[?&](world|debug)(=|&|$)/.test(window.location.search)) return;
+    (window as Window & { __sdpJukeboxActive?: boolean }).__sdpJukeboxActive = this.jukeboxActive;
   }
 
   /** Master target = base 0.5, ducked by spatial proximity, killed by mute. */
@@ -343,3 +365,11 @@ class PizzaAudio {
 
 // Constructor is inert, so a module-level singleton is SSR-safe.
 export const audio = new PizzaAudio();
+
+// Test hook: expose the singleton so the rooms smoke can drive the audio
+// lifecycle directly (the leave-before-decode race is timing-sensitive and hard
+// to reproduce through gameplay). Gated to the ?world / ?debug entrances, like
+// the other __sdp* globals, so it isn't part of the normal runtime surface.
+if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
+  (window as Window & { __sdpAudio?: typeof audio }).__sdpAudio = audio;
+}
