@@ -22,13 +22,19 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
   // the ceiling (with a fresh x/z) when it reaches the floor.
   const drips = useMemo(
     () =>
-      Array.from({ length: COUNT }, () => ({
-        x: (Math.random() * 2 - 1) * (halfW - 0.6),
-        z: (Math.random() * 2 - 1) * (halfD - 0.6),
-        y: Math.random() * height,
-        speed: 1.4 + Math.random() * 1.8,
-        len: 0.35 + Math.random() * 0.5,
-      })),
+      Array.from({ length: COUNT }, () => {
+        const len = 0.35 + Math.random() * 0.5;
+        return {
+          x: (Math.random() * 2 - 1) * (halfW - 0.6),
+          z: (Math.random() * 2 - 1) * (halfD - 0.6),
+          // y is the box CENTRE; seed in [len/2, height - len/2] so the whole
+          // streak stays between floor and ceiling on first paint (no clip at
+          // either end).
+          y: len / 2 + Math.random() * (height - len),
+          speed: 1.4 + Math.random() * 1.8,
+          len,
+        };
+      }),
     [halfW, halfD, height],
   );
 
@@ -45,8 +51,12 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
     for (let i = 0; i < drips.length; i++) {
       const d = drips[i];
       d.y -= d.speed * boost * dt;
-      if (d.y < 0.05) {
-        d.y = height - 0.05;
+      // Recycle once the drip's BOTTOM (y - len/2) reaches the floor — y is the
+      // box centre, so a fixed epsilon would let long streaks dip below first.
+      if (d.y - d.len / 2 < 0) {
+        // Recycle to JUST under the ceiling: y is the box centre, so start at
+        // height - len/2 (top flush with the ceiling, never poking through).
+        d.y = height - d.len / 2 - 0.02;
         d.x = (Math.random() * 2 - 1) * (halfW - 0.6);
         d.z = (Math.random() * 2 - 1) * (halfD - 0.6);
       }
