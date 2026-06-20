@@ -57,6 +57,23 @@ await page.keyboard.press('Escape'); // open pause menu
 await page.waitForTimeout(400);
 await page.screenshot({ path: '.shots/world-pause.png' });
 
+// Assert the pause menu is truly modal: movement keys must not move the camera.
+const camBefore = await page.evaluate(() => window.__sdpCam);
+await page.keyboard.down('w');
+await page.waitForTimeout(800);
+await page.keyboard.up('w');
+const camAfter = await page.evaluate(() => window.__sdpCam);
+if (
+  camBefore &&
+  camAfter &&
+  (Math.abs(camBefore.x - camAfter.x) > 0.02 || Math.abs(camBefore.z - camAfter.z) > 0.02)
+) {
+  errors++;
+  console.log('PAUSE NOT MODAL: camera moved while paused', camBefore, camAfter);
+} else {
+  console.log('pause is modal (camera frozen while paused)');
+}
+
 await browser.close();
 if (errors) {
   console.error(`world shots done with ${errors} page error(s) — failing.`);
