@@ -52,6 +52,11 @@ try {
 } catch (e) {
   fail(`world did not mount: ${e.message}`);
 }
+// First-frame check (before any warmup): no door prompt should flash on load —
+// the camera boots AT the spawn, not a pose that briefly sits inside a door
+// radius. This catches a first-frame regression the post-warmup check misses.
+const noFirstFramePrompt = (await page.$('.hud-prompt--door')) === null;
+if (!noFirstFramePrompt) fail('a door prompt flashed on load (camera booted inside a door radius)');
 await page.waitForTimeout(1500); // WebGL warmup + a few frames
 
 // 1) Start in the shop — and the back-hall door must NOT prompt at spawn (you
@@ -187,7 +192,7 @@ let rmDoor = false;
 
 await browser.close();
 console.log(
-  `rooms: shop=${startShop} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
+  `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
