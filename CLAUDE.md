@@ -251,7 +251,50 @@ floors slot in without touching scene code.
       hosting decision. ✓
 
 **Phase 1 COMPLETE** (2026-06-20). Next: Phase 2 — the liminal era-ladder
-"levels" + the Doom/Freedoom shrine + PositionalAudio jukebox + the real
-degraded-MIDI boot track (see the sections above).
+"levels" + the Doom/Freedoom shrine + PositionalAudio jukebox.
 
 `legacy/` holds the previous hand-built site (preserved, not part of the build).
+
+---
+
+## POST-PHASE-1 ADDITIONS (Luke, 2026-06-20 — keep current)
+
+- **Press photos.** `public/press/` — `scoobert-og.jpg` (1200² OG/social image,
+  googly-eyes shot) + small inline period snapshots on the storefront. Source
+  archive (`photos/`, 375 shots) stays OUT of the bundle. Resized via
+  `scripts/resize-image.mjs` (Playwright-canvas; no sharp/ffmpeg in the env).
+- **Real boot music (replaces the synth).** The boot loop is a degraded 8-bit /
+  11 kHz bounce of a real Scoobert track at `public/audio/boot.wav`, built by
+  `scripts/make-boot-audio.mjs` (decodes the master in headless Chromium, skips
+  intro silence, crossfades the loop seam, 8-bit-crushes it). These are Luke's
+  OWN songs (his copyright) — fine to ship degraded.
+- **Music = the layer themes (Luke's map).** Each descent layer has a track:
+  - **#1 / top (the world + boot loop): "Jolly Roger Bay (64)"** — his own song
+    nodding to the N64 underwater level. THIS is the current boot.wav.
+  - **down a layer: "Information"** — the next era-ladder floor (Phase 2).
+  - **"1101" → the /save-san-diego ARG** (the `/1101` Twine page; the binary
+    clue decodes to "save san diego").
+  Masters live on `main` root (`05 Information.mp3`, `09 Jolly Roger Bay
+  (64).mp3`, `21 1101.mp3`); only the degraded loop for the active layer ships.
+- **Audio is LAZY + GATED (no synth fallback).** `src/audio/engine.ts` lazy-loads
+  + decodes the track via a throwaway OfflineAudioContext (no gesture needed);
+  the music toggle stays DISABLED ("loading…") until decoded; if it never loads,
+  there is NO music and the toggle never lights up. There is deliberately no
+  synth fallback anymore.
+- **Loading screen moved to the level load.** The PIZZA-DOS boot card no longer
+  gates the storefront (front door loads instantly). It's now the deliberate
+  "loading the world" POST log inside the descent (`<BootLog>`), after the
+  Calzone install.
+- **`/links` — the link archive.** A prerendered, crawlable directory of ~455
+  links parsed from `links.md` (repo root, single source) by
+  `src/data/linkArchive.ts` → `src/pages/LinkArchive.tsx`. SEO surface + period
+  easter egg; quiet footer entry, not main nav.
+- **Email capture.** `api/order.ts` writes opt-ins to Vercel Blob with
+  `access:'private'` (+ honeypot + failure logging). Needs a Blob store
+  connected to the Vercel project (`BLOB_READ_WRITE_TOKEN`) to persist; absent
+  that it no-ops without breaking the UX.
+- **Repo hygiene (TODO, post-merge):** `main` root is messy (old hand-built site
+  + loose mp3s / photos / `fun/` / icons). PR #4 already moves the old site to
+  `legacy/`. The loose source media should nest (e.g. `media/masters/`,
+  `media/photos/`) once #4 merges — doing it from this divergent branch risks
+  add/add duplicates. `fun/` (half-built JS music apps) is its own later PR.

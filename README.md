@@ -62,6 +62,43 @@ npm run typecheck  # tsc --noEmit
 - **The 3D world** → `src/world/` (`World.tsx` is the lazy entry; `ps1.ts` is the
   vertex-snap / affine / dither pipeline; `sim.ts` is the ported boids steering).
 - **In-world HUD / pause menu** → `src/components/WorldHud.tsx`.
+- **The link archive** (`/links`) → `links.md` (repo root, single source) parsed
+  by `src/data/linkArchive.ts` and rendered by `src/pages/LinkArchive.tsx`. A
+  crawlable directory of every Scoobert link; SEO surface + period easter egg.
+- **Boot music** → `public/audio/boot.wav`, a degraded 8-bit bounce built from a
+  master by `scripts/make-boot-audio.mjs`. The engine
+  (`src/audio/engine.ts`) lazy-loads + decodes it; the music toggle stays
+  disabled until it's ready, and if it never loads there's simply no music (no
+  synth fallback).
+
+## Repository layout
+
+```
+├── index.html            # Vite entry (NOT the old site — that's in legacy/)
+├── src/                  # the app
+│   ├── pages/            # Storefront, TextOnly, LinkArchive (prerendered routes)
+│   ├── components/       # Descent, BootLog, WorldHud, OrderForm, MuteToggle, …
+│   ├── world/            # three.js world: World, ps1 pipeline, boids sim
+│   ├── data/             # links.ts, hotspots.ts, linkArchive.ts (single sources)
+│   ├── state/            # zustand stores (audio, scene)
+│   ├── audio/            # the Web Audio engine
+│   └── styles/
+├── public/               # shipped static assets
+│   ├── audio/boot.wav    # degraded boot loop (the only audio that ships)
+│   ├── press/            # OG image + inline period photos (web-sized)
+│   ├── 1101.html         # the /1101 "save san diego" Twine ARG
+│   └── PIZZA.png, cursor.cur, brand/ …
+├── api/order.ts          # Vercel function: opt-in email capture → Vercel Blob
+├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image)
+├── links.md              # source of truth for the /links archive
+├── legacy/               # the previous hand-built site (preserved, not built)
+└── CLAUDE.md             # durable spec + phase tracker + post-Phase-1 notes
+```
+
+**Source media** (full-res photo archive, song masters) is intentionally kept
+**out of the build** — only the degraded/web-sized derivatives under `public/`
+ship. Large masters/originals should nest under a `media/` tree (e.g.
+`media/masters/`, `media/photos/`) rather than living loose at the repo root.
 
 ## Self-verification (Playwright)
 
@@ -86,12 +123,13 @@ DNS points at Vercel. (The build output no longer carries a `CNAME`.)
 
 ## Assets & licensing
 
-Everything here is **original or procedurally generated** — the boids sim, the
-water and PS1 shaders, the room geometry, the textures (canvas-drawn), and the
-boot chime (Web Audio synth). No third-party code or art is vendored, and no
-proprietary marks (Nintendo, SGI, Pizza Hut, Doom, Cosmo Player) are used —
-original parody only. The `legacy/` folder preserves the previous hand-built
-site for reference; it is not part of the build.
+The code and visuals are **original or procedurally generated** — the boids sim,
+the water and PS1 shaders, the room geometry, and the textures (canvas-drawn). No
+third-party code or art is vendored, and no proprietary marks (Nintendo, SGI,
+Pizza Hut, Doom, Cosmo Player) are used — original parody only. The **boot music**
+is a deliberately degraded bounce of Scoobert Doobert's **own** tracks (Luke's
+copyright), so shipping the lo-fi loop is fine. The `legacy/` folder preserves the
+previous hand-built site for reference; it is not part of the build.
 
 If/when richer assets get added (the Phase 2 Doom/Freedoom shrine), they'll be
 **CC0 or BSD** (e.g. Freedoom), logged in a `THIRD_PARTY_NOTICES.md` with
@@ -99,7 +137,9 @@ credits, and kept isolated behind a lazy route — never mixed into reusable cod
 
 ## Status
 
-**Phase 1 is complete** (storefront fallback, boot + audio, descent gag, the PS1
-beach-shop world, hotspots + pause menu, mobile/reduced-motion fallback). Phase
-2 — the liminal era-ladder "levels," the Doom/Freedoom shrine, PositionalAudio
-jukebox, and the real degraded-MIDI boot track — is queued in `CLAUDE.md`.
+**Phase 1 is complete** (storefront fallback, descent gag, the PS1 beach-shop
+world, hotspots + pause menu, mobile/reduced-motion fallback), plus post-Phase-1
+additions: real degraded boot music ("Jolly Roger Bay"), press photos + OG image,
+the `/links` archive, lazy/gated audio, and opt-in email capture. Phase 2 — the
+liminal era-ladder "levels" (each with its own track), the Doom/Freedoom shrine,
+and the PositionalAudio jukebox — is queued in `CLAUDE.md`.
