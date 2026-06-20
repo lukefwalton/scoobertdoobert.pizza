@@ -12,14 +12,19 @@
     "shoot": "node scripts/shoot.mjs"
   },
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "leva": "^0.9.36",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.4",
+    "three": "^0.169.0",
     "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.7.0",
     "playwright": "^1.56.1",
     "typescript": "^5.9.3",

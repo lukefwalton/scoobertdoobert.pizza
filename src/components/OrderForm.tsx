@@ -1,15 +1,18 @@
 // The low-fi "delivery order" form — Name / Voice Phone / Favorite Cheese /
 // Delivery Address / Continue. Offensively plain on purpose.
 //
-// PROGRESSIVE ENHANCEMENT CONTRACT:
-//   - With JavaScript OFF (the fallback layer): this is a real <form> that
-//     GET-submits to /text, the flat menu. It always does something real.
-//   - With JavaScript ON (step 3, not built yet): a handler will intercept
-//     submit, preventDefault, and fire the Calzone Player™ install gag — the
-//     order is what "requires the plug-in" — which descends into the 3D world.
+// THEATRICAL in Phase 1: there is no order backend. The form's whole job is to
+// be the thing you fill out right before the Calzone Player™ install gag fires
+// (step 3) and descends into the 3D world.
 //
-// The `data-descent-trigger` hook is where step 3 attaches. Leaving the real
-// action="/text" intact means the no-JS path is never broken by the upgrade.
+// PROGRESSIVE ENHANCEMENT + PRIVACY CONTRACT:
+//   - The inputs intentionally have NO `name` attributes, so with JavaScript
+//     off the GET submit navigates to /text with a CLEAN url — no name, phone,
+//     or address is ever serialized into the query string (which would leak
+//     PII into history, referrers, and server/edge logs). When a real order
+//     backend exists, add names + a POST endpoint then, not before.
+//   - With JavaScript on (step 3), a handler intercepts submit, preventDefault,
+//     and runs the install gag. `data-descent-trigger` is that hook.
 export function OrderForm() {
   return (
     <form
@@ -17,6 +20,7 @@ export function OrderForm() {
       className="order-form"
       method="get"
       action="/text"
+      autoComplete="off"
       aria-label="Place your order"
       data-descent-trigger
     >
@@ -25,19 +29,19 @@ export function OrderForm() {
       <p className="field">
         <label htmlFor="of-name">Name:</label>
         <br />
-        <input id="of-name" type="text" name="name" size={32} autoComplete="name" />
+        <input id="of-name" type="text" size={32} />
       </p>
 
       <p className="field">
         <label htmlFor="of-phone">Voice Phone:</label>
         <br />
-        <input id="of-phone" type="tel" name="voice_phone" size={24} />
+        <input id="of-phone" type="tel" size={24} />
       </p>
 
       <p className="field">
         <label htmlFor="of-cheese">Favorite Cheese:</label>
         <br />
-        <select id="of-cheese" name="favorite_cheese" defaultValue="mozzarella">
+        <select id="of-cheese" defaultValue="mozzarella">
           <option value="mozzarella">Mozzarella</option>
           <option value="provolone">Provolone</option>
           <option value="the-white-one">The White One</option>
@@ -49,7 +53,7 @@ export function OrderForm() {
       <p className="field">
         <label htmlFor="of-address">Delivery Address:</label>
         <br />
-        <textarea id="of-address" name="delivery_address" rows={3} cols={32} />
+        <textarea id="of-address" rows={3} cols={32} />
       </p>
 
       <p className="field">
