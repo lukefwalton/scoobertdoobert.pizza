@@ -13,7 +13,19 @@
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
 
-export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified' | 'poolrooms';
+export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified' | 'poolrooms' | 'liminal';
+
+/** A GLB level: a (wide-permission, crunched) model loaded as the room geometry,
+ *  lazy-loaded behind the loader minigame. See GlbRoom / LevelLoader, and
+ *  THIRD_PARTY_NOTICES.md for asset provenance. */
+export type RoomGlb = {
+  /** Crunched derivative under public/models/ (NOT the raw media/models source). */
+  url: string;
+  /** Target horizontal footprint (world units) to auto-fit the model into. */
+  fit?: number;
+  /** Extra yaw to orient the model. */
+  rotationY?: number;
+};
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
@@ -54,6 +66,8 @@ export type Room = {
   /** Interior half-extents the camera is clamped inside. */
   dims: { halfW: number; halfD: number; height: number; eye: number };
   palette: RoomPalette;
+  /** If set, this room IS a GLB level (GlbRoom renders it behind the loader). */
+  glb?: RoomGlb;
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -228,6 +242,8 @@ export const ROOMS: Room[] = [
       // facing -Z across the still pool toward the far wall.
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromShop: { position: [0, EYE, 5], yaw: Math.PI },
+      // Back up from the deeper liminal level: by the -Z door, facing +Z.
+      fromLiminal: { position: [0, EYE, -5], yaw: 0 },
     },
     doors: [
       {
@@ -237,6 +253,41 @@ export const ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z wall
         rotationY: 0,
         label: 'back up to the shop',
+        radius: 3.2,
+      },
+      {
+        id: 'pool-to-liminal',
+        to: 'liminal',
+        toSpawn: 'fromPool',
+        position: [0, 0, -8.95], // far (-Z) wall — deeper down
+        rotationY: Math.PI,
+        label: 'go deeper',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'liminal',
+    kind: 'liminal',
+    title: 'Liminal Space',
+    // A real (wide-permission) GLB environment, crunched + lazy-loaded behind the
+    // loader minigame. Provenance tracked in THIRD_PARTY_NOTICES.md.
+    glb: { url: '/models/liminal-other-space.glb', fit: 18 },
+    dims: { halfW: 8.5, halfD: 8.5, height: 6, eye: EYE },
+    // Pale beige nothing — the backrooms register.
+    palette: { background: '#d6cfb8', fog: '#d6cfb8', fogNear: 6, fogFar: 34 },
+    spawns: {
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'liminal-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromLiminal',
+        position: [0, 0, 8.45], // +Z wall (dims.halfD)
+        rotationY: 0,
+        label: 'back up to the pool',
         radius: 3.2,
       },
     ],
