@@ -1,3 +1,4 @@
+import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
 import { SampleMenu } from '../components/SampleMenu';
 import { OrderForm } from '../components/OrderForm';
@@ -19,6 +20,20 @@ export default function Storefront() {
 
   return (
     <>
+      <Head>
+        <title>Electronic Pizza Storefront — Scoobert Doobert</title>
+        <link rel="canonical" href="https://scoobertdoobert.pizza/" />
+        <meta
+          name="description"
+          content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
+        />
+        <meta property="og:url" content="https://scoobertdoobert.pizza/" />
+        <meta property="og:title" content="Electronic Pizza Storefront — Scoobert Doobert" />
+        <meta
+          property="og:description"
+          content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
+        />
+      </Head>
       <BootScreen />
       <a className="skip-link" href="#menu">
         Skip to the menu

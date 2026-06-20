@@ -1,12 +1,32 @@
+import { Head } from 'vite-react-ssg';
 import '../styles/textonly.css';
 import { DESTINATIONS } from '../data/links';
 
 // The genuinely flat fallback. No images, no scripts, no plug-ins — just a
 // semantic list of every real destination, driven by the same links.ts source
 // as the storefront. This is the accessibility / crawler floor of the site.
+//
+// <Head> gives /text its OWN title + canonical + social URL so it advertises
+// itself as /text to crawlers and scrapers, not as the storefront.
 export default function TextOnly() {
   return (
     <main className="textonly">
+      <Head>
+        <title>Text-Only Menu — Scoobert Doobert</title>
+        <link rel="canonical" href="https://scoobertdoobert.pizza/text" />
+        <meta
+          name="description"
+          content="Every destination on scoobertdoobert.pizza as a flat, text-only list. No images, no scripts, no plug-ins."
+        />
+        <meta name="robots" content="index,follow" />
+        <meta property="og:url" content="https://scoobertdoobert.pizza/text" />
+        <meta property="og:title" content="Text-Only Menu — Scoobert Doobert" />
+        <meta
+          property="og:description"
+          content="Every destination on scoobertdoobert.pizza as a flat, text-only list."
+        />
+      </Head>
+
       <h1>Scoobert Doobert &mdash; Text-Only Menu</h1>
       <p>Everything on this site, flat. No images, no scripts, no plug-ins.</p>
       <p>
