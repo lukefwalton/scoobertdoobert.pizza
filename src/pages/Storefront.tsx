@@ -1,6 +1,8 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
 import { AudioBootstrap } from '../components/AudioBootstrap';
+import { ProgressTracker } from '../components/ProgressTracker';
+import { DreadConductor } from '../components/DreadConductor';
 import { Descent } from '../components/Descent';
 import { WorldMount } from '../components/WorldMount';
 import { FloorView } from '../floors/FloorView';
@@ -33,6 +35,8 @@ export default function Storefront() {
         />
       </Head>
       <AudioBootstrap />
+      <ProgressTracker />
+      <DreadConductor />
       <WorldMount />
       <Descent />
       <a className="skip-link" href="#menu">
