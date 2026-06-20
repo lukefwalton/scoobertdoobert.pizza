@@ -5,10 +5,11 @@ import { put } from '@vercel/blob';
 // visitor types an email AND ticks the opt-in box, we store it. Only then.
 //
 // SETUP: needs a Blob store connected to the Vercel project (it injects
-// BLOB_READ_WRITE_TOKEN). Each subscriber is one small JSON blob under a random,
-// non-enumerable path. Blob objects are public-access, so for a real mailing
-// list Vercel KV / a database is the safer home; this is a deliberately simple
-// "just collect the emails" capture and is easy to swap.
+// BLOB_READ_WRITE_TOKEN). Each subscriber is one small JSON blob written with
+// access:'private' — it is NOT reachable by URL, only via an authenticated
+// read with the store token. (Earlier this used access:'public', which would
+// have made subscriber emails publicly addressable; private is the correct
+// home for PII.)
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST');
@@ -43,7 +44,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     await put(
       `subscribers/${id}.json`,
       JSON.stringify({ email, cheese, optin: true, ts: new Date().toISOString() }),
-      { access: 'public', addRandomSuffix: false, contentType: 'application/json' },
+      { access: 'private', addRandomSuffix: false, contentType: 'application/json' },
     );
     res.status(200).json({ ok: true, stored: true });
   } catch {
