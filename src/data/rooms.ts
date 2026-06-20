@@ -71,6 +71,22 @@ export type RoomDoor = {
   radius?: number;
 };
 
+/** A crunched GLB placed as set-dressing in a room (GlbProp renders it). */
+export type RoomProp = {
+  /** Crunched derivative under public/models/ (NOT the raw media/models source). */
+  url: string;
+  /** Base position (the model's feet sit here). */
+  position: [number, number, number];
+  /** Target largest dimension in world units (auto-scales the model). */
+  fit?: number;
+  rotationY?: number;
+  /** Idle Y-spin (rad/s) — e.g. a slowly turning Möbius strip. */
+  spin?: number;
+  /** Emissive boost (0..1) so a prop reads against a DIM room instead of going
+   *  to black under PS1 flat lighting (the Möbius strip in the dark corridor). */
+  glow?: number;
+};
+
 export type RoomPalette = {
   /** Canvas clear / sky color. */
   background: string;
@@ -93,6 +109,9 @@ export type Room = {
   /** Render ambient water dripping from the ceiling (the watery descent's
    *  aftermath). Opt-in per room so it isn't coupled to a room kind. */
   drips?: boolean;
+  /** GLB set-dressing placed in the room (GlbProp). Crunched models from the
+   *  trove — provenance in THIRD_PARTY_NOTICES.md. */
+  props?: RoomProp[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -114,6 +133,8 @@ export const ROOMS: Room[] = [
     dims: { halfW: ROOM.halfW, halfD: ROOM.halfD, height: ROOM.height, eye: EYE },
     // The tropical-shallow cyan of floor one (unchanged — the shop is ROOMS[0]).
     palette: { background: '#1f8fb5', fog: '#1f8fb5', fogNear: 6, fogFar: 64 },
+    // A potted palm by the window — it IS a beach pizza shop.
+    props: [{ url: '/models/palm-tree.glb', position: [5.6, 0, -5.4], fit: 4.4, rotationY: 0.5 }],
     spawns: {
       // The establishing shot: facing the window/sea (-Z), the boids out the
       // glass. Kept clear of the back-hall door's 3.2 radius so the door is
@@ -212,6 +233,8 @@ export const ROOMS: Room[] = [
     dims: { halfW: 6, halfD: 7, height: 5.5, eye: EYE },
     // Warm, dim, womb-like — the payoff room. Deep magenta dark, close fog.
     palette: { background: '#190b1d', fog: '#2a1233', fogNear: 4, fogFar: 28 },
+    // An old arcade cabinet humming in the corner of the music shrine.
+    props: [{ url: '/models/arcade-cabinet.glb', position: [-3.6, 0, -4.4], fit: 2.5, rotationY: 0.7, glow: 0.3 }],
     spawns: {
       // Enter near the door (+Z), a step clear of its radius, facing the jukebox
       // across the room (-Z) so you walk toward it and the song swells.
@@ -237,6 +260,8 @@ export const ROOMS: Room[] = [
     // Tiny, cold, claustrophobic — the X-Files file room of rejected demos.
     dims: { halfW: 4, halfD: 4, height: 3.2, eye: EYE },
     palette: { background: '#0a1410', fog: '#0c1812', fogNear: 2, fogFar: 15 },
+    // A dead CRT in the corner of the file room (the surveillance tell).
+    props: [{ url: '/models/crt-tv.glb', position: [-2.5, 0, -2.9], fit: 1.2, rotationY: 0.6, glow: 0.35 }],
     spawns: {
       // Just inside the door, facing the cabinets at the back (-Z).
       default: { position: [0, EYE, 0.6], yaw: Math.PI },
@@ -262,6 +287,9 @@ export const ROOMS: Room[] = [
     dims: { halfW: 9, halfD: 9, height: 4.5, eye: EYE },
     // Pale aqua, over-lit, close-ish fog — liminal is BRIGHT and empty, not dark.
     palette: { background: '#bfe3ea', fog: '#cfe9ef', fogNear: 5, fogFar: 38 },
+    // A broken greek statue standing in the false water — vaporwave-liminal.
+    // Off-centre so it never blocks the centre door down.
+    props: [{ url: '/models/greek-statue.glb', position: [3.4, 0, -2.6], fit: 3.4, rotationY: -0.6 }],
     spawns: {
       // Arrive on the deck just past the +Z wall (clear of the return door),
       // facing -Z across the still pool toward the far wall.
@@ -362,6 +390,9 @@ export const ROOMS: Room[] = [
     // Faded motel green — nostalgic, OVER-lit, a beat wrong (bright is the comic
     // register). MobiusRoom dims it and tightens the dressing as unease rises.
     palette: { background: '#3a4630', fog: '#4a573a', fogNear: 6, fogFar: 40 },
+    // A real Möbius strip turning mid-corridor — the album motif made literal.
+    // Glows so it reads against the dim corridor.
+    props: [{ url: '/models/mobius-strip.glb', position: [0, 2.3, -2], fit: 1.8, spin: 0.5, glow: 0.55 }],
     spawns: {
       // Fresh arrival from the pool, AND the loop re-entry, both land at the +Z
       // start facing -Z down the corridor — so a forward lap drops you right back
