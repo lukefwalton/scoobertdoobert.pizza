@@ -150,6 +150,18 @@ await page.screenshot({ path: '.shots/rooms-jukebox.png' });
 const duckedInJuke = (await page.evaluate(() => window.__sdpProximity ?? 1)) < 0.999;
 if (!duckedInJuke) fail('jukebox room did not duck the loop by proximity');
 
+// The jukebox plays the catalog: a track auto-selects on entry, and clicking the
+// cabinet (dead ahead at spawn) cycles to the next one.
+const jukeOpen = await page.evaluate(() => window.__sdpJukebox?.slug);
+const jukeAutoPlay = jukeOpen === 'information';
+if (!jukeAutoPlay) fail(`jukebox did not auto-play the opening track (got ${jukeOpen})`);
+const jbBox = await page.locator('canvas').boundingBox();
+await page.mouse.click(jbBox.x + jbBox.width / 2, jbBox.y + jbBox.height / 2); // click the cabinet
+await page.waitForTimeout(350);
+const jukeNext = await page.evaluate(() => window.__sdpJukebox?.slug);
+const jukeCycles = !!jukeNext && jukeNext !== jukeOpen;
+if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (still ${jukeNext})`);
+
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.
 await walk('s', 800); // to the exit door (now behind us)
@@ -299,7 +311,7 @@ console.log(
   `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
-    `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
+    `jukebox=${inJuke} ducked=${duckedInJuke} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
     `strafeRight=${strafeRight} turnWorks=${turnWorks} | errors=${errors}`,

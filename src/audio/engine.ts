@@ -25,7 +25,13 @@ class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
   private lowpass?: BiquadFilterNode;
-  private trackBuffer?: AudioBuffer; // the decoded degraded track (the only voice)
+  private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Jolly Roger Bay)
+  // The jukebox can temporarily take over the single loop voice with a catalog
+  // track. When set, it overrides trackBuffer; cleared (restoreBoot) on leaving.
+  private activeBuffer?: AudioBuffer;
+  private jukeboxActive = false;
+  private jukeboxCache = new Map<string, AudioBuffer>(); // decoded catalog tracks
+  private jukeboxGen = 0; // rapid-cycle guard: only the latest selection wins
   private source?: AudioBufferSourceNode;
   private started = false;
   private unlocked = false;
@@ -54,32 +60,42 @@ class PizzaAudio {
     for (const cb of this.readyListeners) cb(this.ready);
   }
 
-  /** Lazy-load + decode the track. Needs no playback context and no user gesture
-   *  (decoded via a throwaway OfflineAudioContext), so the toggle can light up
-   *  before any interaction. If this never yields a buffer, there's no music —
-   *  there is deliberately no synth fallback. Idempotent. */
+  /** Fetch + decode a URL to an AudioBuffer via a throwaway OfflineAudioContext
+   *  (no playback context, no user gesture). Returns undefined on any failure —
+   *  callers degrade to "no audio", they never throw. Shared by the boot loop
+   *  preload and the jukebox catalog. */
+  private async decodeUrl(url: string): Promise<AudioBuffer | undefined> {
+    if (typeof fetch === 'undefined' || typeof window === 'undefined') return undefined;
+    const OAC =
+      window.OfflineAudioContext ||
+      (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext })
+        .webkitOfflineAudioContext;
+    if (!OAC) return undefined;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return undefined;
+      const bytes = await res.arrayBuffer();
+      const decoder = new OAC(1, 1, 44100);
+      return await decoder.decodeAudioData(bytes);
+    } catch {
+      return undefined;
+    }
+  }
+
+  /** Lazy-load + decode the boot loop. Needs no playback context and no user
+   *  gesture, so the toggle can light up before any interaction. If this never
+   *  yields a buffer, there's no music — there is deliberately no synth
+   *  fallback. Idempotent. */
   preload(): Promise<boolean> {
     if (this.preloadPromise) return this.preloadPromise;
     this.preloadPromise = (async () => {
-      if (typeof fetch === 'undefined' || typeof window === 'undefined') return false;
-      const OAC =
-        window.OfflineAudioContext ||
-        (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext })
-          .webkitOfflineAudioContext;
-      if (!OAC) return false;
-      try {
-        const res = await fetch(TRACK_URL);
-        if (!res.ok) return false;
-        const bytes = await res.arrayBuffer();
-        const decoder = new OAC(1, 1, 44100);
-        this.trackBuffer = await decoder.decodeAudioData(bytes);
-        this.emitReady();
-        // A gesture may already have unlocked us while we were decoding.
-        this.maybeStart();
-        return true;
-      } catch {
-        return false; // no music, no fallback
-      }
+      const buf = await this.decodeUrl(TRACK_URL);
+      if (!buf) return false; // no music, no fallback
+      this.trackBuffer = buf;
+      this.emitReady();
+      // A gesture may already have unlocked us while we were decoding.
+      this.maybeStart();
+      return true;
     })();
     return this.preloadPromise;
   }
@@ -128,9 +144,16 @@ class PizzaAudio {
     this.restartLoop();
   }
 
-  /** (Re)create the loop source from the decoded track. */
+  /** The buffer the loop voice should play: a jukebox selection when one is
+   *  active, otherwise the boot loop. */
+  private currentBuffer(): AudioBuffer | undefined {
+    return this.activeBuffer ?? this.trackBuffer;
+  }
+
+  /** (Re)create the loop source from whichever buffer is current. */
   private restartLoop(): void {
-    if (!this.ctx || !this.lowpass || !this.trackBuffer) return;
+    const buf = this.currentBuffer();
+    if (!this.ctx || !this.lowpass || !buf) return;
     if (this.source) {
       try {
         this.source.stop();
@@ -140,7 +163,7 @@ class PizzaAudio {
       this.source.disconnect();
     }
     const src = this.ctx.createBufferSource();
-    src.buffer = this.trackBuffer;
+    src.buffer = buf;
     src.loop = true;
     src.connect(this.lowpass);
     src.start();
@@ -158,6 +181,65 @@ class PizzaAudio {
       this.source = undefined;
     }
     this.started = false;
+  }
+
+  // ── Jukebox: swap the single loop voice to a catalog track ─────────────────
+  // The jukebox room plays Scoobert's own songs (degraded) in place of the
+  // ambient boot loop and cycles on click. One voice, one swap — the proximity
+  // duck + mute keep applying, so the selected track still swells as you cross
+  // the room to the cabinet.
+
+  /** Warm the cache by decoding the given track urls up front (on entering the
+   *  jukebox room) so click-to-cycle is instant. Best-effort; a miss just falls
+   *  back to decode-on-select. */
+  async preloadJukebox(urls: string[]): Promise<void> {
+    await Promise.all(
+      urls.map(async (url) => {
+        if (this.jukeboxCache.has(url)) return;
+        const buf = await this.decodeUrl(url);
+        if (buf) this.jukeboxCache.set(url, buf);
+      }),
+    );
+  }
+
+  /** Make `url` the active loop voice (the jukebox playing). Decodes + caches on
+   *  first use, then plays it clean(ish) — the warble/slow-down is baked into the
+   *  file, so we lift the descent's pitch-bend back off rather than stack it. The
+   *  proximity duck + mute still apply. A generation guard makes rapid cycling
+   *  last-click-wins. */
+  async playJukeboxTrack(url: string): Promise<void> {
+    this.unlock(); // ctx + resume (clicking the cabinet is the gesture)
+    if (!this.ctx || !this.lowpass) return;
+    const gen = ++this.jukeboxGen;
+    let buf = this.jukeboxCache.get(url);
+    if (!buf) {
+      buf = await this.decodeUrl(url);
+      if (!buf) return; // couldn't load — leave whatever's playing
+      this.jukeboxCache.set(url, buf);
+    }
+    if (gen !== this.jukeboxGen) return; // a newer selection superseded us
+    this.activeBuffer = buf;
+    this.jukeboxActive = true;
+    this.started = true;
+    this.restartLoop();
+    this.restorePitch(300); // clean rate + full brightness (warble is in the file)
+    this.applyGain(); // honors mute + the current proximity duck
+  }
+
+  /** Leave the jukebox: hand the loop voice back to the ambient boot loop. The
+   *  selected track stops; the boot loop resumes (at clean pitch — the world has
+   *  warmed up). No-op if the jukebox was never active. */
+  restoreBoot(): void {
+    if (!this.jukeboxActive) return;
+    this.jukeboxActive = false;
+    this.activeBuffer = undefined; // currentBuffer() → the boot loop
+    this.jukeboxGen++; // cancel any in-flight selection
+    if (this.started) this.restartLoop();
+  }
+
+  /** Whether a jukebox track is currently the loop voice (exposed for tests). */
+  get isJukeboxPlaying(): boolean {
+    return this.jukeboxActive;
   }
 
   /** Master target = base 0.5, ducked by spatial proximity, killed by mute. */
