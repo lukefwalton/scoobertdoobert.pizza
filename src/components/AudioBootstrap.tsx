@@ -10,6 +10,9 @@ import { useAudioStore } from '../state/audioStore';
 export function AudioBootstrap() {
   useEffect(() => {
     audio.muted = useAudioStore.getState().muted;
+    // Warm the boot-track network immediately (no gesture needed) so the loop
+    // starts on the real song, not a synth note, the moment audio unlocks.
+    audio.prefetchTrack();
     const unlock = () => {
       audio.unlock();
       if (!useAudioStore.getState().muted) audio.startBootLoop();
