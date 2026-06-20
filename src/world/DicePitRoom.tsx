@@ -37,6 +37,7 @@ export function DicePitRoom({ room }: { room: Room }) {
 
   const last = useMonsterStore((s) => s.last);
   const losses = useMonsterStore((s) => s.losses);
+  const wins = useMonsterStore((s) => s.wins);
   const maxed = useMonsterStore((s) => s.maxed);
 
   // Warm dim felt floor + stone walls — a back-room card table, not the bright pool.
@@ -60,10 +61,12 @@ export function DicePitRoom({ room }: { room: Room }) {
   const tableMat = useMemo(() => flatMat('#3a2030'), []);
 
   // The amber bout readout — regenerated per bout / state.
+  // NB: a win never shrinks it — the monster only ever bloats (one-directional;
+  // the smoke asserts monotonic growth). So win copy must NOT imply a size drop.
   const signText = maxed
     ? 'IT IS TOO BIG\nTO MOVE NOW'
     : last
-      ? `YOU ${last.you} — IT ${last.it}\n${last.won ? 'A HIT! IT SHRINKS BACK' : 'IT GROWS…'}`
+      ? `YOU ${last.you} — IT ${last.it}\n${last.won ? 'A HIT! — LISTEN…' : 'IT GROWS…'}`
       : 'ROLL THE BONE\nvs THE THING';
   const signTex = useMemo(
     () =>
@@ -93,10 +96,13 @@ export function DicePitRoom({ room }: { room: Room }) {
   // Publish the monster state for the smoke (gated to the test entrances).
   useEffect(() => {
     if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpMonster?: { losses: number; scale: number; maxed: boolean } }).__sdpMonster =
-        { losses, scale: monsterScale(losses), maxed };
+      (
+        window as Window & {
+          __sdpMonster?: { losses: number; wins: number; scale: number; maxed: boolean };
+        }
+      ).__sdpMonster = { losses, wins, scale: monsterScale(losses), maxed };
     }
-  }, [losses, maxed]);
+  }, [losses, wins, maxed]);
 
   // A roll: resolve the bout, then reward sound on a win / unease poke on a loss.
   const onRoll = (face: number) => {
