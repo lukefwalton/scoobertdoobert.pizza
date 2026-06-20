@@ -104,6 +104,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             <b>The Best Songs Under One Roof!&trade;</b> &nbsp; Lo-Fi &bull; Hi-Fi
             &bull; Stuffed Crust
           </p>
+          <p className="recipe">
+            <a href="/about">Our Secret Recipe &raquo;</a>
+          </p>
         </section>
       </main>
 
