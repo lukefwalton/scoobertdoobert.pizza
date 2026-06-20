@@ -2,7 +2,7 @@ import { SampleMenu } from '../components/SampleMenu';
 import { SocialLinks } from '../components/SocialLinks';
 import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
-import { destById, type Dest } from '../data/links';
+import { destById, resolveLinks } from '../data/links';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
@@ -21,7 +21,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   // The "inside scoop" points at the podcast (the behind-the-scenes talk show),
   // not at lukefwalton.com — that stays a subtle footer/schema backlink.
   const insideScoop = destById('podcast')?.href ?? '/text';
-  const dests = floor.links.map((id) => destById(id)).filter(Boolean) as Dest[];
+  const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
 
   return (
