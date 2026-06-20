@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
@@ -20,6 +20,20 @@ export function WorldHud() {
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
+
+  // The Scoobertverse welcome — a staged quest intro that plays once on world
+  // entry (WorldHud mounts with the world) and fades. Non-blocking, so you can
+  // start exploring while it runs.
+  const [welcome, setWelcome] = useState(true);
+  const [welcomeLeaving, setWelcomeLeaving] = useState(false);
+  useEffect(() => {
+    const tLeave = window.setTimeout(() => setWelcomeLeaving(true), 6400);
+    const tGone = window.setTimeout(() => setWelcome(false), 7400);
+    return () => {
+      window.clearTimeout(tLeave);
+      window.clearTimeout(tGone);
+    };
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -43,6 +57,22 @@ export function WorldHud() {
 
   return (
     <>
+      {welcome && (
+        <div
+          className={`hud-welcome${welcomeLeaving ? ' hud-welcome--leaving' : ''}`}
+          role="status"
+        >
+          <div className="hud-welcome__card">
+            <p className="hud-welcome__line">Hello.</p>
+            <p className="hud-welcome__line">You have entered the Scoobertverse.</p>
+            <p className="hud-welcome__line">Be careful as you explore.</p>
+            <p className="hud-welcome__line hud-welcome__line--spice">
+              These wilds are as spicy and delicious as habanero.
+            </p>
+          </div>
+        </div>
+      )}
+
       {nearHs && !open && !paused && <div className="hud-prompt">{nearHs.prompt}</div>}
 
       {openDest && (
