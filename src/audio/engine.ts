@@ -246,7 +246,15 @@ class PizzaAudio {
     if (!this.jukeboxActive) return;
     this.jukeboxActive = false;
     this.activeBuffer = undefined; // currentBuffer() → the boot loop
-    if (this.started) this.restartLoop();
+    if (this.started) {
+      // If the boot loop hasn't decoded yet (preload still in flight — unlikely
+      // this deep in the world, but not guaranteed), restartLoop() would return
+      // without a buffer and leave the JUKEBOX source audibly playing. Stop it
+      // instead; maybeStart() (fired when preload resolves) brings the boot loop
+      // up. Otherwise swap the voice straight back to the boot loop.
+      if (this.currentBuffer()) this.restartLoop();
+      else this.stopBootLoop();
+    }
     this.publishJukeboxState();
   }
 
