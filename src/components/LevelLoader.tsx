@@ -26,8 +26,11 @@ export function LevelLoader() {
   const isGlb = !!room.glb;
   const [dismissed, setDismissed] = useState(false);
   // Latches a TURN BACK so repeated clicks can't enqueue overlapping recovery
-  // polls / double-navigate. Reset when a new room is entered.
+  // polls / double-navigate. Reset when a new room is entered. `abortTimer` holds
+  // the pending recovery poll so it can be cancelled on room change / unmount —
+  // a stale poll must never fire goToRoom after we've moved on.
   const aborting = useRef(false);
+  const abortTimer = useRef<number | undefined>(undefined);
 
   // New room → show the loader again (until tapped in) and clear the overlay
   // state. Note this does NOT reset `ready` — GlbRoom owns that via mount/unmount
@@ -35,8 +38,17 @@ export function LevelLoader() {
   useEffect(() => {
     setDismissed(false);
     aborting.current = false;
+    if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
     useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
+
+  // Belt-and-suspenders: cancel any pending recovery poll if we unmount.
+  useEffect(
+    () => () => {
+      if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
+    },
+    [],
+  );
 
   if (!isGlb || dismissed) return null;
 
@@ -53,7 +65,7 @@ export function LevelLoader() {
     aborting.current = true;
     const go = () => {
       if (useSceneStore.getState().transitioning) {
-        window.setTimeout(go, 60);
+        abortTimer.current = window.setTimeout(go, 60);
         return;
       }
       const recover = room.glb?.recoverTo;

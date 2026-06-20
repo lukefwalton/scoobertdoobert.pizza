@@ -89,6 +89,9 @@ export type Room = {
   palette: RoomPalette;
   /** If set, this room IS a GLB level (GlbRoom renders it behind the loader). */
   glb?: RoomGlb;
+  /** Render ambient water dripping from the ceiling (the watery descent's
+   *  aftermath). Opt-in per room so it isn't coupled to a room kind. */
+  drips?: boolean;
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -315,6 +318,8 @@ export const ROOMS: Room[] = [
       // If the model fails to load, send the player back up to the pool.
       recoverTo: { to: 'poolrooms', spawn: 'fromLiminal' },
     },
+    // You rode the waterfall down — water drips from this ceiling (CeilingDrips).
+    drips: true,
     dims: { halfW: 8.5, halfD: 8.5, height: 6, eye: EYE },
     // Pale beige nothing — the backrooms register.
     palette: { background: '#d6cfb8', fog: '#d6cfb8', fogNear: 6, fogFar: 34 },

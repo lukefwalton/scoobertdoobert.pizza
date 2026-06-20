@@ -46,8 +46,9 @@ function RoomScene({ room }: { room: Room }) {
     return (
       <>
         <GlbRoom key={room.id} room={room} />
-        {/* The waterfall followed you down — water drips from the liminal ceiling. */}
-        {room.kind === 'liminal' && <CeilingDrips bounds={room.dims} />}
+        {/* Ambient water dripping from the ceiling — opt-in per room (room.drips),
+            not coupled to the room kind, so a future liminal room can skip it. */}
+        {room.drips && <CeilingDrips bounds={room.dims} />}
       </>
     );
   switch (room.kind) {
