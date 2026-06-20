@@ -79,6 +79,14 @@ try {
 } catch {
   fail('could not return to storefront from the world');
 }
+
+// The rewind must leave floor 0 actually interactive, not just on-screen:
+// the order form should restart the descent (floor 0 -> 1999) all over again.
+let reusable = false;
+if (exitToFloor0) {
+  await page.click('#order-form button[type="submit"]');
+  reusable = await floor(page, 'y1999');
+}
 await ctx.close();
 
 // ── mobile / low-power handoff ─────────────────────────────────────────────
@@ -106,7 +114,7 @@ await mctx.close();
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
     `install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
