@@ -28,7 +28,12 @@ const TEX_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalM
 // the DOM loader can offer a way back out, and renders an empty room (fog +
 // doors survive, so the exit door still works as a fallback). Error boundaries
 // have to be class components.
-class GlbErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+//
+// It also CLEARS the failed url from useGLTF's cache (drei caches the rejected
+// promise too), so a transient failure — CDN hiccup, a one-off decode error —
+// can be retried by re-entering the room in the same tab instead of staying
+// poisoned until a full page reload.
+class GlbErrorBoundary extends Component<{ url: string; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
@@ -37,6 +42,7 @@ class GlbErrorBoundary extends Component<{ children: ReactNode }, { failed: bool
     // Surface it once for debugging; the player-facing recovery is the loader.
     console.error('[GlbRoom] level failed to load:', err);
     useLevelStore.getState().setError(true);
+    useGLTF.clear(this.props.url); // drop the poisoned cache entry → retryable
   }
   render() {
     if (this.state.failed) return null;
@@ -46,7 +52,7 @@ class GlbErrorBoundary extends Component<{ children: ReactNode }, { failed: bool
 
 export function GlbRoom({ room }: { room: Room }) {
   return (
-    <GlbErrorBoundary>
+    <GlbErrorBoundary url={room.glb!.url}>
       <GlbRoomInner room={room} />
     </GlbErrorBoundary>
   );
