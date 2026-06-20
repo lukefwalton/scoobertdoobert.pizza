@@ -12,6 +12,7 @@ import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
 import { DicePitRoom } from './DicePitRoom';
 import { GlbRoom } from './GlbRoom';
+import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
@@ -71,6 +72,24 @@ function RoomScene({ room }: { room: Room }) {
   }
 }
 
+// GLB set-dressing for the current room (room.props). Each prop is small + loads
+// fast; each gets its OWN Suspense (null fallback) so one slow prop never hides
+// its siblings or gates the room, and its own error boundary (in GlbProp) so a
+// bad one can't crash the scene. Keyed by url+index so the same GLB can appear
+// twice in a room without a key clash.
+function RoomProps({ room }: { room: Room }) {
+  if (!room.props?.length) return null;
+  return (
+    <>
+      {room.props.map((spec, i) => (
+        <Suspense key={`${spec.url}#${i}`} fallback={null}>
+          <GlbProp spec={spec} />
+        </Suspense>
+      ))}
+    </>
+  );
+}
+
 // The 3D world. Default export so it can be code-split behind a dynamic import —
 // three.js never enters the initial bundle. Low dpr + pixelated CSS gives the
 // low-res render crunch; `flat` disables tone mapping for flat PS1 color. The
@@ -111,6 +130,7 @@ export default function World() {
       <Suspense fallback={null}>
         <RoomScene room={room} />
       </Suspense>
+      <RoomProps room={room} />
       <Doors />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +
