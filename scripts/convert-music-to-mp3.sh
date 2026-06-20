@@ -2,7 +2,7 @@
 # Convert WAVs to MP3s and remove WAV files.
 set -euo pipefail
 
-ROOT="${1:-selected-scoobert-music}"
+ROOT="${1:-media/music}"
 QUALITY=4 # LAME VBR ~165 kbps — fine for background music, not archival
 
 converted=0

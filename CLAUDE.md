@@ -293,11 +293,15 @@ floors slot in without touching scene code.
   `access:'private'` (+ honeypot + failure logging). Needs a Blob store
   connected to the Vercel project (`BLOB_READ_WRITE_TOKEN`) to persist; absent
   that it no-ops without breaking the UX.
-- **Repo hygiene (TODO, post-merge):** `main` root is messy (old hand-built site
-  + loose mp3s / photos / `fun/` / icons). PR #4 already moves the old site to
-  `legacy/`. The loose source media should nest (e.g. `media/masters/`,
-  `media/photos/`) once #4 merges — doing it from this divergent branch risks
-  add/add duplicates. `fun/` (half-built JS music apps) is its own later PR.
+- **Repo hygiene (DONE 2026-06-20):** the root is cleaned up. All loose source
+  media nests under `media/` (`masters/`, `music/`, `models/`, `photos/`,
+  `brand/`); the scattered GLB dirs (`newglb/`/`mobius/`/`morenew/`/`anamatornic/`/
+  `couldbewholelevels/`) are consolidated + renamed under `media/models/<theme>/`
+  with a manifest; the old-site snapshot is in `legacy/`. The whole-repo map is
+  [`STRUCTURE.md`](STRUCTURE.md); per-tree docs are the `README.md`s under
+  `media/`. `fun/` was a phantom gitlink (a separate repo copied in) — now a
+  documented placeholder (`fun/README.md`); wire it up as a real submodule/vendor
+  later.
 
 ---
 
@@ -358,12 +362,19 @@ review bot as the feedback loop. Don't stop at every checkpoint for sign-off.
 - **Open-source/copyleft is welcome** (Luke OK'd GPL/public). Credit in
   `THIRD_PARTY_NOTICES.md`, keep isolated, **never lift proprietary assets**.
 
-### GLB asset troves on `main` (source, optimize before shipping)
-`newglb/` (vaporwave-Greek: sofokles vaporwave, underwater broken statue, Hades
-head, columns, lyre, kiddie pool, palms, vaporwave mountains, arcade cabinet),
-möbius glbs, `legacy/julius_caesar.glb` (the "bust"). Crunch via `gltf-transform`
-to PS1 fidelity; only optimized derivatives go in `public/models/`. Bust → beach
-shop counter; vaporwave-Greek → the level below the shop (Phase 3+).
+### GLB asset troves — now under `media/models/` (source, optimize before shipping)
+All raw `.glb` sources are consolidated under **`media/models/<theme>/`** with a
+manifest at `media/models/README.md` (clean name ← original + **IP flags**). The
+old loose root dirs (`newglb/`, `mobius/`, `morenew/`, `anamatornic/`,
+`couldbewholelevels/`) are gone. Themes: `mobius/` (album motif),
+`greek-vaporwave/` (sofokles scan, underwater broken statue, Hades head, columns,
+lyre, jar, mountains → the level below the shop), `water/` (planes + kiddie pool),
+`props/` (arcade, palm, fried chicken), `doors/`, `crt-tvs/` (machine room),
+`animatronics/` (Phase-5 dread — ⚠️ FNAF/Shrek/Chuck-E-Cheese IP, ref only),
+`levels/` (liminal/pool/backrooms — ⚠️ `max-and-ruby-house` is Nickelodeon IP).
+The bust (`legacy/julius_caesar.glb`) stays in the frozen `legacy/` snapshot →
+beach-shop counter. Crunch via `gltf-transform` to PS1 fidelity; only optimized
+derivatives go in `public/models/`.
 
 ### Phase 2 status (2026-06-20)
 ✅ ckpt1 floors system · ✅ ckpt2 doors + descent mechanic · ✅ ckpt3 1999
@@ -421,13 +432,14 @@ the Scoobert Doobert story PLAINLY; linked as "Our Secret Recipe →". Inform th
 copy from lukefwalton.com/music/#scoobert, lukefwalton.com/love-music-more/, and
 lovemusicmore.substack.com (research before writing).
 
-### More level GLBs on main (Luke — for the levels below the shop)
-- **`couldbewholelevels/`** — full liminal/backrooms/pool environments:
-  abandoned_pool, backrooms_vr, dreamcore_liminal_space, liminal_space (+other),
-  metro_tunnel, pool_5/6, poolrooms — the "pool level" + backrooms direction for
-  Phase 3+. Plus a standalone 3D **door** GLB (perfect for the room exits).
-  **NOTE: `max_and_ruby_house.glb` is copyrighted Nickelodeon IP** — flag before
-  any public use; the rest are generic liminal aesthetics (fine).
+### More level GLBs — now `media/models/levels/` (Luke — for the levels below the shop)
+- **`media/models/levels/`** (was `couldbewholelevels/`) — full liminal/backrooms/
+  pool environments: `abandoned-pool`, `backrooms-vr`, `dreamcore-liminal-space`,
+  `liminal-space` (+`liminal-other-space`), `metro-tunnel`, `pool-6`, `poolrooms`
+  (+`poolrooms-alt`) — the "pool level" + backrooms direction for Phase 3+.
+  **NOTE: `max-and-ruby-house.glb` is copyrighted Nickelodeon IP** — flag before
+  any public use (kept as ref only); the rest are generic liminal aesthetics (fine).
+  Door GLBs for room exits live in `media/models/doors/`.
 
 ### Doom / Freedoom shrine — copyleft protections (Luke asked)
 Still on, as a hidden lazy route (Phase 3+ secret). When built it needs:
