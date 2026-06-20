@@ -72,6 +72,12 @@ let rolled = false;
 let trackJumped = false;
 if (inJuke) {
   const before = await page.evaluate(() => window.__sdpJukebox?.index);
+  // Clear the hook FIRST so "roll registered" is edge-triggered: if the click
+  // misses the die (e.g. a camera/layout tweak shifted its projection), the
+  // wait below fails loudly instead of passing on a stale face value.
+  await page.evaluate(() => {
+    window.__sdpDice = undefined;
+  });
   const box = await page.locator('canvas').boundingBox();
   await page.mouse.click(box.x + box.width * 0.663, box.y + box.height * 0.62);
   rolled = await page
@@ -79,15 +85,19 @@ if (inJuke) {
       timeout: 4000,
     })
     .then(() => true, () => false);
-  if (!rolled) fail('clicking the d20 did not register a roll (1..20)');
+  if (!rolled) fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
   if (rolled) {
     const face = await page.evaluate(() => window.__sdpDice);
     const expected = (face - 1) % TRACK_COUNT; // derived from the live catalog
     trackJumped = await page
       .waitForFunction((idx) => window.__sdpJukebox?.index === idx, expected, { timeout: 4000 })
       .then(() => true, () => false);
-    if (!trackJumped)
-      fail(`roll ${face} did not set the jukebox to the mapped track (expected index ${expected}, was ${before})`);
+    if (!trackJumped) {
+      const after = await page.evaluate(() => window.__sdpJukebox?.index);
+      fail(
+        `roll ${face} did not set the jukebox to the mapped track (expected index ${expected}, before ${before}, after ${after})`,
+      );
+    }
     await page.waitForTimeout(1300); // let the tumble settle for the shot
     await page.screenshot({ path: '.shots/dice-after.png' });
   }
