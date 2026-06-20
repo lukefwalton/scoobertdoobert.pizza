@@ -59,15 +59,17 @@ const m0 = await monster();
 const startedSmall = !!m0 && m0.losses === 0 && m0.scale === 1 && m0.maxed === false;
 if (!startedSmall) fail(`monster didn't start small (got ${JSON.stringify(m0)})`);
 
-// Roll the bone (low-centre on the table) until it's TOO BIG TO MOVE, or we run
-// out of patience. P(loss) per roll ≈ 0.525, so ~24 rolls reliably hits the cap.
+// Roll the bone (low-centre on the table) until it's TOO BIG TO MOVE *and* we've
+// landed at least one win (so the win→secret→greeting path is exercised too).
+// P(loss)≈0.525, P(win)≈0.475 per roll, so ~30 rolls reliably gives both.
 const box = await page.locator('canvas').boundingBox();
 let grew = false;
 let maxed = false;
+let won = false;
 let monotonic = true;
 let prevLosses = 0;
 if (inPit) {
-  for (let i = 0; i < 26; i++) {
+  for (let i = 0; i < 30; i++) {
     await page.mouse.click(box.x + box.width * 0.49, box.y + box.height * 0.9);
     await page.waitForTimeout(1450); // let the tumble settle + resolve
     const m = await monster();
@@ -78,13 +80,13 @@ if (inPit) {
     if (m.losses < prevLosses) monotonic = false; // losses never go DOWN
     prevLosses = m.losses;
     if (m.losses > 0) grew = true;
-    if (m.maxed) {
-      maxed = true;
-      break;
-    }
+    if (m.wins > 0) won = true;
+    if (m.maxed) maxed = true;
+    if (maxed && won) break; // both contracts hit
   }
 }
 const mEnd = await monster();
+if (!won) fail('never won a single bout in 30 rolls (improbable — clicks missing the die?)');
 if (!grew) fail('the monster never grew after many rolls (no losses registered — clicks missing the die?)');
 if (!maxed) fail(`the monster never reached TOO BIG TO MOVE (ended ${JSON.stringify(mEnd)})`);
 if (!monotonic) fail('monster losses went DOWN at some point (should be monotonic)');
@@ -100,9 +102,33 @@ await toDoor('s');
 const left = await roomIs('The Poolrooms', 6000);
 if (!left) fail('could not leave the back room past the maxed monster');
 
+// Cross-room integration: a win recorded the 'dice-monster' secret in
+// localStorage, and the storefront's rat greeting now clocks it. (Persistence
+// survives the in-tab nav back to "/".)
+const secretSaved = await page.evaluate(() => {
+  try {
+    return (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []).includes(
+      'dice-monster',
+    );
+  } catch {
+    return false;
+  }
+});
+if (!secretSaved) fail('winning a bout did not record the dice-monster secret');
+
+await page.goto(base + '/', { waitUntil: 'networkidle', timeout: 15000 });
+await page.waitForSelector('.store', { timeout: 8000 });
+await page.waitForTimeout(400);
+const greeting = await page.evaluate(
+  () => document.querySelector('.news-returning')?.textContent?.toLowerCase() ?? '',
+);
+const ratClocks = greeting.includes('dice');
+if (!ratClocks) fail(`rat greeting didn't clock the dice-monster win (got: ${greeting})`);
+
 await browser.close();
 console.log(
-  `monster: shop=${startShop} pool=${inPool} pit=${inPit} startedSmall=${startedSmall} ` +
-    `grew=${grew} maxed=${maxed} monotonic=${monotonic} capped=${cappedScale} left=${left} | errors=${errors}`,
+  `monster: shop=${startShop} pool=${inPool} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
+    `won=${won} maxed=${maxed} monotonic=${monotonic} capped=${cappedScale} left=${left} ` +
+    `secret=${secretSaved} ratClocks=${ratClocks} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
