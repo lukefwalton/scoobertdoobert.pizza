@@ -29,10 +29,10 @@ this archive yet — no folder until its files land.
 
 | folder | album | year | notes |
 |---|---|---|---|
-| `mob/` | MÖB | ? | MÖBIUS arc #1; was `newnewmusic/MP3 (1)` — Stories, MEMORY LAN, Sunlight, DMV, Aliens, … All I Need |
-| `i/` | I | ? | MÖBIUS arc #2; was `newnewmusic/MP3s` — daydreaming, time with u, the cycle, … golden state of mind |
+| `mob/` | MÖB | 2023 | MÖBIUS arc #1; was `newnewmusic/MP3 (1)` — Stories, MEMORY LAN, Sunlight, DMV, Aliens, … All I Need |
+| `i/` | I | 2024 | MÖBIUS arc #2; was `newnewmusic/MP3s` — daydreaming, time with u, the cycle, … golden state of mind |
 | `us/` | US | 2025 | MÖBIUS arc #3; singles incl. AFTER PARTY, PARTY, JAZZ FLUTE, LOL… — each in a per-song subfolder with master + instrumental |
-| `moonlight-beach/` | Moonlight Beach (LP) | ? | sets up the MÖBIUS arc; track 10's title is the upside-down "möbius" gag |
+| `moonlight-beach/` | Moonlight Beach (LP) | 2023 | sets up the MÖBIUS arc; track 10's title is the upside-down "möbius" gag |
 | `koan/` | KŌAN (LP) | ? | the LP the site's themes come from — "Information", "Jolly Roger Bay (64)", "1101" |
 | `big-hug/` | Big Hug (LP) | ? | |
 | `little-hug/` | Little Hug (EP) | ? | |
