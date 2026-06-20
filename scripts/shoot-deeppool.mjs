@@ -71,34 +71,38 @@ try {
 }
 await page.waitForTimeout(1500);
 
-await roomIs('Beach Pizza Shop');
-await toDoor('d', 'the poolrooms'); // → poolrooms
-const inPool = await roomIs('The Poolrooms');
-
-// pool → liminal (centre door across the water), through its loader.
-await toDoor('w', 'the centre water door');
-const limReady = await enterLoadedLevel('liminal');
-const inLiminal = limReady && (await roomIs('Liminal Space'));
-await page.waitForTimeout(600);
-
-// liminal → DEEP: the -Z "go down to the deep end" door (GLB → GLB), heavy loader.
-let inDeep = false;
+// One linear tour, SHORT-CIRCUITED: each step gates the next, so the first
+// broken hop fails with its own context and we stop — no 15–25s of follow-on
+// "loader never reached ready" noise after a nav regression upstream.
+let inPool = false;
+let inLiminal = false;
 let deepReady = false;
-if (inLiminal) {
-  await toDoor('w', 'the deep-end door'); // straight ahead (-Z) from the liminal spawn
-  deepReady = await enterLoadedLevel('abandoned pool');
-  inDeep = deepReady && (await roomIs('The Abandoned Pool'));
-  await page.waitForTimeout(800);
-  await page.screenshot({ path: '.shots/deeppool.png' });
-}
-
-// climb back up to the liminal (deep → liminal).
+let inDeep = false;
 let backUp = false;
-if (inDeep) {
-  await toDoor('s', 'the climb-back-up door'); // exit door behind us (+Z)
-  // re-entering the liminal is a cached GLB load — should be quick/ready.
-  backUp = await enterLoadedLevel('liminal (return)', 15000);
-  backUp = backUp && (await roomIs('Liminal Space'));
+
+if (
+  (await roomIs('Beach Pizza Shop')) &&
+  (await toDoor('d', 'the poolrooms')) &&
+  (inPool = await roomIs('The Poolrooms')) &&
+  // pool → liminal (centre door across the water), through its loader.
+  (await toDoor('w', 'the centre water door')) &&
+  (await enterLoadedLevel('liminal')) &&
+  (inLiminal = await roomIs('Liminal Space'))
+) {
+  await page.waitForTimeout(600);
+  // liminal → DEEP: the -Z "go down to the deep end" door (GLB → GLB), heavy loader.
+  if (
+    (await toDoor('w', 'the deep-end door')) &&
+    (deepReady = await enterLoadedLevel('abandoned pool')) &&
+    (inDeep = await roomIs('The Abandoned Pool'))
+  ) {
+    await page.waitForTimeout(800);
+    await page.screenshot({ path: '.shots/deeppool.png' });
+    // climb back up to the liminal (deep → liminal; cached → quick).
+    if ((await toDoor('s', 'the climb-back-up door')) && (await enterLoadedLevel('liminal (return)', 15000))) {
+      backUp = await roomIs('Liminal Space');
+    }
+  }
 }
 
 await browser.close();
