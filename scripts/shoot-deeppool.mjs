@@ -30,12 +30,21 @@ const roomIs = (name, timeout = 8000) =>
       { timeout },
     )
     .then(() => true, () => (fail(`room never became "${name}"`), false));
-// Walk `key` until a door prompts, then E.
-const toDoor = async (key) => {
+// Walk `key` until a door prompts, then E. Fails IMMEDIATELY (with the hop's
+// name) if the prompt never appears, so a spawn/door drift points at the broken
+// hop instead of surfacing later as a vague "room never became…" timeout.
+const toDoor = async (key, label) => {
   await page.keyboard.down(key);
-  await page.waitForSelector('.hud-prompt--door', { timeout: 4000 }).catch(() => {});
+  const prompted = await page
+    .waitForSelector('.hud-prompt--door', { timeout: 4000 })
+    .then(() => true, () => false);
   await page.keyboard.up(key);
+  if (!prompted) {
+    fail(`no door prompt walking '${key}' toward ${label} — nav regression at this hop`);
+    return false;
+  }
   await page.keyboard.press('e');
+  return true;
 };
 // Wait out a GLB loader and tap in. Generous timeout for the heavy deep level.
 const enterLoadedLevel = async (label, timeout = 25000) => {
@@ -63,11 +72,11 @@ try {
 await page.waitForTimeout(1500);
 
 await roomIs('Beach Pizza Shop');
-await toDoor('d'); // → poolrooms
+await toDoor('d', 'the poolrooms'); // → poolrooms
 const inPool = await roomIs('The Poolrooms');
 
 // pool → liminal (centre door across the water), through its loader.
-await toDoor('w');
+await toDoor('w', 'the centre water door');
 const limReady = await enterLoadedLevel('liminal');
 const inLiminal = limReady && (await roomIs('Liminal Space'));
 await page.waitForTimeout(600);
@@ -76,7 +85,7 @@ await page.waitForTimeout(600);
 let inDeep = false;
 let deepReady = false;
 if (inLiminal) {
-  await toDoor('w'); // deep door is straight ahead (-Z) from the liminal spawn
+  await toDoor('w', 'the deep-end door'); // straight ahead (-Z) from the liminal spawn
   deepReady = await enterLoadedLevel('abandoned pool');
   inDeep = deepReady && (await roomIs('The Abandoned Pool'));
   await page.waitForTimeout(800);
@@ -86,7 +95,7 @@ if (inLiminal) {
 // climb back up to the liminal (deep → liminal).
 let backUp = false;
 if (inDeep) {
-  await toDoor('s'); // exit door behind us (+Z)
+  await toDoor('s', 'the climb-back-up door'); // exit door behind us (+Z)
   // re-entering the liminal is a cached GLB load — should be quick/ready.
   backUp = await enterLoadedLevel('liminal (return)', 15000);
   backUp = backUp && (await roomIs('Liminal Space'));
