@@ -39,6 +39,16 @@ export function Controls() {
     camera.position.set(spawn.position[0], spawn.position[1], spawn.position[2]);
     yaw.current = spawn.yaw;
     pitch.current = -0.04;
+    // Apply the heading NOW, not just in useFrame() — useFrame returns early
+    // while `transitioning`, so without this the camera would keep its old
+    // facing through the whole fade-in and snap to the spawn heading only when
+    // the freeze lifts (visible on doors where arrival ≠ approach heading).
+    const dir = new THREE.Vector3(
+      Math.sin(yaw.current) * Math.cos(pitch.current),
+      Math.sin(pitch.current),
+      Math.cos(yaw.current) * Math.cos(pitch.current),
+    );
+    camera.lookAt(camera.position.x + dir.x, camera.position.y + dir.y, camera.position.z + dir.z);
   }, [currentRoom, currentSpawn, camera]);
 
   useEffect(() => {
