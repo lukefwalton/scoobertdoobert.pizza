@@ -215,6 +215,16 @@ h2 {
   font-size: 0.9rem;
 }
 
+/* Honeypot field: present in the DOM for bots, off-screen for humans. Not
+   display:none (some bots skip those) — pushed out of view and out of tab order. */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 /* Small inline press JPEGs, floated like a 1996 page would: a thin gray inset
    border, a tiny centered caption. Deliberately undersized and a little wrong. */
 .snapshot {

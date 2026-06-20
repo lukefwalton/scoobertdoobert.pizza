@@ -28,6 +28,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
+  // Honeypot: a hidden field no human ever fills. Form-spam bots fill every
+  // input, so a non-empty value means a bot — drop it silently (a 200 that
+  // looks identical to success, so the bot learns nothing). Not a substitute
+  // for real rate limiting (which needs durable infra like Vercel KV/Upstash),
+  // but it turns away the cheap automated stuff with zero infrastructure.
+  if (String(body.website ?? '').trim() !== '') {
+    res.status(200).json({ ok: true, stored: false });
+    return;
+  }
+
   const email = String(body.email ?? '').trim().slice(0, 254);
   const cheese = String(body.cheese ?? '').trim().slice(0, 40);
   const optin = body.optin === true || body.optin === 'on' || body.optin === 'true';
@@ -47,8 +57,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       { access: 'private', addRandomSuffix: false, contentType: 'application/json' },
     );
     res.status(200).json({ ok: true, stored: true });
-  } catch {
-    // Storage failures must never break the front door / descent.
+  } catch (err) {
+    // Storage failures must never break the front door / descent — but DO log
+    // server-side (Vercel captures function logs) so a broken/absent Blob store
+    // is detectable instead of silently dropping every signup.
+    console.error('[api/order] blob write failed:', err);
     res.status(200).json({ ok: false, stored: false, error: 'store_failed' });
   }
 }
