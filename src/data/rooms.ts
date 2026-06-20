@@ -21,7 +21,8 @@ export type RoomKind =
   | 'poolrooms'
   | 'liminal'
   | 'mobius'
-  | 'dicepit';
+  | 'dicepit'
+  | 'shrine';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -303,6 +304,9 @@ export const ROOMS: Room[] = [
       fromMobius: { position: [4.5, EYE, 5], yaw: -Math.PI / 2 },
       // Back out of the dice pit: by the -X door, facing into the room (+X).
       fromDicepit: { position: [-4.5, EYE, 5], yaw: Math.PI / 2 },
+      // Surfacing back from the wayside shrine: by the -Z torii door, a step
+      // clear of its radius, facing into the room (+Z).
+      fromJapan: { position: [0, EYE, -4.5], yaw: 0 },
     },
     doors: [
       {
@@ -343,6 +347,20 @@ export const ROOMS: Room[] = [
         rotationY: Math.PI / 2,
         label: 'duck into the back room',
         radius: 3.2,
+      },
+      {
+        id: 'pool-to-japan',
+        to: 'shrine',
+        toSpawn: 'default',
+        // A torii half-sunk in the false water on the far (-Z) wall — HIDDEN
+        // until the rat has shown you the building keeps secrets (secretRevealed,
+        // same reveal as the classified panel). The country on the other side.
+        position: [0, 0, -8.95],
+        rotationY: Math.PI,
+        label: 'step through the half-sunk torii',
+        hidden: true,
+        revealOn: 'secret',
+        radius: 3.0,
       },
     ],
   },
@@ -502,6 +520,37 @@ export const ROOMS: Room[] = [
         position: [0, 0, 5.9], // +Z wall
         rotationY: 0,
         label: 'back out to the pool',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'shrine',
+    kind: 'shrine',
+    title: 'Wayside Shrine',
+    // The one OUTDOOR, *sweet* deep room — a rural dusk: a torii path, a little
+    // shrine, a country railway crossing. A breather among the bitter depths
+    // (taste guardrail: the contrast is the point). Procedural scaffold for now;
+    // the tracks run off into the fog toward a future metro-tunnel GLB hookup
+    // (Luke: "connect to the tunnel GLB cuz of trains"). Reached via the hidden
+    // torii in the poolrooms — discovered, not on the main path.
+    dims: { halfW: 11, halfD: 15, height: 9, eye: EYE },
+    // Warm hazy golden-hour; fog dissolves the open edges so no walls are needed.
+    palette: { background: '#e6c08a', fog: '#e6c08a', fogNear: 8, fogFar: 58 },
+    spawns: {
+      // Step out from under the entrance torii at the near (+Z) end, facing down
+      // the path (-Z) toward the shrine. Clear of the return door's 3.2 radius.
+      default: { position: [0, EYE, 11], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 11], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'shrine-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromJapan',
+        position: [0, 0, 14.95], // +Z (entrance) wall — back through the torii
+        rotationY: 0,
+        label: 'step back through the torii',
         radius: 3.2,
       },
     ],
