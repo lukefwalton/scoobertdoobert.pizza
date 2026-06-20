@@ -35,6 +35,14 @@
   font: inherit;
   color: #0000ee;
   text-decoration: underline;
+  cursor: inherit;
+}
+/* While the track is still lazy-loading (or if it never loads) the control is
+   inert — gray, no link affordance. */
+.mute-toggle:disabled {
+  color: #888888;
+  text-decoration: none;
+  cursor: default;
 }
 
 h1 {

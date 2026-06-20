@@ -1,96 +1,93 @@
 // ───────────────────────────────────────────────────────────────────────────
-// The boot loop. The real voice is a deliberately degraded bounce of a Scoobert
-// track ("Best Day Ever"), pre-crushed to 8-bit / 11 kHz mono (see
-// scripts/make-boot-audio.mjs) and loaded from /audio/boot.wav. It loops under
-// the storefront and pitch-bends downward as the descent "ages" the era.
+// The boot loop. The voice is a deliberately degraded bounce of a Scoobert
+// track — "Jolly Roger Bay (64)", the #1 / top-layer theme — pre-crushed to
+// 8-bit / 11 kHz mono (see scripts/make-boot-audio.mjs) and lazy-loaded from
+// /audio/boot.wav. It loops under the storefront and pitch-bends downward as the
+// descent "ages" the era into the world.
 //
-// A tiny square-wave synth (buildBuffer) stays as a graceful fallback: if the
-// track 404s or fails to decode, the loop still plays something lo-fi rather
-// than going silent. The track decodes async and hot-swaps in when ready.
+// LAZY + GATED (per Luke): the track is fetched and decoded in the background
+// (no user gesture needed — we decode with a throwaway OfflineAudioContext), and
+// the music control stays DISABLED until it's ready. There is NO synth fallback:
+// if the file never loads, there is simply no music, and the toggle never lights
+// up. Subscribe to readiness with onReady().
 //
 // SSR-safe: the constructor touches nothing. All Web Audio / window access is
-// deferred to ensure()/unlock(), which only run from client effects and user
-// gestures.
+// deferred to preload()/ensure()/unlock(), which only run from client effects
+// and user gestures.
 // ───────────────────────────────────────────────────────────────────────────
 
-// Resting lowpass cutoff. Higher than the synth-only era (2200) so the real
-// song reads through as lo-fi rather than mud; the descent still bends it to 700.
+// Resting lowpass cutoff — lo-fi but the song still reads through; the descent
+// bends it down to 700.
 const REST_CUTOFF = 4200;
 const TRACK_URL = '/audio/boot.wav';
-
-type Note = [freqHz: number, beats: number];
-
-// A short, dreamy minor motif (A-minor-ish).
-const MOTIF: Note[] = [
-  [220.0, 1], [261.63, 1], [329.63, 1], [261.63, 1],
-  [196.0, 1], [246.94, 1], [329.63, 2],
-  [220.0, 1], [261.63, 1], [392.0, 1], [329.63, 1],
-  [293.66, 2], [220.0, 2],
-];
-
-const BPM = 96;
-const SECONDS_PER_BEAT = 60 / BPM;
-
-function buildBuffer(ctx: AudioContext): AudioBuffer {
-  const sr = ctx.sampleRate;
-  const totalBeats = MOTIF.reduce((s, [, b]) => s + b, 0);
-  const len = Math.ceil(totalBeats * SECONDS_PER_BEAT * sr);
-  const buf = ctx.createBuffer(1, len, sr);
-  const data = buf.getChannelData(0);
-
-  let cursor = 0; // sample index
-  for (const [freq, beats] of MOTIF) {
-    const n = Math.floor(beats * SECONDS_PER_BEAT * sr);
-    for (let i = 0; i < n; i++) {
-      const time = i / sr;
-      const phase = (time * freq) % 1;
-      let s = phase < 0.5 ? 1 : -1; // square wave
-      s *= Math.exp(-3.2 * time) * 0.9 + 0.05; // pluck envelope
-      s = Math.round(s * 6) / 6; // amplitude quantization => bit-crushed
-      data[cursor + i] = s * 0.18;
-    }
-    cursor += n;
-  }
-  return buf;
-}
 
 class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
   private lowpass?: BiquadFilterNode;
-  private buffer?: AudioBuffer; // synth fallback
-  private trackBytes?: ArrayBuffer; // fetched WAV bytes (pre-decode)
-  private trackBuffer?: AudioBuffer; // the real degraded track, once decoded
+  private trackBuffer?: AudioBuffer; // the decoded degraded track (the only voice)
   private source?: AudioBufferSourceNode;
   private started = false;
-  private usingTrack = false;
-  private bytesLoad?: Promise<void>;
-  private trackLoad?: Promise<void>;
+  private unlocked = false;
+  private preloadPromise?: Promise<boolean>;
+  private readyListeners = new Set<(ready: boolean) => void>();
   muted = false;
 
-  /** Warm the network early: fetch the track bytes. Needs no AudioContext and no
-   *  user gesture, so it's safe to call on mount — by the time the first gesture
-   *  unlocks audio, only the (fast) decode remains and the loop starts on the
-   *  real song instead of blipping a synth note first. */
-  prefetchTrack(): void {
-    if (this.bytesLoad || this.trackBytes || typeof fetch === 'undefined') return;
-    this.bytesLoad = fetch(TRACK_URL)
-      .then((r) => (r.ok ? r.arrayBuffer() : undefined))
-      .then((b) => {
-        if (b) this.trackBytes = b;
-      })
-      .catch(() => {
-        /* leave the synth fallback in place */
-      });
+  /** True once the track is fetched + decoded and the loop can actually play. */
+  get ready(): boolean {
+    return !!this.trackBuffer;
   }
 
-  /** Create the audio graph + render the fallback buffer, kick off the track
-   *  fetch. Idempotent. */
+  /** Subscribe to readiness (fires immediately with the current value). Returns
+   *  an unsubscribe fn. The music toggle uses this to enable itself. */
+  onReady(cb: (ready: boolean) => void): () => void {
+    this.readyListeners.add(cb);
+    cb(this.ready);
+    return () => {
+      this.readyListeners.delete(cb);
+    };
+  }
+  private emitReady(): void {
+    for (const cb of this.readyListeners) cb(this.ready);
+  }
+
+  /** Lazy-load + decode the track. Needs no playback context and no user gesture
+   *  (decoded via a throwaway OfflineAudioContext), so the toggle can light up
+   *  before any interaction. If this never yields a buffer, there's no music —
+   *  there is deliberately no synth fallback. Idempotent. */
+  preload(): Promise<boolean> {
+    if (this.preloadPromise) return this.preloadPromise;
+    this.preloadPromise = (async () => {
+      if (typeof fetch === 'undefined' || typeof window === 'undefined') return false;
+      const OAC =
+        window.OfflineAudioContext ||
+        (window as unknown as { webkitOfflineAudioContext?: typeof OfflineAudioContext })
+          .webkitOfflineAudioContext;
+      if (!OAC) return false;
+      try {
+        const res = await fetch(TRACK_URL);
+        if (!res.ok) return false;
+        const bytes = await res.arrayBuffer();
+        const decoder = new OAC(1, 1, 44100);
+        this.trackBuffer = await decoder.decodeAudioData(bytes);
+        this.emitReady();
+        // A gesture may already have unlocked us while we were decoding.
+        this.maybeStart();
+        return true;
+      } catch {
+        return false; // no music, no fallback
+      }
+    })();
+    return this.preloadPromise;
+  }
+
+  /** Build the playback graph. Called on the first gesture (autoplay policy). */
   ensure(): void {
     if (this.ctx) return;
     const AC =
       typeof window !== 'undefined'
-        ? window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+        ? window.AudioContext ||
+          (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
         : undefined;
     if (!AC) return;
     const ctx = new AC();
@@ -104,41 +101,33 @@ class PizzaAudio {
     this.ctx = ctx;
     this.master = master;
     this.lowpass = lowpass;
-    this.buffer = buildBuffer(ctx);
-    void this.loadTrack();
   }
 
-  /** Decode the (prefetched) track bytes, then hot-swap it in if the fallback is
-   *  already looping. Best-effort: any failure just leaves the synth playing. */
-  private loadTrack(): Promise<void> {
-    if (this.trackLoad) return this.trackLoad;
-    this.trackLoad = (async () => {
-      if (!this.ctx) return;
-      this.prefetchTrack();
-      try {
-        await this.bytesLoad;
-      } catch {
-        /* fall through to the synth fallback */
-      }
-      if (!this.trackBytes) return;
-      try {
-        // decodeAudioData detaches its input, so decode a copy and keep the raw
-        // bytes for a possible retry.
-        this.trackBuffer = await this.ctx.decodeAudioData(this.trackBytes.slice(0));
-        // If we're already looping the fallback, swap to the real track.
-        if (this.started && !this.usingTrack) this.restartLoop();
-      } catch {
-        /* keep the synth fallback */
-      }
-    })();
-    return this.trackLoad;
+  /** Resume the context. Must be called from a user gesture. Also remembers that
+   *  we're unlocked so a later preload-complete can start the loop. */
+  unlock(): void {
+    this.ensure();
+    if (this.ctx && this.ctx.state === 'suspended') void this.ctx.resume();
+    this.unlocked = true;
+    this.maybeStart();
   }
 
-  /** (Re)start the loop source from the best buffer available. */
+  /** Start the loop iff everything lines up: unlocked, decoded, unmuted, idle. */
+  private maybeStart(): void {
+    if (this.unlocked && this.ready && !this.muted && !this.started) this.startBootLoop();
+  }
+
+  startBootLoop(): void {
+    this.ensure();
+    if (!this.ctx || !this.lowpass || this.started || !this.trackBuffer) return;
+    this.started = true;
+    this.applyGain();
+    this.restartLoop();
+  }
+
+  /** (Re)create the loop source from the decoded track. */
   private restartLoop(): void {
-    if (!this.ctx || !this.lowpass) return;
-    const buf = this.trackBuffer ?? this.buffer;
-    if (!buf) return;
+    if (!this.ctx || !this.lowpass || !this.trackBuffer) return;
     if (this.source) {
       try {
         this.source.stop();
@@ -148,42 +137,11 @@ class PizzaAudio {
       this.source.disconnect();
     }
     const src = this.ctx.createBufferSource();
-    src.buffer = buf;
+    src.buffer = this.trackBuffer;
     src.loop = true;
     src.connect(this.lowpass);
     src.start();
     this.source = src;
-    this.usingTrack = !!this.trackBuffer;
-  }
-
-  /** Resume the context. Must be called from a user gesture (autoplay policy). */
-  unlock(): void {
-    this.ensure();
-    if (this.ctx && this.ctx.state === 'suspended') void this.ctx.resume();
-  }
-
-  startBootLoop(): void {
-    this.ensure();
-    if (!this.ctx || !this.lowpass || this.started) return;
-    if (!this.trackBuffer && !this.buffer) return;
-    this.started = true;
-    this.applyGain();
-    // If the real track is already decoded, start it — no synth ever plays.
-    if (this.trackBuffer) {
-      this.restartLoop();
-      return;
-    }
-    // Otherwise wait briefly for the track so we don't blip a synth note before
-    // the song. If it's slow/unavailable, start the synth (loadTrack's own
-    // hot-swap takes over if the track arrives later).
-    let settled = false;
-    const go = () => {
-      if (settled) return;
-      settled = true;
-      if (this.started) this.restartLoop();
-    };
-    void this.loadTrack().then(go);
-    window.setTimeout(go, 1500);
   }
 
   stopBootLoop(): void {
@@ -208,10 +166,7 @@ class PizzaAudio {
 
   setMuted(m: boolean): void {
     this.muted = m;
-    if (!m) {
-      this.unlock();
-      this.startBootLoop();
-    }
+    if (!m) this.unlock(); // unlock() → maybeStart() starts it if ready
     this.applyGain();
   }
 

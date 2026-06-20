@@ -65,8 +65,9 @@ export function Descent() {
     if (descentRequested && phase === 'idle') {
       clearDescentRequest();
       setPhase('aging');
+      // unlock() resumes the context and starts the loop itself once the track
+      // is decoded + unmuted (no-op if it never loaded — no music, by design).
       audio.unlock();
-      if (!audio.muted) audio.startBootLoop();
     }
   }, [descentRequested, phase, clearDescentRequest]);
 

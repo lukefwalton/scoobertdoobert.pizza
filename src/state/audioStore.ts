@@ -16,12 +16,17 @@ function readMuted(): boolean {
 
 type AudioState = {
   muted: boolean;
+  /** True once the boot track is fetched + decoded. The music toggle stays
+   *  disabled until this flips true; if the track never loads, it never does. */
+  ready: boolean;
   setMuted: (m: boolean) => void;
   toggleMute: () => void;
+  setReady: (r: boolean) => void;
 };
 
 export const useAudioStore = create<AudioState>((set, get) => ({
   muted: readMuted(),
+  ready: false,
   setMuted: (m) => {
     audio.setMuted(m);
     try {
@@ -32,4 +37,5 @@ export const useAudioStore = create<AudioState>((set, get) => ({
     set({ muted: m });
   },
   toggleMute: () => get().setMuted(!get().muted),
+  setReady: (r) => set({ ready: r }),
 }));
