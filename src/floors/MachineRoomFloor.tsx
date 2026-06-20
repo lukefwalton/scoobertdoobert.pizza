@@ -1,9 +1,13 @@
+import { lazy, Suspense } from 'react';
 import '../styles/machineroom.css';
 import { resolveLinks } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
 import type { Floor } from '../data/floors';
+
+// The CRT's live render is lazy — three.js only loads once you're this deep.
+const MiniWorldPreview = lazy(() => import('../world/MiniWorldPreview'));
 
 // ───────────────────────────────────────────────────────────────────────────
 // The bottom floor — the `machineRoom` template (the SGI thesis made literal).
@@ -17,6 +21,9 @@ import type { Floor } from '../data/floors';
 export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const ascend = useSceneStore((s) => s.ascend);
   const requestInstall = useSceneStore((s) => s.requestInstall);
+  // Don't render the mini-preview once the full world is up — it sits hidden
+  // behind it and we don't want two live WebGL contexts.
+  const worldActive = useSceneStore((s) => s.worldActive);
   const dests = resolveLinks(floor.links);
 
   const install = () => {
@@ -52,6 +59,13 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
 
         <aside className="mr__crt" aria-label="Live render preview">
           <div className="mr__crt-screen">
+            {!worldActive && (
+              <Suspense
+                fallback={<span className="mr__crt-boot">&#9679; BOOTING /dev/world&hellip;</span>}
+              >
+                <MiniWorldPreview />
+              </Suspense>
+            )}
             <span className="mr__crt-scanlines" aria-hidden="true" />
             <span className="mr__crt-label">&#9679; LIVE &mdash; /dev/world</span>
           </div>
