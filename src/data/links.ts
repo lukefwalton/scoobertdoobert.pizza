@@ -165,7 +165,9 @@ export const MENU_DESTINATIONS = DESTINATIONS.filter((d) => d.group !== 'social'
 /** Secondary platform links for the compact social row. */
 export const SOCIAL_DESTINATIONS = DESTINATIONS.filter((d) => d.group === 'social');
 
-/** The flat fallback page. Its own in-site route, linked from the corner. */
+/** The flat text-only fallback route — the canonical "no JS / mobile / reduced
+ *  motion / install-unavailable" destination. Use this constant rather than
+ *  hardcoding the path so the branches can't drift. */
 export const TEXT_ONLY_PATH = '/text';
 
 /** Convenience lookup used by the storefront news blurb + later hotspots. */

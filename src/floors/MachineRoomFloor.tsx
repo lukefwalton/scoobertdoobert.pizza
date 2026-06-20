@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import '../styles/machineroom.css';
-import { resolveLinks } from '../data/links';
+import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -37,7 +37,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
 
   const install = () => {
     if (lowPower) {
-      window.location.assign('/text');
+      window.location.assign(TEXT_ONLY_PATH);
       return;
     }
     audio.unlock();

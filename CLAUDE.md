@@ -364,3 +364,46 @@ head, columns, lyre, kiddie pool, palms, vaporwave mountains, arcade cabinet),
 möbius glbs, `legacy/julius_caesar.glb` (the "bust"). Crunch via `gltf-transform`
 to PS1 fidelity; only optimized derivatives go in `public/models/`. Bust → beach
 shop counter; vaporwave-Greek → the level below the shop (Phase 3+).
+
+### Phase 2 status (2026-06-20)
+✅ ckpt1 floors system · ✅ ckpt2 doors + descent mechanic · ✅ ckpt3 1999
+starburst + SGI machine room (install relocated here, live CRT render of
+water+boids, lazy three) · ✅ ckpt4 2000 table floor (section gate + pizza image
+map) · ✅ ckpt5 README → **Phase 2 done.**
+
+### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
+- The era FLOORS are universal — responsive pages; descend on any device (the
+  rot transition is instant under reduced-motion). The descent through web
+  history works on a phone.
+- The 3D WORLD is the one "less feature" mobile skips: the machine-room CRT live
+  render (WebGL) is NOT mounted on mobile/reduced-motion, and Install hands off
+  to /text instead of the 3D world. Desktop + motion-OK gets the full world.
+
+### New asset direction (Luke, merged to main — for later levels)
+- **Animatronic-horror GLBs** → the LOWER / dread levels (Phase 5: the rat
+  turns, the machine sees you). Save for depth; the surface stays goofy.
+- **A pool level** (the kiddie-pool GLB) → a room/level idea for Phase 3+.
+
+### TODO — the plain /about page (Luke)
+A normal, crawlable page (the thing a search engine sees) at /about that tells
+the Scoobert Doobert story PLAINLY; linked as "Our Secret Recipe →". Inform the
+copy from lukefwalton.com/music/#scoobert, lukefwalton.com/love-music-more/, and
+lovemusicmore.substack.com (research before writing).
+
+### More level GLBs on main (Luke — for the levels below the shop)
+- **`couldbewholelevels/`** — full liminal/backrooms/pool environments:
+  abandoned_pool, backrooms_vr, dreamcore_liminal_space, liminal_space (+other),
+  metro_tunnel, pool_5/6, poolrooms — the "pool level" + backrooms direction for
+  Phase 3+. Plus a standalone 3D **door** GLB (perfect for the room exits).
+  **NOTE: `max_and_ruby_house.glb` is copyrighted Nickelodeon IP** — flag before
+  any public use; the rest are generic liminal aesthetics (fine).
+
+### Doom / Freedoom shrine — copyleft protections (Luke asked)
+Still on, as a hidden lazy route (Phase 3+ secret). When built it needs:
+- **Freedoom (BSD) assets ONLY** — never id's original Doom WADs / sprites /
+  sounds / music. (Or a cursed home-made pizza WAD.)
+- Engine/port lineage is **GPL — fine** (Luke OK'd GPL/public for this repo).
+- Add **`THIRD_PARTY_NOTICES.md`** crediting id Software (engine lineage), the
+  WASM/Chocolate-Doom port authors, and Freedoom (content + copyright).
+- Keep it **isolated** behind the lazy route; never mix GPL/Doom code into
+  reusable Surmado/business code. Build the protections WITH the shrine.
