@@ -81,7 +81,16 @@ function read(): Progress {
 
 function write(p: Progress) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(p));
+    // Preserve any unknown keys already on disk (fields a NEWER build added) so
+    // an older build writing here doesn't strip them — genuinely forward-compat,
+    // matching the "adding a key needs no migration" promise above.
+    let existing: Record<string, unknown> = {};
+    try {
+      existing = (JSON.parse(localStorage.getItem(KEY) || '{}') as Record<string, unknown>) ?? {};
+    } catch {
+      existing = {};
+    }
+    localStorage.setItem(KEY, JSON.stringify({ ...existing, ...p }));
   } catch {
     /* private mode / SSR — progress just doesn't persist, UX unaffected */
   }
