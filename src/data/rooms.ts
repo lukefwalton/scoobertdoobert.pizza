@@ -78,8 +78,10 @@ export const ROOMS: Room[] = [
     spawns: {
       // Spawn in the middle, facing the window/sea (-Z) — the establishing shot.
       default: { position: [0, EYE, ROOM.halfD - 1.5], yaw: Math.PI },
-      // Arriving back from the hall: just inside the back door, facing the sea.
-      fromHall: { position: [0, EYE, ROOM.halfD - 2.2], yaw: Math.PI },
+      // Arriving back from the hall: a step clear of the back door (outside its
+      // 3.2 radius) so you land IN the room, not on its prompt, and a held E
+      // can't immediately bounce you back through it. Faces the sea.
+      fromHall: { position: [0, EYE, ROOM.halfD - 4.5], yaw: Math.PI },
     },
     doors: [
       {
@@ -102,9 +104,10 @@ export const ROOMS: Room[] = [
     dims: { halfW: 2.6, halfD: 16, height: 4, eye: EYE },
     palette: { background: '#150c0c', fog: '#2a0f0f', fogNear: 3, fogFar: 24 },
     spawns: {
-      default: { position: [0, EYE, 14], yaw: Math.PI },
-      // Arriving from the shop: at the shop end, facing down the hall (-Z).
-      fromShop: { position: [0, EYE, 14], yaw: Math.PI },
+      default: { position: [0, EYE, 12.5], yaw: Math.PI },
+      // Arriving from the shop: a step into the hall (clear of the return door's
+      // 3.2 radius), facing down the corridor (-Z).
+      fromShop: { position: [0, EYE, 12.5], yaw: Math.PI },
     },
     doors: [
       {
