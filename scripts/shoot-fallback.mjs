@@ -19,6 +19,12 @@ let fail = 0;
   });
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
+  // Mobile must be instantly usable: no boot overlay on a first visit.
+  const mboot = await page.$('.boot');
+  if (mboot) {
+    fail++;
+    console.log('MOBILE: boot overlay present (should skip on small screens)');
+  }
   await page.click('#order-form button[type="submit"]');
   await page.waitForTimeout(900);
   const url = page.url();
