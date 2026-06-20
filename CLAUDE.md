@@ -204,6 +204,18 @@ public/GPL. The only real line is **assets**, not code.
 
 Verdict: ship. Copyleft isn't the blocker; asset theft would be.
 
+## Liminal / level direction (Phase 2 aesthetic — Luke)
+
+Luke likes backrooms / liminal spaces, and **the era ladder IS the "levels."**
+Lean into it for Phase 2: each descent floor is an empty, over-lit,
+nostalgic-and-slightly-wrong dead-web space you fall through (1994 form → 1996
+storefront → 1999 starburst → 2000 tables → SGI machine room), with
+backrooms-style connective tissue between rooms. Low-poly + PS1 fog + emptiness
+already reads liminal — keep it quiet, too-evenly-lit, a little off. The Doom
+shrine is one such room. The architecture already supports it: each level is a
+lazy-loaded scene behind the descent, and hotspots + links stay data-driven, so
+floors slot in without touching scene code.
+
 ## Phase status (agent-maintained — keep this current)
 
 - [x] **1. Project + storefront (fallback layer).** Vite+React+TS scaffold,
@@ -211,9 +223,10 @@ Verdict: ship. Copyleft isn't the blocker; asset theft would be.
       schema + meta. JS-disabled + crawlable. ✓ verified (Playwright, incl. JS-off)
 - [x] **2. Boot + audio shell.** Brief period boot card (JS-only, skippable,
       reduced-motion-aware), degraded-MIDI boot loop, mute toggle in zustand. ✓
-- [ ] **3. Descent transition.** Aging/CRT pass, Calzone Player™ install dialog
-      (98.css), absurd progress bar masking the dynamic three.js import, optional
-      crash fakeout, cut into the world.
+- [x] **3. Descent transition.** Aging/CRT pass, SCOOBERT.EXE crash fakeout,
+      Calzone Player™ install dialog (98.css), absurd progress bar masking the
+      dynamic three.js import, cut to black → fade up in the world. Gated off
+      mobile/reduced-motion (those just navigate to /text). ✓
 - [x] **4. One 3D room — beach pizza shop.** Ported boids steering + sine-wave
       water, DEGRADED to PS1 (vertex snap, affine floor, ordered dither, fog,
       low-res). Window to the sea, pizza-slice school, FP drag-look + WASD, leva

@@ -29,7 +29,15 @@ page.on('pageerror', (e) => {
 });
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
-await page.waitForTimeout(4000); // lazy three chunk + WebGL warmup + frames
+// Positive assertion: the world actually mounted (don't trust a quiet page).
+try {
+  await page.waitForSelector('canvas', { timeout: 12000 });
+  await page.waitForSelector('.world-exit', { timeout: 12000 });
+} catch (e) {
+  errors++;
+  console.log('WORLD DID NOT MOUNT:', e.message);
+}
+await page.waitForTimeout(3000); // WebGL warmup + frames
 await page.screenshot({ path: '.shots/world.png' });
 await page.waitForTimeout(1600);
 await page.screenshot({ path: '.shots/world2.png' });

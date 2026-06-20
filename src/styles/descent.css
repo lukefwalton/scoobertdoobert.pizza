@@ -1,0 +1,116 @@
+/* descent.css — the Calzone Player install gag + the aging / CRT transition. */
+
+.descent {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Aging layer: desaturates the storefront behind it (backdrop-filter) and lays
+   scanlines + a vignette over it. pointer-events:none so the dialog stays live. */
+.descent__age {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, transparent 38%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.18) 0,
+      rgba(0, 0, 0, 0.18) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  -webkit-backdrop-filter: grayscale(1) sepia(0.35) contrast(1.1) brightness(0.85);
+  backdrop-filter: grayscale(1) sepia(0.35) contrast(1.1) brightness(0.85);
+  animation: descent-age-in 1.3s ease forwards;
+}
+@keyframes descent-age-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.descent__dialog {
+  position: relative;
+  z-index: 2;
+  width: min(430px, 92vw);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+.descent__dialog .window-body p {
+  margin: 8px 0;
+}
+.descent__fine {
+  font-size: 0.85em;
+  color: #444444;
+}
+.descent__btnrow {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* fake progress bar (this 98.css build doesn't ship a progressbar element) */
+.descent__progress {
+  height: 20px;
+  border: 2px inset #c0c0c0;
+  background: #ffffff;
+  padding: 2px;
+}
+.descent__bar {
+  height: 100%;
+  background: repeating-linear-gradient(
+    to right,
+    #000080 0,
+    #000080 8px,
+    #1084d0 8px,
+    #1084d0 12px
+  );
+  transition: width 0.18s linear;
+}
+
+/* cut to black, then fade up inside the world */
+.descent__black {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background: #000000;
+}
+.descent__black--cut {
+  animation: descent-black-in 0.5s ease forwards;
+}
+.descent__black--reveal {
+  animation: descent-black-out 0.8s ease forwards;
+}
+@keyframes descent-black-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes descent-black-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .descent__age,
+  .descent__black--cut,
+  .descent__black--reveal {
+    animation: none;
+  }
+}
