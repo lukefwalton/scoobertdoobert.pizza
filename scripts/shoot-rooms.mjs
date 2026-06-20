@@ -152,6 +152,14 @@ if (!duckedInJuke) fail('jukebox room did not duck the loop by proximity');
 
 // The jukebox plays the catalog: a track auto-selects on entry, and clicking the
 // cabinet (dead ahead at spawn) cycles to the next one.
+// Engine-level confirmation FIRST: __sdpJukeboxActive flips true only when
+// playJukeboxTrack() actually swaps the loop voice (after decode), so it tracks
+// real playback — unlike __sdpJukebox.slug, which is the React selection set
+// before the async decode/swap finishes.
+const jukeEngineActive = await page
+  .waitForFunction(() => window.__sdpJukeboxActive === true, null, { timeout: 5000 })
+  .then(() => true, () => false);
+if (!jukeEngineActive) fail('jukebox entry did not actually start a track (engine voice inactive)');
 const jukeOpen = await page.evaluate(() => window.__sdpJukebox?.slug);
 const jukeAutoPlay = jukeOpen === 'information';
 if (!jukeAutoPlay) fail(`jukebox did not auto-play the opening track (got ${jukeOpen})`);
@@ -356,7 +364,7 @@ console.log(
   `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
-    `jukebox=${inJuke} ducked=${duckedInJuke} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
+    `jukebox=${inJuke} ducked=${duckedInJuke} engineActive=${jukeEngineActive} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
     `strafeRight=${strafeRight} turnWorks=${turnWorks} noStaleVoice=${noStaleVoice} sanityPlays=${sanityPlays} | errors=${errors}`,
