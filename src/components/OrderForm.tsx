@@ -17,12 +17,14 @@ export function OrderForm() {
     const email = (document.getElementById('of-email') as HTMLInputElement | null)?.value.trim() ?? '';
     const optin = (document.getElementById('of-optin') as HTMLInputElement | null)?.checked ?? false;
     const cheese = (document.getElementById('of-cheese') as HTMLSelectElement | null)?.value ?? '';
+    // Honeypot — humans never see or fill this; a value means a bot.
+    const website = (document.getElementById('of-website') as HTMLInputElement | null)?.value ?? '';
 
-    if (optin && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    if (!website && optin && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       void fetch('/api/order', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, cheese, optin: true }),
+        body: JSON.stringify({ email, cheese, optin: true, website }),
       }).catch(() => {
         /* capture is best-effort; never block the experience */
       });
@@ -65,6 +67,13 @@ export function OrderForm() {
             <input id="of-optin" type="checkbox" /> Email me when there&rsquo;s a new release. No
             spam.
           </label>
+        </p>
+
+        {/* Honeypot: off-screen, not display:none, hidden from AT + tab order.
+            Real visitors never fill it; bots that fill every field get dropped. */}
+        <p className="hp-field" aria-hidden="true">
+          <label htmlFor="of-website">Website (leave blank)</label>
+          <input id="of-website" type="text" tabIndex={-1} autoComplete="off" />
         </p>
 
         <p className="order-cta">
