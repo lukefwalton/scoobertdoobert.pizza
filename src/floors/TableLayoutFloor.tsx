@@ -1,21 +1,23 @@
+import { useState } from 'react';
 import '../styles/tablelayout.css';
 import { resolveLinks } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
+import { KidsBallPit } from './KidsBallPit';
 import type { Floor } from '../data/floors';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Floor 2 — the `tableLayout` template (2000). Sliced-GIF brand bar, beveled
-// gradient buttons, a table layout. Exactly TWO gags, no more:
-//   1. a section-gate fork (McDonald's "Adult Section" spirit) where all three
-//      paths just lead deeper — the labels are the joke.
+// gradient buttons, a table layout. The gags:
+//   1. a section-gate fork (McDonald's "Adult Section" spirit). The grown-up
+//      sections drop to the freezer stairs; the Kids Menu opens a real ball pit.
 //   2. a clickable pizza-box image map (Space Jam hub energy) where the slices
 //      are nav targets pointed at real links.ts destinations.
 // A memory of 2000, not 2000.
 // ───────────────────────────────────────────────────────────────────────────
 
-// gag 1 — the section gate. All three lead to the freezer stairs.
+// gag 1 — the section gate.
 const SECTIONS = ['Kids Menu', 'Adult Section', "Manager's Office"];
 
 // gag 2 — the pizza image map. SVG pie slices, each a real anchor.
@@ -62,9 +64,15 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
   const descend = useSceneStore((s) => s.descend);
   const ascend = useSceneStore((s) => s.ascend);
   const dests = resolveLinks(floor.links);
+  const [ballPit, setBallPit] = useState(false);
   const deeper = () => {
     audio.unlock();
     descend();
+  };
+  const pickSection = (section: string) => {
+    audio.unlock();
+    if (section === 'Kids Menu') setBallPit(true);
+    else descend(); // the grown-up sections still drop to the freezer stairs
   };
 
   return (
@@ -83,12 +91,12 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
               <h2 className="tl__h">Please select your party:</h2>
               <div className="tl__gate">
                 {SECTIONS.map((s) => (
-                  <button key={s} type="button" className="tl__btn" onClick={deeper}>
+                  <button key={s} type="button" className="tl__btn" onClick={() => pickSection(s)}>
                     {s}
                   </button>
                 ))}
               </div>
-              <p className="tl__fine">(all three lead to the freezer stairs)</p>
+              <p className="tl__fine">(grown-ups get the freezer stairs &middot; kids get the ball pit)</p>
             </td>
           </tr>
           <tr>
@@ -118,6 +126,8 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
         <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
         <FloorDoor direction="down" label={floor.descendLabel} onActivate={deeper} />
       </div>
+
+      {ballPit && <KidsBallPit onBack={() => setBallPit(false)} />}
     </div>
   );
 }

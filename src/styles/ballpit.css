@@ -1,0 +1,64 @@
+/* ballpit.css — the Kids Menu easter egg: a full-screen JavaScript ball pit
+   over the 2000 floor. Bright, beveled, Comic-Sans goofy — a memory of a
+   McDonald's PlayPlace. The canvas does the physics; this is the chrome. */
+
+.ballpit {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: #2a8fd6;
+  cursor: url('/cursor.cur'), auto;
+}
+
+.ballpit__bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  background: linear-gradient(#ffe14d, #ffc81f);
+  border-bottom: 4px solid #e0a800;
+}
+
+.ballpit__back {
+  font: bold 1rem 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  padding: 8px 16px;
+  color: #143b6b;
+  background: linear-gradient(#ffffff, #cfe0f5);
+  border: 2px outset #9fc0e8;
+  border-radius: 6px;
+  cursor: url('/cursor.cur'), pointer;
+}
+.ballpit__back:hover {
+  background: linear-gradient(#ffffff, #e8f0fb);
+}
+.ballpit__back:active {
+  border-style: inset;
+}
+
+.ballpit__title {
+  font: 900 1.7rem/1 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  color: #e8312a;
+  text-shadow:
+    2px 2px 0 #fff,
+    3px 3px 0 rgba(0, 0, 0, 0.18);
+  letter-spacing: 1px;
+}
+
+.ballpit__hint {
+  margin-left: auto;
+  font: italic 0.85rem 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  color: #143b6b;
+}
+
+.ballpit__canvas {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 0;
+  display: block;
+  background: radial-gradient(circle at 50% 28%, #cdeaff, #6fb8e8 82%);
+  touch-action: none;
+  cursor: url('/cursor.cur'), pointer;
+}
