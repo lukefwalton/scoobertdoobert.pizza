@@ -255,5 +255,19 @@ if (import.meta.env?.DEV) {
         );
       }
     }
+    // Every spawn should land OUTSIDE every door's radius in its room — else you
+    // arrive standing in a prompt and a held E could bounce you back. A lot of
+    // the anti-bounce behavior rides on these offsets, so guard them as data.
+    for (const [spawnId, spawn] of Object.entries(room.spawns)) {
+      for (const door of room.doors) {
+        const dx = spawn.position[0] - door.position[0];
+        const dz = spawn.position[2] - door.position[2];
+        if (Math.hypot(dx, dz) < (door.radius ?? 3.2)) {
+          console.warn(
+            `[rooms] spawn "${room.id}.${spawnId}" sits inside door "${door.id}" radius — arrival will prompt/bounce`,
+          );
+        }
+      }
+    }
   }
 }
