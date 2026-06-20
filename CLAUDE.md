@@ -388,9 +388,18 @@ jukebox + the MTV-M2 "WHAT DO YOU / WANT TO HEAR?" marquee (`makeTextTexture`).
 The music payoff is REAL now without new assets: the engine gained a proximity
 duck (`audio.setProximityGain`, composed with mute) and the jukebox room drives
 it from camera distance, so the site's song (the boot loop) swells as you cross
-the room to the jukebox and fades as you leave. The drei `<PositionalAudio>` +
-real-catalog swap drops in here later (the hook is `JUKEBOX_POS` + the room's
-`JukeboxAudio`).
+the room to the jukebox and fades as you leave.
+✅ **ckpt2b the real catalog (Luke: "play a bunch of my music but kinda fucked
+up").** The jukebox now plays Scoobert's OWN songs in place of the ambient boot
+loop, degraded: `scripts/make-jukebox-audio.mjs` bounces each master in
+`media/masters/` to a tape-warbled (wow + flutter + dragged slow-down + hiss),
+8-bit / 11 kHz loop in `public/audio/jukebox/<slug>.wav` (lazy-loaded only in the
+room). `src/data/jukebox.ts` is the catalog as data; the engine swaps the single
+loop voice to a track (`playJukeboxTrack` / `restoreBoot`, the proximity duck +
+mute still apply); the cabinet is clickable (cycle) with a NOW-PLAYING amber
+readout. Started with the four masters in-repo; more drop in via the TRACKS list
++ re-run. (The drei `<PositionalAudio>` per-source swap is still a possible later
+refinement; the swell currently rides the engine duck.)
 ✅ **ckpt3 the rat.** `src/world/Rat.tsx` — one steering agent (seek a point
 ahead → leads you down the hall; flee when crowded → skittish), low-poly + a
 trailing tail, rendered by HallwayRoom.
