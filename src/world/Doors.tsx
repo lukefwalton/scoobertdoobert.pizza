@@ -12,15 +12,17 @@ import { applyVertexSnap } from './ps1';
 // (goToRoom → pendingRoom). Hidden doors (the rat's secret) don't render or
 // prompt until revealed.
 
-function flatMat(color: string): THREE.MeshLambertMaterial {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true });
+function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.MeshLambertMaterial {
+  const m = new THREE.MeshLambertMaterial({ color, flatShading: true, side });
   applyVertexSnap(m, 64);
   return m;
 }
 
 function DoorMesh({ door }: { door: RoomDoor }) {
   const frameMat = useMemo(() => flatMat('#3a2a22'), []);
-  const voidMat = useMemo(() => flatMat('#0b0608'), []); // the dark beyond
+  // The dark beyond — DoubleSide so the doorway reads as dark from inside the
+  // room (the side you approach from) AND is the click target from that side.
+  const voidMat = useMemo(() => flatMat('#0b0608', THREE.DoubleSide), []);
   const signMat = useMemo(() => flatMat('#d8c47a'), []); // a faint lit sign bar
 
   const w = 2.2; // opening width

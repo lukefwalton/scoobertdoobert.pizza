@@ -83,9 +83,27 @@ await page.keyboard.press('e');
 const backInShop = await roomIs('Beach Pizza Shop');
 await page.screenshot({ path: '.shots/rooms-shop-return.png' });
 
+// Click path: E and door-click are separate code, so cover click-to-enter too.
+// Turn ~180° (drag) to face the back-hall door, step toward it, then CLICK the
+// mesh (not E) — it should fade us back into the hall.
+let clickEnter = false;
+if (backInShop) {
+  const box = await page.locator('canvas').boundingBox();
+  const cx = box.x + box.width / 2;
+  const cy = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width * 0.78, cy);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * 0.29, cy, { steps: 12 });
+  await page.mouse.up();
+  await walk('w', 500); // approach so the door fills center-screen
+  await page.screenshot({ path: '.shots/rooms-preclick.png' });
+  await page.mouse.click(cx, cy); // click the door mesh
+  clickEnter = await roomIs('Back Hall');
+}
+
 await browser.close();
 console.log(
   `rooms: startShop=${startShop} doorPrompt=${doorPrompt} hall=${inHall} ` +
-    `returnPrompt=${returnPrompt} backInShop=${backInShop} | errors=${errors}`,
+    `returnPrompt=${returnPrompt} backInShop=${backInShop} clickEnter=${clickEnter} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

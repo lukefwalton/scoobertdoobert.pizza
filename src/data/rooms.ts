@@ -59,6 +59,12 @@ export type Room = {
   doors: RoomDoor[];
 };
 
+// Single source for the door-transition timing: the black-wipe commit (JS
+// setTimeout in WorldHud) and the overlay's CSS opacity transition both read
+// this, injected as the `--room-fade-ms` custom property, so the visual fade and
+// the room swap can't drift apart.
+export const ROOM_FADE_MS = 230;
+
 const EYE = ROOM.eye;
 
 export const ROOMS: Room[] = [
