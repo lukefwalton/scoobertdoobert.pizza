@@ -209,6 +209,12 @@ h2 {
   height: auto;
 }
 
+/* opt-in checkbox row reads as normal weight, not a bold field label */
+.optin-field label {
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
 .slogan {
   margin-top: 10px;
 }

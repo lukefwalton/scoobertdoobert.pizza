@@ -159,6 +159,13 @@ export default function Storefront() {
           <p className="copyright">
             &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
           </p>
+          <p className="credit">
+            Site by{' '}
+            <a href="https://maxhorwich.com" target="_blank" rel="noopener noreferrer">
+              Max Horwich
+            </a>{' '}
+            &times; Scoobert Doobert.
+          </p>
           <p className="identity">
             Scoobert Doobert is the recording name of{' '}
             <a href="https://lukefwalton.com/" rel="me">
