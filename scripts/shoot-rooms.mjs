@@ -125,6 +125,12 @@ await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {
 await page.keyboard.press('e');
 const backToHall = await roomIs('Back Hall');
 
+// The rat already did his job — re-entering the hall must NOT reset him to
+// 'lead' (HallwayRoom remounts, but his progression derives from secretRevealed).
+await page.waitForTimeout(250);
+const ratStaysDone = (await page.evaluate(() => window.__sdpRatPhase)) !== 'lead';
+if (!ratStaysDone) fail('the rat reset to "lead" on hallway re-entry after the secret');
+
 // 3b) Continue to the far door → the jukebox room.
 await page.keyboard.down('w');
 await page.waitForTimeout(2100);
@@ -226,7 +232,7 @@ await browser.close();
 console.log(
   `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
-    `classified=${inClassified} backToHall=${backToHall} jukePrompt=${jukePrompt} ` +
+    `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} | errors=${errors}`,

@@ -65,13 +65,28 @@ function RatBody() {
   );
 }
 
+// Gated test hook (the ?world / ?debug entrances) so the rooms smoke can assert
+// the rat doesn't reset its progression on hallway re-entry.
+const EXPOSE_PHASE =
+  typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search);
+
 export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
   const ref = useRef<THREE.Group>(null);
   const { camera } = useThree();
-  // Start near the shop (+Z) end, hugging the left wall.
-  const pos = useRef(new THREE.Vector3(-bounds.halfW + 0.8, RAT_Y, bounds.halfD - 4));
+  // HallwayRoom unmounts when you step into classified/jukebox, so this whole
+  // component remounts on re-entry. If the secret was ALREADY revealed, the rat
+  // has done his job — start him 'done' and already bolted to the dark far end,
+  // so the hallway narrative doesn't reset to "leading" every time you come back.
+  const alreadyRevealed = useSceneStore.getState().secretRevealed;
+  const pos = useRef(
+    new THREE.Vector3(
+      -bounds.halfW + 0.8,
+      RAT_Y,
+      alreadyRevealed ? -bounds.halfD + 1.5 : bounds.halfD - 4,
+    ),
+  );
   const vel = useRef(new THREE.Vector3(0, 0, -1));
-  const phase = useRef<RatPhase>('lead');
+  const phase = useRef<RatPhase>(alreadyRevealed ? 'done' : 'lead');
   const knockT = useRef(0);
 
   useFrame((state, delta) => {
@@ -143,6 +158,10 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
     g.position.copy(pos.current);
     if (vel.current.lengthSq() > 1e-4) {
       g.lookAt(pos.current.x + vel.current.x, pos.current.y, pos.current.z + vel.current.z);
+    }
+
+    if (EXPOSE_PHASE) {
+      (window as Window & { __sdpRatPhase?: string }).__sdpRatPhase = phase.current;
     }
   });
 
