@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { applyVertexSnap, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
+import { Rat } from './Rat';
 import type { Room } from '../data/rooms';
 
 // The back hall — a long, narrow, low red-brick corridor (the Windows 3D-Maze
@@ -82,6 +83,9 @@ export function HallwayRoom({ room }: { room: Room }) {
           <planeGeometry args={[1.1, 2.4]} />
         </mesh>
       ))}
+
+      {/* the rat — leads you down the corridor, bolts if you crowd him */}
+      <Rat bounds={{ halfW: W, halfD: D }} />
     </group>
   );
 }
