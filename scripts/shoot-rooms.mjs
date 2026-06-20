@@ -80,11 +80,39 @@ if (!noPauseMidWipe) fail('Escape opened the pause menu mid-wipe (transition not
 const inHall = await roomIs('Back Hall');
 await page.screenshot({ path: '.shots/rooms-hall.png' }); // the rat leads down the hall
 
-// 3) Down the long corridor to the far door → the jukebox room.
+// 3) Down the corridor. The rat breaks off, knocks a blank panel in the wall,
+//    and a hidden CLASSIFIED door clicks open. Slip into it.
 await page.keyboard.down('w');
-await page.waitForTimeout(4200); // past the welcome fade
-await page.screenshot({ path: '.shots/rooms-hall-rat.png' }); // the rat leading ahead
-await page.waitForTimeout(1300);
+await page.waitForTimeout(2400); // past the welcome + the rat's knock trigger
+await page.keyboard.up('w');
+await walk('d', 700); // veer to the -X wall panel (facing -Z, 'd' strafes that way)
+await page.screenshot({ path: '.shots/rooms-secret.png' }); // the rat at the panel
+let secretOpened = false;
+try {
+  await page.waitForFunction(
+    () =>
+      document.querySelector('.hud-prompt--door')?.textContent?.includes('slip through the gap') ??
+      false,
+    { timeout: 4000 },
+  );
+  secretOpened = true;
+} catch {
+  fail('the rat never knocked the hidden classified door open');
+}
+await page.keyboard.press('e');
+const inClassified = await roomIs('Classified');
+await page.waitForTimeout(700);
+await page.screenshot({ path: '.shots/rooms-classified.png' });
+
+// Back out to the hall (arrive at the panel, facing on toward the music).
+await walk('s', 750);
+await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+await page.keyboard.press('e');
+const backToHall = await roomIs('Back Hall');
+
+// 3b) Continue to the far door → the jukebox room.
+await page.keyboard.down('w');
+await page.waitForTimeout(2100);
 await page.keyboard.up('w');
 let jukePrompt = false;
 try {
@@ -129,8 +157,9 @@ if (!audioRestored) fail('loop stayed ducked after leaving the jukebox');
 await browser.close();
 console.log(
   `rooms: shop=${startShop} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
-    `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} jukePrompt=${jukePrompt} jukebox=${inJuke} ` +
-    `ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} clickEnter=${clickEnter} ` +
-    `audioRestored=${audioRestored} | errors=${errors}`,
+    `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
+    `classified=${inClassified} backToHall=${backToHall} jukePrompt=${jukePrompt} ` +
+    `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
+    `clickEnter=${clickEnter} audioRestored=${audioRestored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

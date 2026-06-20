@@ -390,8 +390,17 @@ duck (`audio.setProximityGain`, composed with mute) and the jukebox room drives
 it from camera distance, so the site's song (the boot loop) swells as you cross
 the room to the jukebox and fades as you leave. The drei `<PositionalAudio>` +
 real-catalog swap drops in here later (the hook is `JUKEBOX_POS` + the room's
-`JukeboxAudio`). ⬜ ckpt3 the rat (boids guide down the hall) · ⬜ ckpt4 the
-secret (rat knocks panel → classified room) · ⬜ ckpt5 mobile + README.
+`JukeboxAudio`).
+✅ **ckpt3 the rat.** `src/world/Rat.tsx` — one steering agent (seek a point
+ahead → leads you down the hall; flee when crowded → skittish), low-poly + a
+trailing tail, rendered by HallwayRoom.
+✅ **ckpt4 the secret.** The rat's state machine (`lead → toPanel → knock →
+done`): once you're far enough down the corridor he darts to a blank wall panel
+and knocks it (`revealSecret`), opening a **hidden door** (rooms.ts `hidden:true`,
+gated in Doors by `secretRevealed`) into the **classified room**
+(`src/world/ClassifiedRoom.tsx`) — a cold X-Files file room of REJECTED / DO NOT
+RELEASE demos, filing cabinets, a flickering fluorescent. Smoke covers the whole
+tour incl. the reveal + classified. ⬜ ckpt5 mobile + README.
 
 ### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
 - The era FLOORS are universal — responsive pages; descend on any device (the

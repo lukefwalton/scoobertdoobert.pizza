@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { applyVertexSnap, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
 import { Rat } from './Rat';
-import type { Room } from '../data/rooms';
+import { SECRET_PANEL, type Room } from '../data/rooms';
 
 // The back hall — a long, narrow, low red-brick corridor (the Windows 3D-Maze
 // nod, a corridor not a maze). Over-evenly lit with a few dim ceiling pools so
@@ -46,6 +46,8 @@ export function HallwayRoom({ room }: { room: Room }) {
   const endMat = useMemo(() => flatMat('#ffffff', endTex), [endTex]);
   const ceilMat = useMemo(() => flatMat('#160d0c'), []);
   const signMat = useMemo(() => flatMat('#caa14a'), []);
+  const panelMat = useMemo(() => flatMat('#241410'), []); // flatMat is already DoubleSide
+  const panelFrameMat = useMemo(() => flatMat('#3a2018'), []);
 
   return (
     <group>
@@ -84,7 +86,19 @@ export function HallwayRoom({ room }: { room: Room }) {
         </mesh>
       ))}
 
-      {/* the rat — leads you down the corridor, bolts if you crowd him */}
+      {/* the blank panel in the left wall — a too-flush seam in the brick. The
+          rat knocks here; the hidden classified door opens in the same spot. */}
+      <group position={[-W + 0.06, SECRET_PANEL[1], SECRET_PANEL[2]]} rotation-y={Math.PI / 2}>
+        <mesh material={panelFrameMat} position={[0, 0, -0.01]}>
+          <planeGeometry args={[1.7, 2.5]} />
+        </mesh>
+        <mesh material={panelMat}>
+          <planeGeometry args={[1.5, 2.3]} />
+        </mesh>
+      </group>
+
+      {/* the rat — leads you down the corridor, bolts if you crowd him, then
+          knocks the panel open */}
       <Rat bounds={{ halfW: W, halfD: D }} />
     </group>
   );
