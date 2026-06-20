@@ -212,7 +212,15 @@ auto-detects the Vite preset and manages the domain from its dashboard. The
 repo's root `CNAME` is a vestigial GitHub Pages artifact — safe to delete once
 DNS points at Vercel. (The build output no longer carries a `CNAME`.)
 
-## Assets & licensing
+## Copyright & licensing
+
+**Scoobert Doobert's creative content — the music, lyrics, words, copy,
+biography, likeness, photographs, and artwork — is © Luke F. Walton dba Scoobert
+Doobert, all rights reserved.** It is only *licensed to* this repository so the
+site can display and play it; being in this repo never changes its copyright.
+There is currently **no open-source license** on the repo (all rights reserved by
+default), and any future code license would cover the **source code only**, never
+the creative content. See [`LICENSE`](./LICENSE) for the full statement.
 
 The code and visuals are **original or procedurally generated** — the boids sim,
 the water and PS1 shaders, the room geometry, and the textures (canvas-drawn). No

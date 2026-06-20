@@ -53,6 +53,14 @@ a liminal/backrooms/90s dive whose reward is sound; read it.
   *grammar* of these references, never the artifacts. (The VRML plugin is
   "Calzone Player™," not "Cosmo Player"; a pizza-tracker loader parodies the
   *stages*, never Domino's mark.)
+- **Scoobert's creative content is © Luke F. Walton dba Scoobert Doobert, ALL
+  RIGHTS RESERVED** (music, lyrics, words/copy, biography, likeness, photos,
+  artwork — everything under `media/`, `public/audio/`, `public/press/`,
+  `public/brand/`, and the site's prose). It is only *licensed to* this repo; its
+  copyright is never altered by being here. See `LICENSE`. **Any open-source
+  license ever applied to this repo covers the SOURCE CODE ONLY — never the
+  content.** Never add a repo-wide OSS `LICENSE` that could be read as covering
+  the music/words. This is a hard line.
 - **Keep this repo standalone — no dependency on any Surmado/corp repo.** WebGL
   technique ported from `brand-web` (water, boids) is copied in as this project's
   own standalone files, re-homed and self-contained. Don't import from,
