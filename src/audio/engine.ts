@@ -1,17 +1,22 @@
 // ───────────────────────────────────────────────────────────────────────────
-// A tiny "degraded MIDI" synth. A short square-wave motif is rendered ONCE into
-// an AudioBuffer and looped; it's lo-fi by construction (square wave + lowpass
-// + amplitude quantization) and trivial to pitch-bend (ramp playbackRate) when
-// the descent "ages" the era.
+// The boot loop. The real voice is a deliberately degraded bounce of a Scoobert
+// track ("Best Day Ever"), pre-crushed to 8-bit / 11 kHz mono (see
+// scripts/make-boot-audio.mjs) and loaded from /audio/boot.wav. It loops under
+// the storefront and pitch-bends downward as the descent "ages" the era.
 //
-// This is a placeholder voice for the boot loop. A real degraded-MIDI bounce of
-// a Scoobert track can be dropped in later by swapping buildBuffer() for a
-// decodeAudioData() of a file in /public/audio.
+// A tiny square-wave synth (buildBuffer) stays as a graceful fallback: if the
+// track 404s or fails to decode, the loop still plays something lo-fi rather
+// than going silent. The track decodes async and hot-swaps in when ready.
 //
 // SSR-safe: the constructor touches nothing. All Web Audio / window access is
 // deferred to ensure()/unlock(), which only run from client effects and user
 // gestures.
 // ───────────────────────────────────────────────────────────────────────────
+
+// Resting lowpass cutoff. Higher than the synth-only era (2200) so the real
+// song reads through as lo-fi rather than mud; the descent still bends it to 700.
+const REST_CUTOFF = 4200;
+const TRACK_URL = '/audio/boot.wav';
 
 type Note = [freqHz: number, beats: number];
 
@@ -53,12 +58,16 @@ class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
   private lowpass?: BiquadFilterNode;
-  private buffer?: AudioBuffer;
+  private buffer?: AudioBuffer; // synth fallback
+  private trackBuffer?: AudioBuffer; // the real degraded track, once decoded
   private source?: AudioBufferSourceNode;
   private started = false;
+  private usingTrack = false;
+  private trackLoad?: Promise<void>;
   muted = false;
 
-  /** Create the audio graph + render the loop buffer. Idempotent. */
+  /** Create the audio graph + render the fallback buffer, kick off the track
+   *  fetch. Idempotent. */
   ensure(): void {
     if (this.ctx) return;
     const AC =
@@ -71,13 +80,56 @@ class PizzaAudio {
     master.gain.value = 0.0001;
     const lowpass = ctx.createBiquadFilter();
     lowpass.type = 'lowpass';
-    lowpass.frequency.value = 2200; // muffled, lo-fi
+    lowpass.frequency.value = REST_CUTOFF;
     lowpass.connect(master);
     master.connect(ctx.destination);
     this.ctx = ctx;
     this.master = master;
     this.lowpass = lowpass;
     this.buffer = buildBuffer(ctx);
+    void this.loadTrack();
+  }
+
+  /** Fetch + decode the real boot track, then hot-swap it in if the fallback is
+   *  already looping. Best-effort: any failure just leaves the synth playing. */
+  private loadTrack(): Promise<void> {
+    if (this.trackLoad) return this.trackLoad;
+    this.trackLoad = (async () => {
+      if (typeof fetch === 'undefined' || !this.ctx) return;
+      try {
+        const res = await fetch(TRACK_URL);
+        if (!res.ok) return;
+        const bytes = await res.arrayBuffer();
+        this.trackBuffer = await this.ctx.decodeAudioData(bytes);
+        // If we're already looping the fallback, swap to the real track.
+        if (this.started && !this.usingTrack) this.restartLoop();
+      } catch {
+        /* keep the synth fallback */
+      }
+    })();
+    return this.trackLoad;
+  }
+
+  /** (Re)start the loop source from the best buffer available. */
+  private restartLoop(): void {
+    if (!this.ctx || !this.lowpass) return;
+    const buf = this.trackBuffer ?? this.buffer;
+    if (!buf) return;
+    if (this.source) {
+      try {
+        this.source.stop();
+      } catch {
+        /* already stopped */
+      }
+      this.source.disconnect();
+    }
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(this.lowpass);
+    src.start();
+    this.source = src;
+    this.usingTrack = !!this.trackBuffer;
   }
 
   /** Resume the context. Must be called from a user gesture (autoplay policy). */
@@ -88,13 +140,9 @@ class PizzaAudio {
 
   startBootLoop(): void {
     this.ensure();
-    if (!this.ctx || !this.buffer || !this.lowpass || this.started) return;
-    const src = this.ctx.createBufferSource();
-    src.buffer = this.buffer;
-    src.loop = true;
-    src.connect(this.lowpass);
-    src.start();
-    this.source = src;
+    if (!this.ctx || !this.lowpass || this.started) return;
+    if (!this.trackBuffer && !this.buffer) return;
+    this.restartLoop();
     this.started = true;
     this.applyGain();
   }
@@ -158,7 +206,7 @@ class PizzaAudio {
     }
     if (this.lowpass) {
       this.lowpass.frequency.cancelScheduledValues(now);
-      this.lowpass.frequency.linearRampToValueAtTime(2200, now + durationMs / 1000);
+      this.lowpass.frequency.linearRampToValueAtTime(REST_CUTOFF, now + durationMs / 1000);
     }
   }
 }
