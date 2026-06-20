@@ -43,8 +43,14 @@ function PropInner({ spec }: { spec: RoomProp }) {
     clone.traverse((o) => {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      for (const m of mats) {
+      // scene.clone(true) clones NODES but shares materials with the cached GLTF
+      // (and with sibling placements). Clone the material(s) per placement before
+      // mutating, so a per-placement tweak like `glow` stays isolated and never
+      // bleeds into the cached asset or another room reusing the same GLB.
+      const orig = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const cloned = orig.map((m) => (m as THREE.Material).clone());
+      mesh.material = Array.isArray(mesh.material) ? cloned : cloned[0];
+      for (const m of cloned) {
         const mat = m as THREE.MeshStandardMaterial;
         for (const key of TEX_KEYS) {
           const tex = mat[key] as THREE.Texture | null | undefined;
