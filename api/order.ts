@@ -1,5 +1,21 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { put } from '@vercel/blob';
+import type { IncomingMessage, ServerResponse } from 'node:http';
+
+// Local stand-ins for @vercel/node's request/response types. We dropped the
+// @vercel/node devDependency: it was used here for types ONLY, yet pulled in a
+// pile of dev/build-time CVEs (undici, path-to-regexp, minimatch, ajv, …).
+// Vercel still provides the real runtime for this function at deploy; these
+// types just describe the handful of fields/methods this handler touches.
+type VercelRequest = IncomingMessage & {
+  body?: unknown;
+  query?: Record<string, string | string[]>;
+  cookies?: Record<string, string>;
+};
+type VercelResponse = ServerResponse & {
+  status: (statusCode: number) => VercelResponse;
+  json: (jsonBody: unknown) => VercelResponse;
+  send: (body: unknown) => VercelResponse;
+};
 
 // Email opt-in capture -> Vercel Blob. The order form is theatrical, but if the
 // visitor types an email AND ticks the opt-in box, we store it. Only then.

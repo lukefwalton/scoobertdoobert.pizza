@@ -82,32 +82,44 @@ npm run typecheck  # tsc --noEmit
 
 ## Repository layout
 
+A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
+
 ```
 ├── index.html            # Vite entry (NOT the old site — that's in legacy/)
 ├── src/                  # the app
-│   ├── pages/            # Storefront, TextOnly, LinkArchive (prerendered routes)
+│   ├── pages/            # Storefront, TextOnly, LinkArchive, About (prerendered routes)
 │   ├── components/       # Descent, BootLog, WorldHud, OrderForm, MuteToggle, …
-│   ├── world/            # three.js world: World, ps1 pipeline, boids sim
-│   ├── data/             # links.ts, hotspots.ts, linkArchive.ts (single sources)
+│   ├── floors/           # the era-floor descent scenes (+ doors)
+│   ├── world/            # three.js world: World, rooms, ps1 pipeline, boids sim
+│   ├── data/             # links.ts, hotspots.ts, floors.ts, rooms.ts (single sources)
 │   ├── state/            # zustand stores (audio, scene)
 │   ├── audio/            # the Web Audio engine
-│   └── styles/
-├── public/               # shipped static assets
+│   ├── lib/ · styles/
+├── public/               # shipped static assets (served at /)
 │   ├── audio/boot.wav    # degraded boot loop (the only audio that ships)
 │   ├── press/            # OG image + inline period photos (web-sized)
 │   ├── 1101.html         # the /1101 "save san diego" Twine ARG
 │   └── PIZZA.png, cursor.cur, brand/ …
 ├── api/order.ts          # Vercel function: opt-in email capture → Vercel Blob
-├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image)
+├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image, …)
+├── media/                # SOURCE originals, NOT shipped (see media/README.md)
+│   ├── masters/          # masters wired into the site (boot loop + layer themes)
+│   ├── music/            # full master catalog, by year/album
+│   ├── sfx/              # sound effects (owned sitar takes)
+│   ├── models/           # all .glb source models, grouped by theme (+ IP flags)
+│   ├── photos/           # full-res photo archive, grouped by shoot
+│   └── brand/            # brand-logo source
 ├── links.md              # source of truth for the /links archive
 ├── legacy/               # the previous hand-built site (preserved, not built)
+├── fun/                  # placeholder for a separate repo, not yet wired in
 └── CLAUDE.md             # durable spec + phase tracker + post-Phase-1 notes
 ```
 
-**Source media** (full-res photo archive, song masters) is intentionally kept
-**out of the build** — only the degraded/web-sized derivatives under `public/`
-ship. Large masters/originals should nest under a `media/` tree (e.g.
-`media/masters/`, `media/photos/`) rather than living loose at the repo root.
+**Source media** (full-res photo archive, song masters, raw `.glb` models) lives
+under **`media/`** and is intentionally kept **out of the build** — only the
+degraded/web-sized/optimized derivatives under `public/` ship. See
+[`media/README.md`](./media/README.md), [`media/models/README.md`](./media/models/README.md)
+(model manifest + licensing flags), and [`media/music/README.md`](./media/music/README.md).
 
 ## The descent — era floors
 
