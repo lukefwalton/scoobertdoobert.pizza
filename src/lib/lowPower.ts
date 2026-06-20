@@ -24,8 +24,19 @@ export function useLowPower(): boolean {
     const mqls = LOW_POWER_QUERIES.map((q) => window.matchMedia(q));
     const update = () => setLow(isLowPower());
     update(); // resync in case state changed between first render and effect
-    mqls.forEach((m) => m.addEventListener('change', update));
-    return () => mqls.forEach((m) => m.removeEventListener('change', update));
+    // Older Safari/iOS (<14) MediaQueryList only has the deprecated
+    // addListener/removeListener — guard so the mobile gate never throws on the
+    // very devices it exists to serve.
+    const attach = (m: MediaQueryList) =>
+      typeof m.addEventListener === 'function'
+        ? m.addEventListener('change', update)
+        : m.addListener(update);
+    const detach = (m: MediaQueryList) =>
+      typeof m.removeEventListener === 'function'
+        ? m.removeEventListener('change', update)
+        : m.removeListener(update);
+    mqls.forEach(attach);
+    return () => mqls.forEach(detach);
   }, []);
   return low;
 }
