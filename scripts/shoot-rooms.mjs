@@ -59,6 +59,13 @@ const noFirstFramePrompt = (await page.$('.hud-prompt--door')) === null;
 if (!noFirstFramePrompt) fail('a door prompt flashed on load (camera booted inside a door radius)');
 await page.waitForTimeout(1500); // WebGL warmup + a few frames
 
+// The world's ambient boot loop ("Best Day Ever") must actually decode — guards
+// the global boot.wav asset, separate from "the jukebox room works".
+const bootReady = await page
+  .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, { timeout: 12000 })
+  .then(() => true, () => false);
+if (!bootReady) fail('boot ambience (boot.wav) never decoded — engine not ready');
+
 // 1) Start in the shop — and the back-hall door must NOT prompt at spawn (you
 //    discover it by turning around, not instantly on load).
 const startShop = await roomIs('Beach Pizza Shop');
@@ -163,12 +170,25 @@ if (!jukeEngineActive) fail('jukebox entry did not actually start a track (engin
 const jukeOpen = await page.evaluate(() => window.__sdpJukebox?.slug);
 const jukeAutoPlay = jukeOpen === 'information';
 if (!jukeAutoPlay) fail(`jukebox did not auto-play the opening track (got ${jukeOpen})`);
+// Capture the ENGINE's active url before the click so we can prove the click
+// actually swapped the loop voice (decoded the next track), not just advanced
+// the React selection.
+const engineUrlBefore = await page.evaluate(() => window.__sdpJukeboxUrl);
 const jbBox = await page.locator('canvas').boundingBox();
 await page.mouse.click(jbBox.x + jbBox.width / 2, jbBox.y + jbBox.height / 2); // click the cabinet
-await page.waitForTimeout(350);
+const engineSwapped = await page
+  .waitForFunction((prev) => !!window.__sdpJukeboxUrl && window.__sdpJukeboxUrl !== prev, engineUrlBefore, {
+    timeout: 5000,
+  })
+  .then(() => true, () => false);
+if (!engineSwapped) fail('clicking the jukebox did not swap the engine voice to the next track');
 const jukeNext = await page.evaluate(() => window.__sdpJukebox?.slug);
-const jukeCycles = !!jukeNext && jukeNext !== jukeOpen;
-if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (still ${jukeNext})`);
+const jukeNextUrl = await page.evaluate(() => window.__sdpJukeboxUrl);
+// Selection advanced AND the engine's active url matches the new slug (React
+// state and the engine voice agree on the same track).
+const jukeCycles =
+  engineSwapped && !!jukeNext && jukeNext !== jukeOpen && !!jukeNextUrl && jukeNextUrl.includes(jukeNext);
+if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (slug ${jukeOpen}->${jukeNext}, url ${jukeNextUrl})`);
 
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.
@@ -361,7 +381,7 @@ let sanityPlays = false;
 
 await browser.close();
 console.log(
-  `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
+  `rooms: shop=${startShop} bootReady=${bootReady} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} engineActive=${jukeEngineActive} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +

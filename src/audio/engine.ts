@@ -25,11 +25,12 @@ class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
   private lowpass?: BiquadFilterNode;
-  private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Jolly Roger Bay)
+  private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Best Day Ever)
   // The jukebox can temporarily take over the single loop voice with a catalog
   // track. When set, it overrides trackBuffer; cleared (restoreBoot) on leaving.
   private activeBuffer?: AudioBuffer;
   private jukeboxActive = false;
+  private activeJukeboxUrl?: string; // which catalog url is the loop voice (for tests)
   // Per-URL decode promises (in-flight or resolved), so preloadJukebox and the
   // initial playJukeboxTrack share ONE decode of a track instead of racing two.
   private jukeboxLoads = new Map<string, Promise<AudioBuffer | undefined>>();
@@ -228,6 +229,7 @@ class PizzaAudio {
     if (!buf) return; // couldn't load — leave whatever's playing
     if (gen !== this.jukeboxGen) return; // superseded by a newer select OR a leave
     this.activeBuffer = buf;
+    this.activeJukeboxUrl = url;
     this.jukeboxActive = true;
     this.started = true;
     this.restartLoop();
@@ -245,6 +247,7 @@ class PizzaAudio {
     this.jukeboxGen++; // cancel any pending select, active or not (the race fix)
     if (!this.jukeboxActive) return;
     this.jukeboxActive = false;
+    this.activeJukeboxUrl = undefined;
     this.activeBuffer = undefined; // currentBuffer() → the boot loop
     if (this.started) {
       // If the boot loop hasn't decoded yet (preload still in flight — unlikely
@@ -269,7 +272,11 @@ class PizzaAudio {
   private publishJukeboxState(): void {
     if (typeof window === 'undefined') return;
     if (!/[?&](world|debug)(=|&|$)/.test(window.location.search)) return;
-    (window as Window & { __sdpJukeboxActive?: boolean }).__sdpJukeboxActive = this.jukeboxActive;
+    const w = window as Window & { __sdpJukeboxActive?: boolean; __sdpJukeboxUrl?: string };
+    w.__sdpJukeboxActive = this.jukeboxActive;
+    // The url actually swapped into the loop voice (post-decode), so the smoke
+    // can prove a click really changed the engine voice, not just React state.
+    w.__sdpJukeboxUrl = this.activeJukeboxUrl;
   }
 
   /** Master target = base 0.5, ducked by spatial proximity, killed by mute. */

@@ -7,7 +7,7 @@
 // but wrong — a memory of the song, not the song.
 //
 //   node scripts/make-jukebox-audio.mjs
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { chromium } from 'playwright';
 
 const TARGET_SR = 11025;
@@ -21,6 +21,16 @@ const OUT_DIR = 'public/audio/jukebox';
 const TRACKS = JSON.parse(readFileSync(new URL('../src/data/jukebox.catalog.json', import.meta.url))).map(
   ({ source, slug }) => ({ file: source, slug }),
 );
+
+// Preflight: every catalog `source` must exist before we spin up Chromium, so a
+// bad catalog edit (typo'd filename, master not dropped in yet) fails fast with
+// a clear message instead of partway through a render.
+const missing = TRACKS.filter((t) => !existsSync(`media/masters/${t.file}`));
+if (missing.length) {
+  console.error('make-jukebox-audio: missing masters in media/masters/:');
+  for (const m of missing) console.error(`  - ${m.file}  (slug "${m.slug}")`);
+  process.exit(1);
+}
 
 const browser = await chromium.launch();
 const page = await browser.newPage();
