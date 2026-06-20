@@ -69,8 +69,11 @@ export function DreadConductor() {
         }
 
         // Dwell grows while lingering somewhere tense, bleeds off in safe zones.
+        // Ceiling scales with the zone's base, so a mild zone (machine) can't
+        // dwell up to a strong zone's level — preserves the tension hierarchy,
+        // and clamps dwell DOWN when you step into a lower-ceiling zone.
         if (base > SAFE_UNEASE) {
-          dwell = Math.min(DREAD.dwellMax, dwell + DREAD.dwellRatePerSec * dt);
+          dwell = Math.min(base * DREAD.dwellFactor, dwell + DREAD.dwellRatePerSec * dt);
         } else {
           dwell = Math.max(0, dwell - DREAD.decayRatePerSec * dt);
         }

@@ -18,8 +18,10 @@ export type DreadConfig = {
   baseUnease: Record<string, number>;
   /** Lingering in a tense zone (base > SAFE) nudges unease up, per second. */
   dwellRatePerSec: number;
-  /** Cap on the dwell accumulator: lingering can push unease to base + this. */
-  dwellMax: number;
+  /** Dwell ceiling as a fraction of a zone's base: lingering can push unease up
+   *  to base + base*dwellFactor, so milder zones stay milder (keeps the
+   *  hallway/classified hierarchy instead of everything converging to one band). */
+  dwellFactor: number;
   /** How fast unease eases UP to a zone's resting value on entering it. */
   riseRatePerSec: number;
   /** Safe zones pull unease DOWN, per second — must out-pace dwell so a climb
@@ -38,7 +40,7 @@ export const DREAD: DreadConfig = {
     // ── era floors (descent) — surface/near-surface, barely a tickle ──
     storefront: 0,
     y1999: 0.04,
-    y2000: 0.08,
+    y2000: 0.05, // still a surface era floor — kept below SAFE so it stays sweet
     machine: 0.18,
     // ── 3D rooms (rooms.ts) ──
     shop: 0, // the safe, goofy spawn — stays sweet, always
@@ -47,7 +49,7 @@ export const DREAD: DreadConfig = {
     classified: 0.8, // the cold X-Files file room — the bitter end
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
-  dwellMax: 0.4, // lingering tops out at base + 0.4 (clamped to 1 overall)
+  dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
   riseRatePerSec: 0.32, // entering a tense room ramps to its base in ~1–2s
   decayRatePerSec: 0.16, // safe zones calm faster than dwell raises
   triggers: {
