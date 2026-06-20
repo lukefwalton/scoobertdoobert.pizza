@@ -24,10 +24,11 @@ import { useProgressStore, selectDeepDiver } from '../state/progressStore';
 function Watcher() {
   const deep = useProgressStore(selectDeepDiver);
   const grp = useRef<THREE.Group>(null);
-  // Random per-mount phase so the reveal isn't synced to Canvas mount time —
-  // otherwise every deep returner would catch it in the first ~1.1s. Now it's
-  // genuinely sporadic: sometimes soon, sometimes after you've looked away.
-  const phaseOffset = useMemo(() => Math.random() * 11, []);
+  // Per-mount phase offset chosen so the FIRST reveal lands a random 4–9s after
+  // mount — never on arrival (a guaranteed "nothing at first glance" beat) and
+  // never synced to mount time. (Reveal fires when the 11s cycle wraps to 0; we
+  // start the cycle at 11 − firstDelay so it wraps after firstDelay seconds.)
+  const phaseOffset = useMemo(() => 11 - (4 + Math.random() * 5), []);
   const mat = useMemo(() => {
     const m = new THREE.MeshBasicMaterial({ color: '#070709', transparent: true, opacity: 0 });
     applyVertexSnap(m, 64);
