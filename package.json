@@ -22,7 +22,8 @@
     "shoot:ballpit": "node scripts/shoot-ballpit.mjs",
     "shoot:monster": "node scripts/shoot-monster.mjs",
     "shoot:props": "node scripts/shoot-props.mjs",
-    "shoot:deeppool": "node scripts/shoot-deeppool.mjs"
+    "shoot:deeppool": "node scripts/shoot-deeppool.mjs",
+    "shoot:arcade": "node scripts/shoot-arcade.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

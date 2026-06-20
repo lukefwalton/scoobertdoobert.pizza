@@ -170,6 +170,53 @@ h2 {
   margin: 4px 0 0;
 }
 
+/* The Pizza Arcade callout — a period "PLAY OUR GAME!" badge linking to the
+   real /arcade route. On desktop it's a goofy side-quest; on mobile (where the
+   3D descent is gated off) the arcade is the headline, so this reads prominent.
+   A real <a href> — crawlable and fully working with JavaScript disabled. */
+.arcade-callout {
+  border: 3px ridge #7a4fd0;
+  background: #f3eeff;
+  padding: 0 0 10px;
+  margin: 4px 0;
+  text-align: center;
+}
+.arcade-callout__head {
+  background: #4b1fa0;
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+}
+.arcade-callout__new {
+  color: #ffd23f;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .arcade-callout__new {
+    animation: sdp-blink 1.1s steps(1) infinite;
+  }
+}
+.arcade-callout__body {
+  margin: 0 14px 10px;
+  font-size: 0.92rem;
+  color: #2a1a4a;
+}
+.arcade-callout__cta a {
+  display: inline-block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 7px 22px;
+  background: #ffd23f;
+  border: 3px outset #c79a00;
+  color: #3a2a00;
+  text-decoration: none;
+}
+.arcade-callout__cta a:active {
+  border-style: inset;
+}
+
 /* Compact secondary-platform row in the footer. */
 .socials {
   margin: 8px 0;

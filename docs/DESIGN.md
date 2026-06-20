@@ -234,6 +234,29 @@ world-content — explicitly *not* the Phase 5 dread layer (which forbids new
 NPCs/battles/fail states). The lightweight **dice-music selector** above can ship
 sooner; the monster is a later content piece.
 
+### Trap doors — the storefront drops you into the deep (world-content, FUTURE; design locked)
+A secret shortcut from the *top-level normal site* straight into the bottom of
+the back rooms — skipping the whole descent. The fiction: the dead-plain
+storefront has a soft spot in the floor, and if you find it, you fall.
+
+- **Discoverability = a visible-but-wrong element (Luke).** Not a hidden pixel —
+  *one* barely-off period detail on the otherwise-normal page that looks
+  clickable in a slightly wrong way (a hair of layout/cursor/era-wrongness that
+  rewards the curious). It reads as a glitch, not a button; clicking it is the
+  trap door.
+- **Destination = an interstitial d20 random-drop (Luke).** Clicking a trap door
+  fires a quick **d20 roll** (reuse the dice-monster die / dice grammar) that
+  *randomly* picks one of the deep rooms and drops you there — so the same trap
+  door isn't a fixed warp; it's a roll of where you land in the basement. The
+  interstitial is the ceremony (cf. the loader's "tap to enter").
+- **HARD constraints (carry these into the build thread):** pure progressive
+  enhancement — JS-only, `useMounted`-gated, **never** in the prerendered / JS-off
+  HTML, and **desktop + motion-OK only** (it drops you into the 3D world, which is
+  gated off mobile/reduced-motion by construction). It must not alter the
+  crawlable dead-plain front door or tax any real link. Surface zone stays safe;
+  the *wrongness* is the wink, the *landing* is where the dread can begin.
+- Status: **design captured, not built.** Its own thread (after the arcade).
+
 ### Minigames — two opposite shapes (world-content / infra, Phase 3+)
 A tiny easter-egg + loader layer. NOT a "game area" — keep it tiny; don't reach
 for Phaser. These are 2D canvas overlays (on the load screen / behind doors),
@@ -314,6 +337,17 @@ broken-web-button runner, a Snake, a breakout) becomes a small touch-first arcad
 you reach from the storefront on a phone — the mobile reward *is* the games,
 where desktop's reward is the descent. Same engine, same no-marks/CC0 rules; the
 loaders we already build for desktop double as the mobile catalogue.
+
+**SHIPPED (the seed):** `/arcade` is live — **Scoobert's Pizza Run**, the
+loader runner promoted to a real touch-first playable (`src/pages/Arcade.tsx` +
+`src/components/RunnerGame.tsx`), framed in a period CRT-cabinet shell. Adds the
+parts a real game needs and the loader omits: a GAME OVER on collision, a
+persisted **high score** (the progress spine's monotonic `arcadeHigh`), and a
+one-tap restart. It's a real crawlable route (prerenders to `dist/arcade.html`,
+works JS-off down to the cold cabinet + a real "back to storefront" anchor) and
+the dead-plain storefront carries a real `<a href="/arcade">` "INSERT COIN"
+callout. Next games (Snake, breakout) drop in beside it as more cabinets — the
+arcade is the shelf, this is the first cartridge.
 
 ### Webcam policy (the one narrow exception to "no real camera")
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
