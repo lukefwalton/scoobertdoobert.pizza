@@ -27,6 +27,5 @@ export const SEA = {
 // Default PS1 knobs (leva overrides these live).
 export const PS1 = {
   snap: 64, // clip-space grid; lower = chunkier vertices
-  dprMin: 0.32, // render resolution multiplier (the low-res crunch)
-  dprMax: 0.4,
+  dpr: 0.4, // render resolution multiplier — the low-res crunch
 };

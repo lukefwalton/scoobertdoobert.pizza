@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite-react-ssg build",
+    "postbuild": "node scripts/check-build.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc --noEmit",
     "shoot": "node scripts/shoot.mjs"

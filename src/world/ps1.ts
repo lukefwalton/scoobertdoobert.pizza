@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OCEAN, FOG_NEAR, FOG_FAR } from './constants';
 
 // ───────────────────────────────────────────────────────────────────────────
 // The PS1/N64 look, as reusable pieces. Three tells do most of the work:
@@ -78,6 +79,60 @@ export function makeCheckerTexture(cells = 8, a = '#c7402f', b = '#efe6d2'): THR
   tex.generateMipmaps = false;
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   return tex;
+}
+
+/**
+ * A textured material with AFFINE UV mapping — the signature PS1 texture swim.
+ * The `uv * w` / divide-by-`w` trick cancels the GPU's perspective correction,
+ * so the checkerboard warps as the camera moves. Also snaps vertices, dithers,
+ * and fogs. Best used on the floor, where the wobble reads most clearly.
+ */
+export function makeAffineTexturedMaterial(map: THREE.Texture, repeat = 6): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uMap: { value: map },
+      uSnap: { value: 64 },
+      uRepeat: { value: repeat },
+      uFog: { value: OCEAN },
+      uFogNear: { value: FOG_NEAR },
+      uFogFar: { value: FOG_FAR },
+    },
+    vertexShader: /* glsl */ `
+      uniform float uSnap;
+      varying vec2 vUv;
+      varying float vW;
+      varying float vViewZ;
+      ${PS1_SNAP_GLSL}
+      void main() {
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vViewZ = -mv.z;
+        vec4 clip = ps1Snap(projectionMatrix * mv, uSnap);
+        gl_Position = clip;
+        vUv = uv * clip.w;   // affine: pre-multiply by w
+        vW = clip.w;
+      }
+    `,
+    fragmentShader: /* glsl */ `
+      precision mediump float;
+      uniform sampler2D uMap;
+      uniform float uRepeat;
+      uniform vec3 uFog;
+      uniform float uFogNear;
+      uniform float uFogFar;
+      varying vec2 vUv;
+      varying float vW;
+      varying float vViewZ;
+      ${PS1_DITHER_GLSL}
+      void main() {
+        vec2 auv = (vUv / vW) * uRepeat;   // divide back out -> affine UV
+        vec3 col = texture2D(uMap, auv).rgb;
+        col = ps1Quantize(col, gl_FragCoord.xy, 12.0);
+        float fog = clamp((vViewZ - uFogNear) / (uFogFar - uFogNear), 0.0, 1.0);
+        col = mix(col, uFog, fog);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  });
 }
 
 /** A blocky procedural texture for walls — flat base + sparse darker specks. */

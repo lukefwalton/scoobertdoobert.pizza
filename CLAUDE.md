@@ -193,8 +193,10 @@ Storefront copy, 1999 register (original — do not use Pizza Hut's words):
 - [ ] **3. Descent transition.** Aging/CRT pass, Calzone Player™ install dialog
       (98.css), absurd progress bar masking the dynamic three.js import, optional
       crash fakeout, cut into the world.
-- [ ] **4. One 3D room — beach pizza shop.** Port + DEGRADE water-shader.ts and
-      boids.ts to PS1 constraints. leva debug panel for shader uniforms.
+- [x] **4. One 3D room — beach pizza shop.** Ported boids steering + sine-wave
+      water, DEGRADED to PS1 (vertex snap, affine floor, ordered dither, fog,
+      low-res). Window to the sea, pizza-slice school, FP drag-look + WASD, leva
+      panel (?debug). Lazy-loaded chunk — initial bundle stays three-free. ✓
 - [ ] **5. Boids establishing shot + three hotspots.** Reskinned boids out the
       window; jukebox→Listen, window→Videos, counter→About via hotspots.ts.
       Pause menu (Esc) overlays the full links.ts list as real anchors.
