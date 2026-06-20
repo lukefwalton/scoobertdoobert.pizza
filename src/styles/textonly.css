@@ -1,0 +1,20 @@
+/* textonly.css — even plainer than the storefront. Just a readable column. */
+
+.textonly {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 22px;
+}
+
+.textonly h1 {
+  font-size: 1.55rem;
+  margin: 0 0 8px;
+}
+
+.textonly ul {
+  line-height: 1.6;
+}
+
+.textonly li {
+  margin: 6px 0;
+}
