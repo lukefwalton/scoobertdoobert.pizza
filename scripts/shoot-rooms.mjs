@@ -100,7 +100,7 @@ await page.screenshot({ path: '.shots/rooms-hall.png' }); // the rat leads down 
 await page.keyboard.down('w');
 await page.waitForTimeout(2400); // past the welcome + the rat's knock trigger
 await page.keyboard.up('w');
-await walk('d', 700); // veer to the -X wall panel (facing -Z, 'd' strafes that way)
+await walk('a', 700); // veer to the -X wall panel (facing -Z down the hall, A strafes left/-X)
 await page.screenshot({ path: '.shots/rooms-secret.png' }); // the rat at the panel
 let secretOpened = false;
 try {
@@ -228,6 +228,72 @@ let rmDoor = false;
   await rmCtx.close();
 }
 
+// Distance click: a door you can SEE is clickable from across the room, no
+// walk-up required (the reported bug was "click the door, nothing happens").
+// Turn to face the back-hall door from the spawn and click it without moving.
+let distanceClick = false;
+{
+  const dcCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const dc = await dcCtx.newPage();
+  dc.on('pageerror', (e) => fail(`distance-click pageerror: ${e.message}`));
+  await dc.goto(base + '/?world=1', { waitUntil: 'commit' });
+  try {
+    await dc.waitForSelector('.hud-menu-btn', { timeout: 12000 });
+    await dc.waitForTimeout(1500);
+    const b = await dc.locator('canvas').boundingBox();
+    const my = b.y + b.height / 2;
+    // spawn faces the window (-Z); the back-hall door is behind (+Z). Turn ~180°.
+    await dc.mouse.move(b.x + b.width * 0.78, my);
+    await dc.mouse.down();
+    await dc.mouse.move(b.x + b.width * 0.29, my, { steps: 12 });
+    await dc.mouse.up();
+    // Click WITHOUT walking up — must still travel.
+    await dc.mouse.click(b.x + b.width / 2, my);
+    await dc.waitForFunction(
+      () => document.querySelector('.hud-room')?.textContent?.includes('Back Hall') ?? false,
+      { timeout: 5000 },
+    );
+    distanceClick = true;
+  } catch (e) {
+    fail(`distance door-click did not travel: ${e.message}`);
+  }
+  await dcCtx.close();
+}
+
+// Controls: D strafes RIGHT (+X when facing the window), and Left/Right arrows
+// turn. Regression for "left/right inverted" + "no way to turn around".
+let strafeRight = false;
+let turnWorks = false;
+{
+  const cCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const cp = await cCtx.newPage();
+  cp.on('pageerror', (e) => fail(`controls pageerror: ${e.message}`));
+  await cp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  try {
+    await cp.waitForSelector('.hud-menu-btn', { timeout: 12000 });
+    await cp.waitForTimeout(1200);
+    // spawn faces the window (yaw π); D should move +X (the player's right).
+    const x0 = (await cp.evaluate(() => window.__sdpCam?.x)) ?? 0;
+    await cp.keyboard.down('d');
+    await cp.waitForTimeout(450);
+    await cp.keyboard.up('d');
+    const x1 = (await cp.evaluate(() => window.__sdpCam?.x)) ?? 0;
+    strafeRight = x1 > x0 + 0.3;
+    if (!strafeRight) fail(`D did not strafe right / +X (x ${x0.toFixed(2)} -> ${x1.toFixed(2)})`);
+    // right arrow turns right → yaw decreases.
+    const yaw0 = (await cp.evaluate(() => window.__sdpCam?.yaw)) ?? 0;
+    await cp.keyboard.down('ArrowRight');
+    await cp.waitForTimeout(500);
+    await cp.keyboard.up('ArrowRight');
+    const yaw1 = (await cp.evaluate(() => window.__sdpCam?.yaw)) ?? 0;
+    turnWorks = yaw1 < yaw0 - 0.25;
+    if (!turnWorks) fail(`right arrow did not turn (yaw ${yaw0.toFixed(2)} -> ${yaw1.toFixed(2)})`);
+  } catch (e) {
+    fail(`controls check failed: ${e.message}`);
+  }
+  await cCtx.close();
+}
+
 await browser.close();
 console.log(
   `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
@@ -235,6 +301,7 @@ console.log(
     `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
-    `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} | errors=${errors}`,
+    `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
+    `strafeRight=${strafeRight} turnWorks=${turnWorks} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

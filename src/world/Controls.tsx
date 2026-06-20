@@ -88,21 +88,29 @@ export function Controls() {
   }, [gl]);
 
   useFrame((_, delta) => {
-    // Expose camera position for automated "pause freezes input" checks.
-    (window as Window & { __sdpCam?: { x: number; z: number } }).__sdpCam = {
+    // Expose camera position + heading for automated checks (pause-freeze, turn).
+    (window as Window & { __sdpCam?: { x: number; z: number; yaw: number } }).__sdpCam = {
       x: camera.position.x,
       z: camera.position.z,
+      yaw: yaw.current,
     };
     if (inputFrozen()) return;
-    const speed = 6 * Math.min(delta, 0.05);
+    const dt = Math.min(delta, 0.05);
+    const speed = 6 * dt;
     const k = keys.current;
+    // W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT arrows = TURN
+    // (so you can spin around from the keyboard, not just by dragging).
     const fwd = (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0);
-    const strafe = (k['d'] || k['arrowright'] ? 1 : 0) - (k['a'] || k['arrowleft'] ? 1 : 0);
+    const strafe = (k['d'] ? 1 : 0) - (k['a'] ? 1 : 0);
+    const turn = (k['arrowleft'] ? 1 : 0) - (k['arrowright'] ? 1 : 0);
+    yaw.current += turn * 2.0 * dt; // left arrow turns left, right turns right
 
     const fx = Math.sin(yaw.current);
     const fz = Math.cos(yaw.current);
-    const rx = Math.cos(yaw.current);
-    const rz = -Math.sin(yaw.current);
+    // Player's right vector (perpendicular to forward). Previously this was
+    // negated, which made A/D strafe the wrong way (left/right inverted).
+    const rx = -Math.cos(yaw.current);
+    const rz = Math.sin(yaw.current);
     camera.position.x += (fx * fwd + rx * strafe) * speed;
     camera.position.z += (fz * fwd + rz * strafe) * speed;
 
