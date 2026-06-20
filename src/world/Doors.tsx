@@ -31,12 +31,11 @@ function DoorMesh({ door }: { door: RoomDoor }) {
   const t = 0.22; // frame thickness
 
   const activate = () => {
-    // Click requires proximity too, same as E: you walk up to a door, then go
-    // through it. (goToRoom still guards paused / dialog-open / mid-transition.)
-    const st = useSceneStore.getState();
-    if (st.nearDoor?.id !== door.id) return;
+    // Click goes through whatever door you clicked — if you can see it you can
+    // travel to it (Myst-style line of sight), no walking up required. (E still
+    // wants proximity.) goToRoom guards paused / dialog-open / mid-transition.
     audio.unlock();
-    st.goToRoom(door.to, door.toSpawn ?? 'default');
+    useSceneStore.getState().goToRoom(door.to, door.toSpawn ?? 'default');
   };
 
   // The cursor must go on the CANVAS element, not document.body — the Canvas
@@ -58,12 +57,9 @@ function DoorMesh({ door }: { door: RoomDoor }) {
         activate();
       }}
       onPointerOver={() => {
-        // Only advertise clickability when you're actually close enough to
-        // activate (same proximity rule as the click), so a distant door doesn't
-        // look actionable when it would no-op.
-        if (useSceneStore.getState().nearDoor?.id === door.id) {
-          gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
-        }
+        // Any door you can hover is clickable (line-of-sight travel), so always
+        // show the pointer so it reads as actionable from across the room.
+        gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
       }}
       onPointerOut={() => {
         gl.domElement.style.cursor = 'grab';
