@@ -75,6 +75,16 @@ try {
 } catch {
   fail('back-hall door prompt never appeared');
 }
+// Pause/unpause while standing in the door radius: pause opens, resume restores
+// the prompt, and the door still activates after (nearDoor + modal gating).
+await page.keyboard.press('Escape'); // pause while near the door
+const pausedNearDoor = (await page.$('.hud-pause')) !== null;
+if (!pausedNearDoor) fail('pause did not open while standing near a door');
+await page.getByRole('button', { name: 'Resume' }).click({ timeout: 3000 });
+await page.waitForTimeout(250);
+const promptAfterResume = (await page.$('.hud-prompt--door')) !== null;
+if (!promptAfterResume) fail('door prompt did not return after unpausing near the door');
+const pauseResumeNearDoor = pausedNearDoor && promptAfterResume;
 await page.keyboard.press('e'); // start the wipe
 // The wipe is modal for its whole length: an Escape mid-wipe must NOT open pause.
 await page.waitForTimeout(110);
@@ -158,6 +168,28 @@ const clickEnter = await roomIs('Back Hall');
 await page.waitForTimeout(300);
 const audioRestored = (await page.evaluate(() => window.__sdpProximity ?? 1)) > 0.999;
 if (!audioRestored) fail('loop stayed ducked after leaving the jukebox');
+
+// And exiting the WORLD from inside the jukebox (full teardown, not a room-to-
+// room door) must reset the duck too — go back in, then leave via the pause menu.
+let exitAudioReset = false;
+await page.keyboard.down('s'); // back to the jukebox door (-Z, behind us)
+await page.waitForTimeout(900);
+await page.keyboard.up('s');
+await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+await page.keyboard.press('e');
+if (await roomIs('The Jukebox')) {
+  await page.waitForTimeout(500); // let it duck again
+  await page.keyboard.press('Escape'); // pause
+  try {
+    await page.getByRole('button', { name: 'Return to storefront' }).click({ timeout: 4000 });
+    await page.waitForSelector('[data-floor="storefront"]', { timeout: 6000 });
+    await page.waitForTimeout(200);
+    exitAudioReset = (await page.evaluate(() => window.__sdpProximity ?? 1)) > 0.999;
+    if (!exitAudioReset) fail('loop stayed ducked after exiting the world from the jukebox');
+  } catch (e) {
+    fail(`world exit from the jukebox failed: ${e.message}`);
+  }
+}
 await ctx.close();
 
 // Reduced-motion uses a distinct, near-instant commit (fade=0) path. The world
@@ -196,6 +228,7 @@ console.log(
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
-    `clickEnter=${clickEnter} audioRestored=${audioRestored} rmDoor=${rmDoor} | errors=${errors}`,
+    `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
+    `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
