@@ -1,7 +1,9 @@
-// End-to-end test of the descent gag: submit the order form, walk through the
-// crash -> Calzone Player install -> progress -> cut, and assert we actually
-// land in the 3D world (canvas mounts). Fails non-zero on page errors or if the
-// world never appears.
+// Phase 2 descent test: the storefront CTA + the era-floor doors. The old
+// storefront→install→world path is gone (the Calzone install moved to the
+// machine room — Checkpoint 3), so this now verifies the floor descent:
+// storefront → 1999 → 2000 → machine room (terminus), and back up, with the rot
+// transition firing and no page errors. The 3D world itself is covered by
+// shoot:world (the ?world=1 trigger still mounts it).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -9,14 +11,7 @@ const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
-await ctx.addInitScript(() => {
-  try {
-    sessionStorage.setItem('sdp_booted', '1');
-  } catch {
-    /* ignore */
-  }
-});
+const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
 let errors = 0;
 page.on('pageerror', (e) => {
@@ -25,49 +20,34 @@ page.on('pageerror', (e) => {
 });
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
-await page.click('#order-form button[type="submit"]'); // fire the descent
 
-await page.waitForTimeout(1550); // aging -> crash
-await page.screenshot({ path: '.shots/descent-crash.png' });
+// Entry rewire: the Order Online "Continue" starts the descent (floor 0 -> 1).
+await page.click('#order-form button[type="submit"]');
+await page.waitForTimeout(950);
+const on1999 = await page.$eval('body', (el) => el.innerText.includes('1999'));
+await page.screenshot({ path: '.shots/descent-1999.png' });
 
-await page.waitForTimeout(1450); // crash -> install prompt
-await page.screenshot({ path: '.shots/descent-prompt.png' });
+// Deeper via the era-floor doors.
+await page.click('.floor-door--down');
+await page.waitForTimeout(950);
+const on2000 = await page.$eval('body', (el) => el.innerText.includes('2000'));
 
-await page
-  .getByRole('button', { name: 'Install' })
-  .click({ timeout: 5000 })
-  .catch(() => {
-    errors++;
-    console.log('Install button not found');
-  });
-await page.waitForTimeout(900);
-await page.screenshot({ path: '.shots/descent-installing.png' });
+await page.click('.floor-door--down');
+await page.waitForTimeout(950);
+const terminus = await page.$eval(
+  'body',
+  (el) => el.innerText.includes('SILICON SLICE') && el.innerText.includes('Terminus'),
+);
+await page.screenshot({ path: '.shots/descent-machine.png' });
 
-// The PIZZA-DOS loading screen now lives HERE, at the level load (not on the
-// storefront). Assert it actually appears before the world reveals.
-let bootSeen = true;
-try {
-  await page.waitForFunction(() => document.body.innerText.includes('ENTERING THE WORLD'), {
-    timeout: 15000,
-  });
-  await page.screenshot({ path: '.shots/descent-booting.png' });
-} catch {
-  bootSeen = false;
-  errors++;
-  console.log('level-load boot screen never appeared');
-}
+// Back up one floor.
+await page.click('.floor-door--up');
+await page.waitForTimeout(950);
+const backUp = await page.$eval('body', (el) => el.innerText.includes('2000'));
 
-let mounted = true;
-try {
-  await page.waitForSelector('canvas', { timeout: 14000 }); // positive proof we reached the world
-} catch {
-  mounted = false;
-  errors++;
-  console.log('world canvas never mounted after install');
-}
-await page.waitForTimeout(2500);
-await page.screenshot({ path: '.shots/descent-world.png' });
-
+if (!on1999 || !on2000 || !terminus || !backUp) errors++;
 await browser.close();
-console.log(`descent shots done (mounted=${mounted}, bootScreen=${bootSeen}, errors=${errors})`);
+console.log(
+  `descent floors: 1999=${on1999} 2000=${on2000} machineRoom=${terminus} ascend=${backUp} errors=${errors}`,
+);
 process.exit(errors ? 1 : 0);

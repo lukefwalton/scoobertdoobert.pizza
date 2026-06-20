@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react';
 import { useSceneStore } from '../state/sceneStore';
+import { audio } from '../audio/engine';
 
 // The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
 // Favorite Cheese + an OPTIONAL, opt-in Email.
@@ -10,7 +11,10 @@ import { useSceneStore } from '../state/sceneStore';
 // nothing. The capture is fire-and-forget: it never blocks the descent, and a
 // failed/absent backend is swallowed.
 export function OrderForm() {
-  const requestDescent = useSceneStore((s) => s.requestDescent);
+  // The storefront CTA now STARTS THE DESCENT (floor 0 → 1) rather than firing
+  // the install directly — the Calzone Player install moved to the machine room
+  // at the bottom of the descent (Phase 2).
+  const descend = useSceneStore((s) => s.descend);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -30,11 +34,16 @@ export function OrderForm() {
       });
     }
 
-    // Mobile / reduced-motion skip the descent (step 6); everyone else descends.
+    // Mobile / reduced-motion stay on floor zero and just get the flat list;
+    // everyone else starts the descent through the era floors.
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const small = window.matchMedia('(max-width: 768px)').matches;
-    if (reduced || small) window.location.assign('/text');
-    else requestDescent();
+    if (reduced || small) {
+      window.location.assign('/text');
+    } else {
+      audio.unlock();
+      descend();
+    }
   }
 
   return (
