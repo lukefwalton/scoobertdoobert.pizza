@@ -71,8 +71,8 @@ export function KidsBallPit({ onBack }: { onBack: () => void }) {
     };
     resize();
 
-    // Fill the pit. Count scales with area, capped for perf.
-    const count = Math.min(95, Math.max(36, Math.round((W * H) / 9000)));
+    // Fill the pit — ~2x density. Count scales with area, capped for perf.
+    const count = Math.min(190, Math.max(72, Math.round((W * H) / 4500)));
     for (let i = 0; i < count; i++) {
       const r = 15 + Math.random() * 13;
       balls.push({
