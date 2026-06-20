@@ -71,6 +71,27 @@ let fail = 0;
   await ctx.close();
 }
 
+// --- /about: the crawlable "straight story" route renders (registration +
+//     prerender + metadata regression catch). Served from the prerendered
+//     dist/about.html, so this also proves the SSG route is wired. ---
+{
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  await page.goto(base + '/about', { waitUntil: 'networkidle' });
+  const heading = (await page.textContent('main h1').catch(() => null))?.trim() ?? '';
+  const title = await page.title();
+  if (!heading.includes('About Scoobert Doobert')) {
+    fail++;
+    console.log('ABOUT: main <h1> missing/unexpected ->', JSON.stringify(heading));
+  }
+  if (!title.includes('Scoobert Doobert')) {
+    fail++;
+    console.log('ABOUT: <title> missing/unexpected ->', JSON.stringify(title));
+  }
+  console.log(`about     -> h1=${JSON.stringify(heading)} titled=${title.includes('Scoobert Doobert')}`);
+  await ctx.close();
+}
+
 await browser.close();
 console.log(fail ? `\n${fail} fallback check(s) FAILED` : '\nfallback checks passed.');
 process.exit(fail ? 1 : 0);
