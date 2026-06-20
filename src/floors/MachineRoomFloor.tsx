@@ -1,5 +1,5 @@
 import '../styles/machineroom.css';
-import { destById, type Dest } from '../data/links';
+import { resolveLinks } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -17,7 +17,7 @@ import type { Floor } from '../data/floors';
 export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const ascend = useSceneStore((s) => s.ascend);
   const requestInstall = useSceneStore((s) => s.requestInstall);
-  const dests = floor.links.map((id) => destById(id)).filter(Boolean) as Dest[];
+  const dests = resolveLinks(floor.links);
 
   const install = () => {
     audio.unlock();

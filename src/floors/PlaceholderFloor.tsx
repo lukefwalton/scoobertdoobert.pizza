@@ -1,5 +1,5 @@
 import { useSceneStore } from '../state/sceneStore';
-import { destById, type Dest } from '../data/links';
+import { resolveLinks } from '../data/links';
 import { BOTTOM_FLOOR, type Floor } from '../data/floors';
 import { FloorDoor } from './FloorDoor';
 
@@ -11,7 +11,7 @@ import { FloorDoor } from './FloorDoor';
 export function PlaceholderFloor({ floor, index }: { floor: Floor; index: number }) {
   const descend = useSceneStore((s) => s.descend);
   const ascend = useSceneStore((s) => s.ascend);
-  const dests = floor.links.map((id) => destById(id)).filter(Boolean) as Dest[];
+  const dests = resolveLinks(floor.links);
   const isBottom = index >= BOTTOM_FLOOR;
 
   return (
