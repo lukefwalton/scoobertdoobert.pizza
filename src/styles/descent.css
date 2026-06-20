@@ -77,26 +77,33 @@
   transition: width 0.18s linear;
 }
 
-/* cut to black, then fade up inside the world */
-.descent__black {
+/* The "loading the world" boot screen (PIZZA-DOS POST log), then fade up inside
+   the world. Sits above the aging layer + install dialog. */
+.descent__boot {
   position: fixed;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   background: #000000;
+  color: #33ff66;
+  font-family: 'Courier New', Courier, monospace;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6vmin;
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.5);
 }
-.descent__black--cut {
-  animation: descent-black-in 0.5s ease forwards;
+/* The boot log is a <pre>; 98.css gives <pre> a white sunken box. Strip that so
+   it reads as phosphor text on the black screen. */
+.descent__boot .boot__log {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+  color: inherit;
 }
-.descent__black--reveal {
+.descent__boot--out {
   animation: descent-black-out 0.8s ease forwards;
-}
-@keyframes descent-black-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 @keyframes descent-black-out {
   from {
@@ -109,8 +116,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .descent__age,
-  .descent__black--cut,
-  .descent__black--reveal {
+  .descent__boot--out {
     animation: none;
   }
 }

@@ -43,6 +43,20 @@ await page
 await page.waitForTimeout(900);
 await page.screenshot({ path: '.shots/descent-installing.png' });
 
+// The PIZZA-DOS loading screen now lives HERE, at the level load (not on the
+// storefront). Assert it actually appears before the world reveals.
+let bootSeen = true;
+try {
+  await page.waitForFunction(() => document.body.innerText.includes('ENTERING THE WORLD'), {
+    timeout: 15000,
+  });
+  await page.screenshot({ path: '.shots/descent-booting.png' });
+} catch {
+  bootSeen = false;
+  errors++;
+  console.log('level-load boot screen never appeared');
+}
+
 let mounted = true;
 try {
   await page.waitForSelector('canvas', { timeout: 14000 }); // positive proof we reached the world
@@ -55,5 +69,5 @@ await page.waitForTimeout(2500);
 await page.screenshot({ path: '.shots/descent-world.png' });
 
 await browser.close();
-console.log(`descent shots done (mounted=${mounted}, errors=${errors})`);
+console.log(`descent shots done (mounted=${mounted}, bootScreen=${bootSeen}, errors=${errors})`);
 process.exit(errors ? 1 : 0);
