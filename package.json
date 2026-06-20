@@ -18,6 +18,7 @@
     "shoot:levels": "node scripts/shoot-levels.mjs",
     "shoot:dice": "node scripts/shoot-dice.mjs",
     "shoot:mobius": "node scripts/shoot-mobius.mjs",
+    "shoot:persistence": "node scripts/shoot-persistence.mjs",
     "shoot:ballpit": "node scripts/shoot-ballpit.mjs"
   },
   "dependencies": {
