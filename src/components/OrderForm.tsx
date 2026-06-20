@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
+import { TEXT_ONLY_PATH } from '../data/links';
 
 // The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
 // Favorite Cheese + an OPTIONAL, opt-in Email.
@@ -39,7 +40,7 @@ export function OrderForm() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const small = window.matchMedia('(max-width: 768px)').matches;
     if (reduced || small) {
-      window.location.assign('/text');
+      window.location.assign(TEXT_ONLY_PATH);
     } else {
       audio.unlock();
       descend();

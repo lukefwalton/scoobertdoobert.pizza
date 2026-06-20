@@ -3,6 +3,7 @@ import '98.css';
 import '../styles/descent.css';
 import { audio } from '../audio/engine';
 import { useSceneStore } from '../state/sceneStore';
+import { TEXT_ONLY_PATH } from '../data/links';
 import { BootLog } from './BootLog';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -225,7 +226,9 @@ export function Descent() {
             <p>Calzone Player&trade; could not be installed. The oven may be offline.</p>
             <p className="descent__fine">You can still browse the flat menu.</p>
             <div className="descent__btnrow">
-              <button onClick={() => window.location.assign('/text')}>View text menu</button>
+              <button onClick={() => window.location.assign(TEXT_ONLY_PATH)}>
+                View text menu
+              </button>
               <button
                 onClick={() => {
                   setPhase('idle');

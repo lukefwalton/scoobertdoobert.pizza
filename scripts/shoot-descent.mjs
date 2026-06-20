@@ -1,8 +1,9 @@
-// Phase 2 descent test (full loop). Verifies: storefront → 1999 → 2000 →
-// machine room via the era-floor doors, then the relocated install (machine
-// room → installer → 3D world), then exiting the world drops back to floor 0
-// (the storefront). Desktop viewport, so the world path is exercised (mobile /
-// reduced-motion hand off to /text instead — see MachineRoomFloor).
+// Phase 2 descent test (full loop + both escape hatches). Verifies on desktop:
+// storefront → 1999 → 2000 → machine room via the era-floor doors, the up-door
+// round-trip (machine room → 2000 → machine room), the relocated install
+// (machine room → installer → 3D world), and exiting the world rewinding to
+// floor 0. Then a mobile pass: the machine room skips the WebGL CRT and Install
+// hands off to /text instead of the 3D world.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -10,9 +11,11 @@ const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
 const browser = await chromium.launch();
+let errors = 0;
+
+// ── desktop full loop ──────────────────────────────────────────────────────
 const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 }, deviceScaleFactor: 1 });
 const page = await ctx.newPage();
-let errors = 0;
 page.on('pageerror', (e) => {
   errors++;
   console.log('PAGE EXC:', e.message);
@@ -26,7 +29,6 @@ await page.waitForTimeout(950);
 const on1999 = await page.$eval('body', (el) => el.innerText.includes('1999'));
 await page.screenshot({ path: '.shots/descent-1999.png' });
 
-// Deeper via the era-floor doors.
 await page.click('.floor-door--down');
 await page.waitForTimeout(950);
 const on2000 = await page.$eval('body', (el) => el.innerText.includes('freezer stairs'));
@@ -38,6 +40,13 @@ const onMachine = await page.$eval(
   (el) => el.innerText.includes('Calzone') && el.innerText.includes('Pizza Graphics'),
 );
 await page.screenshot({ path: '.shots/descent-machine.png' });
+
+// up-door round-trip: machine room -> back up to 2000 -> back down to machine room.
+await page.click('.floor-door--up');
+await page.waitForTimeout(950);
+const upDoor = await page.$eval('body', (el) => el.innerText.includes('freezer stairs'));
+await page.click('.floor-door--down');
+await page.waitForTimeout(950);
 
 // The relocated install: machine room -> installer -> 3D world.
 await page.click('.mr__install');
@@ -63,10 +72,30 @@ try {
 } catch {
   /* couldn't get back */
 }
+await ctx.close();
 
-if (!on1999 || !on2000 || !onMachine || !world || !exitToFloor0) errors++;
+// ── mobile / low-power handoff ─────────────────────────────────────────────
+const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+const mp = await mctx.newPage();
+await mp.goto(base + '/', { waitUntil: 'networkidle' });
+await mp.click('.floor-door--plain'); // descend via the door (order form -> /text on mobile)
+await mp.waitForTimeout(800);
+await mp.click('.floor-door--down');
+await mp.waitForTimeout(800);
+await mp.click('.floor-door--down');
+await mp.waitForTimeout(800);
+const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.length)) === 0;
+await mp.click('.mr__install');
+await mp.waitForTimeout(1100);
+const mobileToText = mp.url().endsWith('/text');
+await mctx.close();
+
 await browser.close();
+
+if (!on1999 || !on2000 || !onMachine || !upDoor || !world || !exitToFloor0 || !mobileNoCanvas || !mobileToText)
+  errors++;
 console.log(
-  `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} world=${world} exitToFloor0=${exitToFloor0} errors=${errors}`,
+  `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} world=${world} ` +
+    `exitToFloor0=${exitToFloor0} | mobile: noCanvas=${mobileNoCanvas} install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

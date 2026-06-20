@@ -57,8 +57,13 @@ npm run typecheck  # tsc --noEmit
 - **Add or move an in-world hotspot** → `src/data/hotspots.ts`. Each hotspot
   points at a `links.ts` id, so links stay single-source — adding one is a data
   edit, never scene code.
-- **Storefront copy / layout** → `src/pages/Storefront.tsx`.
-- **The descent gag** → `src/components/Descent.tsx`.
+- **Add or change an era floor** → `src/data/floors.ts` (the `FLOORS` array) +
+  a template in `src/floors/`. The descent through web history is data-driven;
+  see "Adding an era floor" below.
+- **Storefront copy / layout** → `src/floors/PlainFloor.tsx` (floor 0); the `/`
+  route (`src/pages/Storefront.tsx`) is a thin host around `<FloorView>`.
+- **The Calzone install / transition** → `src/components/Descent.tsx` (fires from
+  the machine room, the bottom floor).
 - **The 3D world** → `src/world/` (`World.tsx` is the lazy entry; `ps1.ts` is the
   vertex-snap / affine / dither pipeline; `sim.ts` is the ported boids steering).
 - **In-world HUD / pause menu** → `src/components/WorldHud.tsx`.
@@ -100,13 +105,42 @@ npm run typecheck  # tsc --noEmit
 ship. Large masters/originals should nest under a `media/` tree (e.g.
 `media/masters/`, `media/photos/`) rather than living loose at the repo root.
 
+## The descent — era floors
+
+Going down is going forward in web time. The `/` route is a thin host around
+`<FloorView>`, which renders `FLOORS[currentFloor]` by template; each floor is a
+real, usable links page you leave through a **door** into the next era:
+
+```
+1996 storefront (plain) → 1999 (starburst) → 2000 (tableLayout) → SGI machine
+room (machineRoom) → [Calzone install] → the 3D beach shop.
+```
+
+The descent is data-driven, mirroring `links.ts` / `hotspots.ts`.
+
+**To add a floor:** add a `Floor` entry to `src/data/floors.ts` (its `links` are
+`links.ts` ids, resolved via `resolveLinks`), and — if its look is new — add a
+template component in `src/floors/` plus a `case` in `FloorView`. That's it; no
+scene code. The rot transition (`FloorTransition`) and progressive audio decay
+(`audio.bendToDepth`) come for free, deepening with `currentFloor`.
+
+- **Doors** (`FloorDoor`) are the connective tissue (the same metaphor used for
+  the 3D room exits later). `descend()` / `ascend()` live in the scene store.
+- **The install** relocated to the machine room (the bottom floor): its button
+  calls `requestInstall()`, which jumps `Descent` straight to the installer →
+  boot log → world. `exitWorld()` rewinds to floor 0.
+- **Mobile / reduced-motion:** the era floors are universal (responsive; the rot
+  is instant under reduced-motion). The 3D world is the one feature they skip —
+  the machine room's CRT live render isn't mounted and Install hands off to
+  `/text` (`TEXT_ONLY_PATH`) instead of the 3D world.
+
 ## Self-verification (Playwright)
 
 ```bash
 npm run build && npm run preview &   # serve dist/ on :4173
 npm run shoot           # storefront desktop/mobile/text + JS-DISABLED parity
 npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause
-npm run shoot:descent   # full order -> install gag -> lands in the world
+npm run shoot:descent   # storefront → 1999 → 2000 → machine room → install → world → exit; + mobile→/text
 npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text
 ```
 
@@ -137,9 +171,16 @@ credits, and kept isolated behind a lazy route — never mixed into reusable cod
 
 ## Status
 
-**Phase 1 is complete** (storefront fallback, descent gag, the PS1 beach-shop
-world, hotspots + pause menu, mobile/reduced-motion fallback), plus post-Phase-1
-additions: real degraded boot music ("Jolly Roger Bay"), press photos + OG image,
-the `/links` archive, lazy/gated audio, and opt-in email capture. Phase 2 — the
-liminal era-ladder "levels" (each with its own track), the Doom/Freedoom shrine,
-and the PositionalAudio jukebox — is queued in `CLAUDE.md`.
+**Phases 1–2 are complete.** Phase 1: the dead-plain storefront fallback, the
+descent gag, the PS1 beach-shop world, hotspots + pause menu, mobile/reduced-
+motion fallback — plus real degraded boot music ("Jolly Roger Bay"), press
+photos + OG image, the `/links` archive, lazy/gated audio, and opt-in email
+capture. **Phase 2:** the data-driven era-floor descent — storefront → 1999
+starburst → 2000 table-layout → SGI machine room (with a live CRT render of the
+world) → the Calzone install → the 3D shop, all connected by doors.
+
+Next (roadmap in `CLAUDE.md`): **Phase 3** the rooms system (rat hallway +
+jukebox room, the boids-driven rat, the one secret; 3D doors as exits),
+**Phase 4** a hidden terminal, **Phase 5** the `unease` dread conductor, then
+wiring up `fun/`. Liminal / pool / backrooms level GLBs (`couldbewholelevels/`,
+`newglb/`) are staged for the levels below the shop.
