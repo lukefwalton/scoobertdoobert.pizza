@@ -1,0 +1,225 @@
+/* machineroom.css — the terminus. The deferred SGI/Silicon-Surf chrome lands
+   here: starfield, chrome/gel beveled word-art, "see what's possible", a comet
+   pizza guy, and the corner CRT that renders the dream. Parody marks only. */
+
+.mr {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 0%, #0a1030 0%, #04030f 60%, #000 100%);
+  color: #cfe0ff;
+  font-family: 'Arial Black', Arial, sans-serif;
+  padding: 0 16px 52px;
+}
+
+/* starfield — layered radial-gradient dots, slow drift */
+.mr__stars {
+  position: absolute;
+  inset: -50%;
+  z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #ffffff, transparent),
+    radial-gradient(1px 1px at 70% 60%, #cfe0ff, transparent),
+    radial-gradient(1px 1px at 40% 80%, #ffffff, transparent),
+    radial-gradient(2px 2px at 85% 20%, #ffffff, transparent),
+    radial-gradient(1px 1px at 55% 15%, #9fd0ff, transparent),
+    radial-gradient(1px 1px at 12% 70%, #ffffff, transparent),
+    radial-gradient(1.5px 1.5px at 90% 85%, #ffffff, transparent);
+  background-size: 320px 320px;
+  opacity: 0.8;
+  animation: mr-drift 60s linear infinite;
+}
+@keyframes mr-drift {
+  to {
+    transform: translateY(160px);
+  }
+}
+
+/* the pizza-delivery-guy-on-a-comet motif */
+.mr__comet {
+  position: absolute;
+  top: 12%;
+  left: -10%;
+  z-index: 1;
+  animation: mr-comet 14s linear infinite;
+}
+.mr__comet-guy {
+  position: relative;
+  font-size: 2rem;
+  filter: drop-shadow(-26px 0 12px rgba(120, 200, 255, 0.8));
+}
+@keyframes mr-comet {
+  0% {
+    transform: translate(0, 0) rotate(8deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(125vw, 36vh) rotate(8deg);
+    opacity: 0;
+  }
+}
+
+.mr__head {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 30px 8px 6px;
+}
+.mr__brand {
+  margin: 0;
+  letter-spacing: 0.35em;
+  font-size: 0.78rem;
+  color: #7fa8e8;
+}
+/* chrome / gel beveled word-art */
+.mr__wordart {
+  margin: 4px 0;
+  font-size: clamp(2.2rem, 8vw, 4.2rem);
+  line-height: 1;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #b9c6e0 18%,
+    #5b76a8 45%,
+    #28406e 50%,
+    #6f8fc4 55%,
+    #c9d6ee 82%,
+    #ffffff 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: 1px #1a2a4d;
+  filter: drop-shadow(0 2px 0 #0a1430) drop-shadow(0 0 14px rgba(120, 180, 255, 0.5));
+}
+.mr__tag {
+  margin: 0;
+  font-style: italic;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #ffd76b;
+  text-shadow: 0 0 10px rgba(255, 200, 80, 0.6);
+}
+
+.mr__body {
+  position: relative;
+  z-index: 2;
+  max-width: 860px;
+  margin: 22px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  align-items: center;
+  justify-content: center;
+}
+
+.mr__pitch {
+  flex: 1 1 300px;
+  max-width: 380px;
+  background: rgba(10, 18, 48, 0.85);
+  border: 2px solid #3a5288;
+  border-radius: 6px;
+  box-shadow: 0 0 24px rgba(60, 110, 200, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  padding: 16px 18px;
+}
+.mr__fine {
+  font-size: 0.85rem;
+  color: #9fb6e0;
+}
+.mr__install {
+  margin-top: 8px;
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: #06122e;
+  padding: 9px 26px;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  cursor: inherit;
+  background: linear-gradient(180deg, #eaf2ff 0%, #b7cdf2 45%, #6f93cf 55%, #cfe0ff 100%);
+  box-shadow: 0 3px 0 #24406e, 0 0 18px rgba(120, 180, 255, 0.6);
+}
+.mr__install:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #24406e, 0 0 14px rgba(120, 180, 255, 0.6);
+}
+
+/* the corner CRT / workstation monitor */
+.mr__crt {
+  flex: 0 0 auto;
+  text-align: center;
+}
+.mr__crt-screen {
+  position: relative;
+  width: 240px;
+  height: 180px;
+  background: radial-gradient(ellipse at center, #06281f 0%, #021109 100%);
+  border: 10px solid #c9c2ad;
+  border-radius: 10px / 14px;
+  box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.8), 0 6px 16px rgba(0, 0, 0, 0.6),
+    0 0 0 2px #8c856f;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.mr__crt-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.35) 0 1px,
+    transparent 1px 3px
+  );
+  pointer-events: none;
+}
+.mr__crt-label {
+  position: relative;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: #36ff9a;
+  text-shadow: 0 0 8px rgba(54, 255, 154, 0.8);
+}
+.mr__crt-cap {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #8fa8d8;
+}
+
+.mr__links {
+  position: relative;
+  z-index: 2;
+  max-width: 860px;
+  margin: 22px auto 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  font-size: 0.9rem;
+}
+.mr__links a {
+  color: #9fd0ff;
+}
+
+.mr__doors {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+.mr .floor-door__label {
+  color: #cfe0ff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mr__stars,
+  .mr__comet {
+    animation: none;
+  }
+}
