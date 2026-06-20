@@ -49,6 +49,17 @@ const upDoor = await floor(page, 'y2000');
 await page.click('.floor-door--down');
 await floor(page, 'machine');
 
+// Desktop should mount the live CRT preview (lazy WebGL) before install — the
+// mirror of the mobile noCanvas check, so a MiniWorldPreview regression fails
+// here loudly instead of silently shipping a dead screen.
+let crtCanvas = false;
+try {
+  await page.waitForSelector('.mr__crt-screen canvas', { timeout: 12000 });
+  crtCanvas = true;
+} catch {
+  fail('desktop machine-room CRT canvas never mounted');
+}
+
 // The relocated install: machine room -> installer -> 3D world.
 await page.click('.mr__install');
 let world = false;
@@ -94,7 +105,8 @@ await mctx.close();
 
 await browser.close();
 console.log(
-  `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} world=${world} ` +
-    `exitToFloor0=${exitToFloor0} | mobile: noCanvas=${mobileNoCanvas} install→text=${mobileToText} | errors=${errors}`,
+  `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

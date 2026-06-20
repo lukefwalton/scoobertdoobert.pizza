@@ -27,7 +27,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   return (
     <div className="store" data-floor={floor.id}>
       <p className="util">
-        <a href="/text">text only version of this page</a>
+        <a href={TEXT_ONLY_PATH}>text only version of this page</a>
         <MuteToggle />
       </p>
 

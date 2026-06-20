@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
+import { isLowPower } from '../lib/lowPower';
 import { TEXT_ONLY_PATH } from '../data/links';
 
 // The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
@@ -37,9 +38,7 @@ export function OrderForm() {
 
     // Mobile / reduced-motion stay on floor zero and just get the flat list;
     // everyone else starts the descent through the era floors.
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const small = window.matchMedia('(max-width: 768px)').matches;
-    if (reduced || small) {
+    if (isLowPower()) {
       window.location.assign(TEXT_ONLY_PATH);
     } else {
       audio.unlock();
