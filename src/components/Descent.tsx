@@ -56,6 +56,8 @@ export function Descent() {
   const enterWorld = useSceneStore((s) => s.enterWorld);
   const descentRequested = useSceneStore((s) => s.descentRequested);
   const clearDescentRequest = useSceneStore((s) => s.clearDescentRequest);
+  const installRequested = useSceneStore((s) => s.installRequested);
+  const clearInstallRequest = useSceneStore((s) => s.clearInstallRequest);
   const worldReady = useRef(false);
 
   // OrderForm requests the descent via the store. It owns the mobile /
@@ -70,6 +72,17 @@ export function Descent() {
       audio.unlock();
     }
   }, [descentRequested, phase, clearDescentRequest]);
+
+  // The machine room (bottom floor) fires the install directly — the floor IS
+  // the Calzone pitch, so jump straight to the installer (the lazy three.js
+  // load) and on through the boot log into the world.
+  useEffect(() => {
+    if (installRequested && phase === 'idle') {
+      clearInstallRequest();
+      setPhase('installing');
+      audio.unlock();
+    }
+  }, [installRequested, phase, clearInstallRequest]);
 
   // Phase timers / the install→world handoff.
   useEffect(() => {

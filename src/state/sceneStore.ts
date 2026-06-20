@@ -15,6 +15,8 @@ type SceneState = {
   paused: boolean;
   /** the order form asked to start the descent (consumed by Descent) */
   descentRequested: boolean;
+  /** the machine room asked to fire the Calzone install (→ world) */
+  installRequested: boolean;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -30,6 +32,10 @@ type SceneState = {
   togglePaused: () => void;
   requestDescent: () => void;
   clearDescentRequest: () => void;
+  /** Fire the Calzone install from the machine room (jumps straight to the
+   *  installer; the machine room itself is the prompt). */
+  requestInstall: () => void;
+  clearInstallRequest: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -39,13 +45,22 @@ export const useSceneStore = create<SceneState>((set) => ({
   openHotspot: null,
   paused: false,
   descentRequested: false,
+  installRequested: false,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
   setFloor: (i) => set({ currentFloor: Math.max(0, Math.min(i, BOTTOM_FLOOR)) }),
   enterWorld: () => set({ worldActive: true }),
+  // Leaving the world drops you back at the storefront (floor 0), not the
+  // machine room you installed from.
   exitWorld: () =>
-    set({ worldActive: false, paused: false, openHotspot: null, nearHotspot: null }),
+    set({
+      worldActive: false,
+      paused: false,
+      openHotspot: null,
+      nearHotspot: null,
+      currentFloor: 0,
+    }),
   setNearHotspot: (id) => set({ nearHotspot: id }),
   openHotspotDialog: (id) => set({ openHotspot: id }),
   closeHotspotDialog: () => set({ openHotspot: null }),
@@ -53,4 +68,6 @@ export const useSceneStore = create<SceneState>((set) => ({
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),
   clearDescentRequest: () => set({ descentRequested: false }),
+  requestInstall: () => set({ installRequested: true }),
+  clearInstallRequest: () => set({ installRequested: false }),
 }));
