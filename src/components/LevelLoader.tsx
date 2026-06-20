@@ -26,21 +26,23 @@ export function LevelLoader() {
   const isGlb = !!room.glb;
   const [dismissed, setDismissed] = useState(false);
 
-  // New level → show the loader again (until tapped in) and clear any stale
-  // ready/error flags from the previous level's load.
+  // New room → show the loader again (until tapped in) and clear the overlay
+  // state. Note this does NOT reset `ready` — GlbRoom owns that via mount/unmount
+  // (see levelStore), which is what makes cached re-entry safe.
   useEffect(() => {
     setDismissed(false);
-    useLevelStore.getState().reset();
+    useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
 
   if (!isGlb || dismissed) return null;
 
-  // Recovery: bounce back out the room's first (exit) door, or to the shop if
-  // the failed room somehow has none. The room swaps, the effect above resets
-  // the level flags, and the loader unmounts.
+  // Recovery: bounce out the room's EXPLICIT recover target if it has one, else
+  // its first door, else the shop. Explicit metadata so a future door reorder
+  // can't silently change where a failed load drops the player.
   const onAbort = () => {
-    const exit = room.doors[0];
-    if (exit) goToRoom(exit.to, exit.toSpawn ?? 'default');
+    const recover = room.glb?.recoverTo;
+    if (recover) goToRoom(recover.to, recover.spawn ?? 'default');
+    else if (room.doors[0]) goToRoom(room.doors[0].to, room.doors[0].toSpawn ?? 'default');
     else goToRoom(FIRST_ROOM, 'default');
   };
 

@@ -25,6 +25,11 @@ export type RoomGlb = {
   fit?: number;
   /** Extra yaw to orient the model. */
   rotationY?: number;
+  /** Where the loader's TURN BACK bounces the player if the GLB fails to load.
+   *  Explicit so recovery isn't coupled to door array order (a reordered/added
+   *  door must never silently change the safe exit). Falls back to the first
+   *  door, then the shop, if omitted. */
+  recoverTo?: { to: string; spawn?: string };
 };
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
@@ -272,7 +277,12 @@ export const ROOMS: Room[] = [
     title: 'Liminal Space',
     // A real (wide-permission) GLB environment, crunched + lazy-loaded behind the
     // loader minigame. Provenance tracked in THIRD_PARTY_NOTICES.md.
-    glb: { url: '/models/liminal-other-space.glb', fit: 18 },
+    glb: {
+      url: '/models/liminal-other-space.glb',
+      fit: 18,
+      // If the model fails to load, send the player back up to the pool.
+      recoverTo: { to: 'poolrooms', spawn: 'fromLiminal' },
+    },
     dims: { halfW: 8.5, halfD: 8.5, height: 6, eye: EYE },
     // Pale beige nothing — the backrooms register.
     palette: { background: '#d6cfb8', fog: '#d6cfb8', fogNear: 6, fogFar: 34 },

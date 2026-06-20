@@ -58,6 +58,8 @@ let frozenUnderLoader = false;
 let loaderReady = false;
 let inLiminal = false;
 let backToPool = false;
+let reReady = false;
+let reEnter = false;
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
   const page = await ctx.newPage();
@@ -137,6 +139,32 @@ let backToPool = false;
     if (!backed) fail('liminal exit door prompt never appeared');
     backToPool = await roomIs(page, 'The Poolrooms');
   }
+
+  // ── cached RE-ENTRY: pool → liminal AGAIN. On a revisit useGLTF resolves
+  //    synchronously, so GlbRoom mounts in the same commit the room changes.
+  //    Regression for the ready/reset race: the loader must STILL reach the
+  //    ready state (not get stranded at ready=false) and let us back in.
+  if (backToPool) {
+    // Arrived via the 'fromLiminal' spawn (z=-5, facing +Z), so the deep door is
+    // now BEHIND us at -Z → walk S to reach it again.
+    await page.keyboard.down('s');
+    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
+    await page.keyboard.up('s');
+    await page.keyboard.press('e'); // → liminal again (cached)
+    reReady = await page
+      .waitForFunction(
+        () =>
+          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+        null,
+        { timeout: 10000 },
+      )
+      .then(() => true, () => false);
+    if (!reReady) fail('cached re-entry left the loader stranded (ready never flipped on revisit)');
+    if (reReady) {
+      await page.getByRole('button', { name: /TAP TO ENTER/i }).click({ timeout: 4000 });
+      reEnter = await roomIs(page, 'Liminal Space');
+    }
+  }
   await ctx.close();
 }
 
@@ -189,7 +217,7 @@ let bouncedBack = false;
 await browser.close();
 console.log(
   `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
-    `ready=${loaderReady} liminal=${inLiminal} backToPool=${backToPool} ` +
+    `ready=${loaderReady} liminal=${inLiminal} backToPool=${backToPool} reReady=${reReady} reEnter=${reEnter} ` +
     `errLoader=${errLoader} bouncedBack=${bouncedBack} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
