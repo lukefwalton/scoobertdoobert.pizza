@@ -151,11 +151,15 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const cycle = () => setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
 
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
-  // loop voice back to the ambient boot loop.
+  // loop voice back to the ambient boot loop and clear the test selection global
+  // (so a later smoke can't read a stale "still on this track" after exit).
   useEffect(() => {
     audio.preloadJukebox(JUKEBOX_TRACKS.map((t) => jukeboxTrackUrl(t.slug)));
     return () => {
       audio.restoreBoot();
+      if (typeof window !== 'undefined') {
+        (window as Window & { __sdpJukebox?: unknown }).__sdpJukebox = undefined;
+      }
     };
   }, []);
 

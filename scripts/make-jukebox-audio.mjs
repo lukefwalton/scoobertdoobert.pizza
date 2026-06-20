@@ -32,6 +32,14 @@ if (missing.length) {
   process.exit(1);
 }
 
+// And slugs must be unique — a duplicate would silently overwrite another
+// track's <slug>.wav (the slug is the output filename).
+const dupes = [...new Set(TRACKS.map((t) => t.slug).filter((s, i, a) => a.indexOf(s) !== i))];
+if (dupes.length) {
+  console.error(`make-jukebox-audio: duplicate catalog slug(s) — would overwrite output: ${dupes.join(', ')}`);
+  process.exit(1);
+}
+
 const browser = await chromium.launch();
 const page = await browser.newPage();
 mkdirSync(OUT_DIR, { recursive: true });
