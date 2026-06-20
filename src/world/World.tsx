@@ -5,6 +5,7 @@ import { OCEAN, FOG_NEAR, FOG_FAR, ROOM, PS1 } from './constants';
 import { Room } from './Room';
 import { Water } from './Water';
 import { Boids } from './Boids';
+import { Hotspots } from './Hotspots';
 import { Controls } from './Controls';
 
 // Live fog tuning for the leva panel (the spec wants jitter/affine/fog tunable;
@@ -54,6 +55,7 @@ export default function World() {
       <Room />
       <Water />
       <Boids />
+      <Hotspots />
       <Controls />
       <SceneTuning />
     </Canvas>

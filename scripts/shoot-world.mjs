@@ -32,7 +32,7 @@ await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 // Positive assertion: the world actually mounted (don't trust a quiet page).
 try {
   await page.waitForSelector('canvas', { timeout: 12000 });
-  await page.waitForSelector('.world-exit', { timeout: 12000 });
+  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
   errors++;
   console.log('WORLD DID NOT MOUNT:', e.message);
@@ -41,6 +41,22 @@ await page.waitForTimeout(3000); // WebGL warmup + frames
 await page.screenshot({ path: '.shots/world.png' });
 await page.waitForTimeout(1600);
 await page.screenshot({ path: '.shots/world2.png' });
+
+// Walk forward to the window hotspot, interact, then open the pause menu.
+await page.keyboard.down('w');
+await page.waitForTimeout(2000);
+await page.keyboard.up('w');
+await page.waitForTimeout(400);
+await page.screenshot({ path: '.shots/world-hotspot.png' });
+await page.keyboard.press('e');
+await page.waitForTimeout(500);
+await page.screenshot({ path: '.shots/world-dialog.png' });
+await page.keyboard.press('Escape'); // close dialog
+await page.waitForTimeout(200);
+await page.keyboard.press('Escape'); // open pause menu
+await page.waitForTimeout(400);
+await page.screenshot({ path: '.shots/world-pause.png' });
+
 await browser.close();
 if (errors) {
   console.error(`world shots done with ${errors} page error(s) — failing.`);
