@@ -6,7 +6,7 @@
 // vite-react-ssg emits the text-only route as dist/text.html. We accept either
 // that or a nested dist/text/index.html so this guard stays correct if the SSG
 // output shape ever changes.
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 function hasContent(file, needle) {
   return existsSync(file) && readFileSync(file, 'utf8').includes(needle);
@@ -25,6 +25,25 @@ for (const c of cases) {
   } else {
     console.error(`  x ${c.label}: none of [${c.files.join(', ')}] contain "${c.needle}"`);
     failed++;
+  }
+}
+
+// Provenance guard: every shipped 3D model (dist/models/*.glb) must have an entry
+// in THIRD_PARTY_NOTICES.md, so a bundled third-party asset can't drift into the
+// release without an attribution row. We only require the filename be PRESENT —
+// the exact license text is Luke's to fill in (TODO(license) is allowed); a model
+// with no row at all fails the build.
+const NOTICES = 'THIRD_PARTY_NOTICES.md';
+const modelsDir = 'dist/models';
+if (existsSync(modelsDir)) {
+  const notices = existsSync(NOTICES) ? readFileSync(NOTICES, 'utf8') : '';
+  for (const glb of readdirSync(modelsDir).filter((f) => f.toLowerCase().endsWith('.glb'))) {
+    if (notices.includes(glb)) {
+      console.log(`  ok shipped model ${glb} -> has a ${NOTICES} entry`);
+    } else {
+      console.error(`  x shipped model ${glb}: no entry in ${NOTICES} (add an attribution row)`);
+      failed++;
+    }
   }
 }
 
