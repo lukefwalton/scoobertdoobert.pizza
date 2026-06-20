@@ -1,4 +1,4 @@
-import { Component, useMemo, useRef, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -80,7 +80,24 @@ function PropInner({ spec }: { spec: RoomProp }) {
     const scale = spec.fit ? spec.fit / maxDim : 1;
     clone.position.set(-center.x, -box.min.y, -center.z);
     return { clone, scale };
-  }, [scene, spec.fit]);
+    // glow is part of the per-placement material treatment above, so it belongs
+    // in the deps — re-fit if it changes (same url reused with a different glow).
+  }, [scene, spec.fit, spec.glow]);
+
+  // Dispose the per-placement material CLONES (not the cached GLTF's shared
+  // textures) when the prop unmounts / re-fits, so revisiting rooms doesn't leak
+  // materials. R3F doesn't auto-dispose objects we cloned ourselves.
+  useEffect(() => {
+    const root = fitted.clone;
+    return () => {
+      root.traverse((o) => {
+        const mesh = o as THREE.Mesh;
+        if (!mesh.isMesh) return;
+        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+        for (const m of mats) (m as THREE.Material).dispose();
+      });
+    };
+  }, [fitted]);
 
   useFrame((_, delta) => {
     if (spec.spin && ref.current) ref.current.rotation.y += spec.spin * Math.min(delta, 0.05);
