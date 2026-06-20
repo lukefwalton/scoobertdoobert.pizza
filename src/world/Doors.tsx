@@ -30,8 +30,12 @@ function DoorMesh({ door }: { door: RoomDoor }) {
   const t = 0.22; // frame thickness
 
   const activate = () => {
+    // Click requires proximity too, same as E: you walk up to a door, then go
+    // through it. (goToRoom still guards paused / dialog-open / mid-transition.)
+    const st = useSceneStore.getState();
+    if (st.nearDoor?.id !== door.id) return;
     audio.unlock();
-    useSceneStore.getState().goToRoom(door.to, door.toSpawn ?? 'default');
+    st.goToRoom(door.to, door.toSpawn ?? 'default');
   };
 
   return (

@@ -101,9 +101,30 @@ if (backInShop) {
   clickEnter = await roomIs('Back Hall');
 }
 
+// Held-key guard: an auto-repeat keydown (repeat:true) next to a door must NOT
+// trigger a transition — otherwise holding E bounces you back and forth. A real
+// (non-repeat) press still must work.
+let heldNoBounce = false;
+if (clickEnter) {
+  await walk('s', 900); // to the hall's return door
+  await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+  await page.evaluate(() =>
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', repeat: true })),
+  );
+  await page.waitForTimeout(500);
+  const stillHall = await page.evaluate(
+    () => document.querySelector('.hud-room')?.textContent?.includes('Back Hall') ?? false,
+  );
+  if (!stillHall) fail('held E (repeat) bounced the player through the door');
+  await page.keyboard.press('e'); // a real press must still work
+  const wentShop = await roomIs('Beach Pizza Shop');
+  heldNoBounce = stillHall && wentShop;
+}
+
 await browser.close();
 console.log(
   `rooms: startShop=${startShop} doorPrompt=${doorPrompt} hall=${inHall} ` +
-    `returnPrompt=${returnPrompt} backInShop=${backInShop} clickEnter=${clickEnter} | errors=${errors}`,
+    `returnPrompt=${returnPrompt} backInShop=${backInShop} clickEnter=${clickEnter} ` +
+    `heldNoBounce=${heldNoBounce} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

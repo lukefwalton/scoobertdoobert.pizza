@@ -86,12 +86,21 @@ export function WorldHud() {
   // the overlay fades back up on the new room.
   useEffect(() => {
     if (!pendingRoom) return;
-    const t = window.setTimeout(() => commitRoom(), ROOM_FADE_MS);
+    // Reduced-motion gets no black pause (the CSS fade is already disabled for
+    // them) — commit immediately instead of waiting out ROOM_FADE_MS.
+    const reduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const t = window.setTimeout(() => commitRoom(), reduced ? 0 : ROOM_FADE_MS);
     return () => window.clearTimeout(t);
   }, [pendingRoom, commitRoom]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Ignore auto-repeat from a held key: one press = one action. Without this
+      // a held E re-fires after the fade clears and can bounce you straight back
+      // through the door you just used.
+      if (e.repeat) return;
       const st = useSceneStore.getState();
       if (e.key === 'Escape') {
         if (st.openHotspot) st.closeHotspotDialog();
