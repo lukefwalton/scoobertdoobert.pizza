@@ -152,8 +152,11 @@ let reEnter = false;
   // pool. The waterfall is descent-ONLY, so leaving liminal must NOT play it.
   if (inLiminal) {
     await page.keyboard.down('s'); // exit door behind us (+Z)
-    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
+    const exitPrompt = await page
+      .waitForSelector('.hud-prompt--door', { timeout: 3500 })
+      .then(() => true, () => false);
     await page.keyboard.up('s');
+    if (!exitPrompt) fail('liminal exit door prompt never appeared (ascent not exercised)');
     await page.keyboard.press('e');
     // Poll across the ascent transition: the waterfall must never turn on.
     let sawWaterfall = false;
