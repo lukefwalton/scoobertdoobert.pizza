@@ -183,6 +183,27 @@ Storefront copy, 1999 register (original — do not use Pizza Hut's words):
 
 ---
 
+## Phase 2 — the Doom/Freedoom shrine (decided, not yet built)
+
+Decision (Luke): copyleft is a non-issue for this site. Happy to make the repo
+public/GPL. The only real line is **assets**, not code.
+
+- **Use Freedoom assets, never id's original Doom WADs / sprites / sounds /
+  music.** Freedoom content is BSD-licensed; preserve copyright + credit. (Or
+  make our own cursed pizza WAD.)
+- A browser Doom/WASM port (engine source lineage is GPL — fine) goes behind a
+  **hidden, lazy-loaded route** (e.g. `/basement`, `/pizza-hell`, "employee
+  only"). It's a portal / shrine / cursed minigame, NOT the site architecture.
+  The main site stays custom R3F.
+- Hygiene: public repo; add `THIRD_PARTY_NOTICES.md`; credit id Software (engine
+  lineage), the port authors (Chocolate Doom / wasm port), and Freedoom
+  (content). Keep it isolated — never mix GPL/Doom code into reusable
+  Surmado/business code.
+- This is a secret room / easter egg, so per the SCOPE GUARDRAIL it is **Phase
+  2** — queue it as the first Phase 2 item after Phase 1 ships.
+
+Verdict: ship. Copyleft isn't the blocker; asset theft would be.
+
 ## Phase status (agent-maintained — keep this current)
 
 - [x] **1. Project + storefront (fallback layer).** Vite+React+TS scaffold,

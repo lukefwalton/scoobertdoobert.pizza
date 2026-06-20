@@ -2,6 +2,7 @@ import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
 import { SampleMenu } from '../components/SampleMenu';
 import { OrderForm } from '../components/OrderForm';
+import { AudioBootstrap } from '../components/AudioBootstrap';
 import { BootScreen } from '../components/BootScreen';
 import { MuteToggle } from '../components/MuteToggle';
 import { WorldMount } from '../components/WorldMount';
@@ -35,6 +36,7 @@ export default function Storefront() {
           content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
         />
       </Head>
+      <AudioBootstrap />
       <BootScreen />
       <WorldMount />
       <a className="skip-link" href="#menu">
