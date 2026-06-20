@@ -4,6 +4,7 @@ import { SampleMenu } from '../components/SampleMenu';
 import { OrderForm } from '../components/OrderForm';
 import { AudioBootstrap } from '../components/AudioBootstrap';
 import { BootScreen } from '../components/BootScreen';
+import { Descent } from '../components/Descent';
 import { MuteToggle } from '../components/MuteToggle';
 import { WorldMount } from '../components/WorldMount';
 import { destById } from '../data/links';
@@ -39,6 +40,7 @@ export default function Storefront() {
       <AudioBootstrap />
       <BootScreen />
       <WorldMount />
+      <Descent />
       <a className="skip-link" href="#menu">
         Skip to the menu
       </a>

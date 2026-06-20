@@ -1,0 +1,178 @@
+import { useEffect, useRef, useState } from 'react';
+import '98.css';
+import '../styles/descent.css';
+import { audio } from '../audio/engine';
+import { useSceneStore } from '../state/sceneStore';
+
+// ───────────────────────────────────────────────────────────────────────────
+// The descent — the hero moment. Submitting the (theatrical) order form is what
+// "requires the plug-in":
+//   aging  -> the storefront desaturates, scanlines + vignette creep in
+//   crash  -> a ~1s fake crash fakeout (optional beat, per the addendum)
+//   prompt -> the Calzone Player™ VRML plug-in install dialog (98.css)
+//   install-> a fake progress bar with absurd steps. THIS is the lazy-load mask:
+//             the three.js World chunk actually downloads here.
+//   cut    -> cut to black, pitch-bend the boot loop down
+//   reveal -> fade up inside the world
+//
+// Gated to desktop + no reduced-motion. On mobile / reduced-motion the form is
+// left alone and just navigates to /text (the step-6 fallback).
+// ───────────────────────────────────────────────────────────────────────────
+
+type Phase = 'idle' | 'aging' | 'crash' | 'prompt' | 'installing' | 'cut' | 'reveal';
+
+const STATUS_LINES = [
+  'Reticulating crusts…',
+  'Buffering anchovies…',
+  'Compiling garlic shaders…',
+  'Proofing dough volume…',
+  'Downloading the ocean…',
+  'Summoning the rat…',
+  'Calibrating reverb…',
+];
+
+const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing'];
+
+export function Descent() {
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState(STATUS_LINES[0]);
+  const enterWorld = useSceneStore((s) => s.enterWorld);
+  const worldReady = useRef(false);
+
+  // Intercept the order form's submit, unless reduced-motion / small screen.
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const small = window.matchMedia('(max-width: 768px)').matches;
+    if (reduced || small) return;
+    const form = document.getElementById('order-form');
+    if (!form) return;
+    const onSubmit = (e: Event) => {
+      e.preventDefault();
+      setPhase('aging');
+      audio.unlock();
+      if (!audio.muted) audio.startBootLoop();
+    };
+    form.addEventListener('submit', onSubmit);
+    return () => form.removeEventListener('submit', onSubmit);
+  }, []);
+
+  // Phase timers / the install→world handoff.
+  useEffect(() => {
+    if (phase === 'aging') {
+      const t = window.setTimeout(() => setPhase('crash'), 1300);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'crash') {
+      const t = window.setTimeout(() => setPhase('prompt'), 1200);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'installing') {
+      // The actual download behind the gag: warm the three.js World chunk.
+      void import('../world/World').then(() => {
+        worldReady.current = true;
+      });
+      let p = 0;
+      let li = 0;
+      const tick = window.setInterval(() => {
+        p = Math.min(100, p + 4 + Math.random() * 9);
+        setProgress(p);
+        if (Math.random() < 0.4) {
+          li = (li + 1) % STATUS_LINES.length;
+          setStatus(STATUS_LINES[li]);
+        }
+        if (p >= 100 && worldReady.current) {
+          window.clearInterval(tick);
+          setPhase('cut');
+        }
+      }, 180);
+      return () => window.clearInterval(tick);
+    }
+    if (phase === 'cut') {
+      audio.pitchBendDown(1600, 0.4);
+      const t = window.setTimeout(() => {
+        enterWorld();
+        setPhase('reveal');
+      }, 950);
+      return () => window.clearTimeout(t);
+    }
+    if (phase === 'reveal') {
+      const t = window.setTimeout(() => {
+        setPhase('idle');
+        setProgress(0);
+      }, 800);
+      return () => window.clearTimeout(t);
+    }
+    return undefined;
+  }, [phase, enterWorld]);
+
+  if (phase === 'idle') return null;
+
+  return (
+    <div className="descent">
+      {AGE_PHASES.includes(phase) && <div className="descent__age" aria-hidden="true" />}
+
+      {phase === 'crash' && (
+        <div className="descent__dialog window" role="alertdialog" aria-label="Error">
+          <div className="title-bar">
+            <div className="title-bar-text">SCOOBERT.EXE</div>
+          </div>
+          <div className="window-body">
+            <p>
+              SCOOBERT.EXE has performed a beautiful illegal operation and will be
+              remembered.
+            </p>
+            <div className="descent__btnrow">
+              <button onClick={() => setPhase('prompt')}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {phase === 'prompt' && (
+        <div className="descent__dialog window" role="dialog" aria-label="Calzone Player Setup">
+          <div className="title-bar">
+            <div className="title-bar-text">Calzone Player&trade; Setup</div>
+          </div>
+          <div className="window-body">
+            <p>
+              This experience requires the <b>Calzone Player&trade;</b> VRML plug-in
+              (v1.0b).
+            </p>
+            <p className="descent__fine">Navigable 3D worlds, in your browser. Finally.</p>
+            <div className="descent__btnrow">
+              <button onClick={() => setPhase('installing')}>Install</button>
+              <button
+                onClick={() => {
+                  setPhase('idle');
+                  setProgress(0);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {phase === 'installing' && (
+        <div className="descent__dialog window" role="dialog" aria-label="Installing">
+          <div className="title-bar">
+            <div className="title-bar-text">Installing Calzone Player&trade;</div>
+          </div>
+          <div className="window-body">
+            <p>{status}</p>
+            <div className="descent__progress">
+              <div className="descent__bar" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="descent__fine">{Math.floor(progress)}% complete</p>
+          </div>
+        </div>
+      )}
+
+      {(phase === 'cut' || phase === 'reveal') && (
+        <div className={`descent__black descent__black--${phase}`} aria-hidden="true" />
+      )}
+    </div>
+  );
+}
