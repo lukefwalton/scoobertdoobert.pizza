@@ -19,8 +19,13 @@ export function ProgressTracker() {
       p.recordVisit();
     }
     const sync = (s: ReturnType<typeof useSceneStore.getState>) => {
-      if (s.worldActive) p.markEnteredWorld();
-      p.visitRoom(s.currentRoom);
+      if (s.worldActive) {
+        p.markEnteredWorld();
+        // Only record rooms while actually IN the world — sceneStore inits
+        // currentRoom to the shop before descent, so an unguarded call would
+        // mark "shop" visited on page load.
+        p.visitRoom(s.currentRoom);
+      }
       if (s.secretRevealed) p.findSecret('classified');
       p.recordFloor(s.currentFloor);
     };
