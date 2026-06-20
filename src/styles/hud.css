@@ -98,7 +98,12 @@
 }
 .hud-welcome__card {
   width: min(34rem, 86vw);
+  padding: 1.5em 1.9em;
   text-align: center;
+  background: rgba(30, 32, 36, 0.88); /* charcoal, so the text reads over the scene */
+  border: 1px solid rgba(255, 154, 82, 0.28);
+  border-radius: 8px;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6);
 }
 .hud-welcome__line {
   margin: 0.55em 0;
@@ -107,21 +112,30 @@
   font-size: clamp(1.1rem, 3.2vmin, 1.85rem);
   line-height: 1.35;
   text-shadow: 0 0 10px rgba(255, 120, 40, 0.55), 0 2px 5px rgba(0, 0, 0, 0.85);
-  opacity: 0;
-  transform: translateY(10px);
-  animation: hud-welcome-line 0.9s ease forwards;
 }
-.hud-welcome__line:nth-child(1) { animation-delay: 0.6s; }
-.hud-welcome__line:nth-child(2) { animation-delay: 1.8s; }
-.hud-welcome__line:nth-child(3) { animation-delay: 3s; }
-.hud-welcome__line:nth-child(4) { animation-delay: 4.2s; }
 .hud-welcome__line--spice {
   color: #ff9a52;
   font-style: italic;
   text-shadow: 0 0 16px rgba(255, 90, 20, 0.7), 0 2px 5px rgba(0, 0, 0, 0.9);
 }
-@keyframes hud-welcome-line {
-  to { opacity: 1; transform: translateY(0); }
+/* The un-typed remainder reserves layout (so centered lines don't reflow as
+   they stream) but stays invisible — transparent text, no glow. */
+.hud-welcome__ghost {
+  color: transparent;
+  text-shadow: none;
+}
+/* Blinking terminal caret at the typing frontier. */
+.hud-welcome__caret {
+  display: inline-block;
+  width: 0.5ch;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -0.12em;
+  background: currentColor;
+  animation: hud-welcome-blink 0.85s steps(1) infinite;
+}
+@keyframes hud-welcome-blink {
+  50% { opacity: 0; }
 }
 @keyframes hud-welcome-bg-in {
   from { opacity: 0; }
@@ -134,5 +148,5 @@
 @media (prefers-reduced-motion: reduce) {
   .hud-welcome,
   .hud-welcome--leaving { animation: none; }
-  .hud-welcome__line { opacity: 1; transform: none; animation: none; }
+  .hud-welcome__caret { animation: none; }
 }

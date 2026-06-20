@@ -6,6 +6,22 @@ import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { audio } from '../audio/engine';
 
+// The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
+// on world entry; the last line glows habanero.
+const WELCOME_LINES = [
+  'Hello.',
+  'You have entered the Scoobertverse.',
+  'Be careful as you explore.',
+  'These wilds are as spicy and delicious as habanero.',
+];
+const WELCOME_SPICE = WELCOME_LINES.length - 1;
+const WELCOME_FULL = WELCOME_LINES.join('\n');
+// Start index of each line within WELCOME_FULL (newlines count as one char).
+const WELCOME_OFFSETS = WELCOME_LINES.reduce<number[]>((acc, _, i) => {
+  acc.push(i === 0 ? 0 : acc[i - 1] + WELCOME_LINES[i - 1].length + 1);
+  return acc;
+}, []);
+
 // DOM heads-up display for the world: the proximity prompt, the hotspot dialog
 // (98.css, with the real anchor), and the pause menu — the always-reachable
 // full links list. E interacts with a nearby hotspot; Esc opens the pause menu
@@ -21,19 +37,44 @@ export function WorldHud() {
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
 
-  // The Scoobertverse welcome — a staged quest intro that plays once on world
-  // entry (WorldHud mounts with the world) and fades. Non-blocking, so you can
-  // start exploring while it runs.
+  // The Scoobertverse welcome — a quest intro that streams in char-by-char on
+  // world entry (WorldHud mounts with the world), holds, then fades. Non-blocking,
+  // so you can start exploring while it runs.
   const [welcome, setWelcome] = useState(true);
   const [welcomeLeaving, setWelcomeLeaving] = useState(false);
+  const [typed, setTyped] = useState(0);
+
+  // Stream the text in like a terminal.
   useEffect(() => {
-    const tLeave = window.setTimeout(() => setWelcomeLeaving(true), 6400);
-    const tGone = window.setTimeout(() => setWelcome(false), 7400);
+    const reduce =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) {
+      setTyped(WELCOME_FULL.length);
+      return;
+    }
+    let i = 0;
+    let t = window.setTimeout(function tick() {
+      i += 1;
+      setTyped(i);
+      if (i >= WELCOME_FULL.length) return;
+      const prev = WELCOME_FULL[i - 1];
+      const delay = prev === '\n' ? 300 : prev === '.' ? 120 : 21;
+      t = window.setTimeout(tick, delay);
+    }, 380);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  // Once fully typed, hold a beat, then fade out + unmount.
+  useEffect(() => {
+    if (typed < WELCOME_FULL.length) return;
+    const tLeave = window.setTimeout(() => setWelcomeLeaving(true), 1900);
+    const tGone = window.setTimeout(() => setWelcome(false), 3000);
     return () => {
       window.clearTimeout(tLeave);
       window.clearTimeout(tGone);
     };
-  }, []);
+  }, [typed]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -63,12 +104,22 @@ export function WorldHud() {
           role="status"
         >
           <div className="hud-welcome__card">
-            <p className="hud-welcome__line">Hello.</p>
-            <p className="hud-welcome__line">You have entered the Scoobertverse.</p>
-            <p className="hud-welcome__line">Be careful as you explore.</p>
-            <p className="hud-welcome__line hud-welcome__line--spice">
-              These wilds are as spicy and delicious as habanero.
-            </p>
+            {WELCOME_LINES.map((line, idx) => {
+              const start = WELCOME_OFFSETS[idx];
+              const rev = Math.max(0, Math.min(line.length, typed - start));
+              const frontier =
+                typed > start && typed <= start + line.length && typed < WELCOME_FULL.length;
+              return (
+                <p
+                  key={idx}
+                  className={`hud-welcome__line${idx === WELCOME_SPICE ? ' hud-welcome__line--spice' : ''}`}
+                >
+                  <span>{line.slice(0, rev)}</span>
+                  {frontier && <span className="hud-welcome__caret" aria-hidden="true" />}
+                  <span className="hud-welcome__ghost">{line.slice(rev)}</span>
+                </p>
+              );
+            })}
           </div>
         </div>
       )}
