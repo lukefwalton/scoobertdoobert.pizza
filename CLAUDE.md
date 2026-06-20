@@ -371,6 +371,20 @@ starburst + SGI machine room (install relocated here, live CRT render of
 water+boids, lazy three) · ✅ ckpt4 2000 table floor (section gate + pizza image
 map) · ✅ ckpt5 README → **Phase 2 done.**
 
+### Phase 3 status (2026-06-20) — THE WORLD GROWS (stacked PR on Phase 2)
+✅ **ckpt1 rooms system + 3D doors.** `src/data/rooms.ts` is the world graph
+(Room + RoomDoor, three-free so the store/HUD can import it; plain dims live in
+`src/world/dims.ts`, re-exported by constants.ts to keep three out of the
+storefront bundle). The shop is just `ROOMS[0]`; a back-of-shop door leads into
+the **rat hallway** (red 3D-Maze brick, dim backrooms light pools, affine floor
+swim) and back. Doors = `src/world/Doors.tsx` (proximity prompt + E/click →
+`goToRoom` → black-wipe fade → `commitRoom` swaps the room behind the black →
+camera re-spawns). `Controls` is room-aware (clamps to the current room, respawns
+per door). Per-room fog/bg in `World.tsx` (`RoomEnvironment`). Quiet `.hud-room`
+label. Smoke: `npm run shoot:rooms` (shop→hall→shop). ⬜ ckpt2 jukebox room
+(PositionalAudio swell) · ⬜ ckpt3 the rat (boids guide) · ⬜ ckpt4 the secret
+(rat knocks panel → classified room) · ⬜ ckpt5 mobile + README.
+
 ### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
 - The era FLOORS are universal — responsive pages; descend on any device (the
   rot transition is instant under reduced-motion). The descent through web

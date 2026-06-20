@@ -87,15 +87,26 @@ export function makeCheckerTexture(cells = 8, a = '#c7402f', b = '#efe6d2'): THR
  * so the checkerboard warps as the camera moves. Also snaps vertices, dithers,
  * and fogs. Best used on the floor, where the wobble reads most clearly.
  */
-export function makeAffineTexturedMaterial(map: THREE.Texture, repeat = 6): THREE.ShaderMaterial {
+export function makeAffineTexturedMaterial(
+  map: THREE.Texture,
+  repeat = 6,
+  fog: { color: THREE.ColorRepresentation; near: number; far: number } = {
+    color: OCEAN,
+    near: FOG_NEAR,
+    far: FOG_FAR,
+  },
+): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     uniforms: {
       uMap: { value: map },
       uSnap: { value: 64 },
       uRepeat: { value: repeat },
-      uFog: { value: OCEAN },
-      uFogNear: { value: FOG_NEAR },
-      uFogFar: { value: FOG_FAR },
+      // This material does its own fog (raw shader, bypasses scene.fog), so each
+      // room must hand in its fog or the affine floor would dissolve into the
+      // shop's cyan everywhere. Defaults to the shop palette for back-compat.
+      uFog: { value: new THREE.Color(fog.color) },
+      uFogNear: { value: fog.near },
+      uFogFar: { value: fog.far },
     },
     vertexShader: /* glsl */ `
       uniform float uSnap;
@@ -133,6 +144,40 @@ export function makeAffineTexturedMaterial(map: THREE.Texture, repeat = 6): THRE
       }
     `,
   });
+}
+
+/**
+ * Windows-3D-Maze red brick: offset courses with mortar lines, faintly speckled
+ * so the flat fill doesn't read as a single chip. Nearest-filtered, <=128px.
+ * The hallway/maze rooms wear this; it's the "you are in the dead web" texture.
+ */
+export function makeBrickTexture(brick = '#7d2b22', mortar = '#2a1410', rows = 6): THREE.Texture {
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d')!;
+  ctx.fillStyle = mortar;
+  ctx.fillRect(0, 0, size, size);
+  const bh = size / rows;
+  const bw = size / 3; // three bricks per course
+  ctx.fillStyle = brick;
+  for (let r = 0; r < rows; r++) {
+    const offset = r % 2 === 0 ? 0 : -bw / 2;
+    for (let x = -1; x < 4; x++) {
+      ctx.fillRect(x * bw + offset + 1, r * bh + 1, bw - 2, bh - 2);
+    }
+  }
+  // a few darker chips so the bricks aren't perfectly flat
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  for (let i = 0; i < size; i++) {
+    ctx.fillRect(Math.floor(Math.random() * size), Math.floor(Math.random() * size), 1, 1);
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
 }
 
 /** A blocky procedural texture for walls — flat base + sparse darker specks. */
