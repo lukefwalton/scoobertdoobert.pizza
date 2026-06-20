@@ -51,7 +51,9 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
     for (let i = 0; i < drips.length; i++) {
       const d = drips[i];
       d.y -= d.speed * boost * dt;
-      if (d.y < 0.05) {
+      // Recycle once the drip's BOTTOM (y - len/2) reaches the floor — y is the
+      // box centre, so a fixed epsilon would let long streaks dip below first.
+      if (d.y - d.len / 2 < 0) {
         // Recycle to JUST under the ceiling: y is the box centre, so start at
         // height - len/2 (top flush with the ceiling, never poking through).
         d.y = height - d.len / 2 - 0.02;
