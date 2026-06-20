@@ -80,6 +80,15 @@ export default function Storefront() {
         <hr />
 
         <section className="news" aria-label="Announcements">
+          <figure className="snapshot snapshot--right">
+            <img
+              src="/press/scoobert-shades.jpg"
+              alt="Scoobert Doobert reclining in red wraparound sunglasses, two long braids fanned out behind his head."
+              width="150"
+              height="150"
+            />
+            <figcaption>Management.</figcaption>
+          </figure>
           <p>
             <b>RAT SPOTTED IN WALL &mdash; MANAGEMENT INSISTS HE PAYS RENT.</b>
             <br />
@@ -101,6 +110,15 @@ export default function Storefront() {
           <hr />
 
           <section className="desc" aria-label="About the pizza">
+            <figure className="snapshot snapshot--right">
+              <img
+                src="/press/scoobert-host.jpg"
+                alt="Scoobert Doobert outdoors with googly eyes stuck across his face, one hand raised toward the camera."
+                width="150"
+                height="150"
+              />
+              <figcaption>Your host.</figcaption>
+            </figure>
             <p>
               It&rsquo;s one thin crust piled with six unreleased demos, then
               sealed with another thin crust, reverb, choice of toppings, and
