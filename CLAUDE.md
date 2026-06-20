@@ -7,6 +7,10 @@ break. Re-read it every session — **and read its two companion docs:**
 - **`docs/DESIGN.md`** — the vision, the systems, the feel, the assets. *Why, and
   how it should feel.*
 
+**Source of truth (where to UPDATE a thing):** rules/guardrails → here;
+phase status as you ship → `docs/PHASES.md`; a design/system decision →
+`docs/DESIGN.md`. Don't duplicate a detail across docs — link to its owner.
+
 The ADDENDUM, WORKING AGREEMENT, and the companion docs supersede anything they
 contradict above them.
 

@@ -236,6 +236,7 @@ the world grew from one room into a graph — beach shop ⇄ rat hall ⇄ jukebo
 leads you down the hall and knocks open the one secret: a hidden classified file
 room of rejected demos. 3D doors are the room exits.
 
-Next (roadmap in `CLAUDE.md`): **Phase 4** a hidden terminal, **Phase 5** the
-`unease` dread conductor, then wiring up `fun/`. Liminal / pool / backrooms level
-GLBs (`couldbewholelevels/`, `newglb/`) are staged for the levels below the shop.
+Next (roadmap in `docs/PHASES.md`; vision in `docs/DESIGN.md`): **Phase 4** a
+hidden terminal, **Phase 5** the `unease` dread conductor, then wiring up `fun/`.
+Liminal / pool / backrooms level GLBs (`media/models/levels/`,
+`media/models/greek-vaporwave/`) are staged for the levels below the shop.

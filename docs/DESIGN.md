@@ -351,11 +351,12 @@ everything to PS1 fidelity via `gltf-transform`; **only optimized derivatives go
 in `public/models/`.** Source GLBs/masters/photos stay out of the bundle.
 
 - **`media/models/greek-vaporwave/`** — vaporwave-Greek (sofokles, underwater
-  broken statue, Hades head, columns, lyre, palms, mountains, arcade cabinet) →
-  the level below the shop.
+  broken statue, Hades head, Doric/Ionic columns, lyre, jar, mountains) → the
+  level below the shop.
 - **`media/models/mobius/`** — Möbius GLBs → the recurrence/loop motif.
-- **`media/models/props/`** — props incl. the Julius Caesar "bust" → beach-shop
-  counter.
+- **`media/models/props/`** — arcade cabinet, palm tree, fried-chicken bucket.
+  (The Julius Caesar "bust" → beach-shop counter is still `legacy/
+  julius_caesar.glb`.)
 - **`media/models/levels/`** — full liminal/backrooms/pool environments
   (abandoned pool, backrooms, dreamcore, liminal space, metro tunnel, poolrooms)
   → the deeper GLB levels. **Confirm provenance per file; drop any Nickelodeon IP
