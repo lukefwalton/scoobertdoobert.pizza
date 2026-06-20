@@ -3,6 +3,7 @@ import { Leva } from 'leva';
 import { useMounted } from '../lib/useMounted';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
+import { DreadVignette } from './DreadVignette';
 import '../styles/world.css';
 
 // The 3D world lives behind a dynamic import, so three.js is a separate chunk
@@ -37,6 +38,7 @@ export function WorldMount() {
       {active && (
         <Suspense fallback={<div className="world-loading">entering&hellip;</div>}>
           <World />
+          <DreadVignette />
           <WorldHud />
           <button
             type="button"
