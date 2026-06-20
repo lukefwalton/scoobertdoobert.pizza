@@ -142,6 +142,21 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
       <hr />
 
+      <aside className="arcade-callout" aria-label="The Pizza Arcade">
+        <p className="arcade-callout__head">
+          <span className="arcade-callout__new">NEW!</span> THE PIZZA ARCADE
+        </p>
+        <p className="arcade-callout__body">
+          Stuck waiting on your pizza? Play <b>Scoobert&rsquo;s Pizza Run</b> &mdash;
+          jump the broken web buttons. Works great on your handheld telephone.
+        </p>
+        <p className="arcade-callout__cta">
+          <a href="/arcade">&#9654; INSERT COIN &mdash; PLAY NOW</a>
+        </p>
+      </aside>
+
+      <hr />
+
       <section className="floor-down floor-down--plain" aria-label="Downstairs">
         <p className="floor-down__sign">STAFF ONLY &mdash; the rest of the building is downstairs.</p>
         <FloorDoor

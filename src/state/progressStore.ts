@@ -42,6 +42,8 @@ export type Progress = {
   maxUnease: number;
   /** Door-game ids cleared (Phase 6 minigames). */
   clearedGames: string[];
+  /** Best score in the standalone Pizza Run arcade (the mobile reward). */
+  arcadeHigh: number;
 };
 
 const DEFAULTS: Progress = {
@@ -52,6 +54,7 @@ const DEFAULTS: Progress = {
   maxFloor: 0,
   maxUnease: 0,
   clearedGames: [],
+  arcadeHigh: 0,
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -73,6 +76,7 @@ function read(): Progress {
       maxFloor: num(p.maxFloor, 0),
       maxUnease: num(p.maxUnease, 0),
       clearedGames: strArr(p.clearedGames),
+      arcadeHigh: num(p.arcadeHigh, 0),
     };
   } catch {
     return { ...DEFAULTS };
@@ -108,6 +112,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     maxFloor: Math.max(a.maxFloor, b.maxFloor),
     maxUnease: Math.max(a.maxUnease, b.maxUnease),
     clearedGames: uniq(a.clearedGames, b.clearedGames),
+    arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
   };
 }
 
@@ -120,6 +125,7 @@ type ProgressState = Progress & {
   recordFloor: (n: number) => void;
   recordUnease: (v: number) => void;
   clearGame: (id: string) => void;
+  recordArcadeScore: (n: number) => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -130,6 +136,7 @@ const snapshot = (s: ProgressState): Progress => ({
   maxFloor: s.maxFloor,
   maxUnease: s.maxUnease,
   clearedGames: s.clearedGames,
+  arcadeHigh: s.arcadeHigh,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -173,6 +180,10 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     clearGame: (id) => {
       if (get().clearedGames.includes(id)) return;
       apply({ clearedGames: [...get().clearedGames, id] });
+    },
+    recordArcadeScore: (n) => {
+      if (n <= get().arcadeHigh) return;
+      apply({ arcadeHigh: n });
     },
   };
 });

@@ -33,6 +33,9 @@ export default function TextOnly() {
         New here? Read <a href="/about">the story (Our Secret Recipe)</a>.
       </p>
       <p>
+        On a phone? Play <a href="/arcade">the Pizza Arcade</a> &mdash; jump the broken web buttons.
+      </p>
+      <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>
       </p>
 
