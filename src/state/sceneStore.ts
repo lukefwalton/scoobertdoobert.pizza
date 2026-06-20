@@ -37,6 +37,13 @@ type SceneState = {
   nearDoor: { id: string; label: string; to: string; spawn: string } | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
+  /** How many times you've looped the Möbius corridor this visit. Drives the
+   *  dual-register dressing and reveals the "onward" door once it breaks. */
+  mobiusLoops: number;
+  /** Bumped on every door commit. Lets a door re-spawn you even when the target
+   *  room AND spawn id are unchanged — which is exactly the Möbius loop (re-enter
+   *  the same room at the same spawn). Controls + MobiusRoom key off it. */
+  roomNonce: number;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -66,6 +73,10 @@ type SceneState = {
   setNearDoor: (door: { id: string; label: string; to: string; spawn: string } | null) => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
+  /** Took the looping corridor's forward door again — count another lap. */
+  loopMobius: () => void;
+  /** Arrived fresh into the corridor (not via the loop) — reset the lap count. */
+  resetMobius: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -83,6 +94,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   transitioning: false,
   nearDoor: null,
   secretRevealed: false,
+  mobiusLoops: 0,
+  roomNonce: 0,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
@@ -98,6 +111,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       transitioning: false,
       secretRevealed: false,
+      mobiusLoops: 0,
       paused: false,
       openHotspot: null,
       nearHotspot: null,
@@ -115,6 +129,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       transitioning: false,
       secretRevealed: false,
+      mobiusLoops: 0,
       currentRoom: FIRST_ROOM,
       currentSpawn: 'default',
       currentFloor: 0,
@@ -145,10 +160,17 @@ export const useSceneStore = create<SceneState>((set) => ({
   commitRoom: () =>
     set((s) =>
       s.pendingRoom
-        ? { currentRoom: s.pendingRoom.to, currentSpawn: s.pendingRoom.spawn, pendingRoom: null }
+        ? {
+            currentRoom: s.pendingRoom.to,
+            currentSpawn: s.pendingRoom.spawn,
+            pendingRoom: null,
+            roomNonce: s.roomNonce + 1,
+          }
         : {},
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
+  loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
+  resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),
 }));

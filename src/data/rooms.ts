@@ -13,7 +13,19 @@
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
 
-export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified' | 'poolrooms' | 'liminal';
+export type RoomKind =
+  | 'shop'
+  | 'hallway'
+  | 'jukebox'
+  | 'classified'
+  | 'poolrooms'
+  | 'liminal'
+  | 'mobius';
+
+/** How many forward laps it takes for the Möbius corridor to "break on its own"
+ *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
+ *  is the bit, not a grind (friction budget). */
+export const MOBIUS_BREAK = 3;
 
 /** A GLB level: a (wide-permission, crunched) model loaded as the room geometry,
  *  lazy-loaded behind the loader minigame. See GlbRoom / LevelLoader, and
@@ -50,6 +62,10 @@ export type RoomDoor = {
   label: string;
   /** Hidden until revealed (the rat's secret panel — Phase 3 ckpt 4). */
   hidden?: boolean;
+  /** What makes a `hidden` door appear. 'secret' = the rat knocked
+   *  (secretRevealed); 'mobius' = the loop broke (mobiusLoops ≥ MOBIUS_BREAK).
+   *  Defaults to 'secret'. */
+  revealOn?: 'secret' | 'mobius';
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };
@@ -249,6 +265,9 @@ export const ROOMS: Room[] = [
       fromShop: { position: [0, EYE, 5], yaw: Math.PI },
       // Back up from the deeper liminal level: by the -Z door, facing +Z.
       fromLiminal: { position: [0, EYE, -5], yaw: 0 },
+      // Stumbling back out of the looping corridor: by the +X door, facing into
+      // the room (-X), clear of every door radius.
+      fromMobius: { position: [4.5, EYE, 5], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -267,6 +286,15 @@ export const ROOMS: Room[] = [
         position: [0, 0, -8.95], // far (-Z) wall — deeper down
         rotationY: Math.PI,
         label: 'go deeper',
+        radius: 3.2,
+      },
+      {
+        id: 'pool-to-mobius',
+        to: 'mobius',
+        toSpawn: 'fromPool',
+        position: [8.95, 0, 5], // +X wall, near the entry end
+        rotationY: -Math.PI / 2,
+        label: 'down the long corridor',
         radius: 3.2,
       },
     ],
@@ -299,6 +327,61 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'back up to the pool',
         radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'mobius',
+    kind: 'mobius',
+    title: 'The Long Corridor',
+    // A long narrow hall — the Scooby-Doo loop. Walk to the far door and you come
+    // out the near one, the same corridor scrolling by (toSpawn 'loop' re-enters
+    // at the start). Always a way out: turn around, the way back is right there.
+    dims: { halfW: 2.6, halfD: 14, height: 4, eye: EYE },
+    // Faded motel green — nostalgic, OVER-lit, a beat wrong (bright is the comic
+    // register). MobiusRoom dims it and tightens the dressing as unease rises.
+    palette: { background: '#3a4630', fog: '#4a573a', fogNear: 6, fogFar: 40 },
+    spawns: {
+      // Fresh arrival from the pool, AND the loop re-entry, both land at the +Z
+      // start facing -Z down the corridor — so a forward lap drops you right back
+      // here. MobiusRoom tells them apart by the spawn id (fresh resets the lap
+      // count; 'loop' counts another lap), not the pose.
+      default: { position: [0, EYE, 10], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 10], yaw: Math.PI },
+      loop: { position: [0, EYE, 10], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'mobius-out',
+        to: 'poolrooms',
+        toSpawn: 'fromMobius',
+        position: [0, 0, 13.9], // +Z (start) end — the way back, always there
+        rotationY: 0,
+        label: 'go back to the pool',
+        radius: 3.2,
+      },
+      {
+        id: 'mobius-loop',
+        to: 'mobius',
+        toSpawn: 'loop',
+        position: [0, 0, -13.9], // far (-Z) end — walk forward → loop to the start
+        rotationY: Math.PI,
+        label: 'keep going',
+        radius: 3.2,
+      },
+      {
+        id: 'mobius-onward',
+        to: 'shop',
+        toSpawn: 'fromPool',
+        // A door in the -X wall near the far end that ISN'T there until the loop
+        // breaks (MOBIUS_BREAK laps) — then you step through and pop out somewhere
+        // else entirely (the shop). The "walk far enough and you're elsewhere" beat.
+        position: [-2.5, 0, -9],
+        rotationY: Math.PI / 2,
+        label: 'step through the door that wasn’t there',
+        hidden: true,
+        revealOn: 'mobius',
+        radius: 2.8,
       },
     ],
   },
