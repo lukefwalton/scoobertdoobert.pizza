@@ -20,7 +20,8 @@ export type RoomKind =
   | 'classified'
   | 'poolrooms'
   | 'liminal'
-  | 'mobius';
+  | 'mobius'
+  | 'dicepit';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -272,6 +273,8 @@ export const ROOMS: Room[] = [
       // Stumbling back out of the looping corridor: by the +X door, facing into
       // the room (-X), clear of every door radius.
       fromMobius: { position: [4.5, EYE, 5], yaw: -Math.PI / 2 },
+      // Back out of the dice pit: by the -X door, facing into the room (+X).
+      fromDicepit: { position: [-4.5, EYE, 5], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -302,6 +305,15 @@ export const ROOMS: Room[] = [
         position: [8.95, 0, 5], // +X wall, near the entry end
         rotationY: -Math.PI / 2,
         label: 'down the long corridor',
+        radius: 3.2,
+      },
+      {
+        id: 'pool-to-dicepit',
+        to: 'dicepit',
+        toSpawn: 'default',
+        position: [-8.95, 0, 5], // -X wall, near the entry end
+        rotationY: Math.PI / 2,
+        label: 'duck into the back room',
         radius: 3.2,
       },
     ],
@@ -391,6 +403,32 @@ export const ROOMS: Room[] = [
         hidden: true,
         revealOn: 'mobius',
         radius: 2.8,
+      },
+    ],
+  },
+  {
+    id: 'dicepit',
+    kind: 'dicepit',
+    title: 'The Back Room',
+    // A dim felt-and-stone gambling nook. Big enough to walk AROUND the monster
+    // once it bloats to its stuck size; tall enough it never bursts the ceiling.
+    dims: { halfW: 6, halfD: 6, height: 5.5, eye: EYE },
+    // Warm dark plum — a back-room card table, the opposite of the bright pool.
+    palette: { background: '#1a1018', fog: '#241620', fogNear: 4, fogFar: 26 },
+    spawns: {
+      // Just inside the +Z door, facing -Z toward the table + the thing.
+      default: { position: [0, EYE, 2.5], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 2.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'dicepit-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromDicepit',
+        position: [0, 0, 5.9], // +Z wall
+        rotationY: 0,
+        label: 'back out to the pool',
+        radius: 3.2,
       },
     ],
   },

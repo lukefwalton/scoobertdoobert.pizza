@@ -10,6 +10,7 @@ import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
 import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
+import { DicePitRoom } from './DicePitRoom';
 import { GlbRoom } from './GlbRoom';
 import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
@@ -62,6 +63,8 @@ function RoomScene({ room }: { room: Room }) {
       return <PoolroomsRoom room={room} />;
     case 'mobius':
       return <MobiusRoom room={room} />;
+    case 'dicepit':
+      return <DicePitRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
