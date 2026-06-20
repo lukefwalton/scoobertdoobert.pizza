@@ -1,16 +1,17 @@
-import { MENU_DESTINATIONS } from '../data/links';
+import { MENU_DESTINATIONS, type Dest } from '../data/links';
 import { ToppingIcon } from './ToppingIcon';
 
 // The "Sample Menu" — the topping-icon nav row. Every item is a real <a href>
 // straight from links.ts, so it is crawlable and works with JavaScript off.
 // This list is also the mobile / reduced-motion fallback (step 6): a plain,
-// complete index of where you can actually go.
-export function SampleMenu() {
+// complete index of where you can actually go. `dests` lets a floor drive its
+// own link set; it defaults to the full menu.
+export function SampleMenu({ dests = MENU_DESTINATIONS }: { dests?: Dest[] }) {
   return (
     <nav id="menu" className="menu" aria-label="Sample Menu">
       <h2>Sample Menu</h2>
       <ul className="menu-list">
-        {MENU_DESTINATIONS.map((d) => (
+        {dests.map((d) => (
           <li key={d.id}>
             <ToppingIcon topping={d.topping} />{' '}
             <a
