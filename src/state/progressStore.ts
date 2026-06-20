@@ -136,7 +136,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
   return {
     ...read(),
 
-    recordVisit: () => apply({ visits: get().visits + 1 }),
+    // Increment off FRESH disk (not the boot snapshot) so a second tab opened
+    // after this one still counts: tab A 0->1, tab B reads 1->2. (Truly
+    // simultaneous first-loads can still race to the same value — acceptable;
+    // visits is only a soft secondary signal for selectReturning.)
+    recordVisit: () => apply({ visits: read().visits + 1 }),
     markEnteredWorld: () => {
       if (get().everEnteredWorld) return;
       apply({ everEnteredWorld: true });
