@@ -56,6 +56,8 @@ let inPool = false;
 let loaderShown = false;
 let frozenUnderLoader = false;
 let loaderReady = false;
+let waterfallOnDescent = false;
+let noWaterfallOnAscent = false;
 let inLiminal = false;
 let overlayGoneOnEnter = false;
 let backToPool = false;
@@ -98,6 +100,13 @@ let reEnter = false;
   await page.keyboard.up('w');
   if (deepPrompt) await page.keyboard.press('e');
 
+  // The descent rides a WATERFALL: the rushing-water overlay fires during the
+  // wipe down into liminal (brief, before the loader covers it).
+  waterfallOnDescent = await page
+    .waitForSelector('.hud-waterfall--on', { timeout: 1500 })
+    .then(() => true, () => false);
+  if (!waterfallOnDescent) fail('waterfall did not play on the descent into liminal');
+
   // The loader minigame should appear (DOM overlay over the suspended canvas).
   try {
     await page.waitForSelector('[data-level-loader]', { timeout: 6000 });
@@ -139,10 +148,24 @@ let reEnter = false;
     await page.screenshot({ path: '.shots/levels-liminal.png' });
   }
 
-  // After entering, input is live again: walk back to the +Z door → up to the pool.
+  // After entering, input is live again: walk back to the +Z door → up to the
+  // pool. The waterfall is descent-ONLY, so leaving liminal must NOT play it.
   if (inLiminal) {
-    const backed = await toDoor(page, 's'); // door behind us (+Z) → press S
-    if (!backed) fail('liminal exit door prompt never appeared');
+    await page.keyboard.down('s'); // exit door behind us (+Z)
+    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
+    await page.keyboard.up('s');
+    await page.keyboard.press('e');
+    // Poll across the ascent transition: the waterfall must never turn on.
+    let sawWaterfall = false;
+    for (let i = 0; i < 12; i++) {
+      if (await page.$('.hud-waterfall--on')) {
+        sawWaterfall = true;
+        break;
+      }
+      await page.waitForTimeout(40);
+    }
+    noWaterfallOnAscent = !sawWaterfall;
+    if (sawWaterfall) fail('waterfall played while LEAVING liminal (should be descent-only)');
     backToPool = await roomIs(page, 'The Poolrooms');
   }
 
@@ -251,7 +274,8 @@ let retryRecovered = false;
 await browser.close();
 console.log(
   `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
-    `ready=${loaderReady} liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
+    `ready=${loaderReady} waterfallDown=${waterfallOnDescent} noWaterfallUp=${noWaterfallOnAscent} ` +
+    `liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
     `reReady=${reReady} reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
     `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${errors}`,
 );

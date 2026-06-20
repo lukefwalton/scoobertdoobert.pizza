@@ -254,14 +254,13 @@ export function WorldHud() {
 
       {/* The watery descent: stepping through the door on the pool's water drops
           you down a WATERFALL into the liminal level — rushing water over the
-          black wipe for the whole transition (both halves: pending → liminal,
-          then the fade-in while currentRoom is already liminal). */}
+          black wipe. DESTINATION-keyed (pendingRoom.to), so it only plays on the
+          way DOWN (the fade-out): the post-commit fade-in into liminal is hidden
+          by the loader overlay anyway, and keying on currentRoom would wrongly
+          fire the waterfall while LEAVING liminal too (currentRoom stays
+          'liminal' through that fade-out). */}
       <div
-        className={`hud-waterfall${
-          pendingRoom?.to === 'liminal' || (transitioning && currentRoom === 'liminal')
-            ? ' hud-waterfall--on'
-            : ''
-        }`}
+        className={`hud-waterfall${pendingRoom?.to === 'liminal' ? ' hud-waterfall--on' : ''}`}
         aria-hidden="true"
       />
     </>

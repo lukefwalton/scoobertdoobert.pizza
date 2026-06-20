@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
 import { roomById, FIRST_ROOM } from '../data/rooms';
@@ -25,12 +25,16 @@ export function LevelLoader() {
   const room = roomById(currentRoom);
   const isGlb = !!room.glb;
   const [dismissed, setDismissed] = useState(false);
+  // Latches a TURN BACK so repeated clicks can't enqueue overlapping recovery
+  // polls / double-navigate. Reset when a new room is entered.
+  const aborting = useRef(false);
 
   // New room → show the loader again (until tapped in) and clear the overlay
   // state. Note this does NOT reset `ready` — GlbRoom owns that via mount/unmount
   // (see levelStore), which is what makes cached re-entry safe.
   useEffect(() => {
     setDismissed(false);
+    aborting.current = false;
     useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
 
@@ -45,6 +49,8 @@ export function LevelLoader() {
   // would be swallowed. Wait for the entry wipe to settle, then navigate cleanly
   // (the loader overlay is up + input frozen throughout, so the wait is unseen).
   const onAbort = () => {
+    if (aborting.current) return; // already recovering — ignore repeat clicks
+    aborting.current = true;
     const go = () => {
       if (useSceneStore.getState().transitioning) {
         window.setTimeout(go, 60);
