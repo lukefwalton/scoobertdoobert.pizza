@@ -11,7 +11,10 @@ import { useEffect, useRef, useState } from 'react';
 // already finished, so lingering costs nothing.
 //
 // Props: `ready` flips true when the parent's asset has loaded; `onEnter` is
-// called when the player taps in; `label` names what's loading.
+// called when the player taps in; `label` names what's loading. `error` flips
+// true if the load FAILED (404/decode) — the minigame keeps running but the
+// prompt becomes a graceful "TURN BACK" that calls `onAbort` instead of trapping
+// the player on a loader that never turns ready.
 // ───────────────────────────────────────────────────────────────────────────
 
 const STAGES = ['PREP', 'BAKE', 'BOX', 'OUT'] as const;
@@ -20,14 +23,20 @@ export function LoaderGame({
   ready,
   onEnter,
   label = 'THE POOL',
+  error = false,
+  onAbort,
 }: {
   ready: boolean;
   onEnter: () => void;
   label?: string;
+  error?: boolean;
+  onAbort?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const readyRef = useRef(ready);
   readyRef.current = ready;
+  const errorRef = useRef(error);
+  errorRef.current = error;
   const [stage, setStage] = useState(0);
 
   // Pizza-tracker advances on a timer until ready, then snaps to OUT.
@@ -148,16 +157,19 @@ export function LoaderGame({
       if (e.key === ' ' || e.key === 'ArrowUp') {
         e.preventDefault();
         (canvasRef.current as unknown as { __jump?: () => void })?.__jump?.();
-      } else if (e.key === 'Enter' && readyRef.current) {
-        onEnter();
+      } else if (e.key === 'Enter') {
+        if (errorRef.current) onAbort?.();
+        else if (readyRef.current) onEnter();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onEnter]);
+  }, [onEnter, onAbort]);
 
   return (
     <div
+      data-level-loader
+      data-loader-state={error ? 'error' : ready ? 'ready' : 'loading'}
       style={{
         position: 'fixed',
         inset: 0,
@@ -174,8 +186,10 @@ export function LoaderGame({
         padding: 16,
       }}
     >
-      <div style={{ letterSpacing: 1 }}>
-        LOADING {label} · PLEASE WAIT WHILE THE PIZZA REHEATS
+      <div style={{ letterSpacing: 1, color: error ? '#ff9a8a' : undefined }}>
+        {error
+          ? `${label} BURNED IN THE OVEN · ORDER LOST`
+          : `LOADING ${label} · PLEASE WAIT WHILE THE PIZZA REHEATS`}
       </div>
 
       {/* Domino's-GRAMMAR tracker (original art, not their mark) */}
@@ -205,7 +219,24 @@ export function LoaderGame({
       />
       <div style={{ opacity: 0.6 }}>space / tap to jump the broken buttons</div>
 
-      {ready ? (
+      {error ? (
+        <button
+          type="button"
+          onClick={() => onAbort?.()}
+          style={{
+            marginTop: 4,
+            padding: '8px 16px',
+            font: 'bold 13px "Courier New", monospace',
+            color: '#06060b',
+            background: '#ff9a8a',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          ◂ TURN BACK
+        </button>
+      ) : ready ? (
         <button
           type="button"
           onClick={onEnter}
