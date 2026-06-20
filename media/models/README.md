@@ -73,22 +73,23 @@ Sea / pool surfaces. NB: the beach-shop water is currently **procedural**
 | `low-poly-fried-chicken-bucket.glb` | `low_poly_bucket_of_fried_chicken_psx_n64_style.glb` |
 
 ## `doors/` — doors & exit signage
-"Doors everywhere" — the connective tissue between floors and rooms. Multiple
-looks kept on purpose (wooden / metal / hospital / emergency / digital).
+"Doors everywhere" — the connective tissue between floors and rooms. Numbered
+simply (`door-1`…`door-10`); the **what it is** column keeps each one's original
+identity so nothing's lost. Several distinct looks kept on purpose.
 
-| file | ← original |
-|---|---|
-| `door-wood.glb` | `door_wood.glb` |
-| `door-wooden-5mb.glb` | `door_wooden_-_5mb.glb` |
-| `door-wooden-18mb.glb` | `door__wooden_18_mb.glb` |
-| `door-with-frame.glb` | `door_with_frame.glb` |
-| `door-digital.glb` | `door_handle_door_digital_door.glb` |
-| `metal-door.glb` | `metal_door.glb` |
-| `hospital-door.glb` | `hospital_door.glb` |
-| `old-door.glb` | `old_door.glb` |
-| `emergency-exit.glb` | `emergency_exit.glb` |
-| `fire-escape-exit-doors.glb` | `fire_escape__exit_doors.glb` |
-| `simple-exit-sign.glb` | `simple_exit_sign.glb` |
+| file | ← original | what it is |
+|---|---|---|
+| `door-1.glb` | `door_wood.glb` | wooden |
+| `door-2.glb` | `door_wooden_-_5mb.glb` | wooden |
+| `door-3.glb` | `door__wooden_18_mb.glb` | wooden (heavy, ~7MB) |
+| `door-4.glb` | `door_with_frame.glb` | with frame |
+| `door-5.glb` | `door_handle_door_digital_door.glb` | digital / sci-fi |
+| `door-6.glb` | `metal_door.glb` | metal |
+| `door-7.glb` | `old_door.glb` | old |
+| `door-8.glb` | `hospital_door.glb` | hospital |
+| `door-9.glb` | `emergency_exit.glb` | emergency exit |
+| `door-10.glb` | `fire_escape__exit_doors.glb` | fire-escape exit doors |
+| `exit-sign.glb` | `simple_exit_sign.glb` | exit signage (not a door) |
 
 ## `crt-tvs/` — CRT televisions
 For the SGI machine room (the live-render CRT; cf. `src/world/MiniWorldPreview.tsx`).
