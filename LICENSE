@@ -1,0 +1,54 @@
+scoobertdoobert.pizza — Copyright & License
+============================================
+
+CREATIVE CONTENT — © Luke F. Walton dba Scoobert Doobert. ALL RIGHTS RESERVED.
+------------------------------------------------------------------------------
+
+All creative content in this repository — including but not limited to:
+
+  • music, songs, and sound recordings
+      (e.g. media/masters/, media/music/, media/sfx/, public/audio/)
+  • lyrics, words, copy, and the written biography / project text
+      (on the website and in links.md)
+  • photographs, likeness, and images
+      (e.g. media/photos/, public/press/)
+  • artwork, logos, and brand assets
+      (e.g. media/brand/, public/brand/)
+
+is the exclusive property of, and is © Luke F. Walton, doing business as (dba)
+Scoobert Doobert. ALL RIGHTS RESERVED. The lists above are illustrative, not
+exhaustive — ANY creative content anywhere in this repository is covered,
+including build-generated derivatives of it (e.g. degraded/optimized audio loops,
+resized images, crunched models) produced to run the site.
+
+This content is licensed only to Luke F. Walton — and to the build, hosting, and
+CI/CD services acting on his behalf — for the sole purpose of storing, building,
+displaying, and playing it on the scoobertdoobert.pizza website. Its inclusion in
+this repository — whether the repository is public or private, and regardless of
+any license that is or may later be applied to the source code — DOES NOT and
+CANNOT alter, transfer, reduce, assign, or waive its copyright in any way. The
+copyright status of this content is unaffected by this repository.
+
+No license is granted to reuse, reproduce, redistribute, publicly perform,
+broadcast, remix, sample, train on, or create derivative works from this content.
+All such rights are reserved by Luke F. Walton dba Scoobert Doobert.
+
+
+SOURCE CODE
+-----------
+
+The source code in this repository is also © Luke F. Walton. No open-source
+license is currently applied to it; all rights are reserved by default.
+
+If an open-source license is ever applied to the source code, it will cover ONLY
+the source code (e.g. src/, scripts/, api/, and build configuration) and will
+NEVER extend to the creative content described above, which remains all rights
+reserved at all times.
+
+
+THIRD-PARTY MATERIAL
+--------------------
+
+Any third-party open-source code or assets that may later be vendored into this
+repository are credited and licensed separately (see THIRD_PARTY_NOTICES.md when
+present) and do not affect the rights reserved above.
