@@ -59,12 +59,30 @@ class PizzaAudio {
   private master?: GainNode;
   private lowpass?: BiquadFilterNode;
   private buffer?: AudioBuffer; // synth fallback
+  private trackBytes?: ArrayBuffer; // fetched WAV bytes (pre-decode)
   private trackBuffer?: AudioBuffer; // the real degraded track, once decoded
   private source?: AudioBufferSourceNode;
   private started = false;
   private usingTrack = false;
+  private bytesLoad?: Promise<void>;
   private trackLoad?: Promise<void>;
   muted = false;
+
+  /** Warm the network early: fetch the track bytes. Needs no AudioContext and no
+   *  user gesture, so it's safe to call on mount — by the time the first gesture
+   *  unlocks audio, only the (fast) decode remains and the loop starts on the
+   *  real song instead of blipping a synth note first. */
+  prefetchTrack(): void {
+    if (this.bytesLoad || this.trackBytes || typeof fetch === 'undefined') return;
+    this.bytesLoad = fetch(TRACK_URL)
+      .then((r) => (r.ok ? r.arrayBuffer() : undefined))
+      .then((b) => {
+        if (b) this.trackBytes = b;
+      })
+      .catch(() => {
+        /* leave the synth fallback in place */
+      });
+  }
 
   /** Create the audio graph + render the fallback buffer, kick off the track
    *  fetch. Idempotent. */
@@ -90,17 +108,23 @@ class PizzaAudio {
     void this.loadTrack();
   }
 
-  /** Fetch + decode the real boot track, then hot-swap it in if the fallback is
+  /** Decode the (prefetched) track bytes, then hot-swap it in if the fallback is
    *  already looping. Best-effort: any failure just leaves the synth playing. */
   private loadTrack(): Promise<void> {
     if (this.trackLoad) return this.trackLoad;
     this.trackLoad = (async () => {
-      if (typeof fetch === 'undefined' || !this.ctx) return;
+      if (!this.ctx) return;
+      this.prefetchTrack();
       try {
-        const res = await fetch(TRACK_URL);
-        if (!res.ok) return;
-        const bytes = await res.arrayBuffer();
-        this.trackBuffer = await this.ctx.decodeAudioData(bytes);
+        await this.bytesLoad;
+      } catch {
+        /* fall through to the synth fallback */
+      }
+      if (!this.trackBytes) return;
+      try {
+        // decodeAudioData detaches its input, so decode a copy and keep the raw
+        // bytes for a possible retry.
+        this.trackBuffer = await this.ctx.decodeAudioData(this.trackBytes.slice(0));
         // If we're already looping the fallback, swap to the real track.
         if (this.started && !this.usingTrack) this.restartLoop();
       } catch {
@@ -142,9 +166,24 @@ class PizzaAudio {
     this.ensure();
     if (!this.ctx || !this.lowpass || this.started) return;
     if (!this.trackBuffer && !this.buffer) return;
-    this.restartLoop();
     this.started = true;
     this.applyGain();
+    // If the real track is already decoded, start it — no synth ever plays.
+    if (this.trackBuffer) {
+      this.restartLoop();
+      return;
+    }
+    // Otherwise wait briefly for the track so we don't blip a synth note before
+    // the song. If it's slow/unavailable, start the synth (loadTrack's own
+    // hot-swap takes over if the track arrives later).
+    let settled = false;
+    const go = () => {
+      if (settled) return;
+      settled = true;
+      if (this.started) this.restartLoop();
+    };
+    void this.loadTrack().then(go);
+    window.setTimeout(go, 1500);
   }
 
   stopBootLoop(): void {
