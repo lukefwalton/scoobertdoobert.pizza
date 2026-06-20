@@ -2,6 +2,7 @@ import type { RouteRecord } from 'vite-react-ssg';
 import Storefront from './pages/Storefront';
 import TextOnly from './pages/TextOnly';
 import LinkArchive from './pages/LinkArchive';
+import About from './pages/About';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
 //   /       -> the dead-plain Electronic Pizza Storefront (the fallback layer)
@@ -15,4 +16,5 @@ export const routes: RouteRecord[] = [
   { path: '/', element: <Storefront /> },
   { path: '/text', element: <TextOnly /> },
   { path: '/links', element: <LinkArchive /> },
+  { path: '/about', element: <About /> },
 ];
