@@ -1,15 +1,17 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   /arcade — the Pizza Arcade cabinet. A dark CRT-cabinet shell that frames the
-   touch-first Pizza Run runner. Period-flavored but deliberately simple: the
-   joke is a goofy late-90s "GAMES!" page, not a polished modern game UI. Mobile
-   is the headline use, so everything is touch-sized and fills the small screen.
+   /arcade — the Pizza Arcade cabinet. PERIOD-ACCURATE on purpose (the first cut
+   read too 2020s): no rounded corners, no soft drop-shadows, no blurred neon
+   gradients. A chunky beveled cabinet (outset/inset borders, the Win95 grammar)
+   around an inset CRT screen, with a hard RGB-split marquee and a beveled push
+   button. Flat, sharp, 1997 — the joke is a goofy late-90s "GAMES!" page, not a
+   polished modern game UI. Mobile is the headline use, so it's touch-sized.
    ───────────────────────────────────────────────────────────────────────── */
 
 .arcade-page {
   min-height: 100vh;
   margin: 0;
   padding: 12px 12px 28px;
-  background: #06060b;
+  background: #04040a;
   color: #cfe9ef;
   font: 13px/1.5 'Courier New', monospace;
   display: flex;
@@ -28,35 +30,35 @@
   margin: 0;
 }
 .arcade-util a {
-  color: #8aa0ff;
+  color: #5a7cff;
+  text-decoration: underline;
 }
 
-/* The cabinet body */
+/* The cabinet body — a chunky beveled box (sharp corners, outset border). */
 .arcade-cabinet {
   width: 100%;
   max-width: 460px;
-  background: #14141f;
-  border: 2px solid #2b2b3d;
-  border-radius: 14px 14px 8px 8px;
-  box-shadow: inset 0 0 0 2px #0b0b12, 0 8px 24px rgba(0, 0, 0, 0.6);
+  background: #20202c;
+  border: 4px outset #4a4a5e;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* The marquee — a flat banner, not a glowing gradient. The only "glow" is a HARD
+   (zero-blur) RGB chroma-split on the text, which reads as a cheap CRT, not neon. */
 .arcade-marquee {
   text-align: center;
-  padding: 8px 6px;
-  background: linear-gradient(#1d1430, #120c20);
-  border: 1px solid #3a2b5a;
-  border-radius: 6px;
+  padding: 7px 6px;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
 }
 .arcade-marquee__neon {
   font-weight: bold;
-  letter-spacing: 3px;
-  color: #ff7ad9;
-  text-shadow: 0 0 6px #ff3cc0, 0 0 12px #b02890;
+  letter-spacing: 4px;
+  color: #ff44cc;
+  text-shadow: 1px 0 0 #00e0ff, -1px 0 0 #ff2a2a;
 }
 
 /* The screen + game */
@@ -68,18 +70,19 @@
 .arcade-hud {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 1px;
-  color: #9aa0c0;
-  padding: 0 2px;
+  color: #39ff14; /* flat phosphor-green LED readout */
+  padding: 2px 4px;
+  background: #060a06;
+  border: 2px inset #2a3a2a;
 }
 
 .arcade-stage {
   position: relative;
   width: 100%;
   background: #0b0b12;
-  border: 1px solid #20303a;
-  border-radius: 4px;
+  border: 3px inset #4a4a5e; /* the CRT recessed into the cabinet */
   overflow: hidden;
   /* keep the CRT screen aspect close to the 320×180 logical canvas */
   aspect-ratio: 320 / 180;
@@ -102,7 +105,7 @@
   justify-content: center;
   gap: 6px;
   text-align: center;
-  background: rgba(6, 6, 11, 0.72);
+  background: rgba(4, 4, 10, 0.74);
   padding: 10px;
   pointer-events: none; /* taps fall through to the canvas */
 }
@@ -118,11 +121,12 @@
   color: #9fb6bd;
 }
 .arcade-sub a {
-  color: #8aa0ff;
+  color: #5a7cff;
+  text-decoration: underline;
 }
 .arcade-blink {
   margin: 4px 0 0;
-  color: #37e0a0;
+  color: #39ff14;
   font-weight: bold;
   animation: arcadeBlink 1s steps(1, end) infinite;
 }
@@ -137,25 +141,25 @@
   }
 }
 
-/* The big touch button — the whole screen also jumps, but a labeled control
-   makes the affordance obvious on a phone. */
+/* The big touch button — a chunky beveled push-button (sharp, outset → inset on
+   press), not a rounded flat pill. Period arcade red. */
 .arcade-jump {
   appearance: none;
   margin-top: 2px;
-  padding: 14px;
+  padding: 13px;
   width: 100%;
   font: bold 16px 'Courier New', monospace;
-  letter-spacing: 2px;
-  color: #06060b;
-  background: #37e0a0;
-  border: none;
-  border-radius: 8px;
+  letter-spacing: 3px;
+  color: #2a0606;
+  background: #e23b2e;
+  border: 4px outset #f2766b;
   cursor: pointer;
   touch-action: manipulation;
   user-select: none;
 }
 .arcade-jump:active {
-  background: #2bbf86;
+  border-style: inset;
+  background: #c43226;
 }
 
 .arcade-coinslot {
@@ -163,16 +167,21 @@
   text-align: center;
   font-size: 10px;
   letter-spacing: 2px;
-  color: #5b6675;
+  color: #6b6b80;
 }
 
 /* No-JS / pre-hydration cold screen */
 .arcade-screen--cold {
   min-height: 180px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   text-align: center;
   padding: 18px;
+  background: #0b0b12;
+  border: 3px inset #4a4a5e;
 }
 
 .arcade-foot {
