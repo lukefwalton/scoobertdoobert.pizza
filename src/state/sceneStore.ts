@@ -28,8 +28,11 @@ type SceneState = {
   currentRoom: string;
   /** which spawn in currentRoom the camera arrived at. */
   currentSpawn: string;
-  /** a door was activated: fade out, then commit. null when settled. */
+  /** a door was activated: fade out, then commit. null once the room is swapped. */
   pendingRoom: { to: string; spawn: string } | null;
+  /** true for the WHOLE door wipe (fade-out + commit + fade-in), so input stays
+   *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
+  transitioning: boolean;
   /** the door the camera is near, resolved to its target (or null). */
   nearDoor: { id: string; label: string; to: string; spawn: string } | null;
 
@@ -52,10 +55,12 @@ type SceneState = {
   requestInstall: () => void;
   clearInstallRequest: () => void;
 
-  /** Walk through a door: begin the fade (pendingRoom), Controls freezes. */
+  /** Walk through a door: begin the wipe (pendingRoom + transitioning). */
   goToRoom: (to: string, spawn: string) => void;
-  /** Commit the pending room swap (mid-fade): repositions via Controls. */
+  /** Commit the pending room swap (mid-wipe): repositions via Controls. */
   commitRoom: () => void;
+  /** End the wipe once the overlay has fully lifted: unfreezes input. */
+  endTransition: () => void;
   setNearDoor: (door: { id: string; label: string; to: string; spawn: string } | null) => void;
 };
 
@@ -71,6 +76,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   currentRoom: FIRST_ROOM,
   currentSpawn: 'default',
   pendingRoom: null,
+  transitioning: false,
   nearDoor: null,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
@@ -78,7 +84,13 @@ export const useSceneStore = create<SceneState>((set) => ({
   setFloor: (i) => set({ currentFloor: Math.max(0, Math.min(i, BOTTOM_FLOOR)) }),
   // Entering the world always starts in the first room (the beach shop).
   enterWorld: () =>
-    set({ worldActive: true, currentRoom: FIRST_ROOM, currentSpawn: 'default', pendingRoom: null }),
+    set({
+      worldActive: true,
+      currentRoom: FIRST_ROOM,
+      currentSpawn: 'default',
+      pendingRoom: null,
+      transitioning: false,
+    }),
   // Leaving the world drops you back at the storefront (floor 0), not the
   // machine room you installed from — and resets the room graph for next time.
   exitWorld: () =>
@@ -89,6 +101,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearHotspot: null,
       nearDoor: null,
       pendingRoom: null,
+      transitioning: false,
       currentRoom: FIRST_ROOM,
       currentSpawn: 'default',
       currentFloor: 0,
@@ -110,17 +123,18 @@ export const useSceneStore = create<SceneState>((set) => ({
   // Also clears door/hotspot prompts so nothing lingers over the black.
   goToRoom: (to, spawn) =>
     set((s) =>
-      s.pendingRoom || s.paused || s.openHotspot
+      s.transitioning || s.paused || s.openHotspot
         ? {}
-        : { pendingRoom: { to, spawn }, nearDoor: null, nearHotspot: null },
+        : { pendingRoom: { to, spawn }, transitioning: true, nearDoor: null, nearHotspot: null },
     ),
-  // Commit mid-fade: the room actually swaps here (behind the black), and
-  // Controls repositions the camera to the new room's spawn.
+  // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
+  // repositions to the new spawn. transitioning stays true through the fade-in.
   commitRoom: () =>
     set((s) =>
       s.pendingRoom
         ? { currentRoom: s.pendingRoom.to, currentSpawn: s.pendingRoom.spawn, pendingRoom: null }
         : {},
     ),
+  endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
 }));
