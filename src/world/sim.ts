@@ -25,9 +25,10 @@ export interface BoidParams {
 
 export const PIZZA_PARAMS: BoidParams = {
   count: 26,
-  // Slow, lazy drift — they're loitering, not commuting.
-  maxSpeed: 0.85,
-  minSpeed: 0.32,
+  // Slow, lazy drift — they're loitering, not commuting. (Halved again per
+  // Luke: the pizza was still swimming too fast.)
+  maxSpeed: 0.4,
+  minSpeed: 0.14,
   perceptionRadius: 9,
   separationRadius: 3.2,
   alignmentFactor: 0.1,
