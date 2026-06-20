@@ -35,32 +35,54 @@ export function DreadConductor() {
   useEffect(() => {
     let raf = 0;
     let last = performance.now();
-    let lastRecorded = 0;
+    // Dwell accumulator: how much lingering has added on top of the zone's base.
+    // It grows in tense zones and bleeds off in safe ones, so the live target is
+    // (base + dwell), and unease EASES toward that target in BOTH directions —
+    // which is what makes a shallower zone (or the surface) actually calm you,
+    // instead of unease only ever climbing.
+    let dwell = 0;
+    let prevZone = currentZone(useSceneStore.getState());
+    // Seed from the saved high-water mark so a remount doesn't replay buckets
+    // recordUnease (which only writes on a new max) would no-op anyway.
+    let lastRecorded = useProgressStore.getState().maxUnease;
 
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1); // clamp big gaps (tab refocus)
       last = now;
 
-      const scene = useSceneStore.getState();
       const dread = useDreadStore.getState();
       let u = dread.unease;
 
       if (dread.override != null) {
         // ?debug manual take-over — drive it by hand, don't pollute the save.
         u = dread.override;
+        prevZone = currentZone(useSceneStore.getState()); // don't fire a trigger on release
       } else {
-        const base = baseUneaseFor(currentZone(scene));
-        if (base > SAFE_UNEASE) {
-          // Ease up to the zone's resting value, then dwell slowly upward.
-          if (u < base) u = Math.min(base, u + DREAD.riseRatePerSec * dt);
-          u = Math.min(1, u + DREAD.dwellRatePerSec * dt);
-        } else {
-          // Safe zone: calm down (out-paces dwell, so a climb back always works).
-          u = Math.max(0, u - DREAD.decayRatePerSec * dt);
+        const zone = currentZone(useSceneStore.getState());
+        const base = baseUneaseFor(zone);
+
+        // One-shot zone-entry trigger (e.g. the jolt on slipping into classified).
+        if (zone !== prevZone) {
+          const delta = DREAD.triggers[`enter-${zone}`];
+          if (delta) u = Math.min(1, u + delta);
+          prevZone = zone;
         }
-        // High-water mark for the persistence-gated curdled copy. Throttled to
-        // ~0.05 buckets so we're not writing localStorage every frame, and only
-        // from the real (non-override) curve.
+
+        // Dwell grows while lingering somewhere tense, bleeds off in safe zones.
+        if (base > SAFE_UNEASE) {
+          dwell = Math.min(DREAD.dwellMax, dwell + DREAD.dwellRatePerSec * dt);
+        } else {
+          dwell = Math.max(0, dwell - DREAD.decayRatePerSec * dt);
+        }
+
+        // Ease toward the zone's resting value (+dwell) from EITHER side. Decay
+        // out-paces dwell, so heading shallower / to the surface always calms it.
+        const target = Math.min(1, base + dwell);
+        if (u < target) u = Math.min(target, u + DREAD.riseRatePerSec * dt);
+        else if (u > target) u = Math.max(target, u - DREAD.decayRatePerSec * dt);
+
+        // High-water mark for the persistence-gated curdled copy (throttled to
+        // ~0.05 buckets; recordUnease also only writes on a new max).
         if (u - lastRecorded >= 0.05) {
           lastRecorded = u;
           useProgressStore.getState().recordUnease(u);
