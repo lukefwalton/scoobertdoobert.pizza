@@ -15,6 +15,48 @@
   letter-spacing: 0.04em;
   pointer-events: none;
 }
+/* door prompt: a warmer cue than the hotspot prompt, so "step through" reads
+   distinct from "read this object". */
+.hud-prompt--door {
+  border-color: rgba(255, 209, 122, 0.85);
+  color: #ffe9c2;
+}
+
+/* quiet room name, lower-left — orientation flavor, never in the way. */
+.hud-room {
+  position: fixed;
+  left: 12px;
+  bottom: 10px;
+  z-index: 64;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+/* room-to-room wipe: a full black overlay the door fade rides. Always mounted so
+   the transition animates both directions; covers while a swap is pending. */
+.hud-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 78;
+  background: #000000;
+  opacity: 0;
+  pointer-events: none;
+  /* duration single-sourced from ROOM_FADE_MS (WorldHud sets --room-fade-ms) */
+  transition: opacity var(--room-fade-ms, 230ms) ease-in-out;
+}
+.hud-fade--cover {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-fade {
+    transition: none;
+  }
+}
 
 .hud-menu-btn {
   position: fixed;

@@ -371,6 +371,37 @@ starburst + SGI machine room (install relocated here, live CRT render of
 water+boids, lazy three) · ✅ ckpt4 2000 table floor (section gate + pizza image
 map) · ✅ ckpt5 README → **Phase 2 done.**
 
+### Phase 3 status (2026-06-20) — THE WORLD GROWS (stacked PR on Phase 2)
+✅ **ckpt1 rooms system + 3D doors.** `src/data/rooms.ts` is the world graph
+(Room + RoomDoor, three-free so the store/HUD can import it; plain dims live in
+`src/world/dims.ts`, re-exported by constants.ts to keep three out of the
+storefront bundle). The shop is just `ROOMS[0]`; a back-of-shop door leads into
+the **rat hallway** (red 3D-Maze brick, dim backrooms light pools, affine floor
+swim) and back. Doors = `src/world/Doors.tsx` (proximity prompt + E/click →
+`goToRoom` → black-wipe fade → `commitRoom` swaps the room behind the black →
+camera re-spawns). `Controls` is room-aware (clamps to the current room, respawns
+per door). Per-room fog/bg in `World.tsx` (`RoomEnvironment`). Quiet `.hud-room`
+label. Smoke: `npm run shoot:rooms` (shop→hall→jukebox).
+✅ **ckpt2 jukebox room + the music swell.** Third room at the end of the hall
+(`src/world/JukeboxRoom.tsx`): warm/dim magenta shrine, a glowing low-poly
+jukebox + the MTV-M2 "WHAT DO YOU / WANT TO HEAR?" marquee (`makeTextTexture`).
+The music payoff is REAL now without new assets: the engine gained a proximity
+duck (`audio.setProximityGain`, composed with mute) and the jukebox room drives
+it from camera distance, so the site's song (the boot loop) swells as you cross
+the room to the jukebox and fades as you leave. The drei `<PositionalAudio>` +
+real-catalog swap drops in here later (the hook is `JUKEBOX_POS` + the room's
+`JukeboxAudio`).
+✅ **ckpt3 the rat.** `src/world/Rat.tsx` — one steering agent (seek a point
+ahead → leads you down the hall; flee when crowded → skittish), low-poly + a
+trailing tail, rendered by HallwayRoom.
+✅ **ckpt4 the secret.** The rat's state machine (`lead → toPanel → knock →
+done`): once you're far enough down the corridor he darts to a blank wall panel
+and knocks it (`revealSecret`), opening a **hidden door** (rooms.ts `hidden:true`,
+gated in Doors by `secretRevealed`) into the **classified room**
+(`src/world/ClassifiedRoom.tsx`) — a cold X-Files file room of REJECTED / DO NOT
+RELEASE demos, filing cabinets, a flickering fluorescent. Smoke covers the whole
+tour incl. the reveal + classified. ⬜ ckpt5 mobile + README.
+
 ### Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
 - The era FLOORS are universal — responsive pages; descend on any device (the
   rot transition is instant under reduced-motion). The descent through web
