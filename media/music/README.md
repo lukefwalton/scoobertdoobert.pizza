@@ -1,46 +1,58 @@
 # media/music/ — the master catalog (NOT shipped)
 
-The fuller archive of Scoobert Doobert master recordings, organized by
-`year/album/`. These are **Luke's own recordings (his copyright)** — parody
-song titles and all — so they're safe to keep and degrade, but they are
-**source, not shipped**: only degraded/web-sized derivatives under `public/`
-ever get served (see `../README.md`).
+The archive of Scoobert Doobert master recordings, **one folder per album/EP**
+(`media/music/<album>/`). These are **Luke's own recordings (his copyright)** —
+parody titles and all — so safe to keep and degrade, but **source, not
+shipped**: only degraded/web-sized derivatives under `public/` are served.
 
-- **`media/masters/`** (sibling) = the handful of masters actually **wired into
-  the site** (the boot loop + the per-layer themes).
-- **`media/music/`** (here) = the broader catalog these were drawn from.
+- **`media/masters/`** (sibling) = the few tracks **wired into the site** (boot
+  loop + per-layer themes). Same *songs* as the **KŌAN** LP below, but different
+  bounces (verified: not byte-identical).
+- **`media/sfx/`** (sibling) = sound effects (the owned sitar takes).
 
-Convert WAVs → MP3 with `scripts/convert-music-to-mp3.sh` (defaults to this
-folder).
+Convert WAVs → MP3 with `scripts/convert-music-to-mp3.sh` (defaults to this folder).
 
-## Folders renamed for the filesystem (originals preserved here)
-
-| folder | ← original | why |
-|---|---|---|
-| `2018/finding-d/` | `2018/Finding $D/` | `$` is shell-unsafe |
-| `2020/dragon-ball-sd/` | `2020/dragon-ball-SD/` | case-normalized |
-
-## Tracklists (real titles)
-
-A few `2019/to-sleep` filenames had `?` (illegal on Windows / in URLs) stripped.
-The **real titles** — that album is a setting of Hamlet's "To be or not to be" —
-are kept here:
-
-| file | real title |
-|---|---|
-| `04 untitled.mp3` | `?` |
-| `05 where did You set my love.mp3` | `where did You set my love?` |
-| `06 to sleep.mp3` | `to sleep?` |
-| `07 to journey.mp3` | `to journey?` |
-| `08 is her's the better lot.mp3` | `is her's the better lot?` |
-| `10 dad, are you o.k.mp3` | `dad, are you o.k.?` |
-
-Every other filename is the real title verbatim (apostrophes, parens, and the
-`é` in "Différance" are valid and were left as-is).
+> **Why album-keyed (not `year/album/`)?** The newly-added archive came with no
+> release-year info, so grouping by album avoids guessing. Year lives in the
+> table below. Give me the missing years and I can switch the tree to
+> `media/music/<year>/<album>/` if you prefer.
 
 ## Albums
 
-- **2018 — Finding $D** (10 tracks)
-- **2019 — to sleep** (14 tracks)
-- **2020 — Dragon Ball SD** (11 tracks)
-- **2020 — masks and monsters** (18 tracks)
+| folder | album | year | notes |
+|---|---|---|---|
+| `finding-d/` | Finding $D | 2018 | `$` dropped from the folder name |
+| `to-sleep/` | to sleep | 2019 | a setting of Hamlet's "to be or not to be" |
+| `dragon-ball-sd/` | Dragon Ball SD | 2020 | |
+| `masks-and-monsters/` | masks and monsters | 2020 | |
+| `koan/` | KŌAN (LP) | ? | the LP the site's themes come from — "Information", "Jolly Roger Bay (64)", "1101" |
+| `mobius/` | Mobius (LP)? | ? | **inferred** — track 10's title is the upside-down "mobius" gag; plugs the *Mobius* album motif. **Confirm name?** |
+| `big-hug/` | Big Hug (LP) | ? | |
+| `little-hug/` | Little Hug (EP) | ? | |
+| `friends-covering-friends/` | Friends Covering Friends (with Okudaxij) | ? | 2-track covers split |
+| `us/` | US | 2025 | singles — each kept in a per-song subfolder with master + instrumental |
+| `untitled-a/` | **?? needs name** | ? | was `newnewmusic/MP3 (1)` — Stories, MEMORY LAN, Sunlight, DMV, Aliens, TOO HOT, Underwater, Gemini, … All I Need |
+| `untitled-b/` | **?? needs name** | ? | was `newnewmusic/MP3s` — daydreaming, time with u, the cycle, ez pz, … golden state of mind |
+
+## Filenames sanitized (real titles preserved here)
+
+`?` is illegal on Windows / in URLs, so it was stripped from the filename; the
+real title is kept here.
+
+| file | real title |
+|---|---|
+| `untitled-b/11 see you again.mp3` | `see you again?` |
+| `untitled-b/14 where did the sun go.mp3` | `where did the sun go?` |
+| `to-sleep/04 untitled.mp3` | `?` |
+| `to-sleep/05 where did You set my love.mp3` | `where did You set my love?` |
+| `to-sleep/06 to sleep.mp3` | `to sleep?` |
+| `to-sleep/07 to journey.mp3` | `to journey?` |
+| `to-sleep/08 is her's the better lot.mp3` | `is her's the better lot?` |
+| `to-sleep/10 dad, are you o.k.mp3` | `dad, are you o.k.?` |
+
+`mobius/Track 10_mobius_LP Ver.mp3` — the original title was stylized
+**upside-down**: `spuǝ ʇᴉ ʍoɥ ʇoN` (reads "Not how it ends" — a möbius gag).
+
+Everything else is the real title verbatim — apostrophes, parens, `!`, the `é`
+in "Différance", the Japanese in KŌAN's "無門関", and joke titles like KŌAN's
+"08 Slow Jam.wav (Stolen Off of Napster)" are all valid and left as-is.
