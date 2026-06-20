@@ -22,13 +22,18 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
   // the ceiling (with a fresh x/z) when it reaches the floor.
   const drips = useMemo(
     () =>
-      Array.from({ length: COUNT }, () => ({
-        x: (Math.random() * 2 - 1) * (halfW - 0.6),
-        z: (Math.random() * 2 - 1) * (halfD - 0.6),
-        y: Math.random() * height,
-        speed: 1.4 + Math.random() * 1.8,
-        len: 0.35 + Math.random() * 0.5,
-      })),
+      Array.from({ length: COUNT }, () => {
+        const len = 0.35 + Math.random() * 0.5;
+        return {
+          x: (Math.random() * 2 - 1) * (halfW - 0.6),
+          z: (Math.random() * 2 - 1) * (halfD - 0.6),
+          // y is the box CENTRE; keep the whole streak below the ceiling line
+          // (top = y + len/2 ≤ height) so it never pokes through.
+          y: Math.random() * (height - len),
+          speed: 1.4 + Math.random() * 1.8,
+          len,
+        };
+      }),
     [halfW, halfD, height],
   );
 
@@ -46,7 +51,9 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
       const d = drips[i];
       d.y -= d.speed * boost * dt;
       if (d.y < 0.05) {
-        d.y = height - 0.05;
+        // Recycle to JUST under the ceiling: y is the box centre, so start at
+        // height - len/2 (top flush with the ceiling, never poking through).
+        d.y = height - d.len / 2 - 0.02;
         d.x = (Math.random() * 2 - 1) * (halfW - 0.6);
         d.z = (Math.random() * 2 - 1) * (halfD - 0.6);
       }

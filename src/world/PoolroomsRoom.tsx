@@ -31,7 +31,10 @@ function flatMat(color: string, map?: THREE.Texture): THREE.Material {
 // Half-extent of the (flat, walk-on) water sheet, centred. Big enough that you
 // genuinely cross water to reach the centre door, with a tiled deck border.
 const POOL = 5;
-const WATER_Y = 0.05; // a hair above the deck so it reads as a surface, not a hole
+// Sits above the deck by MORE than the wave's max amplitude (see WAVE_AMP_MAX
+// below) so the animated surface never dips below y=0 and clips the deck.
+const WATER_Y = 0.14;
+const WAVE_AMP_MAX = 0.1; // 0.04 + unease*0.06, capped — must stay < WATER_Y
 
 // A low-res caustic-ish ripple texture (PS1: tiny + NearestFilter). Interfering
 // sine bands read as light dancing on water once it's scrolled.
@@ -121,7 +124,9 @@ export function PoolroomsRoom({ room }: { room: Room }) {
       baseZ.current = Float32Array.from({ length: pos.count }, (_, i) => pos.getZ(i));
     }
     const t = state.clock.elapsedTime;
-    const amp = 0.04 + unease * 0.06; // tiny — apparent motion, never a hazard
+    // tiny — apparent motion, never a hazard; capped so WATER_Y - amp stays > 0
+    // (the surface never dips through the deck — see WATER_Y).
+    const amp = Math.min(WAVE_AMP_MAX, 0.04 + unease * 0.06);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
