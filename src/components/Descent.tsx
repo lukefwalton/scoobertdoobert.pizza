@@ -3,6 +3,7 @@ import '98.css';
 import '../styles/descent.css';
 import { audio } from '../audio/engine';
 import { useSceneStore } from '../state/sceneStore';
+import { BootLog } from './BootLog';
 
 // ───────────────────────────────────────────────────────────────────────────
 // The descent — the hero moment. Submitting the (theatrical) order form is what
@@ -12,14 +13,16 @@ import { useSceneStore } from '../state/sceneStore';
 //   prompt -> the Calzone Player™ VRML plug-in install dialog (98.css)
 //   install-> a fake progress bar with absurd steps. THIS is the lazy-load mask:
 //             the three.js World chunk actually downloads here.
-//   cut    -> cut to black, pitch-bend the boot loop down
-//   reveal -> fade up inside the world
+//   booting-> a deliberate PIZZA-DOS "loading the world" boot log, pitch-bending
+//             the loop down. This is the loading screen — it lives HERE, at the
+//             level load, NOT on the storefront (the front door loads instantly).
+//   reveal -> fade the boot screen out, up inside the world
 //
 // Gated to desktop + no reduced-motion. On mobile / reduced-motion the form is
 // left alone and just navigates to /text (the step-6 fallback).
 // ───────────────────────────────────────────────────────────────────────────
 
-type Phase = 'idle' | 'aging' | 'crash' | 'prompt' | 'installing' | 'cut' | 'reveal' | 'error';
+type Phase = 'idle' | 'aging' | 'crash' | 'prompt' | 'installing' | 'booting' | 'reveal' | 'error';
 
 const STATUS_LINES = [
   'Reticulating crusts…',
@@ -29,6 +32,19 @@ const STATUS_LINES = [
   'Downloading the ocean…',
   'Summoning the rat…',
   'Calibrating reverb…',
+];
+
+// The "loading the world" POST log — on-theme (oven, flooded basement, the rat).
+const WORLD_BOOT_LINES = [
+  'PIZZA-DOS 6.2    (C) 1997 Scoobert Doobert, Inc.',
+  '',
+  'CALZONE PLAYER v1.0b ........ INSTALLED',
+  'DECOMPRESSING /dev/oven ..... OK',
+  'BAKING GEOMETRY ............. OK',
+  'FLOODING BASEMENT ........... OK',
+  'SUMMONING THE RAT ........... OK',
+  '',
+  'ENTERING THE WORLD . . .',
 ];
 
 const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing', 'error'];
@@ -90,7 +106,7 @@ export function Descent() {
         }
         if (p >= 100 && worldReady.current) {
           window.clearInterval(tick);
-          setPhase('cut');
+          setPhase('booting');
         }
       }, 180);
       // Safety: if the chunk never resolves, don't strand the user on the fake
@@ -103,12 +119,13 @@ export function Descent() {
         window.clearTimeout(bail);
       };
     }
-    if (phase === 'cut') {
-      audio.pitchBendDown(1600, 0.4);
+    if (phase === 'booting') {
+      // Deliberate, unhurried boot into the level; bend the loop down across it.
+      audio.pitchBendDown(2300, 0.4);
       const t = window.setTimeout(() => {
         enterWorld();
         setPhase('reveal');
-      }, 950);
+      }, 2300);
       return () => window.clearTimeout(t);
     }
     if (phase === 'reveal') {
@@ -208,8 +225,14 @@ export function Descent() {
         </div>
       )}
 
-      {(phase === 'cut' || phase === 'reveal') && (
-        <div className={`descent__black descent__black--${phase}`} aria-hidden="true" />
+      {(phase === 'booting' || phase === 'reveal') && (
+        <div
+          className={`descent__boot${phase === 'reveal' ? ' descent__boot--out' : ''}`}
+          role="status"
+          aria-label="Loading the world"
+        >
+          <BootLog lines={WORLD_BOOT_LINES} />
+        </div>
       )}
     </div>
   );

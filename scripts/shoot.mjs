@@ -46,7 +46,8 @@ const shots = [
     skipBoot: true,
     assert: ["what's hot @ the .pizza?", 'open.spotify.com', 'Text-Only Menu', 'canonical'],
   },
-  { name: 'boot-desktop', path: '/', viewport: DESKTOP, js: true, skipBoot: false, delayMs: 700, assert: ['PIZZA-DOS'] },
+  // The storefront no longer renders a boot card — the PIZZA-DOS loading screen
+  // moved to the descent (the level load). shoot-descent.mjs asserts it there.
 ];
 
 const browser = await chromium.launch();
