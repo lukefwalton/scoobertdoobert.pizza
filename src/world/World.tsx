@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { ROOM, PS1 } from './constants';
+import { PS1 } from './constants';
 import { roomById, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { ShopRoom } from './ShopRoom';
@@ -51,14 +51,19 @@ function RoomScene({ room }: { room: Room }) {
 // rendered room is data-driven (currentRoom): the shop is just ROOMS[0].
 export default function World() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
+  const currentSpawn = useSceneStore((s) => s.currentSpawn);
   const room = roomById(currentRoom);
+  // Boot the camera AT the current room's spawn (not a hardcoded pose), so the
+  // very first frame is already correct — no post-paint snap, and no door-prompt
+  // flash from briefly sitting inside a door radius. Controls owns it after mount.
+  const spawn = room.spawns[currentSpawn] ?? room.spawns.default;
 
   return (
     <Canvas
       dpr={PS1.dpr}
       flat
       gl={{ antialias: false, powerPreference: 'low-power' }}
-      camera={{ fov: 72, near: 0.1, far: 220, position: [0, ROOM.eye, ROOM.halfD - 1.5] }}
+      camera={{ fov: 72, near: 0.1, far: 220, position: spawn.position }}
       onCreated={({ scene, gl }) => {
         const bg = new THREE.Color(room.palette.background);
         scene.background = bg;

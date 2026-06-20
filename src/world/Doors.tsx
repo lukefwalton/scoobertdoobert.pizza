@@ -19,6 +19,7 @@ function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.MeshL
 }
 
 function DoorMesh({ door }: { door: RoomDoor }) {
+  const { gl } = useThree();
   const frameMat = useMemo(() => flatMat('#3a2a22'), []);
   // The dark beyond — DoubleSide so the doorway reads as dark from inside the
   // room (the side you approach from) AND is the click target from that side.
@@ -38,11 +39,15 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     st.goToRoom(door.to, door.toSpawn ?? 'default');
   };
 
-  // Reset the body cursor if this door unmounts (room swap) while hovered, so a
-  // pointer cursor can't get stranded after the door it belonged to is gone.
-  useEffect(() => () => {
-    document.body.style.cursor = '';
-  }, []);
+  // The cursor must go on the CANVAS element, not document.body — the Canvas
+  // sets its own inline `cursor: grab`, so a body cursor under it never wins.
+  // 'grab' is the world's resting cursor; restore it on out / unmount.
+  useEffect(
+    () => () => {
+      gl.domElement.style.cursor = 'grab';
+    },
+    [gl],
+  );
 
   return (
     <group
@@ -57,11 +62,11 @@ function DoorMesh({ door }: { door: RoomDoor }) {
         // activate (same proximity rule as the click), so a distant door doesn't
         // look actionable when it would no-op.
         if (useSceneStore.getState().nearDoor?.id === door.id) {
-          document.body.style.cursor = "url('/cursor.cur'), pointer";
+          gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
         }
       }}
       onPointerOut={() => {
-        document.body.style.cursor = '';
+        gl.domElement.style.cursor = 'grab';
       }}
     >
       {/* dark recess (the room beyond, before you step through) */}
