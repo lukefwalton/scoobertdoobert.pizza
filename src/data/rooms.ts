@@ -13,7 +13,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
 
-export type RoomKind = 'shop' | 'hallway';
+export type RoomKind = 'shop' | 'hallway' | 'jukebox';
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
@@ -76,8 +76,10 @@ export const ROOMS: Room[] = [
     // The tropical-shallow cyan of floor one (unchanged — the shop is ROOMS[0]).
     palette: { background: '#1f8fb5', fog: '#1f8fb5', fogNear: 6, fogFar: 64 },
     spawns: {
-      // Spawn in the middle, facing the window/sea (-Z) — the establishing shot.
-      default: { position: [0, EYE, ROOM.halfD - 1.5], yaw: Math.PI },
+      // The establishing shot: facing the window/sea (-Z), the boids out the
+      // glass. Kept clear of the back-hall door's 3.2 radius so the door is
+      // something you discover by turning around, not an instant prompt at spawn.
+      default: { position: [0, EYE, ROOM.halfD - 3.5], yaw: Math.PI },
       // Arriving back from the hall: a step clear of the back door (outside its
       // 3.2 radius) so you land IN the room, not on its prompt, and a held E
       // can't immediately bounce you back through it. Faces the sea.
@@ -106,8 +108,10 @@ export const ROOMS: Room[] = [
     spawns: {
       default: { position: [0, EYE, 12.5], yaw: Math.PI },
       // Arriving from the shop: a step into the hall (clear of the return door's
-      // 3.2 radius), facing down the corridor (-Z).
+      // 3.2 radius), facing down the corridor (-Z) toward the music.
       fromShop: { position: [0, EYE, 12.5], yaw: Math.PI },
+      // Arriving back from the jukebox: at the far (-Z) end, facing the shop (+Z).
+      fromJuke: { position: [0, EYE, -12.5], yaw: 0 },
     },
     doors: [
       {
@@ -120,9 +124,50 @@ export const ROOMS: Room[] = [
         label: 'return to the shop',
         radius: 3.2,
       },
+      {
+        id: 'hall-to-juke',
+        to: 'jukebox',
+        toSpawn: 'fromHall',
+        // Far end (-Z) — where the music's coming from.
+        position: [0, 0, -15.9],
+        rotationY: Math.PI,
+        label: 'follow the music',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'jukebox',
+    kind: 'jukebox',
+    title: 'The Jukebox',
+    // Taller than the other rooms: headroom for the marquee, and the extra
+    // volume makes the payoff room feel like a little shrine.
+    dims: { halfW: 6, halfD: 7, height: 5.5, eye: EYE },
+    // Warm, dim, womb-like — the payoff room. Deep magenta dark, close fog.
+    palette: { background: '#190b1d', fog: '#2a1233', fogNear: 4, fogFar: 28 },
+    spawns: {
+      // Enter near the door (+Z), a step clear of its radius, facing the jukebox
+      // across the room (-Z) so you walk toward it and the song swells.
+      default: { position: [0, EYE, 3.5], yaw: Math.PI },
+      fromHall: { position: [0, EYE, 3.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'juke-to-hall',
+        to: 'hallway',
+        toSpawn: 'fromJuke',
+        position: [0, 0, 6.95],
+        rotationY: 0,
+        label: 'back to the hall',
+        radius: 3.2,
+      },
     ],
   },
 ];
+
+// The jukebox's world position (the music source). Lives here so JukeboxRoom can
+// place the object and the proximity-audio can measure distance to the same spot.
+export const JUKEBOX_POS: [number, number, number] = [0, 1.2, -5.5];
 
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { roomById, type RoomDoor } from '../data/rooms';
@@ -38,6 +38,12 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     st.goToRoom(door.to, door.toSpawn ?? 'default');
   };
 
+  // Reset the body cursor if this door unmounts (room swap) while hovered, so a
+  // pointer cursor can't get stranded after the door it belonged to is gone.
+  useEffect(() => () => {
+    document.body.style.cursor = '';
+  }, []);
+
   return (
     <group
       position={door.position}
@@ -47,7 +53,12 @@ function DoorMesh({ door }: { door: RoomDoor }) {
         activate();
       }}
       onPointerOver={() => {
-        document.body.style.cursor = "url('/cursor.cur'), pointer";
+        // Only advertise clickability when you're actually close enough to
+        // activate (same proximity rule as the click), so a distant door doesn't
+        // look actionable when it would no-op.
+        if (useSceneStore.getState().nearDoor?.id === door.id) {
+          document.body.style.cursor = "url('/cursor.cur'), pointer";
+        }
       }}
       onPointerOut={() => {
         document.body.style.cursor = '';

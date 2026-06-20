@@ -180,6 +180,43 @@ export function makeBrickTexture(brick = '#7d2b22', mortar = '#2a1410', rows = 6
   return tex;
 }
 
+/**
+ * Bake text into a nearest-filtered texture (a glowing sign / marquee). Lines
+ * split on \n; the font auto-shrinks to fit the widest line. Blocky on purpose.
+ */
+export function makeTextTexture(
+  text: string,
+  opts: { fg?: string; bg?: string; w?: number; h?: number } = {},
+): THREE.Texture {
+  const { fg = '#ffe9c2', bg = 'transparent', w = 256, h = 128 } = opts;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d')!;
+  if (bg !== 'transparent') {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+  }
+  const lines = text.split('\n');
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = fg;
+  // shrink the font until the widest line fits with margin
+  let fontPx = Math.floor((h / (lines.length + 0.5)) * 0.9);
+  const fit = () => {
+    ctx.font = `bold ${fontPx}px "Courier New", monospace`;
+    return Math.max(...lines.map((l) => ctx.measureText(l).width));
+  };
+  while (fontPx > 8 && fit() > w * 0.92) fontPx -= 2;
+  const lh = h / (lines.length + 0.5);
+  lines.forEach((ln, i) => ctx.fillText(ln, w / 2, lh * (i + 0.85)));
+  const tex = new THREE.CanvasTexture(c);
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  return tex;
+}
+
 /** A blocky procedural texture for walls — flat base + sparse darker specks. */
 export function makeSpeckTexture(base = '#d9b48c', speck = '#b8895f'): THREE.Texture {
   const size = 64;

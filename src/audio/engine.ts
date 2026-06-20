@@ -31,6 +31,9 @@ class PizzaAudio {
   private unlocked = false;
   private preloadPromise?: Promise<boolean>;
   private readyListeners = new Set<(ready: boolean) => void>();
+  // 0..1 spatial duck: the jukebox room drives this by camera distance so the
+  // loop (the site's song) swells as you approach the jukebox. 1 everywhere else.
+  private proximity = 1;
   muted = false;
 
   /** True once the track is fetched + decoded and the loop can actually play. */
@@ -157,11 +160,28 @@ class PizzaAudio {
     this.started = false;
   }
 
+  /** Master target = base 0.5, ducked by spatial proximity, killed by mute. */
+  private targetGain(): number {
+    return this.muted ? 0.0001 : Math.max(0.0001, 0.5 * this.proximity);
+  }
+
   private applyGain(): void {
     if (!this.ctx || !this.master) return;
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
-    this.master.gain.setTargetAtTime(this.muted ? 0.0001 : 0.5, now, 0.15);
+    this.master.gain.setTargetAtTime(this.targetGain(), now, 0.15);
+  }
+
+  /**
+   * Spatial duck (0..1). The jukebox room drives this from camera distance each
+   * frame so the loop — the site's own song — swells as you approach the jukebox
+   * and fades as you walk off. 1 restores full volume (every other room).
+   * Smoothed; respects mute; no-op until the graph + a gesture exist.
+   */
+  setProximityGain(g: number): void {
+    this.proximity = Math.max(0, Math.min(1, g));
+    if (!this.ctx || !this.master || this.muted) return;
+    this.master.gain.setTargetAtTime(this.targetGain(), this.ctx.currentTime, 0.1);
   }
 
   setMuted(m: boolean): void {
