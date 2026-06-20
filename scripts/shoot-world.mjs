@@ -16,10 +16,17 @@ await ctx.addInitScript(() => {
   }
 });
 const page = await ctx.newPage();
+let errors = 0;
 page.on('console', (m) => {
-  if (m.type() === 'error') console.log('PAGE ERR:', m.text());
+  if (m.type() === 'error') {
+    errors++;
+    console.log('PAGE ERR:', m.text());
+  }
 });
-page.on('pageerror', (e) => console.log('PAGE EXC:', e.message));
+page.on('pageerror', (e) => {
+  errors++;
+  console.log('PAGE EXC:', e.message);
+});
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 await page.waitForTimeout(4000); // lazy three chunk + WebGL warmup + frames

@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { audio } from '../audio/engine';
-import { useAudioStore } from '../state/audioStore';
 import '../styles/boot.css';
 
 // A brief, plain PIZZA-DOS boot card. Period-accurate (a fake POST log on a
@@ -8,6 +6,9 @@ import '../styles/boot.css';
 // on the server and on the first client render, so it never appears in the
 // crawlable HTML and is skipped entirely with JS off. It also self-skips under
 // prefers-reduced-motion and only shows once per browser session.
+//
+// Audio is NOT wired here — AudioBootstrap owns that, so sound works on every
+// load (including same-session reloads where this card is skipped).
 //
 // "CALZONE PLAYER ... NOT FOUND" foreshadows the descent gag.
 const LINES = [
@@ -39,25 +40,9 @@ export function BootScreen() {
       /* ignore */
     }
 
-    // Prime the audio graph and sync the persisted mute preference. Sound can't
-    // start until a user gesture (autoplay policy), so the boot loop begins on
-    // the first pointer/key event — which the boot card invites with a click.
-    audio.muted = useAudioStore.getState().muted;
-    audio.ensure();
-    const unlock = () => {
-      audio.unlock();
-      if (!useAudioStore.getState().muted) audio.startBootLoop();
-    };
-    window.addEventListener('pointerdown', unlock, { once: true });
-    window.addEventListener('keydown', unlock, { once: true });
-
     setShow(true);
     const timer = window.setTimeout(() => setShow(false), 2000);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener('pointerdown', unlock);
-      window.removeEventListener('keydown', unlock);
-    };
+    return () => window.clearTimeout(timer);
   }, []);
 
   if (!show) return null;

@@ -2,23 +2,29 @@
 // as real prerendered HTML containing their real content — not SPA fallbacks.
 // Runs automatically after `npm run build` (and on Vercel), failing the build on
 // a quiet config regression.
+//
+// vite-react-ssg emits the text-only route as dist/text.html. We accept either
+// that or a nested dist/text/index.html so this guard stays correct if the SSG
+// output shape ever changes.
 import { existsSync, readFileSync } from 'node:fs';
 
-const checks = [
-  ['dist/index.html', 'Electronic Pizza Storefront'],
-  ['dist/text.html', 'Text-Only Menu'],
+function hasContent(file, needle) {
+  return existsSync(file) && readFileSync(file, 'utf8').includes(needle);
+}
+
+const cases = [
+  { label: 'storefront (/)', files: ['dist/index.html'], needle: 'Electronic Pizza Storefront' },
+  { label: 'text-only (/text)', files: ['dist/text.html', 'dist/text/index.html'], needle: 'Text-Only Menu' },
 ];
 
 let failed = 0;
-for (const [file, needle] of checks) {
-  if (!existsSync(file)) {
-    console.error(`  x missing ${file}`);
-    failed++;
-  } else if (!readFileSync(file, 'utf8').includes(needle)) {
-    console.error(`  x ${file} missing expected content: "${needle}"`);
-    failed++;
+for (const c of cases) {
+  const hit = c.files.find((f) => hasContent(f, c.needle));
+  if (hit) {
+    console.log(`  ok ${c.label} -> ${hit}`);
   } else {
-    console.log(`  ok ${file}`);
+    console.error(`  x ${c.label}: none of [${c.files.join(', ')}] contain "${c.needle}"`);
+    failed++;
   }
 }
 
