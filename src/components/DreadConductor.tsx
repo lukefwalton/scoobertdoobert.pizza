@@ -5,6 +5,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
+import { audio } from '../audio/engine';
 
 // ───────────────────────────────────────────────────────────────────────────
 // DreadConductor — Phase 5, ckpt 1. The single place that drives `unease`.
@@ -45,6 +46,8 @@ export function DreadConductor() {
     // Seed from the saved high-water mark so a remount doesn't replay buckets
     // recordUnease (which only writes on a new max) would no-op anyway.
     let lastRecorded = useProgressStore.getState().maxUnease;
+    let wasOverride = false;
+    let settling = false; // post-override: easing back down, don't record yet
 
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1); // clamp big gaps (tab refocus)
@@ -57,7 +60,17 @@ export function DreadConductor() {
         // ?debug manual take-over — drive it by hand, don't pollute the save.
         u = dread.override;
         prevZone = currentZone(useSceneStore.getState()); // don't fire a trigger on release
+        wasOverride = true;
       } else {
+        // Releasing ?debug override: re-sync the high-water baseline to the REAL
+        // saved max and enter a "settle" — while the synthetic value eases back
+        // down toward the zone's real target we DON'T record, so the manual peak
+        // never lands in the save AND real progress isn't suppressed afterward.
+        if (wasOverride) {
+          wasOverride = false;
+          settling = true;
+          lastRecorded = useProgressStore.getState().maxUnease;
+        }
         const zone = currentZone(useSceneStore.getState());
         const base = baseUneaseFor(zone);
 
@@ -84,9 +97,13 @@ export function DreadConductor() {
         if (u < target) u = Math.min(target, u + DREAD.riseRatePerSec * dt);
         else if (u > target) u = Math.max(target, u - DREAD.decayRatePerSec * dt);
 
+        // Settle ends once the curve has eased back down to the real target;
+        // then real recording resumes.
+        if (settling && u <= target + 0.02) settling = false;
         // High-water mark for the persistence-gated curdled copy (throttled to
-        // ~0.05 buckets; recordUnease also only writes on a new max).
-        if (u - lastRecorded >= 0.05) {
+        // ~0.05 buckets; recordUnease also only writes on a new max). Skipped
+        // while settling so a debug override can't pollute the save.
+        if (!settling && u - lastRecorded >= 0.05) {
           lastRecorded = u;
           useProgressStore.getState().recordUnease(u);
         }
@@ -94,6 +111,9 @@ export function DreadConductor() {
 
       u = Math.min(1, Math.max(0, u));
       if (u !== dread.unease) dread.setUnease(u);
+      // Drive the audio dread bed (the first instrument to read unease). Cheap +
+      // throttled inside the engine; no-op until a gesture has built the ctx.
+      audio.setDreadLevel(u);
       raf = requestAnimationFrame(tick);
     };
 
