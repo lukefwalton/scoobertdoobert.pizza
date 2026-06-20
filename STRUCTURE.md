@@ -1,8 +1,10 @@
 # Repository structure — start here
 
 A map of the repo, grouped by purpose. For *what the project is*, read
-[`README.md`](README.md); for the durable build spec + roadmap, read
-[`CLAUDE.md`](CLAUDE.md). This file is just **where everything lives and why**.
+[`README.md`](README.md); for the rules/guardrails read [`CLAUDE.md`](CLAUDE.md),
+the roadmap + live status [`docs/PHASES.md`](docs/PHASES.md), and the vision +
+systems [`docs/DESIGN.md`](docs/DESIGN.md). This file is just **where everything
+lives and why**.
 
 Everything sorts into five buckets:
 
@@ -17,8 +19,9 @@ Everything sorts into five buckets:
 scoobertdoobert.pizza/
 │
 ├── README.md              # what the project is + how to run it
-├── CLAUDE.md              # durable build spec, phase tracker, roadmap
+├── CLAUDE.md              # the rules/guardrails (the constitution)
 ├── STRUCTURE.md           # ← you are here: the repo map
+├── docs/                  # PHASES.md (roadmap + live status) · DESIGN.md (vision + systems)
 ├── links.md               # source of truth for the /links archive (?raw-imported)
 │
 ├── index.html             # Vite entry (the live site — NOT legacy/)

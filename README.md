@@ -36,8 +36,10 @@ progressive enhancement layered on top:
 - **Mobile / `prefers-reduced-motion`** skip the descent and 3D entirely and get
   the storefront + the flat `/text` list.
 
-See [`CLAUDE.md`](./CLAUDE.md) for the full spec, the PS1 hard constraints, the
-phase tracker, and the Phase 2 plan.
+See [`CLAUDE.md`](./CLAUDE.md) for the rules + PS1 hard constraints,
+[`docs/PHASES.md`](./docs/PHASES.md) for the roadmap + live status, and
+[`docs/DESIGN.md`](./docs/DESIGN.md) for the vision + systems. [`STRUCTURE.md`](./STRUCTURE.md)
+maps the repo.
 
 ## Run
 
@@ -112,7 +114,9 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 ├── links.md              # source of truth for the /links archive
 ├── legacy/               # the previous hand-built site (preserved, not built)
 ├── fun/                  # placeholder for a separate repo, not yet wired in
-└── CLAUDE.md             # durable spec + phase tracker + post-Phase-1 notes
+├── docs/                 # PHASES.md (roadmap + status) · DESIGN.md (vision + systems)
+├── STRUCTURE.md          # the repo map ("start here")
+└── CLAUDE.md             # the rules/guardrails (the constitution)
 ```
 
 **Source media** (full-res photo archive, song masters, raw `.glb` models) lives
@@ -236,6 +240,7 @@ the world grew from one room into a graph — beach shop ⇄ rat hall ⇄ jukebo
 leads you down the hall and knocks open the one secret: a hidden classified file
 room of rejected demos. 3D doors are the room exits.
 
-Next (roadmap in `CLAUDE.md`): **Phase 4** a hidden terminal, **Phase 5** the
-`unease` dread conductor, then wiring up `fun/`. Liminal / pool / backrooms level
-GLBs (`couldbewholelevels/`, `newglb/`) are staged for the levels below the shop.
+Next (roadmap in `docs/PHASES.md`; vision in `docs/DESIGN.md`): **Phase 4** a
+hidden terminal, **Phase 5** the `unease` dread conductor, then wiring up `fun/`.
+Liminal / pool / backrooms level GLBs (`media/models/levels/`,
+`media/models/greek-vaporwave/`) are staged for the levels below the shop.

@@ -8,7 +8,8 @@ vertex-snap-friendly, ≤128px `NearestFilter` textures, no mipmaps) and only th
 
 This file is the manifest: clean filename, the original filename it came from
 (provenance), and notes. Group blurbs map to the roadmap in
-[`../../CLAUDE.md`](../../CLAUDE.md).
+[`../../docs/PHASES.md`](../../docs/PHASES.md) (asset direction in
+[`../../docs/DESIGN.md`](../../docs/DESIGN.md)).
 
 ## ⚠️ Licensing — read before shipping anything
 
