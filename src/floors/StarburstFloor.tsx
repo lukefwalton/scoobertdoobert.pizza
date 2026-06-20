@@ -1,5 +1,5 @@
 import '../styles/starburst.css';
-import { destById, resolveLinks, type Dest } from '../data/links';
+import { destById, resolveLinks, TEXT_ONLY_PATH, type Dest } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -16,7 +16,7 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
   const descend = useSceneStore((s) => s.descend);
   const ascend = useSceneStore((s) => s.ascend);
   const dests = resolveLinks(floor.links);
-  const inside = destById('podcast')?.href ?? '/text';
+  const inside = destById('podcast')?.href ?? TEXT_ONLY_PATH;
   const ext = (d: Dest) =>
     d.external ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
 
