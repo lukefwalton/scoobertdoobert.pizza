@@ -73,16 +73,20 @@ function RoomScene({ room }: { room: Room }) {
 }
 
 // GLB set-dressing for the current room (room.props). Each prop is small + loads
-// fast; its own Suspense (null fallback) so a prop never gates the room, and each
-// GlbProp has an error boundary so a bad one can't crash the scene.
+// fast; each gets its OWN Suspense (null fallback) so one slow prop never hides
+// its siblings or gates the room, and its own error boundary (in GlbProp) so a
+// bad one can't crash the scene. Keyed by url+index so the same GLB can appear
+// twice in a room without a key clash.
 function RoomProps({ room }: { room: Room }) {
   if (!room.props?.length) return null;
   return (
-    <Suspense fallback={null}>
-      {room.props.map((spec) => (
-        <GlbProp key={spec.url} spec={spec} />
+    <>
+      {room.props.map((spec, i) => (
+        <Suspense key={`${spec.url}#${i}`} fallback={null}>
+          <GlbProp spec={spec} />
+        </Suspense>
       ))}
-    </Suspense>
+    </>
   );
 }
 

@@ -89,9 +89,27 @@ const inCorr = await roomIs('The Long Corridor');
 const mobius = await loaded('mobius-strip.glb');
 if (!mobius) fail('mobius-strip.glb did not load in the corridor');
 
+// The other two prop'd rooms (jukebox, classified) need the flaky rat/hall route,
+// so cover their shipped GLBs by fetching them directly — proves they ship + 200.
+const others = await page.evaluate(async () => {
+  const out = {};
+  for (const f of ['arcade-cabinet.glb', 'crt-tv.glb']) {
+    try {
+      out[f] = (await fetch('/models/' + f, { method: 'HEAD' })).status;
+    } catch {
+      out[f] = 0;
+    }
+  }
+  return out;
+});
+const arcade = others['arcade-cabinet.glb'] === 200;
+const crt = others['crt-tv.glb'] === 200;
+if (!arcade) fail('arcade-cabinet.glb is not served (200)');
+if (!crt) fail('crt-tv.glb is not served (200)');
+
 await browser.close();
 console.log(
   `props: shop=${startShop} palm=${palm} pool=${inPool} statue=${statue} corridor=${inCorr} ` +
-    `mobius=${mobius} models=${JSON.stringify(modelStatus)} | errors=${errors}`,
+    `mobius=${mobius} arcade=${arcade} crt=${crt} models=${JSON.stringify(modelStatus)} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
