@@ -218,11 +218,19 @@ const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 /** The starting room — the beach shop. */
 export const FIRST_ROOM = ROOMS[0].id;
 
+const warnedMissingRoom = new Set<string>();
+
 export function roomById(id: string): Room {
   const r = BY_ID.get(id);
   if (!r) {
-    // Fail soft to the shop rather than crash the world on a bad link.
-    if (import.meta.env?.DEV) console.warn(`[rooms] unknown room id "${id}", falling back to shop`);
+    // Fail soft to the shop rather than crash the world on a bad id — but
+    // surface it LOUDLY once (dev and prod) so a typo as the graph grows shows
+    // up as an error, not a silent "why am I back in the shop?" content bug.
+    // One-shot per id: roomById runs every frame, so don't spam the console.
+    if (!warnedMissingRoom.has(id)) {
+      warnedMissingRoom.add(id);
+      console.error(`[rooms] unknown room id "${id}" — falling back to "${ROOMS[0].id}"`);
+    }
     return ROOMS[0];
   }
   return r;

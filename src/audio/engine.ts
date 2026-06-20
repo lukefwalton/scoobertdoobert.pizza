@@ -187,7 +187,11 @@ class PizzaAudio {
       (window as Window & { __sdpProximity?: number }).__sdpProximity = this.proximity;
     }
     if (!this.ctx || !this.master || this.muted) return;
-    this.master.gain.setTargetAtTime(this.targetGain(), this.ctx.currentTime, 0.1);
+    // Called every frame by the jukebox room — cancel pending automation first
+    // (like applyGain) so setTargetAtTime events don't stack up on the param.
+    const now = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setTargetAtTime(this.targetGain(), now, 0.1);
   }
 
   setMuted(m: boolean): void {
