@@ -214,6 +214,12 @@ The friendliest thing in the world becoming the wrongest is the payoff.
 - **Lazy-load per level**, hidden behind the descent. The big liminal levels
   (pool, backrooms, metro) are the *bitter* end — they sit deep, broken up by
   the goofy relief beats.
+- **The HEAVIEST levels go behind the loader minigame — that's the load it earns
+  its keep on (Luke).** A 500 KB GLB pops in; a 5 MB one (the abandoned pool, the
+  bottom of the water descent, reached GLB→GLB from the liminal) is where "PLEASE
+  WAIT WHILE THE PIZZA REHEATS" + the runner actually *masks* a wait. Crunch
+  hard, but let the depth carry weight — a heavy deep level is a feature, not a
+  budget problem, because the minigame turns the load into ceremony.
 - **Provenance is the real homework (we're going public):** verify each GLB's
   actual license — CC-BY needs attribution, **CC-BY-NC can't ship on a public
   site at all**, unprovenanced rips get dropped. Keep `THIRD_PARTY_NOTICES.md`
@@ -300,6 +306,14 @@ screenshot) — same no-copyrighted-marks / CC0-or-own-assets rules, same fricti
 budget. It rides the minigame infra above; the only new work is a touch control
 scheme + a mobile entry point that replaces the "this needs a desktop" wall with
 a playable goof. Surface zone = stays safe + silly (no dread on the phone game).
+
+**Stronger version (Luke): the minigames ARE the mobile experience.** Not one
+token game — mobile's whole "beyond the normal site" layer is the minigame
+arcade. The 3D world stays desktop-only, but the loader-runner family (the
+broken-web-button runner, a Snake, a breakout) becomes a small touch-first arcade
+you reach from the storefront on a phone — the mobile reward *is* the games,
+where desktop's reward is the descent. Same engine, same no-marks/CC0 rules; the
+loaders we already build for desktop double as the mobile catalogue.
 
 ### Webcam policy (the one narrow exception to "no real camera")
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
