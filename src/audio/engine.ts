@@ -432,15 +432,15 @@ class PizzaAudio {
    *  ctx (i.e. silent on the storefront until you actually descend). */
   setDreadLevel(u: number): void {
     this.dreadLevel = Math.max(0, Math.min(1, u));
-    if (this.ctx && this.master) {
-      this.ensureDread();
-      if (this.dreadBed && Math.abs(this.dreadLevel - this.dreadApplied) >= 0.01) {
-        this.dreadApplied = this.dreadLevel;
-        const target = Math.max(0.0001, mapUnease(this.dreadLevel).subBassGain * DREAD_BED_MAX);
-        const now = this.ctx.currentTime;
-        this.dreadBed.gain.cancelScheduledValues(now);
-        this.dreadBed.gain.setTargetAtTime(target, now, 0.4);
-      }
+    // Pre-gesture (no ctx): no bed AND no haptics — a true no-op until you descend.
+    if (!this.ctx || !this.master) return;
+    this.ensureDread();
+    if (this.dreadBed && Math.abs(this.dreadLevel - this.dreadApplied) >= 0.01) {
+      this.dreadApplied = this.dreadLevel;
+      const target = Math.max(0.0001, mapUnease(this.dreadLevel).subBassGain * DREAD_BED_MAX);
+      const now = this.ctx.currentTime;
+      this.dreadBed.gain.cancelScheduledValues(now);
+      this.dreadBed.gain.setTargetAtTime(target, now, 0.4);
     }
     this.maybeHaptic();
   }

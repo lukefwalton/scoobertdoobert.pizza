@@ -47,6 +47,7 @@ export function DreadConductor() {
     // recordUnease (which only writes on a new max) would no-op anyway.
     let lastRecorded = useProgressStore.getState().maxUnease;
     let wasOverride = false;
+    let settling = false; // post-override: easing back down, don't record yet
 
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1); // clamp big gaps (tab refocus)
@@ -61,11 +62,14 @@ export function DreadConductor() {
         prevZone = currentZone(useSceneStore.getState()); // don't fire a trigger on release
         wasOverride = true;
       } else {
-        // Releasing ?debug override: absorb the synthetic value as the baseline
-        // so the manual peak can't be written to the save as a real high-water.
+        // Releasing ?debug override: re-sync the high-water baseline to the REAL
+        // saved max and enter a "settle" — while the synthetic value eases back
+        // down toward the zone's real target we DON'T record, so the manual peak
+        // never lands in the save AND real progress isn't suppressed afterward.
         if (wasOverride) {
-          lastRecorded = Math.max(lastRecorded, u);
           wasOverride = false;
+          settling = true;
+          lastRecorded = useProgressStore.getState().maxUnease;
         }
         const zone = currentZone(useSceneStore.getState());
         const base = baseUneaseFor(zone);
@@ -93,9 +97,13 @@ export function DreadConductor() {
         if (u < target) u = Math.min(target, u + DREAD.riseRatePerSec * dt);
         else if (u > target) u = Math.max(target, u - DREAD.decayRatePerSec * dt);
 
+        // Settle ends once the curve has eased back down to the real target;
+        // then real recording resumes.
+        if (settling && u <= target + 0.02) settling = false;
         // High-water mark for the persistence-gated curdled copy (throttled to
-        // ~0.05 buckets; recordUnease also only writes on a new max).
-        if (u - lastRecorded >= 0.05) {
+        // ~0.05 buckets; recordUnease also only writes on a new max). Skipped
+        // while settling so a debug override can't pollute the save.
+        if (!settling && u - lastRecorded >= 0.05) {
           lastRecorded = u;
           useProgressStore.getState().recordUnease(u);
         }
