@@ -1,0 +1,61 @@
+/* boot.css — the brief PIZZA-DOS boot card. Black screen, green phosphor text.
+   Fades out at the end of its ~2s life. Never shown under reduced motion (the
+   component gates that in JS) — the animation here is belt-and-suspenders. */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000000;
+  color: #33ff66;
+  font-family: 'Courier New', Courier, monospace;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6vmin;
+  cursor: url('/cursor.cur'), pointer;
+  animation: boot-out 2s forwards;
+}
+
+.boot__log {
+  margin: 0;
+  font-size: clamp(12px, 2.4vmin, 18px);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  text-shadow: 0 0 6px rgba(51, 255, 102, 0.5);
+}
+
+.boot__cursor {
+  animation: boot-blink 1s steps(1) infinite;
+}
+
+.boot__skip {
+  margin-top: 2.4em;
+  color: #2a8a55;
+  font-size: 0.8rem;
+}
+
+@keyframes boot-out {
+  0%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes boot-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boot {
+    animation: none;
+  }
+  .boot__cursor {
+    animation: none;
+  }
+}

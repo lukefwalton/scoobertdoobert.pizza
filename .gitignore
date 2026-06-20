@@ -27,3 +27,10 @@ credentials.json
 secrets.yaml
 secrets.yml
 token.json
+
+# Node / Vite build artifacts
+node_modules/
+dist/
+.shots/
+*.local
+.vercel/

@@ -1,0 +1,96 @@
+/* ───────────────────────────────────────────────────────────────────────────
+   global.css — base styles shared by every page.
+
+   The register is "offensively plain 1995–97 commercial web page": Times,
+   default link colors, beveled gray form controls, horizontal rules. Almost
+   nothing here is styled, and that is the joke. Keep it that way for the
+   storefront; the fancy eras live behind the Calzone Player install.
+
+   The one indulgence is the pizza mouse cursor — period-accurate for the era
+   and explicitly a keeper.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #ffffff;
+  color: #000000;
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 16px;
+  line-height: 1.35;
+  /* The pizza cursor. A keeper. */
+  cursor: url('/cursor.cur'), auto;
+}
+
+/* Keep the pizza on top of interactive elements too. */
+a,
+button,
+input[type='submit'],
+label,
+summary {
+  cursor: url('/cursor.cur'), pointer;
+}
+
+/* Period-accurate link colors. */
+a {
+  color: #0000ee;
+}
+a:visited {
+  color: #551a8b;
+}
+a:active {
+  color: #ff0000;
+}
+
+/* Classic beveled gray controls. inset for fields, outset for buttons. */
+input[type='text'],
+input[type='tel'],
+textarea,
+select {
+  font-family: inherit;
+  font-size: 1rem;
+  border: 2px inset #cfcfcf;
+  background: #ffffff;
+  padding: 1px 3px;
+  cursor: url('/cursor.cur'), text;
+}
+
+button,
+input[type='submit'] {
+  font-family: inherit;
+  font-size: 1rem;
+  border: 2px outset #cfcfcf;
+  background: #c0c0c0;
+  color: #000000;
+  padding: 2px 12px;
+}
+button:active,
+input[type='submit']:active {
+  border-style: inset;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid #808080;
+  height: 0;
+  margin: 14px 0;
+}
+
+/* Visible keyboard focus everywhere — the dead-plain look still has to be
+   operable without a mouse (or pizza). */
+:focus-visible {
+  outline: 2px solid #0000ee;
+  outline-offset: 1px;
+}

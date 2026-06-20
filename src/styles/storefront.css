@@ -1,0 +1,290 @@
+/* storefront.css — the small amount of layout the dead-plain front door needs.
+   A centered ~720px column reads as a 1996 commercial page without tipping into
+   anything that looks designed. */
+
+.store {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 18px 22px 48px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+.skip-link:focus {
+  position: static;
+  left: auto;
+  display: inline-block;
+  margin: 6px 0;
+}
+
+.util {
+  text-align: right;
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+/* JS-only "♪ music: on/off" control, sits beside the text-only link. */
+.mute-toggle {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin-left: 14px;
+  font: inherit;
+  color: #0000ee;
+  text-decoration: underline;
+  cursor: inherit;
+}
+/* While the track is still lazy-loading (or if it never loads) the control is
+   inert — gray, no link affordance. */
+.mute-toggle:disabled {
+  color: #888888;
+  text-decoration: none;
+  cursor: default;
+}
+
+h1 {
+  font-size: 1.95rem;
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+.logline {
+  margin: 0 0 8px;
+}
+
+.netscape {
+  font-size: 0.85rem;
+  color: #333333;
+  margin: 0;
+}
+
+.news p {
+  margin: 8px 0;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin: 10px 0 8px;
+}
+
+.menu-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.menu-list li {
+  margin: 7px 0;
+}
+.menu-list .topping {
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+/* The one intentionally-boring corporate link reads gray and tired. Still
+   underlined, still obviously a link — just deadpan. */
+.deadpan {
+  color: #555555;
+}
+.deadpan:visited {
+  color: #555555;
+}
+
+/* The order form is the easter-egg entrance, so it's the one LOUD element on an
+   otherwise dead-plain page (per Luke): a period "ORDER ONLINE!" callout box. */
+.order-callout {
+  border: 3px outset #c0c0c0;
+  background: #fffbe6;
+  margin: 8px 0 4px;
+}
+.order-callout__header {
+  background: #000080;
+  color: #ffffff;
+  font-size: 1.2rem;
+  text-align: center;
+  margin: 0;
+  padding: 7px 8px;
+  letter-spacing: 0.06em;
+}
+.order-callout__new {
+  color: #ffd23f;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .order-callout__new {
+    animation: sdp-blink 1.1s steps(1) infinite;
+  }
+}
+@keyframes sdp-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.order-form {
+  padding: 12px 18px 8px;
+}
+.order-form .field {
+  margin: 8px 0;
+}
+.order-form label {
+  font-weight: 700;
+}
+.order-cta {
+  margin-top: 12px;
+}
+.order-cta button[type='submit'] {
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 8px 30px;
+  background: #ffd23f;
+  border: 3px outset #e0b400;
+  color: #3a2a00;
+}
+.order-cta button[type='submit']:active {
+  border-style: inset;
+}
+.order-hint {
+  font-size: 0.85rem;
+  color: #444444;
+  margin: 8px 0 0;
+}
+
+/* DistroKid referral, as a subtle period "coupon" near the bottom (per Luke) —
+   not the old every-page-load interstitial. */
+.coupon {
+  border: 2px dashed #999999;
+  background: #fffef2;
+  padding: 8px 14px;
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+.coupon__cut {
+  display: block;
+  color: #999999;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+.coupon p {
+  margin: 4px 0 0;
+}
+
+/* Compact secondary-platform row in the footer. */
+.socials {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: #333333;
+}
+
+/* Quiet pointer to the full link archive — easter-egg + crawl entry, not nav. */
+.directory {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: #333333;
+}
+.socials__label {
+  color: #555555;
+}
+
+/* Logo + title header (the SD monogram up top, name beside it). */
+.store-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.store-logo {
+  width: 84px;
+  height: auto;
+  flex-shrink: 0;
+}
+.store-titlebar h1 {
+  font-size: 1.7rem;
+  margin: 0;
+}
+@media (max-width: 480px) {
+  .store-titlebar {
+    gap: 12px;
+  }
+  .store-logo {
+    width: 58px;
+  }
+  .store-titlebar h1 {
+    font-size: 1.3rem;
+  }
+}
+
+/* Love Music More badge in the footer. */
+.lmm {
+  margin: 12px 0 4px;
+}
+.lmm-logo {
+  width: 110px;
+  height: auto;
+}
+
+/* opt-in checkbox row reads as normal weight, not a bold field label */
+.optin-field label {
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+/* Honeypot field: present in the DOM for bots, off-screen for humans. Not
+   display:none (some bots skip those) — pushed out of view and out of tab order. */
+.hp-field {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Small inline press JPEGs, floated like a 1996 page would: a thin gray inset
+   border, a tiny centered caption. Deliberately undersized and a little wrong. */
+.snapshot {
+  margin: 0 0 6px 14px;
+  padding: 0;
+  width: 150px;
+}
+.snapshot--right {
+  float: right;
+  clear: right;
+}
+.snapshot img {
+  display: block;
+  width: 150px;
+  height: 150px;
+  border: 2px inset #c0c0c0;
+  background: #ffffff;
+}
+.snapshot figcaption {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #444444;
+  text-align: center;
+  margin-top: 2px;
+}
+@media (max-width: 480px) {
+  .snapshot,
+  .snapshot img {
+    width: 108px;
+  }
+  .snapshot img {
+    height: 108px;
+  }
+}
+
+.slogan {
+  margin-top: 10px;
+}
+
+footer {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #222222;
+}
+.copyright,
+.identity {
+  margin: 4px 0;
+}
