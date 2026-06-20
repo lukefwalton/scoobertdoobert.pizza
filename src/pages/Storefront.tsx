@@ -159,6 +159,9 @@ export default function Storefront() {
             </a>
           </p>
           <SocialLinks />
+          <p className="directory">
+            Looking for something specific? <a href="/links">Complete link archive &raquo;</a>
+          </p>
           <p className="lmm">
             <a
               href="https://lovemusicmore.substack.com/"
