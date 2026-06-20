@@ -77,6 +77,10 @@ await ctx.close();
 // ── mobile / low-power handoff ─────────────────────────────────────────────
 const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
 const mp = await mctx.newPage();
+mp.on('pageerror', (e) => {
+  errors++;
+  console.log('MOBILE EXC:', e.message);
+});
 await mp.goto(base + '/', { waitUntil: 'networkidle' });
 await mp.click('.floor-door--plain'); // descend via the door (order form -> /text on mobile)
 await mp.waitForTimeout(800);
@@ -86,8 +90,13 @@ await mp.click('.floor-door--down');
 await mp.waitForTimeout(800);
 const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.length)) === 0;
 await mp.click('.mr__install');
-await mp.waitForTimeout(1100);
-const mobileToText = mp.url().endsWith('/text');
+let mobileToText = false;
+try {
+  await mp.waitForURL('**/text', { timeout: 6000 });
+  mobileToText = true;
+} catch {
+  /* install never handed off to /text */
+}
 await mctx.close();
 
 await browser.close();
