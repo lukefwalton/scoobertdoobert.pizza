@@ -1,0 +1,95 @@
+/* storefront.css — the small amount of layout the dead-plain front door needs.
+   A centered ~720px column reads as a 1996 commercial page without tipping into
+   anything that looks designed. */
+
+.store {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 18px 22px 48px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+}
+.skip-link:focus {
+  position: static;
+  left: auto;
+  display: inline-block;
+  margin: 6px 0;
+}
+
+.util {
+  text-align: right;
+  margin: 0 0 6px;
+  font-size: 0.9rem;
+}
+
+h1 {
+  font-size: 1.95rem;
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+.logline {
+  margin: 0 0 8px;
+}
+
+.netscape {
+  font-size: 0.85rem;
+  color: #333333;
+  margin: 0;
+}
+
+.news p {
+  margin: 8px 0;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin: 10px 0 8px;
+}
+
+.menu-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.menu-list li {
+  margin: 7px 0;
+}
+.menu-list .topping {
+  vertical-align: -2px;
+  margin-right: 5px;
+}
+
+/* The one intentionally-boring corporate link reads gray and tired. Still
+   underlined, still obviously a link — just deadpan. */
+.deadpan {
+  color: #555555;
+}
+.deadpan:visited {
+  color: #555555;
+}
+
+.order-form .field {
+  margin: 8px 0;
+}
+.order-form label {
+  font-weight: 700;
+}
+
+.slogan {
+  margin-top: 10px;
+}
+
+footer {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: #222222;
+}
+.copyright,
+.identity {
+  margin: 4px 0;
+}
