@@ -13,7 +13,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
 
-export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified';
+export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified' | 'poolrooms';
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
@@ -84,6 +84,9 @@ export const ROOMS: Room[] = [
       // 3.2 radius) so you land IN the room, not on its prompt, and a held E
       // can't immediately bounce you back through it. Faces the sea.
       fromHall: { position: [0, EYE, ROOM.halfD - 4.5], yaw: Math.PI },
+      // Arriving back up from the pool: by the +X pool door, clear of its radius,
+      // facing the window/room.
+      fromPool: { position: [ROOM.halfW - 4.5, EYE, 3.5], yaw: Math.PI },
     },
     doors: [
       {
@@ -94,6 +97,16 @@ export const ROOMS: Room[] = [
         position: [0, 0, ROOM.halfD - 0.05],
         rotationY: 0,
         label: 'enter the back hall',
+        radius: 3.2,
+      },
+      {
+        id: 'shop-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromShop',
+        // Right (+X) wall, toward the back — a stairwell down to the level below.
+        position: [ROOM.halfW - 0.05, 0, 3.5],
+        rotationY: -Math.PI / 2,
+        label: 'go down to the pool',
         radius: 3.2,
       },
     ],
@@ -199,6 +212,32 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'back out to the hall',
         radius: 2.6,
+      },
+    ],
+  },
+  {
+    id: 'poolrooms',
+    kind: 'poolrooms',
+    title: 'The Poolrooms',
+    // Bigger + a touch lower-ceilinged than the shop; room to skirt the pool.
+    dims: { halfW: 9, halfD: 9, height: 4.5, eye: EYE },
+    // Pale aqua, over-lit, close-ish fog — liminal is BRIGHT and empty, not dark.
+    palette: { background: '#bfe3ea', fog: '#cfe9ef', fogNear: 5, fogFar: 38 },
+    spawns: {
+      // Arrive on the deck just past the +Z wall (clear of the return door),
+      // facing -Z across the still pool toward the far wall.
+      default: { position: [0, EYE, 5], yaw: Math.PI },
+      fromShop: { position: [0, EYE, 5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'pool-to-shop',
+        to: 'shop',
+        toSpawn: 'fromPool',
+        position: [0, 0, 8.95], // +Z wall
+        rotationY: 0,
+        label: 'back up to the shop',
+        radius: 3.2,
       },
     ],
   },
