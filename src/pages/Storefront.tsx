@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
 import { SampleMenu } from '../components/SampleMenu';
+import { SocialLinks } from '../components/SocialLinks';
 import { OrderForm } from '../components/OrderForm';
 import { AudioBootstrap } from '../components/AudioBootstrap';
 import { BootScreen } from '../components/BootScreen';
@@ -104,6 +105,24 @@ export default function Storefront() {
 
         <hr />
 
+        <aside className="coupon" aria-label="DistroKid coupon">
+          <span className="coupon__cut" aria-hidden="true">
+            &#9986; - - - - - - - - - - - - - - - -
+          </span>
+          <p>
+            <b>COUPON:</b> Are you a musician? Distribute your music and{' '}
+            <a
+              href="https://distrokid.com/vip/lovemusicmore"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              get a discount on DistroKid &raquo;
+            </a>
+          </p>
+        </aside>
+
+        <hr />
+
         <footer>
           <p>
             Questions or comments?{' '}
@@ -111,6 +130,7 @@ export default function Storefront() {
               Email the webmaster.
             </a>
           </p>
+          <SocialLinks />
           <p className="copyright">
             &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
           </p>
