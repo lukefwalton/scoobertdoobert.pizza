@@ -263,8 +263,9 @@ export const ROOMS: Room[] = [
       // facing -Z across the still pool toward the far wall.
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromShop: { position: [0, EYE, 5], yaw: Math.PI },
-      // Back up from the deeper liminal level: by the -Z door, facing +Z.
-      fromLiminal: { position: [0, EYE, -5], yaw: 0 },
+      // Climbing back up out of the liminal level — you surface near the centre
+      // door, a step clear of its radius, facing the room (-Z).
+      fromLiminal: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Stumbling back out of the looping corridor: by the +X door, facing into
       // the room (-X), clear of every door radius.
       fromMobius: { position: [4.5, EYE, 5], yaw: -Math.PI / 2 },
@@ -283,10 +284,13 @@ export const ROOMS: Room[] = [
         id: 'pool-to-liminal',
         to: 'liminal',
         toSpawn: 'fromPool',
-        position: [0, 0, -8.95], // far (-Z) wall — deeper down
-        rotationY: Math.PI,
-        label: 'go deeper',
-        radius: 3.2,
+        // DEAD CENTRE, standing on the false water — the only way deeper is to
+        // walk out across the pool to it (PoolroomsRoom renders the water). Faces
+        // +Z toward the entry so you walk straight into it.
+        position: [0, 0, 0],
+        rotationY: 0,
+        label: 'step through the door on the water',
+        radius: 2.8,
       },
       {
         id: 'pool-to-mobius',

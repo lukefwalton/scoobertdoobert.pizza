@@ -251,6 +251,19 @@ export function WorldHud() {
         aria-hidden="true"
         style={{ ['--room-fade-ms' as string]: `${ROOM_FADE_MS}ms` }}
       />
+
+      {/* The watery descent: stepping through the door on the pool's water drops
+          you down a WATERFALL into the liminal level — rushing water over the
+          black wipe for the whole transition (both halves: pending → liminal,
+          then the fade-in while currentRoom is already liminal). */}
+      <div
+        className={`hud-waterfall${
+          pendingRoom?.to === 'liminal' || (transitioning && currentRoom === 'liminal')
+            ? ' hud-waterfall--on'
+            : ''
+        }`}
+        aria-hidden="true"
+      />
     </>
   );
 }

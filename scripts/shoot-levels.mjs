@@ -85,8 +85,8 @@ let reEnter = false;
   inPool = await roomIs(page, 'The Poolrooms');
   await page.screenshot({ path: '.shots/levels-pool.png' });
 
-  // Pool spawn faces -Z; the "go deeper" door is in the far (-Z) wall → walk W.
-  // This door's target is a GLB level, so stepping through raises the loader.
+  // Pool spawn faces -Z; the way down is the door DEAD CENTRE, out across the
+  // false water → walk W to it. Its target is a GLB level, so it raises the loader.
   await page.keyboard.down('w');
   let deepPrompt = false;
   try {
@@ -151,11 +151,11 @@ let reEnter = false;
   //    Regression for the ready/reset race: the loader must STILL reach the
   //    ready state (not get stranded at ready=false) and let us back in.
   if (backToPool) {
-    // Arrived via the 'fromLiminal' spawn (z=-5, facing +Z), so the deep door is
-    // now BEHIND us at -Z → walk S to reach it again.
-    await page.keyboard.down('s');
+    // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z), so the centre door
+    // is straight ahead across the water → walk W to reach it again.
+    await page.keyboard.down('w');
     await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-    await page.keyboard.up('s');
+    await page.keyboard.up('w');
     await page.keyboard.press('e'); // → liminal again (cached)
     reReady = await page
       .waitForFunction(
@@ -225,11 +225,11 @@ let retryRecovered = false;
       //    poisoned useGLTF cache, so once the asset is reachable again, re-entering
       //    the room in the SAME tab should now load (no page reload required).
       await page.unroute('**/models/liminal-other-space.glb'); // the hiccup passes
-      // Back in poolrooms at the 'fromLiminal' spawn (z=-5, facing +Z) → the deep
-      // door is behind us at -Z, so walk S to reach it again.
-      await page.keyboard.down('s');
+      // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z) → the centre door
+      // is straight ahead across the water, so walk W to reach it again.
+      await page.keyboard.down('w');
       await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-      await page.keyboard.up('s');
+      await page.keyboard.up('w');
       await page.keyboard.press('e'); // → liminal, retry
       retryRecovered = await page
         .waitForFunction(
