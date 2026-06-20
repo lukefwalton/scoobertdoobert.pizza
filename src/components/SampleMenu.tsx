@@ -1,4 +1,4 @@
-import { DESTINATIONS } from '../data/links';
+import { MENU_DESTINATIONS } from '../data/links';
 import { ToppingIcon } from './ToppingIcon';
 
 // The "Sample Menu" — the topping-icon nav row. Every item is a real <a href>
@@ -10,7 +10,7 @@ export function SampleMenu() {
     <nav id="menu" className="menu" aria-label="Sample Menu">
       <h2>Sample Menu</h2>
       <ul className="menu-list">
-        {DESTINATIONS.map((d) => (
+        {MENU_DESTINATIONS.map((d) => (
           <li key={d.id}>
             <ToppingIcon topping={d.topping} />{' '}
             <a

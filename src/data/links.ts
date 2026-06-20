@@ -39,6 +39,8 @@ export type Dest = {
   external?: boolean;
   /** The one intentionally-boring corporate link. Renders deadpan/gray. */
   deadpan?: boolean;
+  /** 'social' = secondary platform link (compact row); default behaves as menu. */
+  group?: 'menu' | 'social';
 };
 
 export const DESTINATIONS: Dest[] = [
@@ -97,7 +99,72 @@ export const DESTINATIONS: Dest[] = [
     external: true,
     deadpan: true,
   },
+
+  // --- secondary platform links, restored from the live site so the rebuild
+  //     doesn't drop real backlinks / merch. Rendered as a compact social row,
+  //     not in the curated Sample Menu. ---
+  {
+    id: 'applemusic',
+    label: 'Apple Music',
+    href: 'https://music.apple.com/us/artist/scoobert-doobert/1240946356',
+    blurb: 'Scoobert on Apple Music.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'soundcloud',
+    label: 'SoundCloud',
+    href: 'http://soundcloud.com/mrscoobertdoobert',
+    blurb: 'Scoobert on SoundCloud.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'tiktok',
+    label: 'TikTok',
+    href: 'https://www.tiktok.com/@mr.scoobert_doobert',
+    blurb: 'Scoobert on TikTok.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'threads',
+    label: 'Threads',
+    href: 'https://www.threads.net/@scoobertdoobert.pizza',
+    blurb: 'Scoobert on Threads.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'reddit',
+    label: 'Reddit',
+    href: 'https://www.reddit.com/user/mrscoobertdoobert',
+    blurb: 'Scoobert on Reddit.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'merch',
+    label: 'T-Shirts',
+    href: 'https://scoobertdoobert.threadless.com/',
+    blurb: 'Scoobert merch on Threadless.',
+    group: 'social',
+    external: true,
+  },
+  {
+    id: 'podcastfeed',
+    label: 'Podcast feed',
+    href: 'https://anchor.fm/scoobertdoobert',
+    blurb: 'The Love Music More podcast feed.',
+    group: 'social',
+    external: true,
+  },
 ];
+
+/** The curated storefront menu (everything that isn't a secondary social link). */
+export const MENU_DESTINATIONS = DESTINATIONS.filter((d) => d.group !== 'social');
+/** Secondary platform links for the compact social row. */
+export const SOCIAL_DESTINATIONS = DESTINATIONS.filter((d) => d.group === 'social');
 
 /** The flat fallback page. Its own in-site route, linked from the corner. */
 export const TEXT_ONLY_PATH = '/text';

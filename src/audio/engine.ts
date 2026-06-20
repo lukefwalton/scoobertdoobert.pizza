@@ -141,6 +141,26 @@ class PizzaAudio {
       this.lowpass.frequency.linearRampToValueAtTime(700, now + durationMs / 1000);
     }
   }
+
+  /**
+   * Restore normal pitch + brightness. Called when returning to the storefront
+   * so the descent's one-way bend doesn't leave the loop slowed/muffled for the
+   * rest of the session (and so a second descent bends from normal again).
+   */
+  restorePitch(durationMs = 800): void {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    if (this.source) {
+      const rate = this.source.playbackRate;
+      rate.cancelScheduledValues(now);
+      rate.setValueAtTime(rate.value, now);
+      rate.linearRampToValueAtTime(1, now + durationMs / 1000);
+    }
+    if (this.lowpass) {
+      this.lowpass.frequency.cancelScheduledValues(now);
+      this.lowpass.frequency.linearRampToValueAtTime(2200, now + durationMs / 1000);
+    }
+  }
 }
 
 // Constructor is inert, so a module-level singleton is SSR-safe.

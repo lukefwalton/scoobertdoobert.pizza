@@ -143,6 +143,35 @@ h2 {
   margin: 8px 0 0;
 }
 
+/* DistroKid referral, as a subtle period "coupon" near the bottom (per Luke) —
+   not the old every-page-load interstitial. */
+.coupon {
+  border: 2px dashed #999999;
+  background: #fffef2;
+  padding: 8px 14px;
+  margin: 4px 0;
+  font-size: 0.9rem;
+}
+.coupon__cut {
+  display: block;
+  color: #999999;
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+}
+.coupon p {
+  margin: 4px 0 0;
+}
+
+/* Compact secondary-platform row in the footer. */
+.socials {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: #333333;
+}
+.socials__label {
+  color: #555555;
+}
+
 .slogan {
   margin-top: 10px;
 }

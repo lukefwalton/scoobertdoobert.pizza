@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
-import { DESTINATIONS, destById } from '../data/links';
+import { MENU_DESTINATIONS, destById } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { audio } from '../audio/engine';
@@ -72,7 +72,7 @@ export function WorldHud() {
             <div className="window-body">
               <p className="hud-pause__hint">Every destination, always one keypress away.</p>
               <ul className="hud-pause__list">
-                {DESTINATIONS.map((d) => (
+                {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>
                     <a
                       href={d.href}
@@ -93,7 +93,14 @@ export function WorldHud() {
                   ♪ music: {muted ? 'off' : 'on'}
                 </button>
                 <button onClick={() => setPaused(false)}>Resume</button>
-                <button onClick={() => exitWorld()}>Return to storefront</button>
+                <button
+                  onClick={() => {
+                    audio.restorePitch();
+                    exitWorld();
+                  }}
+                >
+                  Return to storefront
+                </button>
               </div>
             </div>
           </div>
