@@ -26,7 +26,20 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const worldActive = useSceneStore((s) => s.worldActive);
   const dests = resolveLinks(floor.links);
 
+  // The 3D world (and the CRT's live WebGL render) is desktop + motion-OK only.
+  // Mobile / reduced-motion can still WALK the machine room — it's a normal page
+  // — but the CRT shows a static screen and Install hands off to the flat menu.
+  // (MachineRoomFloor only ever renders client-side, so window is safe here.)
+  const lowPower =
+    typeof window !== 'undefined' &&
+    (window.matchMedia('(max-width: 768px)').matches ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
   const install = () => {
+    if (lowPower) {
+      window.location.assign('/text');
+      return;
+    }
     audio.unlock();
     requestInstall();
   };
@@ -59,7 +72,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
 
         <aside className="mr__crt" aria-label="Live render preview">
           <div className="mr__crt-screen">
-            {!worldActive && (
+            {!worldActive && !lowPower && (
               <Suspense
                 fallback={<span className="mr__crt-boot">&#9679; BOOTING /dev/world&hellip;</span>}
               >
@@ -67,7 +80,9 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
               </Suspense>
             )}
             <span className="mr__crt-scanlines" aria-hidden="true" />
-            <span className="mr__crt-label">&#9679; LIVE &mdash; /dev/world</span>
+            <span className="mr__crt-label">
+              {lowPower ? '● /dev/world (desktop)' : '● LIVE — /dev/world'}
+            </span>
           </div>
           <p className="mr__crt-cap">Pizza Graphics Workstation, rendering the dream.</p>
         </aside>

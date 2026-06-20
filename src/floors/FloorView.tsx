@@ -24,6 +24,11 @@ function renderFloor(floor: Floor, index: number) {
     case 'machineRoom':
       return <MachineRoomFloor floor={floor} />;
     default:
+      // PlaceholderFloor stays the runtime safety net for a floor whose template
+      // hasn't been built yet — but a real typo in FLOORS should be loud in dev.
+      if (import.meta.env?.DEV) {
+        console.warn(`[floors] no template for "${floor.template}" — using placeholder`);
+      }
       return <PlaceholderFloor floor={floor} index={index} />;
   }
 }
