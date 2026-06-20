@@ -236,8 +236,10 @@ floors slot in without touching scene code.
       (proximity prompt + E/click → 98.css dialog w/ real anchor). Pause menu
       (Esc) overlays the full links.ts list as real anchors + mute + exit. ✓
       (PositionalAudio jukebox deferred — wiring in, real catalog audio later.)
-- [ ] **6. Mobile + reduced-motion fallback.** Skip descent/3D; storefront +
-      destination card list.
+- [x] **6. Mobile + reduced-motion fallback.** Descent + 3D + boot all gated off
+      mobile/reduced-motion; Continue navigates to the flat /text destination
+      list. Pause/hotspot dialogs are modal (Controls freezes input). ✓
+      (shoot-fallback + the pause-modal assertion in shoot-world.)
 - [ ] **7. README.** Run/deploy, where links + hotspots live, asset/licensing.
 
 `legacy/` holds the previous hand-built site (preserved, not part of the build).

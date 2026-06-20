@@ -2,6 +2,13 @@ import { useEffect, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { ROOM } from './constants';
+import { useSceneStore } from '../state/sceneStore';
+
+// True when a modal overlay (pause menu or hotspot dialog) should freeze input.
+function inputFrozen(): boolean {
+  const st = useSceneStore.getState();
+  return st.paused || st.openHotspot !== null;
+}
 
 // First-person look + move. Drag to look (no pointer-lock, so it never traps the
 // cursor and works fine for screenshots + the pause menu), WASD / arrows to walk,
@@ -18,6 +25,7 @@ export function Controls() {
     camera.position.set(0, ROOM.eye, ROOM.halfD - 1.5);
     const el = gl.domElement;
     const down = (e: PointerEvent) => {
+      if (inputFrozen()) return;
       dragging.current = true;
       last.current = { x: e.clientX, y: e.clientY };
     };
@@ -25,7 +33,7 @@ export function Controls() {
       dragging.current = false;
     };
     const move = (e: PointerEvent) => {
-      if (!dragging.current) return;
+      if (!dragging.current || inputFrozen()) return;
       yaw.current -= (e.clientX - last.current.x) * 0.005;
       pitch.current = Math.max(-0.9, Math.min(0.9, pitch.current - (e.clientY - last.current.y) * 0.005));
       last.current = { x: e.clientX, y: e.clientY };
@@ -51,6 +59,13 @@ export function Controls() {
   }, [camera, gl]);
 
   useFrame((_, delta) => {
+    // Expose camera position for automated "pause freezes input" checks.
+    (window as Window & { __sdpCam?: { x: number; z: number } }).__sdpCam = {
+      x: camera.position.x,
+      z: camera.position.z,
+    };
+    // Pause menu / hotspot dialog are modal: no movement or look underneath them.
+    if (inputFrozen()) return;
     const speed = 6 * Math.min(delta, 0.05);
     const k = keys.current;
     const fwd = (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0);

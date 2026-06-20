@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "shoot": "node scripts/shoot.mjs",
     "shoot:world": "node scripts/shoot-world.mjs",
-    "shoot:descent": "node scripts/shoot-descent.mjs"
+    "shoot:descent": "node scripts/shoot-descent.mjs",
+    "shoot:fallback": "node scripts/shoot-fallback.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
