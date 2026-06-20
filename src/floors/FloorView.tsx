@@ -3,6 +3,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { FLOORS } from '../data/floors';
 import { PlainFloor } from './PlainFloor';
 import { StarburstFloor } from './StarburstFloor';
+import { TableLayoutFloor } from './TableLayoutFloor';
 import { MachineRoomFloor } from './MachineRoomFloor';
 import { PlaceholderFloor } from './PlaceholderFloor';
 import { FloorTransition } from './FloorTransition';
@@ -18,6 +19,8 @@ function renderFloor(floor: Floor, index: number) {
       return <PlainFloor floor={floor} />;
     case 'starburst':
       return <StarburstFloor floor={floor} />;
+    case 'tableLayout':
+      return <TableLayoutFloor floor={floor} />;
     case 'machineRoom':
       return <MachineRoomFloor floor={floor} />;
     default:
