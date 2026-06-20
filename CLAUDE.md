@@ -188,8 +188,8 @@ Storefront copy, 1999 register (original — do not use Pizza Hut's words):
 - [x] **1. Project + storefront (fallback layer).** Vite+React+TS scaffold,
       dead-plain storefront, links.ts, text-only page, pizza cursor, 2026
       schema + meta. JS-disabled + crawlable. ✓ verified (Playwright, incl. JS-off)
-- [ ] **2. Boot + audio shell.** Brief period boot card (JS-only, skippable,
-      reduced-motion-aware), degraded-MIDI boot loop, mute toggle in zustand.
+- [x] **2. Boot + audio shell.** Brief period boot card (JS-only, skippable,
+      reduced-motion-aware), degraded-MIDI boot loop, mute toggle in zustand. ✓
 - [ ] **3. Descent transition.** Aging/CRT pass, Calzone Player™ install dialog
       (98.css), absurd progress bar masking the dynamic three.js import, optional
       crash fakeout, cut into the world.

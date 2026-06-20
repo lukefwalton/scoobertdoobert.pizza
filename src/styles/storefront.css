@@ -26,6 +26,17 @@
   font-size: 0.9rem;
 }
 
+/* JS-only "♪ music: on/off" control, sits beside the text-only link. */
+.mute-toggle {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin-left: 14px;
+  font: inherit;
+  color: #0000ee;
+  text-decoration: underline;
+}
+
 h1 {
   font-size: 1.95rem;
   line-height: 1.15;
