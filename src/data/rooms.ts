@@ -366,6 +366,8 @@ export const ROOMS: Room[] = [
     spawns: {
       default: { position: [0, EYE, 4.5], yaw: Math.PI },
       fromPool: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
+      fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
     },
     doors: [
       {
@@ -375,6 +377,47 @@ export const ROOMS: Room[] = [
         position: [0, 0, 8.45], // +Z wall (dims.halfD)
         rotationY: 0,
         label: 'back up to the pool',
+        radius: 3.2,
+      },
+      {
+        id: 'liminal-to-deep',
+        to: 'deeppool',
+        toSpawn: 'fromLiminal',
+        position: [0, 0, -8.45], // far (-Z) wall — deeper still (GLB → GLB)
+        rotationY: Math.PI,
+        label: 'go down to the deep end',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'deeppool',
+    kind: 'liminal',
+    title: 'The Abandoned Pool',
+    // The bitter bottom of the water descent — a heavy (52 MB → 5 MB crunched)
+    // GLB environment, lazy-loaded behind the loader minigame (this is the load
+    // the minigame earns its keep on). A GLB → GLB hop down from the liminal.
+    glb: {
+      url: '/models/abandoned-pool.glb',
+      fit: 22,
+      recoverTo: { to: 'liminal', spawn: 'fromDeep' },
+    },
+    drips: true, // still dripping, deeper down
+    dims: { halfW: 9, halfD: 9, height: 6.5, eye: EYE },
+    // Cold drained teal-black — the deep end, lights long dead.
+    palette: { background: '#0a1518', fog: '#0e1c1f', fogNear: 5, fogFar: 30 },
+    spawns: {
+      default: { position: [0, EYE, 5], yaw: Math.PI },
+      fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'deep-to-liminal',
+        to: 'liminal',
+        toSpawn: 'fromDeep',
+        position: [0, 0, 8.95], // +Z wall
+        rotationY: 0,
+        label: 'climb back up',
         radius: 3.2,
       },
     ],

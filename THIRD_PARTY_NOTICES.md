@@ -16,6 +16,7 @@ the public repo carries proper attribution. Anything not yet filled in is marked
 | shipped file | source `.glb` (in `media/models/`) | crunched | source URL | author | license |
 |---|---|---|---|---|---|
 | `liminal-other-space.glb` | `levels/liminal-other-space.glb` | 6.14 MB → 0.55 MB (gltf-transform: weld/simplify/prune/texture-compress/meshopt) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `abandoned-pool.glb` | `levels/abandoned-pool.glb` | 51.7 MB → 5.2 MB (optimize: meshopt, 128px) — the deep level behind the loader | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `palm-tree.glb` | `props/palm-tree.glb` | 391 KB → 77 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `arcade-cabinet.glb` | `props/arcade-cabinet.glb` | 4.01 MB → 110 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `mobius-strip.glb` | `mobius/triple-twist-mobius-strip.glb` | 113 KB → 13 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
