@@ -369,6 +369,24 @@ the dead-plain storefront carries a real `<a href="/arcade">` "INSERT COIN"
 callout. Next games (Snake, breakout) drop in beside it as more cabinets — the
 arcade is the shelf, this is the first cartridge.
 
+### Poke Scoobert — the face-stretch instrument (SHIPPED; the "play it" rung)
+A Mario-64-face-stretch toy, but it's Luke's face and it's an **instrument**. Grab
+the photo and pull — a soft grid of control points follows your finger and springs
+back like jelly (a 2D triangle-mesh warp, **no WebGL**, so it stays light on a
+phone and fits the arcade's three-free ethos). The hook that makes it *the site*:
+stretching **modulates Scoobert's own sample live** — pull up/down bends the pitch
+(`playbackRate`), sideways closes a lowpass — so poking his face plays his music.
+**No synth** (honors the audio rules — it's his real track, warped), mute-aware,
+touch-first. Lives as a second **arcade cabinet** at `/poke` (`FaceStretch.tsx`),
+linked from `/arcade`; progressive enhancement (crawlable shell, canvas mounts
+post-hydration). Next passes: a dedicated face asset, more expressive audio
+mapping, maybe a "record your poke" share.
+
+**The webcam is a SEPARATE idea (Luke), not a layer of this.** Poke-Scoobert is
+pointer/touch only and complete on its own. A camera-driven version (use your hand
+to grab the face) is its own future thread, gated by the Webcam policy below —
+don't couple them.
+
 ### Webcam policy (the one narrow exception to "no real camera")
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
 now means: never for the dread beat, never transmitted, never without explicit
