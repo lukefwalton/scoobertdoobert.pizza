@@ -268,14 +268,23 @@ floors slot in without touching scene code.
   `scripts/make-boot-audio.mjs` (decodes the master in headless Chromium, skips
   intro silence, crossfades the loop seam, 8-bit-crushes it). These are Luke's
   OWN songs (his copyright) — fine to ship degraded.
-- **Music = the layer themes (Luke's map).** Each descent layer has a track:
-  - **#1 / top (the world + boot loop): "Jolly Roger Bay (64)"** — his own song
-    nodding to the N64 underwater level. THIS is the current boot.wav.
+- **Music = the layer themes (Luke's map).** Each descent layer has a track,
+  and the rule is **the surface stays upbeat; it gets liminal as you go down.**
+  - **#1 / top (storefront + early descent, the boot loop): "Best Day Ever"** —
+    THIS is the current boot.wav (`bestdayeverRKmaster.mp3`). The early pages
+    should NOT sound liminal (Luke, 2026-06-20): the surface is goofy/safe, so
+    the boot loop is the happy song. The descent's existing rot mechanic
+    (`bendToDepth`) then drags it down — clean + upbeat at the top, slowed and
+    muffled the deeper you fall. A happy song corrupting as you descend.
+  - **"Jolly Roger Bay (64)"** — the N64-underwater-level nod; the *liminal*
+    track, freed for a deeper/world layer (it's also in the jukebox catalog).
+    Was the boot loop; demoted off the surface for being too liminal up top.
   - **down a layer: "Information"** — the next era-ladder floor (Phase 2).
   - **"1101" → the /save-san-diego ARG** (the `/1101` Twine page; the binary
     clue decodes to "save san diego").
-  Masters live on `main` root (`05 Information.mp3`, `09 Jolly Roger Bay
-  (64).mp3`, `21 1101.mp3`); only the degraded loop for the active layer ships.
+  Masters live in `media/masters/` (`05 Information.mp3`, `09 Jolly Roger Bay
+  (64).mp3`, `21 1101.mp3`, `bestdayeverRKmaster.mp3`); only the degraded loop
+  for the active layer ships.
 - **Audio is LAZY + GATED (no synth fallback).** `src/audio/engine.ts` lazy-loads
   + decodes the track via a throwaway OfflineAudioContext (no gesture needed);
   the music toggle stays DISABLED ("loading…") until decoded; if it never loads,
@@ -399,9 +408,18 @@ jukebox + the MTV-M2 "WHAT DO YOU / WANT TO HEAR?" marquee (`makeTextTexture`).
 The music payoff is REAL now without new assets: the engine gained a proximity
 duck (`audio.setProximityGain`, composed with mute) and the jukebox room drives
 it from camera distance, so the site's song (the boot loop) swells as you cross
-the room to the jukebox and fades as you leave. The drei `<PositionalAudio>` +
-real-catalog swap drops in here later (the hook is `JUKEBOX_POS` + the room's
-`JukeboxAudio`).
+the room to the jukebox and fades as you leave.
+✅ **ckpt2b the real catalog (Luke: "play a bunch of my music but kinda fucked
+up").** The jukebox now plays Scoobert's OWN songs in place of the ambient boot
+loop, degraded: `scripts/make-jukebox-audio.mjs` bounces each master in
+`media/masters/` to a tape-warbled (wow + flutter + dragged slow-down + hiss),
+8-bit / 11 kHz loop in `public/audio/jukebox/<slug>.wav` (lazy-loaded only in the
+room). `src/data/jukebox.ts` is the catalog as data; the engine swaps the single
+loop voice to a track (`playJukeboxTrack` / `restoreBoot`, the proximity duck +
+mute still apply); the cabinet is clickable (cycle) with a NOW-PLAYING amber
+readout. Started with the four masters in-repo; more drop in via the TRACKS list
++ re-run. (The drei `<PositionalAudio>` per-source swap is still a possible later
+refinement; the swell currently rides the engine duck.)
 ✅ **ckpt3 the rat.** `src/world/Rat.tsx` — one steering agent (seek a point
 ahead → leads you down the hall; flee when crowded → skittish), low-poly + a
 trailing tail, rendered by HallwayRoom.
