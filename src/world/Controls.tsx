@@ -3,14 +3,19 @@ import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { useLevelStore } from '../state/levelStore';
 
-// True when a modal overlay (pause / hotspot dialog) or a room transition should
-// freeze input. `transitioning` covers the WHOLE door wipe (fade-out + commit +
-// fade-in), so you can't walk or look during the reveal half, not just until the
-// swap.
+// True when a modal overlay (pause / hotspot dialog), a room transition, or a
+// GLB level loader should freeze input. `transitioning` covers the WHOLE door
+// wipe (fade-out + commit + fade-in). The level-loader gate freezes input while
+// the LoaderGame overlay is up for a GLB room — until the player taps in
+// (entered) — so WASD/look can't drift the camera behind the loader.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
-  return st.paused || st.openHotspot !== null || st.transitioning;
+  if (st.paused || st.openHotspot !== null || st.transitioning) return true;
+  const room = roomById(st.currentRoom);
+  if (room.glb && !useLevelStore.getState().entered) return true;
+  return false;
 }
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
