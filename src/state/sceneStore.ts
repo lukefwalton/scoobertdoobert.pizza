@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { BOTTOM_FLOOR } from '../data/floors';
-
-// The world starts in the beach shop. Kept as a bare string (not imported from
-// rooms.ts) so the store stays three-free — the rooms graph + its dims live in
-// the lazy world chunk, the store only tracks WHICH room/spawn by id.
-const FIRST_ROOM = 'shop';
+// FIRST_ROOM is the single source for the starting room id. rooms.ts is
+// three-free (it imports plain dims, never three), so the store can use it
+// without pulling three.js into the storefront bundle — verified by the
+// app-chunk check in the build.
+import { FIRST_ROOM } from '../data/rooms';
 
 // Scene/game state. Drives the floor descent (currentFloor), the world mount
 // (WorldMount), the hotspot prompts + dialogs, the room graph, and the pause menu.
