@@ -95,8 +95,8 @@ export function Doors() {
 
   useFrame(() => {
     const st = useSceneStore.getState();
-    // Freeze door prompts under a dialog/pause or mid-transition.
-    if (st.paused || st.openHotspot || st.pendingRoom) return;
+    // Freeze door prompts under a dialog/pause or for the whole room wipe.
+    if (st.paused || st.openHotspot || st.transitioning) return;
     let nearest: RoomDoor | null = null;
     let nd = Infinity;
     for (const d of doors) {

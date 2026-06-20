@@ -33,8 +33,10 @@ export function WorldHud() {
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const pendingRoom = useSceneStore((s) => s.pendingRoom);
+  const transitioning = useSceneStore((s) => s.transitioning);
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const commitRoom = useSceneStore((s) => s.commitRoom);
+  const endTransition = useSceneStore((s) => s.endTransition);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
@@ -84,16 +86,23 @@ export function WorldHud() {
   // A door was activated: the screen is fading to black — commit the room swap at
   // the midpoint (behind the black) so the geometry change is never seen, then
   // the overlay fades back up on the new room.
+  // The door wipe runs in two halves: fade-out → commit (swap behind the black)
+  // → fade-in. Input stays frozen (transitioning) for BOTH halves, not just
+  // until the commit, so you can't walk/look/pause during the reveal.
   useEffect(() => {
-    if (!pendingRoom) return;
-    // Reduced-motion gets no black pause (the CSS fade is already disabled for
-    // them) — commit immediately instead of waiting out ROOM_FADE_MS.
+    if (!transitioning) return;
+    // Reduced-motion gets no black pause (the CSS fade is disabled for them).
     const reduced =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const t = window.setTimeout(() => commitRoom(), reduced ? 0 : ROOM_FADE_MS);
-    return () => window.clearTimeout(t);
-  }, [pendingRoom, commitRoom]);
+    const fade = reduced ? 0 : ROOM_FADE_MS;
+    const tCommit = window.setTimeout(() => commitRoom(), fade);
+    const tEnd = window.setTimeout(() => endTransition(), fade * 2 + 20);
+    return () => {
+      window.clearTimeout(tCommit);
+      window.clearTimeout(tEnd);
+    };
+  }, [transitioning, commitRoom, endTransition]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -102,13 +111,15 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
+      // No input during the door wipe (E or Esc) — modal for the full fade.
+      if (st.transitioning) return;
       if (e.key === 'Escape') {
         if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot || st.pendingRoom) return;
+        if (st.paused || st.openHotspot) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           audio.unlock();

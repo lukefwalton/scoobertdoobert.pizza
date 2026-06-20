@@ -5,10 +5,12 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 
 // True when a modal overlay (pause / hotspot dialog) or a room transition should
-// freeze input — you don't walk during the door fade.
+// freeze input. `transitioning` covers the WHOLE door wipe (fade-out + commit +
+// fade-in), so you can't walk or look during the reveal half, not just until the
+// swap.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
-  return st.paused || st.openHotspot !== null || st.pendingRoom !== null;
+  return st.paused || st.openHotspot !== null || st.transitioning;
 }
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it

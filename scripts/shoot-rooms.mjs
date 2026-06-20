@@ -70,11 +70,22 @@ try {
 } catch {
   fail('back-hall door prompt never appeared');
 }
-await page.keyboard.press('e');
+await page.keyboard.press('e'); // start the wipe
+// The wipe is modal for its whole length: an Escape mid-wipe must NOT open pause.
+await page.waitForTimeout(110);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(140);
+const noPauseMidWipe = (await page.$('.hud-pause')) === null;
+if (!noPauseMidWipe) fail('Escape opened the pause menu mid-wipe (transition not modal)');
 const inHall = await roomIs('Back Hall');
+await page.screenshot({ path: '.shots/rooms-hall.png' }); // the rat leads down the hall
 
 // 3) Down the long corridor to the far door → the jukebox room.
-await walk('w', 5500);
+await page.keyboard.down('w');
+await page.waitForTimeout(4200); // past the welcome fade
+await page.screenshot({ path: '.shots/rooms-hall-rat.png' }); // the rat leading ahead
+await page.waitForTimeout(1300);
+await page.keyboard.up('w');
 let jukePrompt = false;
 try {
   await page.waitForSelector('.hud-prompt--door', { timeout: 3000 });
@@ -86,6 +97,9 @@ await page.keyboard.press('e');
 const inJuke = await roomIs('The Jukebox');
 await page.waitForTimeout(900);
 await page.screenshot({ path: '.shots/rooms-jukebox.png' });
+// The jukebox room ducks the loop by proximity, so the gain should be < 1 here.
+const duckedInJuke = (await page.evaluate(() => window.__sdpProximity ?? 1)) < 0.999;
+if (!duckedInJuke) fail('jukebox room did not duck the loop by proximity');
 
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.
@@ -107,10 +121,16 @@ await page.mouse.up();
 await page.mouse.click(box.x + box.width / 2, cy); // click the door mesh
 const clickEnter = await roomIs('Back Hall');
 
+// Leaving the jukebox must restore full volume — no permanently-ducked loop.
+await page.waitForTimeout(300);
+const audioRestored = (await page.evaluate(() => window.__sdpProximity ?? 1)) > 0.999;
+if (!audioRestored) fail('loop stayed ducked after leaving the jukebox');
+
 await browser.close();
 console.log(
   `rooms: shop=${startShop} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
-    `hall=${inHall} jukePrompt=${jukePrompt} jukebox=${inJuke} heldNoBounce=${heldNoBounce} ` +
-    `clickEnter=${clickEnter} | errors=${errors}`,
+    `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} jukePrompt=${jukePrompt} jukebox=${inJuke} ` +
+    `ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} clickEnter=${clickEnter} ` +
+    `audioRestored=${audioRestored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

@@ -180,6 +180,11 @@ class PizzaAudio {
    */
   setProximityGain(g: number): void {
     this.proximity = Math.max(0, Math.min(1, g));
+    // Expose for the rooms smoke: it asserts the duck restores to 1 after you
+    // leave the jukebox (a stuck-ducked loop would otherwise pass silently).
+    if (typeof window !== 'undefined') {
+      (window as Window & { __sdpProximity?: number }).__sdpProximity = this.proximity;
+    }
     if (!this.ctx || !this.master || this.muted) return;
     this.master.gain.setTargetAtTime(this.targetGain(), this.ctx.currentTime, 0.1);
   }
