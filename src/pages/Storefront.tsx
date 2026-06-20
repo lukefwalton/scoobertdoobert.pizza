@@ -55,8 +55,18 @@ export default function Storefront() {
           <MuteToggle />
         </p>
 
-        <header>
-          <h1>Scoobert Doobert&rsquo;s Electronic Pizza Storefront</h1>
+        <header className="store-header">
+          <div className="store-titlebar">
+            <img
+              src="/logo-sd.jpg"
+              alt=""
+              aria-hidden="true"
+              className="store-logo"
+              width="84"
+              height="74"
+            />
+            <h1>Scoobert Doobert&rsquo;s Electronic Pizza Storefront</h1>
+          </div>
           <p className="logline">
             A pizza shop off the coast of San Diego.
             <br />
@@ -126,11 +136,26 @@ export default function Storefront() {
         <footer>
           <p>
             Questions or comments?{' '}
-            <a href="mailto:webmaster@scoobertdoobert.pizza?subject=Comment%20for%20the%20Webmaster">
+            <a href="mailto:beformer@aol.com?subject=Comment%20for%20the%20Webmaster">
               Email the webmaster.
             </a>
           </p>
           <SocialLinks />
+          <p className="lmm">
+            <a
+              href="https://lovemusicmore.substack.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img
+                src="/brand/gg_ScoobertDoobert_LoveMusicMore.png"
+                alt="Love Music More"
+                className="lmm-logo"
+                width="110"
+                height="111"
+              />
+            </a>
+          </p>
           <p className="copyright">
             &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
           </p>

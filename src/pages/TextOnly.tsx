@@ -53,7 +53,7 @@ export default function TextOnly() {
 
       <p>
         Questions or comments?{' '}
-        <a href="mailto:webmaster@scoobertdoobert.pizza?subject=Comment%20for%20the%20Webmaster">
+        <a href="mailto:beformer@aol.com?subject=Comment%20for%20the%20Webmaster">
           Email the webmaster.
         </a>
       </p>
