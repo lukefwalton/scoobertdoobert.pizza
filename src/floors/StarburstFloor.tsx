@@ -21,7 +21,7 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
     d.external ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
 
   return (
-    <div className="sb">
+    <div className="sb" data-floor={floor.id}>
       <div className="sb__marquee" aria-hidden="true">
         <span>
           ★ NOW SERVING SIX UNRELEASED DEMOS UNDER ONE ROOF ★ BEST VIEWED IN NETSCAPE NAVIGATOR

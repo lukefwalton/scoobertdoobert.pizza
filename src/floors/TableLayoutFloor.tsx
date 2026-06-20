@@ -68,7 +68,7 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
   };
 
   return (
-    <div className="tl">
+    <div className="tl" data-floor={floor.id}>
       <div className="tl__brandbar" aria-hidden="true">
         {Array.from({ length: 9 }).map((_, i) => (
           <span key={i} className="tl__brandbar-slice" />

@@ -45,7 +45,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   };
 
   return (
-    <div className="mr">
+    <div className="mr" data-floor={floor.id}>
       <div className="mr__stars" aria-hidden="true" />
       <div className="mr__comet" aria-hidden="true">
         <span className="mr__comet-guy">&#127829;</span>

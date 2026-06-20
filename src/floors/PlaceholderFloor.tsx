@@ -15,7 +15,7 @@ export function PlaceholderFloor({ floor, index }: { floor: Floor; index: number
   const isBottom = index >= BOTTOM_FLOOR;
 
   return (
-    <div className="floor-placeholder" data-template={floor.template}>
+    <div className="floor-placeholder" data-floor={floor.id} data-template={floor.template}>
       <p className="floor-era">— {floor.era} —</p>
       <h1>{floor.title}</h1>
       {floor.copy && <p className="floor-copy">{floor.copy}</p>}
