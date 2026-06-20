@@ -5,6 +5,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
+import { audio } from '../audio/engine';
 
 // ───────────────────────────────────────────────────────────────────────────
 // DreadConductor — Phase 5, ckpt 1. The single place that drives `unease`.
@@ -45,6 +46,7 @@ export function DreadConductor() {
     // Seed from the saved high-water mark so a remount doesn't replay buckets
     // recordUnease (which only writes on a new max) would no-op anyway.
     let lastRecorded = useProgressStore.getState().maxUnease;
+    let wasOverride = false;
 
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.1); // clamp big gaps (tab refocus)
@@ -57,7 +59,14 @@ export function DreadConductor() {
         // ?debug manual take-over — drive it by hand, don't pollute the save.
         u = dread.override;
         prevZone = currentZone(useSceneStore.getState()); // don't fire a trigger on release
+        wasOverride = true;
       } else {
+        // Releasing ?debug override: absorb the synthetic value as the baseline
+        // so the manual peak can't be written to the save as a real high-water.
+        if (wasOverride) {
+          lastRecorded = Math.max(lastRecorded, u);
+          wasOverride = false;
+        }
         const zone = currentZone(useSceneStore.getState());
         const base = baseUneaseFor(zone);
 
@@ -94,6 +103,9 @@ export function DreadConductor() {
 
       u = Math.min(1, Math.max(0, u));
       if (u !== dread.unease) dread.setUnease(u);
+      // Drive the audio dread bed (the first instrument to read unease). Cheap +
+      // throttled inside the engine; no-op until a gesture has built the ctx.
+      audio.setDreadLevel(u);
       raf = requestAnimationFrame(tick);
     };
 

@@ -16,10 +16,16 @@
 // and user gestures.
 // ───────────────────────────────────────────────────────────────────────────
 
+import { mapUnease } from '../data/dread';
+
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
 // bends it down to 700.
 const REST_CUTOFF = 4200;
 const TRACK_URL = '/audio/boot.wav';
+
+// Peak gain of the sub-bass dread bed (added under the mix at max unease). Kept
+// low — it's meant to be FELT, a pressure change, not heard as a tone.
+const DREAD_BED_MAX = 0.16;
 
 class PizzaAudio {
   private ctx?: AudioContext;
@@ -44,6 +50,16 @@ class PizzaAudio {
   // loop (the site's song) swells as you approach the jukebox. 1 everywhere else.
   private proximity = 1;
   muted = false;
+
+  // ── dread bed (Phase 5 ckpt2) ──────────────────────────────────────────────
+  // A sub-bass drone whose level tracks `unease` — the felt-not-heard pressure
+  // bed. Built lazily once the ctx exists; routed through master so mute kills
+  // it. The DreadConductor pushes the level via setDreadLevel each frame.
+  private dreadBed?: GainNode;
+  private dreadOscs: OscillatorNode[] = [];
+  private dreadLevel = 0;
+  private dreadApplied = -1; // last level written to the param (throttle)
+  private hapticBucket = 0; // last vibration tier fired (so we buzz once per step up)
 
   /** True once the track is fetched + decoded and the loop can actually play. */
   get ready(): boolean {
@@ -375,6 +391,70 @@ class PizzaAudio {
       this.lowpass.frequency.setValueAtTime(this.lowpass.frequency.value, now);
       this.lowpass.frequency.linearRampToValueAtTime(cutoff, now + durationMs / 1000);
     }
+  }
+
+  /** Build the sub-bass dread bed once (needs a live ctx). Missing-fundamental:
+   *  partials at ~38/76/114 Hz, so a phone speaker that can't move 38 Hz still
+   *  IMPLIES the low pitch from the upper partials — the bed translates to small
+   *  speakers instead of being inaudible. Slightly detuned for a beating
+   *  "air pressure" shimmer, not a clean tone. Routed through master so mute
+   *  kills it. The oscillators run continuously at near-zero gain (cheap). */
+  private ensureDread(): void {
+    if (this.dreadBed || !this.ctx || !this.master) return;
+    const ctx = this.ctx;
+    const bed = ctx.createGain();
+    bed.gain.value = 0.0001;
+    bed.connect(this.master);
+    const partials: Array<[number, number, number]> = [
+      [38, 0.9, 0],
+      [76, 0.5, 5],
+      [114, 0.28, -6],
+    ];
+    for (const [freq, amp, detune] of partials) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.detune.value = detune;
+      const g = ctx.createGain();
+      g.gain.value = amp;
+      osc.connect(g);
+      g.connect(bed);
+      osc.start();
+      this.dreadOscs.push(osc);
+    }
+    this.dreadBed = bed;
+  }
+
+  /** Drive the dread bed from `unease` (0..1). Called every frame by the
+   *  DreadConductor; cheap + throttled. Mute is handled by master (the bed feeds
+   *  it), so this never has to special-case it. Also pulses mobile haptics on
+   *  crossing up into a higher dread tier. No-op until a gesture has built the
+   *  ctx (i.e. silent on the storefront until you actually descend). */
+  setDreadLevel(u: number): void {
+    this.dreadLevel = Math.max(0, Math.min(1, u));
+    if (this.ctx && this.master) {
+      this.ensureDread();
+      if (this.dreadBed && Math.abs(this.dreadLevel - this.dreadApplied) >= 0.01) {
+        this.dreadApplied = this.dreadLevel;
+        const target = Math.max(0.0001, mapUnease(this.dreadLevel).subBassGain * DREAD_BED_MAX);
+        const now = this.ctx.currentTime;
+        this.dreadBed.gain.cancelScheduledValues(now);
+        this.dreadBed.gain.setTargetAtTime(target, now, 0.4);
+      }
+    }
+    this.maybeHaptic();
+  }
+
+  /** Mobile haptics on the sharpest dread beats: a short buzz when unease crosses
+   *  UP into a higher tier (no-op on desktop — navigator.vibrate is absent —
+   *  and while muted). Tiers, not continuous, so it's a punctuation not a rumble. */
+  private maybeHaptic(): void {
+    const tier =
+      this.dreadLevel >= 0.85 ? 3 : this.dreadLevel >= 0.7 ? 2 : this.dreadLevel >= 0.55 ? 1 : 0;
+    if (tier > this.hapticBucket && !this.muted && typeof navigator !== 'undefined') {
+      navigator.vibrate?.(40 + tier * 25);
+    }
+    this.hapticBucket = tier;
   }
 }
 
