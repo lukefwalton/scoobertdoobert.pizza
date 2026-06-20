@@ -168,6 +168,13 @@ h2 {
   font-size: 0.85rem;
   color: #333333;
 }
+
+/* Quiet pointer to the full link archive — easter-egg + crawl entry, not nav. */
+.directory {
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: #333333;
+}
 .socials__label {
   color: #555555;
 }

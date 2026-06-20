@@ -1,0 +1,67 @@
+/* archive.css — the Link Archive. Same dead-plain 1996 register as the
+   storefront (Times, blue/purple links, hrs), just a wider column and
+   multi-column link lists so ~450 links stay scannable instead of becoming an
+   endless single file. */
+
+.archive {
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 18px 22px 56px;
+}
+
+.archive h1 {
+  font-size: 1.8rem;
+  line-height: 1.15;
+  margin: 0 0 8px;
+}
+
+.archive__lede {
+  margin: 0 0 8px;
+  max-width: 60ch;
+}
+
+.archive__nav {
+  font-size: 0.9rem;
+  margin: 0 0 4px;
+}
+
+.archive__section {
+  margin: 18px 0 4px;
+}
+
+.archive h2 {
+  font-size: 1.3rem;
+  margin: 18px 0 6px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid #cccccc;
+}
+
+.archive h3 {
+  font-size: 1.02rem;
+  margin: 12px 0 4px;
+  color: #333333;
+}
+
+/* Multi-column so dense link lists wrap into newspaper columns. Items must not
+   split across a column boundary. */
+.archive__links {
+  list-style: none;
+  padding-left: 0;
+  margin: 4px 0 10px;
+  columns: 280px 3;
+  column-gap: 28px;
+}
+
+.archive__links li {
+  margin: 3px 0;
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+@media (max-width: 560px) {
+  .archive__links {
+    columns: 1;
+  }
+}

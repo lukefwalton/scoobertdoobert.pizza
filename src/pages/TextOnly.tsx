@@ -52,6 +52,10 @@ export default function TextOnly() {
       <hr />
 
       <p>
+        Want every link, everywhere? <a href="/links">Complete link archive</a> &mdash; streaming,
+        press, podcast, releases, and live shows.
+      </p>
+      <p>
         Questions or comments?{' '}
         <a href="mailto:beformer@aol.com?subject=Comment%20for%20the%20Webmaster">
           Email the webmaster.
