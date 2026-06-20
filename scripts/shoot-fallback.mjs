@@ -10,7 +10,8 @@ mkdirSync('.shots', { recursive: true });
 const browser = await chromium.launch();
 let fail = 0;
 
-// --- Mobile: no descent, no canvas, Continue -> /text ---
+// --- Mobile: no descent, no 3D — Continue lands in the ARCADE (mobile's reward,
+//     the minigames ARE the mobile experience), not the 3D world. ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -28,17 +29,24 @@ let fail = 0;
   await page.click('#order-form button[type="submit"]');
   await page.waitForTimeout(900);
   const url = page.url();
-  const canvas = await page.$('canvas');
-  if (!url.includes('/text')) {
+  if (!url.includes('/arcade')) {
     fail++;
-    console.log('MOBILE: Continue did not navigate to /text ->', url);
+    console.log('MOBILE: Continue did not navigate to /arcade ->', url);
   }
-  if (canvas) {
+  // The arcade's 2D game canvas is expected; what must NOT appear is the 3D
+  // world (its HUD room label). Distinguish by selector, not by "any canvas".
+  const arcadeCanvas = await page.$('.arcade-canvas');
+  const worldHud = await page.$('.hud-room');
+  if (!arcadeCanvas) {
     fail++;
-    console.log('MOBILE: a 3D canvas appeared (should be skipped)');
+    console.log('MOBILE: arcade game canvas missing on /arcade');
+  }
+  if (worldHud) {
+    fail++;
+    console.log('MOBILE: the 3D world mounted (should be skipped)');
   }
   await page.screenshot({ path: '.shots/fallback-mobile.png', fullPage: true });
-  console.log(`mobile    -> ${url}  canvas=${!!canvas}`);
+  console.log(`mobile    -> ${url}  arcadeCanvas=${!!arcadeCanvas} worldHud=${!!worldHud}`);
   await ctx.close();
 }
 
