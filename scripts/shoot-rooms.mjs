@@ -153,6 +153,37 @@ const clickEnter = await roomIs('Back Hall');
 await page.waitForTimeout(300);
 const audioRestored = (await page.evaluate(() => window.__sdpProximity ?? 1)) > 0.999;
 if (!audioRestored) fail('loop stayed ducked after leaving the jukebox');
+await ctx.close();
+
+// Reduced-motion uses a distinct, near-instant commit (fade=0) path. The world
+// is skipped on the real low-power entrance, but a mid-session toggle can still
+// reach it — so confirm a door still transitions cleanly with reduced motion.
+let rmDoor = false;
+{
+  const rmCtx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'reduce',
+  });
+  const rm = await rmCtx.newPage();
+  rm.on('pageerror', (e) => fail(`reduced-motion pageerror: ${e.message}`));
+  await rm.goto(base + '/?world=1', { waitUntil: 'commit' });
+  try {
+    await rm.waitForSelector('.hud-menu-btn', { timeout: 12000 });
+    await rm.waitForTimeout(1200);
+    await rm.keyboard.down('s');
+    await rm.waitForTimeout(900);
+    await rm.keyboard.up('s');
+    await rm.keyboard.press('e');
+    await rm.waitForFunction(
+      () => document.querySelector('.hud-room')?.textContent?.includes('Back Hall') ?? false,
+      { timeout: 5000 },
+    );
+    rmDoor = true;
+  } catch (e) {
+    fail(`reduced-motion door transition failed: ${e.message}`);
+  }
+  await rmCtx.close();
+}
 
 await browser.close();
 console.log(
@@ -160,6 +191,6 @@ console.log(
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} jukePrompt=${jukePrompt} ` +
     `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
-    `clickEnter=${clickEnter} audioRestored=${audioRestored} | errors=${errors}`,
+    `clickEnter=${clickEnter} audioRestored=${audioRestored} rmDoor=${rmDoor} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

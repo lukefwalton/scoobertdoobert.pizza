@@ -87,7 +87,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
   setFloor: (i) => set({ currentFloor: Math.max(0, Math.min(i, BOTTOM_FLOOR)) }),
-  // Entering the world always starts in the first room (the beach shop).
+  // Entering the world always starts in the first room (the beach shop) with a
+  // clean slate — defensively clear any modal/proximity state so the world's
+  // input gates never inherit a stale dialog/pause/prompt from the descent.
   enterWorld: () =>
     set({
       worldActive: true,
@@ -96,6 +98,10 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       transitioning: false,
       secretRevealed: false,
+      paused: false,
+      openHotspot: null,
+      nearHotspot: null,
+      nearDoor: null,
     }),
   // Leaving the world drops you back at the storefront (floor 0), not the
   // machine room you installed from — and resets the room graph for next time.
