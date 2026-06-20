@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
+import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { audio } from '../audio/engine';
@@ -30,6 +31,10 @@ export function WorldHud() {
   const near = useSceneStore((s) => s.nearHotspot);
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
+  const nearDoor = useSceneStore((s) => s.nearDoor);
+  const pendingRoom = useSceneStore((s) => s.pendingRoom);
+  const currentRoom = useSceneStore((s) => s.currentRoom);
+  const commitRoom = useSceneStore((s) => s.commitRoom);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
@@ -76,6 +81,15 @@ export function WorldHud() {
     };
   }, [typed]);
 
+  // A door was activated: the screen is fading to black — commit the room swap at
+  // the midpoint (behind the black) so the geometry change is never seen, then
+  // the overlay fades back up on the new room.
+  useEffect(() => {
+    if (!pendingRoom) return;
+    const t = window.setTimeout(() => commitRoom(), 230);
+    return () => window.clearTimeout(t);
+  }, [pendingRoom, commitRoom]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const st = useSceneStore.getState();
@@ -84,8 +98,15 @@ export function WorldHud() {
         else st.togglePaused();
         return;
       }
-      if ((e.key === 'e' || e.key === 'E') && st.nearHotspot && !st.openHotspot && !st.paused) {
-        st.openHotspotDialog(st.nearHotspot);
+      if (e.key === 'e' || e.key === 'E') {
+        if (st.paused || st.openHotspot || st.pendingRoom) return;
+        // A door takes priority over a hotspot if you're somehow near both.
+        if (st.nearDoor) {
+          audio.unlock();
+          st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+        } else if (st.nearHotspot) {
+          st.openHotspotDialog(st.nearHotspot);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
@@ -124,7 +145,19 @@ export function WorldHud() {
         </div>
       )}
 
-      {nearHs && !open && !paused && <div className="hud-prompt">{nearHs.prompt}</div>}
+      {!pendingRoom && (
+        <div className="hud-room" aria-hidden="true">
+          {roomById(currentRoom).title}
+        </div>
+      )}
+
+      {nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
+      )}
+
+      {nearHs && !nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt">{nearHs.prompt}</div>
+      )}
 
       {openDest && (
         <div className="hud-dialog window" role="dialog" aria-label={openDest.label}>
@@ -189,6 +222,12 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {/* room-to-room transition: black wipe that hides the geometry swap */}
+      <div
+        className={`hud-fade${pendingRoom ? ' hud-fade--cover' : ''}`}
+        aria-hidden="true"
+      />
     </>
   );
 }
