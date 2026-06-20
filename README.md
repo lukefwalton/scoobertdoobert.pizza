@@ -60,12 +60,16 @@ npm run typecheck  # tsc --noEmit
 - **Add or change an era floor** → `src/data/floors.ts` (the `FLOORS` array) +
   a template in `src/floors/`. The descent through web history is data-driven;
   see "Adding an era floor" below.
+- **Add or change a 3D room** → `src/data/rooms.ts` (the `ROOMS` graph) + a
+  geometry component in `src/world/`. Rooms connect through 3D **doors**; the
+  beach shop is just `ROOMS[0]`. See "The 3D world — rooms" below.
 - **Storefront copy / layout** → `src/floors/PlainFloor.tsx` (floor 0); the `/`
   route (`src/pages/Storefront.tsx`) is a thin host around `<FloorView>`.
 - **The Calzone install / transition** → `src/components/Descent.tsx` (fires from
   the machine room, the bottom floor).
-- **The 3D world** → `src/world/` (`World.tsx` is the lazy entry; `ps1.ts` is the
-  vertex-snap / affine / dither pipeline; `sim.ts` is the ported boids steering).
+- **The 3D world** → `src/world/` (`World.tsx` is the lazy entry + room
+  dispatcher; `ps1.ts` is the vertex-snap / affine / dither pipeline; `sim.ts`
+  is the ported boids steering; `Rat.tsx` is the single-agent guide).
 - **In-world HUD / pause menu** → `src/components/WorldHud.tsx`.
 - **The link archive** (`/links`) → `links.md` (repo root, single source) parsed
   by `src/data/linkArchive.ts` and rendered by `src/pages/LinkArchive.tsx`. A
@@ -134,6 +138,42 @@ scene code. The rot transition (`FloorTransition`) and progressive audio decay
   the machine room's CRT live render isn't mounted and Install hands off to
   `/text` (`TEXT_ONLY_PATH`) instead of the 3D world.
 
+## The 3D world — rooms
+
+Past the install, the world is a **graph of rooms joined by 3D doors** — the same
+"doors all the way down" metaphor as the era floors. The beach shop is just
+`ROOMS[0]`:
+
+```
+beach shop ⇄ back hall ⇄ jukebox room
+                  ⇕
+            classified room   (hidden — the rat knocks it open)
+```
+
+`src/data/rooms.ts` is the single source: each `Room` has `dims`, a fog/light
+`palette`, named `spawns`, and `doors` (each door carries its target room + the
+spawn to arrive at). It's deliberately **three-free** (it imports plain numbers
+from `src/world/dims.ts`, never `three`) so the store and HUD can read room data
+without pulling three.js into the storefront bundle.
+
+**To add a room:** add a `Room` to `ROOMS`, a geometry component in `src/world/`
+(its own lights + dressing), and a `case` in `World.tsx`'s `RoomScene`. Wire a
+door at each end (and the matching arrival spawn). No other scene code.
+
+- **Doors** (`src/world/Doors.tsx`) are real 3D objects. Walk up (proximity) and
+  press **E** or click → `goToRoom` → a black-wipe fade → the room swaps behind
+  the black → the camera re-spawns. `transitioning` freezes input for the whole
+  wipe. Fade timing is single-sourced (`ROOM_FADE_MS` → the `--room-fade-ms` CSS
+  var). A `hidden` door doesn't render until revealed.
+- **The rat** (`src/world/Rat.tsx`) is one steering agent: it leads you down the
+  hall (seeks a point ahead) and flees if you crowd it. Come far enough and it
+  knocks a blank panel — `revealSecret()` opens the hidden **classified** door.
+- **The jukebox** is the music payoff: the loop (the site's own song) ducks by
+  camera distance (`audio.setProximityGain`) so it swells as you approach. The
+  drei `<PositionalAudio>` + real-catalog swap drops in at `JUKEBOX_POS` later.
+- Everything else (FP controls, pause menu, the always-reachable links list)
+  works in every room; the pause menu is the accessibility guarantee.
+
 ## Self-verification (Playwright)
 
 ```bash
@@ -141,7 +181,8 @@ npm run build && npm run preview &   # serve dist/ on :4173
 npm run shoot           # storefront desktop/mobile/text + JS-DISABLED parity
 npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause
 npm run shoot:descent   # storefront → 1999 → 2000 → machine room → install → world → exit; + mobile→/text
-npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text
+npm run shoot:rooms     # shop → hall (rat knocks the secret) → classified → jukebox; doors, wipes, audio duck
+npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text + /about route
 ```
 
 Screenshots land in `.shots/` (gitignored). The `postbuild` step
@@ -171,16 +212,18 @@ credits, and kept isolated behind a lazy route — never mixed into reusable cod
 
 ## Status
 
-**Phases 1–2 are complete.** Phase 1: the dead-plain storefront fallback, the
+**Phases 1–3 are complete.** Phase 1: the dead-plain storefront fallback, the
 descent gag, the PS1 beach-shop world, hotspots + pause menu, mobile/reduced-
 motion fallback — plus real degraded boot music ("Jolly Roger Bay"), press
 photos + OG image, the `/links` archive, lazy/gated audio, and opt-in email
 capture. **Phase 2:** the data-driven era-floor descent — storefront → 1999
 starburst → 2000 table-layout → SGI machine room (with a live CRT render of the
-world) → the Calzone install → the 3D shop, all connected by doors.
+world) → the Calzone install → the 3D shop, all connected by doors. **Phase 3:**
+the world grew from one room into a graph — beach shop ⇄ rat hall ⇄ jukebox room
+(the loop ducks to the jukebox as you approach), with the boids-driven rat that
+leads you down the hall and knocks open the one secret: a hidden classified file
+room of rejected demos. 3D doors are the room exits.
 
-Next (roadmap in `CLAUDE.md`): **Phase 3** the rooms system (rat hallway +
-jukebox room, the boids-driven rat, the one secret; 3D doors as exits),
-**Phase 4** a hidden terminal, **Phase 5** the `unease` dread conductor, then
-wiring up `fun/`. Liminal / pool / backrooms level GLBs (`couldbewholelevels/`,
-`newglb/`) are staged for the levels below the shop.
+Next (roadmap in `CLAUDE.md`): **Phase 4** a hidden terminal, **Phase 5** the
+`unease` dread conductor, then wiring up `fun/`. Liminal / pool / backrooms level
+GLBs (`couldbewholelevels/`, `newglb/`) are staged for the levels below the shop.
