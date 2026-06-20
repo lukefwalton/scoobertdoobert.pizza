@@ -306,6 +306,51 @@ let turnWorks = false;
   await cCtx.close();
 }
 
+// Audio lifecycle: entering the jukebox then LEAVING before the first track
+// finishes decoding must NOT switch the loop voice after the room is gone. The
+// race is timing-sensitive through gameplay, so drive the engine directly via
+// the test-gated singleton: route-delay the track so its decode is still in
+// flight, start a select, immediately restoreBoot() (the unmount), then let the
+// decode resolve and assert the jukebox voice never activated. A second, cached
+// select then DOES activate (the guard isn't over-eager). Regression for the
+// red-flag race.
+let noStaleVoice = false;
+let sanityPlays = false;
+{
+  const sCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const sp = await sCtx.newPage();
+  sp.on('pageerror', (e) => fail(`audio-race pageerror: ${e.message}`));
+  // Hold the opening track's bytes ~1.2s so its decode can't finish before we
+  // bail. Only the first network fetch is delayed; the cached re-select is fast.
+  await sp.route('**/audio/jukebox/information.wav', async (route) => {
+    await new Promise((r) => setTimeout(r, 1200));
+    await route.continue();
+  });
+  await sp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  try {
+    await sp.waitForFunction(() => !!window.__sdpAudio, { timeout: 12000 });
+    const r = await sp.evaluate(async () => {
+      const a = window.__sdpAudio;
+      const url = '/audio/jukebox/information.wav';
+      const pending = a.playJukeboxTrack(url); // select while it's still loading
+      a.restoreBoot(); // the room unmounts mid-decode
+      await pending; // let the delayed decode resolve
+      const stale = a.isJukeboxPlaying; // must be false — the guard bailed
+      await a.playJukeboxTrack(url); // now cached → resolves fast → activates
+      const plays = a.isJukeboxPlaying;
+      a.restoreBoot();
+      return { stale, plays };
+    });
+    noStaleVoice = r.stale === false;
+    sanityPlays = r.plays === true;
+    if (!noStaleVoice) fail('leave-before-decode still switched the loop voice (race not fixed)');
+    if (!sanityPlays) fail('a normal jukebox select failed to activate the voice');
+  } catch (e) {
+    fail(`audio-race check failed: ${e.message}`);
+  }
+  await sCtx.close();
+}
+
 await browser.close();
 console.log(
   `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
@@ -314,6 +359,6 @@ console.log(
     `jukebox=${inJuke} ducked=${duckedInJuke} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
-    `strafeRight=${strafeRight} turnWorks=${turnWorks} | errors=${errors}`,
+    `strafeRight=${strafeRight} turnWorks=${turnWorks} noStaleVoice=${noStaleVoice} sanityPlays=${sanityPlays} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
