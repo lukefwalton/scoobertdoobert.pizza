@@ -56,6 +56,8 @@ let inPool = false;
 let loaderShown = false;
 let frozenUnderLoader = false;
 let loaderReady = false;
+let waterfallOnDescent = false;
+let noWaterfallOnAscent = false;
 let inLiminal = false;
 let overlayGoneOnEnter = false;
 let backToPool = false;
@@ -85,8 +87,8 @@ let reEnter = false;
   inPool = await roomIs(page, 'The Poolrooms');
   await page.screenshot({ path: '.shots/levels-pool.png' });
 
-  // Pool spawn faces -Z; the "go deeper" door is in the far (-Z) wall → walk W.
-  // This door's target is a GLB level, so stepping through raises the loader.
+  // Pool spawn faces -Z; the way down is the door DEAD CENTRE, out across the
+  // false water → walk W to it. Its target is a GLB level, so it raises the loader.
   await page.keyboard.down('w');
   let deepPrompt = false;
   try {
@@ -97,6 +99,13 @@ let reEnter = false;
   }
   await page.keyboard.up('w');
   if (deepPrompt) await page.keyboard.press('e');
+
+  // The descent rides a WATERFALL: the rushing-water overlay fires during the
+  // wipe down into liminal (brief, before the loader covers it).
+  waterfallOnDescent = await page
+    .waitForSelector('.hud-waterfall--on', { timeout: 1500 })
+    .then(() => true, () => false);
+  if (!waterfallOnDescent) fail('waterfall did not play on the descent into liminal');
 
   // The loader minigame should appear (DOM overlay over the suspended canvas).
   try {
@@ -139,10 +148,27 @@ let reEnter = false;
     await page.screenshot({ path: '.shots/levels-liminal.png' });
   }
 
-  // After entering, input is live again: walk back to the +Z door → up to the pool.
+  // After entering, input is live again: walk back to the +Z door → up to the
+  // pool. The waterfall is descent-ONLY, so leaving liminal must NOT play it.
   if (inLiminal) {
-    const backed = await toDoor(page, 's'); // door behind us (+Z) → press S
-    if (!backed) fail('liminal exit door prompt never appeared');
+    await page.keyboard.down('s'); // exit door behind us (+Z)
+    const exitPrompt = await page
+      .waitForSelector('.hud-prompt--door', { timeout: 3500 })
+      .then(() => true, () => false);
+    await page.keyboard.up('s');
+    if (!exitPrompt) fail('liminal exit door prompt never appeared (ascent not exercised)');
+    await page.keyboard.press('e');
+    // Poll across the ascent transition: the waterfall must never turn on.
+    let sawWaterfall = false;
+    for (let i = 0; i < 12; i++) {
+      if (await page.$('.hud-waterfall--on')) {
+        sawWaterfall = true;
+        break;
+      }
+      await page.waitForTimeout(40);
+    }
+    noWaterfallOnAscent = !sawWaterfall;
+    if (sawWaterfall) fail('waterfall played while LEAVING liminal (should be descent-only)');
     backToPool = await roomIs(page, 'The Poolrooms');
   }
 
@@ -151,11 +177,11 @@ let reEnter = false;
   //    Regression for the ready/reset race: the loader must STILL reach the
   //    ready state (not get stranded at ready=false) and let us back in.
   if (backToPool) {
-    // Arrived via the 'fromLiminal' spawn (z=-5, facing +Z), so the deep door is
-    // now BEHIND us at -Z → walk S to reach it again.
-    await page.keyboard.down('s');
+    // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z), so the centre door
+    // is straight ahead across the water → walk W to reach it again.
+    await page.keyboard.down('w');
     await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-    await page.keyboard.up('s');
+    await page.keyboard.up('w');
     await page.keyboard.press('e'); // → liminal again (cached)
     reReady = await page
       .waitForFunction(
@@ -225,11 +251,11 @@ let retryRecovered = false;
       //    poisoned useGLTF cache, so once the asset is reachable again, re-entering
       //    the room in the SAME tab should now load (no page reload required).
       await page.unroute('**/models/liminal-other-space.glb'); // the hiccup passes
-      // Back in poolrooms at the 'fromLiminal' spawn (z=-5, facing +Z) → the deep
-      // door is behind us at -Z, so walk S to reach it again.
-      await page.keyboard.down('s');
+      // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z) → the centre door
+      // is straight ahead across the water, so walk W to reach it again.
+      await page.keyboard.down('w');
       await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-      await page.keyboard.up('s');
+      await page.keyboard.up('w');
       await page.keyboard.press('e'); // → liminal, retry
       retryRecovered = await page
         .waitForFunction(
@@ -251,7 +277,8 @@ let retryRecovered = false;
 await browser.close();
 console.log(
   `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
-    `ready=${loaderReady} liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
+    `ready=${loaderReady} waterfallDown=${waterfallOnDescent} noWaterfallUp=${noWaterfallOnAscent} ` +
+    `liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
     `reReady=${reReady} reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
     `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${errors}`,
 );

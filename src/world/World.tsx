@@ -11,6 +11,7 @@ import { ClassifiedRoom } from './ClassifiedRoom';
 import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
 import { GlbRoom } from './GlbRoom';
+import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
@@ -41,7 +42,15 @@ function RoomScene({ room }: { room: Room }) {
   // room.id so a future GLB→GLB hop force-remounts GlbRoom (fresh useGLTF +
   // mount effect) rather than reusing the instance and inheriting a stale
   // ready/error signal — same component type, different model.
-  if (room.glb) return <GlbRoom key={room.id} room={room} />;
+  if (room.glb)
+    return (
+      <>
+        <GlbRoom key={room.id} room={room} />
+        {/* Ambient water dripping from the ceiling — opt-in per room (room.drips),
+            not coupled to the room kind, so a future liminal room can skip it. */}
+        {room.drips && <CeilingDrips bounds={room.dims} />}
+      </>
+    );
   switch (room.kind) {
     case 'hallway':
       return <HallwayRoom room={room} />;
