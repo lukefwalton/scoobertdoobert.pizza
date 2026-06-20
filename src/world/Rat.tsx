@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import { applyVertexSnap } from './ps1';
 import { SECRET_PANEL } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { useDreadStore } from '../state/dreadStore';
+import { mapUnease } from '../data/dread';
 
 // The rat — one steering agent (the single-boid version of the school sim):
 // it seeks a waypoint a few steps AHEAD of you down the hall (so it leads), and
@@ -134,6 +136,19 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
       speed = 5.5;
     }
 
+    // THE TURN (Phase 5, ckpt4): as dread rises the friendly guide inverts.
+    // Past the menace threshold he stops fleeing, freezes in place, and faces
+    // you — the same agent, the wrongest version of itself. mapUnease holds
+    // ratMenace at 0 until unease ~0.5, so this only happens deep / after the
+    // classified room; the smoke (which doesn't linger) never trips it.
+    const menace = mapUnease(useDreadStore.getState().unease).ratMenace;
+    const turned = menace > 0.45;
+    if (turned) {
+      allowFlee = false;
+      _target.set(pos.current.x, RAT_Y, pos.current.z); // hold position
+      speed = 0;
+    }
+
     _desired.subVectors(_target, pos.current);
     _desired.y = 0;
     if (_desired.lengthSq() > 1e-5) _desired.normalize().multiplyScalar(speed);
@@ -153,10 +168,14 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
     pos.current.addScaledVector(vel.current, dt);
     pos.current.x = THREE.MathUtils.clamp(pos.current.x, -bounds.halfW + 0.4, bounds.halfW - 0.4);
     pos.current.z = THREE.MathUtils.clamp(pos.current.z, -bounds.halfD + 0.8, bounds.halfD - 0.8);
-    pos.current.y = RAT_Y + Math.abs(Math.sin(t * 16)) * 0.04; // tiny scurry bob
+    // Scurry bob fades to unnatural stillness as he turns.
+    pos.current.y = RAT_Y + Math.abs(Math.sin(t * 16)) * 0.04 * (1 - menace);
 
     g.position.copy(pos.current);
-    if (vel.current.lengthSq() > 1e-4) {
+    if (turned) {
+      // Holding too still, looking right at you.
+      g.lookAt(player.x, pos.current.y, player.z);
+    } else if (vel.current.lengthSq() > 1e-4) {
       g.lookAt(pos.current.x + vel.current.x, pos.current.y, pos.current.z + vel.current.z);
     }
 
