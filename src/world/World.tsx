@@ -9,6 +9,7 @@ import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
 import { PoolroomsRoom } from './PoolroomsRoom';
+import { MobiusRoom } from './MobiusRoom';
 import { GlbRoom } from './GlbRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
@@ -50,6 +51,8 @@ function RoomScene({ room }: { room: Room }) {
       return <ClassifiedRoom room={room} />;
     case 'poolrooms':
       return <PoolroomsRoom room={room} />;
+    case 'mobius':
+      return <MobiusRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;

@@ -17,6 +17,7 @@
     "shoot:rooms": "node scripts/shoot-rooms.mjs",
     "shoot:levels": "node scripts/shoot-levels.mjs",
     "shoot:dice": "node scripts/shoot-dice.mjs",
+    "shoot:mobius": "node scripts/shoot-mobius.mjs",
     "shoot:ballpit": "node scripts/shoot-ballpit.mjs"
   },
   "dependencies": {
