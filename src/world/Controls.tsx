@@ -26,6 +26,9 @@ export function Controls() {
   const { camera, gl } = useThree();
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const currentSpawn = useSceneStore((s) => s.currentSpawn);
+  // Re-spawn fires on every door commit, even when the room+spawn are unchanged
+  // (the Möbius loop re-enters the same node) — see sceneStore.roomNonce.
+  const roomNonce = useSceneStore((s) => s.roomNonce);
 
   const yaw = useRef(Math.PI);
   const pitch = useRef(-0.04);
@@ -54,7 +57,7 @@ export function Controls() {
       Math.cos(yaw.current) * Math.cos(pitch.current),
     );
     camera.lookAt(camera.position.x + dir.x, camera.position.y + dir.y, camera.position.z + dir.z);
-  }, [currentRoom, currentSpawn, camera]);
+  }, [currentRoom, currentSpawn, roomNonce, camera]);
 
   useEffect(() => {
     const el = gl.domElement;
