@@ -13,7 +13,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
 
-export type RoomKind = 'shop' | 'hallway' | 'jukebox';
+export type RoomKind = 'shop' | 'hallway' | 'jukebox' | 'classified';
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
@@ -112,6 +112,9 @@ export const ROOMS: Room[] = [
       fromShop: { position: [0, EYE, 12.5], yaw: Math.PI },
       // Arriving back from the jukebox: at the far (-Z) end, facing the shop (+Z).
       fromJuke: { position: [0, EYE, -12.5], yaw: 0 },
+      // Stepping back out of the classified room: in the hall by the panel,
+      // facing on toward the music (clear of the hidden door's radius).
+      fromClassified: { position: [0, EYE, -5.5], yaw: Math.PI },
     },
     doors: [
       {
@@ -133,6 +136,18 @@ export const ROOMS: Room[] = [
         rotationY: Math.PI,
         label: 'follow the music',
         radius: 3.2,
+      },
+      {
+        id: 'hall-to-classified',
+        to: 'classified',
+        toSpawn: 'fromHall',
+        // A blank panel in the left (-X) wall, mid-hall. Hidden until the rat
+        // knocks it open (secretRevealed). Faces +X into the corridor.
+        position: [-2.5, 0, -2],
+        rotationY: Math.PI / 2,
+        label: 'slip through the gap',
+        hidden: true,
+        radius: 2.8,
       },
     ],
   },
@@ -163,11 +178,40 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  {
+    id: 'classified',
+    kind: 'classified',
+    title: 'Classified',
+    // Tiny, cold, claustrophobic — the X-Files file room of rejected demos.
+    dims: { halfW: 4, halfD: 4, height: 3.2, eye: EYE },
+    palette: { background: '#0a1410', fog: '#0c1812', fogNear: 2, fogFar: 15 },
+    spawns: {
+      // Just inside the door, facing the cabinets at the back (-Z).
+      default: { position: [0, EYE, 0.6], yaw: Math.PI },
+      fromHall: { position: [0, EYE, 0.6], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'classified-to-hall',
+        to: 'hallway',
+        toSpawn: 'fromClassified',
+        position: [0, 0, 3.95],
+        rotationY: 0,
+        label: 'back out to the hall',
+        radius: 2.6,
+      },
+    ],
+  },
 ];
 
 // The jukebox's world position (the music source). Lives here so JukeboxRoom can
 // place the object and the proximity-audio can measure distance to the same spot.
 export const JUKEBOX_POS: [number, number, number] = [0, 1.2, -5.5];
+
+// The blank panel in the hall's left wall the rat knocks open. The Rat steers to
+// this spot to knock; HallwayRoom draws the seam here; the hidden
+// 'hall-to-classified' door sits in the same wall (see ROOMS above).
+export const SECRET_PANEL: [number, number, number] = [-2.4, 1.4, -2];
 
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 
@@ -190,11 +234,18 @@ export function doorSpawn(door: RoomDoor): Spawn {
   return target.spawns[door.toSpawn ?? 'default'] ?? target.spawns.default;
 }
 
-// Dev guardrail: every door must point at a real room + an existing spawn, or
-// you'd walk into a soft-fallback. Surface graph typos at the source.
+// Dev guardrail: every door must point at a real room + an existing spawn, and
+// room/door ids must be unique (a duplicate would silently win in BY_ID or
+// confuse the nearest-door tracking). Surface graph typos at the source.
 if (import.meta.env?.DEV) {
+  if (BY_ID.size !== ROOMS.length) {
+    console.warn('[rooms] duplicate room id(s) — BY_ID collapsed entries');
+  }
+  const doorIds = new Set<string>();
   for (const room of ROOMS) {
     for (const door of room.doors) {
+      if (doorIds.has(door.id)) console.warn(`[rooms] duplicate door id "${door.id}"`);
+      doorIds.add(door.id);
       const target = BY_ID.get(door.to);
       if (!target) {
         console.warn(`[rooms] door "${door.id}" in "${room.id}" → unknown room "${door.to}"`);

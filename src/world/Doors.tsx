@@ -90,6 +90,7 @@ function DoorMesh({ door }: { door: RoomDoor }) {
 export function Doors() {
   const { camera } = useThree();
   const currentRoom = useSceneStore((s) => s.currentRoom);
+  const secretRevealed = useSceneStore((s) => s.secretRevealed);
   const doors = useMemo(() => roomById(currentRoom).doors, [currentRoom]);
   const lastNear = useRef<string | null>(null);
 
@@ -100,7 +101,8 @@ export function Doors() {
     let nearest: RoomDoor | null = null;
     let nd = Infinity;
     for (const d of doors) {
-      if (d.hidden) continue;
+      // Hidden doors (the rat's secret panel) don't exist until revealed.
+      if (d.hidden && !st.secretRevealed) continue;
       // Horizontal distance only — the door's base is at y=0, the camera at eye
       // height, so the vertical gap shouldn't count against "am I standing here".
       const dx = camera.position.x - d.position[0];
@@ -129,9 +131,11 @@ export function Doors() {
 
   return (
     <>
-      {doors.filter((d) => !d.hidden).map((d) => (
-        <DoorMesh key={d.id} door={d} />
-      ))}
+      {doors
+        .filter((d) => !d.hidden || secretRevealed)
+        .map((d) => (
+          <DoorMesh key={d.id} door={d} />
+        ))}
     </>
   );
 }

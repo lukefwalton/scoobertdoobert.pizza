@@ -35,6 +35,8 @@ type SceneState = {
   transitioning: boolean;
   /** the door the camera is near, resolved to its target (or null). */
   nearDoor: { id: string; label: string; to: string; spawn: string } | null;
+  /** the rat has knocked the panel: the hidden classified door is now real. */
+  secretRevealed: boolean;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -62,6 +64,8 @@ type SceneState = {
   /** End the wipe once the overlay has fully lifted: unfreezes input. */
   endTransition: () => void;
   setNearDoor: (door: { id: string; label: string; to: string; spawn: string } | null) => void;
+  /** The rat knocked — open up the hidden classified door (idempotent). */
+  revealSecret: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -78,6 +82,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   pendingRoom: null,
   transitioning: false,
   nearDoor: null,
+  secretRevealed: false,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
@@ -90,6 +95,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       currentSpawn: 'default',
       pendingRoom: null,
       transitioning: false,
+      secretRevealed: false,
     }),
   // Leaving the world drops you back at the storefront (floor 0), not the
   // machine room you installed from — and resets the room graph for next time.
@@ -102,6 +108,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearDoor: null,
       pendingRoom: null,
       transitioning: false,
+      secretRevealed: false,
       currentRoom: FIRST_ROOM,
       currentSpawn: 'default',
       currentFloor: 0,
@@ -137,4 +144,5 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
+  revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
 }));

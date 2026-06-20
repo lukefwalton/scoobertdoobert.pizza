@@ -7,6 +7,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
+import { ClassifiedRoom } from './ClassifiedRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
 
@@ -36,6 +37,8 @@ function RoomScene({ room }: { room: Room }) {
       return <HallwayRoom room={room} />;
     case 'jukebox':
       return <JukeboxRoom room={room} />;
+    case 'classified':
+      return <ClassifiedRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
