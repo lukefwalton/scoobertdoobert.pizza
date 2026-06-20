@@ -240,6 +240,11 @@ floors slot in without touching scene code.
       mobile/reduced-motion; Continue navigates to the flat /text destination
       list. Pause/hotspot dialogs are modal (Controls freezes input). ✓
       (shoot-fallback + the pause-modal assertion in shoot-world.)
-- [ ] **7. README.** Run/deploy, where links + hotspots live, asset/licensing.
+- [x] **7. README.** Run/deploy, where links + hotspots live, asset/licensing,
+      hosting decision. ✓
+
+**Phase 1 COMPLETE** (2026-06-20). Next: Phase 2 — the liminal era-ladder
+"levels" + the Doom/Freedoom shrine + PositionalAudio jukebox + the real
+degraded-MIDI boot track (see the sections above).
 
 `legacy/` holds the previous hand-built site (preserved, not part of the build).
