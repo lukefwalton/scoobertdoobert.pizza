@@ -14,7 +14,8 @@
     "shoot:world": "node scripts/shoot-world.mjs",
     "shoot:descent": "node scripts/shoot-descent.mjs",
     "shoot:fallback": "node scripts/shoot-fallback.mjs",
-    "shoot:rooms": "node scripts/shoot-rooms.mjs"
+    "shoot:rooms": "node scripts/shoot-rooms.mjs",
+    "shoot:ballpit": "node scripts/shoot-ballpit.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
