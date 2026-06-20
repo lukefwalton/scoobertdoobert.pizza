@@ -36,8 +36,11 @@ function RoomEnvironment({ room }: { room: Room }) {
 // adding a room is: a ROOMS entry + a case here (+ a geometry component).
 function RoomScene({ room }: { room: Room }) {
   // GLB levels (lazy-loaded; suspends until decoded). The DOM LoaderGame masks
-  // the wait and offers TAP-TO-ENTER (see LevelLoader / GlbRoom).
-  if (room.glb) return <GlbRoom room={room} />;
+  // the wait and offers TAP-TO-ENTER (see LevelLoader / GlbRoom). Keyed by
+  // room.id so a future GLB→GLB hop force-remounts GlbRoom (fresh useGLTF +
+  // mount effect) rather than reusing the instance and inheriting a stale
+  // ready/error signal — same component type, different model.
+  if (room.glb) return <GlbRoom key={room.id} room={room} />;
   switch (room.kind) {
     case 'hallway':
       return <HallwayRoom room={room} />;

@@ -288,6 +288,19 @@ which sit fine over the 3D world.
   **CC0** (safest for hard remixing); OpenGameArt licenses vary per-asset, check
   each.
 
+### A mobile "level" — a cheeky game, not the cold shoulder (Luke, backlog)
+We gate the *3D world* off mobile/reduced-motion (the WebGL descent → `/text`),
+and that's the right call for the heavy stuff. But "blocked" shouldn't mean
+"boring." Mobile should still get **one small, cheeky, fun thing** of its own —
+a phone-shaped Scoobert microgame (2D canvas, touch-first, the same loader-game
+engine we already have), so a mobile visitor gets a wink and a reason to share,
+not a dead end. Think the loader runner promoted to a tiny standalone "mobile
+level" (tap-to-jump the broken web buttons, dodge cursed ads, a high score to
+screenshot) — same no-copyrighted-marks / CC0-or-own-assets rules, same friction
+budget. It rides the minigame infra above; the only new work is a touch control
+scheme + a mobile entry point that replaces the "this needs a desktop" wall with
+a playable goof. Surface zone = stays safe + silly (no dread on the phone game).
+
 ### Webcam policy (the one narrow exception to "no real camera")
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
 now means: never for the dread beat, never transmitted, never without explicit

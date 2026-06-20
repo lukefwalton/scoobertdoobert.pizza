@@ -57,6 +57,7 @@ let loaderShown = false;
 let frozenUnderLoader = false;
 let loaderReady = false;
 let inLiminal = false;
+let overlayGoneOnEnter = false;
 let backToPool = false;
 let reReady = false;
 let reEnter = false;
@@ -129,6 +130,11 @@ let reEnter = false;
   if (loaderReady) {
     await page.getByRole('button', { name: /TAP TO ENTER/i }).click({ timeout: 4000 });
     inLiminal = await roomIs(page, 'Liminal Space');
+    // The overlay must actually go away on enter (not just the room label flip).
+    overlayGoneOnEnter = await page
+      .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, { timeout: 4000 })
+      .then(() => true, () => false);
+    if (!overlayGoneOnEnter) fail('loader overlay did not disappear after TAP TO ENTER');
     await page.waitForTimeout(600);
     await page.screenshot({ path: '.shots/levels-liminal.png' });
   }
@@ -171,6 +177,7 @@ let reEnter = false;
 // ── failure path: GLB 404 → error boundary → loader TURN BACK → bounce out ───
 let errLoader = false;
 let bouncedBack = false;
+let overlayGoneOnAbort = false;
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
@@ -207,6 +214,11 @@ let bouncedBack = false;
       await page.getByRole('button', { name: /TURN BACK/i }).click({ timeout: 4000 });
       bouncedBack = await roomIs(page, 'The Poolrooms');
       if (!bouncedBack) fail('TURN BACK did not bounce the player out of the failed level');
+      // The overlay must clear once we're back in a non-GLB room.
+      overlayGoneOnAbort = await page
+        .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, { timeout: 4000 })
+        .then(() => true, () => false);
+      if (!overlayGoneOnAbort) fail('loader overlay did not disappear after TURN BACK');
     }
   } catch (e) {
     fail(`error-path check failed: ${e.message}`);
@@ -217,7 +229,8 @@ let bouncedBack = false;
 await browser.close();
 console.log(
   `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
-    `ready=${loaderReady} liminal=${inLiminal} backToPool=${backToPool} reReady=${reReady} reEnter=${reEnter} ` +
-    `errLoader=${errLoader} bouncedBack=${bouncedBack} | errors=${errors}`,
+    `ready=${loaderReady} liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
+    `reReady=${reReady} reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
+    `overlayGoneOnAbort=${overlayGoneOnAbort} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
