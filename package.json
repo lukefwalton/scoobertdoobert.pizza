@@ -35,7 +35,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "playwright": "^1.56.1",
     "typescript": "^5.9.3",
-    "vite": "^5.4.21",
+    "vite": "^6.4.3",
     "vite-react-ssg": "^0.9.1-beta.1"
   }
 }
