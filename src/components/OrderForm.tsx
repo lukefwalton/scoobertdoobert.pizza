@@ -1,5 +1,7 @@
 import type { FormEvent } from 'react';
 import { useSceneStore } from '../state/sceneStore';
+import { useProgressStore, selectDeepDiver } from '../state/progressStore';
+import { useMounted } from '../lib/useMounted';
 import { audio } from '../audio/engine';
 import { isLowPower } from '../lib/lowPower';
 import { TEXT_ONLY_PATH } from '../data/links';
@@ -17,6 +19,14 @@ export function OrderForm() {
   // the install directly — the Calzone Player install moved to the machine room
   // at the bottom of the descent (Phase 2).
   const descend = useSceneStore((s) => s.descend);
+  // THE MASK CRACKS (Phase 5, ckpt5): the storefront is a safe zone and stays
+  // sweet for a cold/casual visitor — but for someone whose saved high-water
+  // dread is deep, one line curdles. Gated on useMounted so it's a post-hydration
+  // enhancement only (never in the prerendered / JS-off HTML, no mismatch). Funny-
+  // uncanny, not traumatic: it's still, technically, pizza customer service.
+  const mounted = useMounted();
+  const deep = useProgressStore(selectDeepDiver);
+  const curdled = mounted && deep;
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -89,7 +99,9 @@ export function OrderForm() {
           <button type="submit">Continue &#9654;</button>
         </p>
         <p className="order-hint">
-          Place an order to see the kitchen. (You may need a plug-in.)
+          {curdled
+            ? 'An employee will call to verify your order. An employee is already inside.'
+            : 'Place an order to see the kitchen. (You may need a plug-in.)'}
         </p>
       </form>
     </div>

@@ -184,3 +184,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
  */
 export const selectReturning = (s: ProgressState): boolean =>
   s.everEnteredWorld || s.visits >= 2 || s.secretsFound.length > 0;
+
+/**
+ * Has the player tasted real dread? True once the saved high-water `maxUnease`
+ * reaches the deep band (~the classified room). The persistence-gated curdled
+ * copy reads this: a cold/casual visitor never sees it; only someone who's been
+ * deep gets the crack. (Distinct from selectReturning, which is surface-safe.)
+ */
+export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7;
