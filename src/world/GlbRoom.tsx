@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { Component, useEffect, useMemo, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { applyVertexSnap } from './ps1';
@@ -20,7 +20,39 @@ import type { Room } from '../data/rooms';
 
 const TEX_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap'] as const;
 
+// A fetch/decode failure on useGLTF (404, corrupt file, GPU OOM) re-throws
+// during render once the suspended promise rejects. Without a boundary that
+// would blow up the whole world subtree — and because GlbRoom is what flips
+// levelStore.ready, the player would also be stuck on a loader that never turns
+// ready. This boundary catches it INSIDE the canvas, flips levelStore.error so
+// the DOM loader can offer a way back out, and renders an empty room (fog +
+// doors survive, so the exit door still works as a fallback). Error boundaries
+// have to be class components.
+class GlbErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch(err: unknown) {
+    // Surface it once for debugging; the player-facing recovery is the loader.
+    console.error('[GlbRoom] level failed to load:', err);
+    useLevelStore.getState().setError(true);
+  }
+  render() {
+    if (this.state.failed) return null;
+    return this.props.children;
+  }
+}
+
 export function GlbRoom({ room }: { room: Room }) {
+  return (
+    <GlbErrorBoundary>
+      <GlbRoomInner room={room} />
+    </GlbErrorBoundary>
+  );
+}
+
+function GlbRoomInner({ room }: { room: Room }) {
   const glb = room.glb!;
   const { scene } = useGLTF(glb.url);
   const setReady = useLevelStore((s) => s.setReady);
