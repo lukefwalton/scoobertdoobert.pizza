@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
-import { roomById } from '../data/rooms';
+import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { audio } from '../audio/engine';
@@ -86,7 +86,7 @@ export function WorldHud() {
   // the overlay fades back up on the new room.
   useEffect(() => {
     if (!pendingRoom) return;
-    const t = window.setTimeout(() => commitRoom(), 230);
+    const t = window.setTimeout(() => commitRoom(), ROOM_FADE_MS);
     return () => window.clearTimeout(t);
   }, [pendingRoom, commitRoom]);
 
@@ -223,10 +223,13 @@ export function WorldHud() {
         </div>
       )}
 
-      {/* room-to-room transition: black wipe that hides the geometry swap */}
+      {/* room-to-room transition: black wipe that hides the geometry swap. The
+          fade duration is single-sourced from ROOM_FADE_MS (also the commit
+          timer above) via a CSS custom property. */}
       <div
         className={`hud-fade${pendingRoom ? ' hud-fade--cover' : ''}`}
         aria-hidden="true"
+        style={{ ['--room-fade-ms' as string]: `${ROOM_FADE_MS}ms` }}
       />
     </>
   );

@@ -103,11 +103,17 @@ export const useSceneStore = create<SceneState>((set) => ({
   requestInstall: () => set({ installRequested: true }),
   clearInstallRequest: () => set({ installRequested: false }),
 
-  // Door activation: stash the target and start the fade. Ignored if a swap is
-  // already in flight (debounces double-press). Also clears door/hotspot prompts
-  // so nothing lingers over the black.
+  // Door activation: stash the target and start the fade. THE activation guard
+  // for the whole world — both the keyboard (E) and the mouse (door click) paths
+  // funnel through here, so a room can never change while a dialog/pause is up or
+  // a swap is already in flight (debounces double-press / click-through-the-HUD).
+  // Also clears door/hotspot prompts so nothing lingers over the black.
   goToRoom: (to, spawn) =>
-    set((s) => (s.pendingRoom ? {} : { pendingRoom: { to, spawn }, nearDoor: null, nearHotspot: null })),
+    set((s) =>
+      s.pendingRoom || s.paused || s.openHotspot
+        ? {}
+        : { pendingRoom: { to, spawn }, nearDoor: null, nearHotspot: null },
+    ),
   // Commit mid-fade: the room actually swaps here (behind the black), and
   // Controls repositions the camera to the new room's spawn.
   commitRoom: () =>

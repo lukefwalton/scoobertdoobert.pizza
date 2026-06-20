@@ -46,7 +46,8 @@
   background: #000000;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 220ms ease-in-out;
+  /* duration single-sourced from ROOM_FADE_MS (WorldHud sets --room-fade-ms) */
+  transition: opacity var(--room-fade-ms, 230ms) ease-in-out;
 }
 .hud-fade--cover {
   opacity: 1;
