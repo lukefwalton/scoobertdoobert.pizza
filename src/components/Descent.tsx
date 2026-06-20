@@ -38,24 +38,21 @@ export function Descent() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState(STATUS_LINES[0]);
   const enterWorld = useSceneStore((s) => s.enterWorld);
+  const descentRequested = useSceneStore((s) => s.descentRequested);
+  const clearDescentRequest = useSceneStore((s) => s.clearDescentRequest);
   const worldReady = useRef(false);
 
-  // Intercept the order form's submit, unless reduced-motion / small screen.
+  // OrderForm requests the descent via the store. It owns the mobile /
+  // reduced-motion gating and the email capture, so by the time we're asked we
+  // just run the sequence.
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const small = window.matchMedia('(max-width: 768px)').matches;
-    if (reduced || small) return;
-    const form = document.getElementById('order-form');
-    if (!form) return;
-    const onSubmit = (e: Event) => {
-      e.preventDefault();
+    if (descentRequested && phase === 'idle') {
+      clearDescentRequest();
       setPhase('aging');
       audio.unlock();
       if (!audio.muted) audio.startBootLoop();
-    };
-    form.addEventListener('submit', onSubmit);
-    return () => form.removeEventListener('submit', onSubmit);
-  }, []);
+    }
+  }, [descentRequested, phase, clearDescentRequest]);
 
   // Phase timers / the install→world handoff.
   useEffect(() => {

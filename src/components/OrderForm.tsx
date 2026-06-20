@@ -1,45 +1,47 @@
-// The low-fi "delivery order" form — Name / Voice Phone / Favorite Cheese /
-// Delivery Address / Continue. This is the easter-egg ENTRANCE (submitting it
-// fires the Calzone Player™ descent), so per Luke it is intentionally the one
-// LOUD element on the otherwise dead-plain page: a period "ORDER ONLINE!"
-// callout, not a buried newsletter-looking form.
+import type { FormEvent } from 'react';
+import { useSceneStore } from '../state/sceneStore';
+
+// The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
+// Favorite Cheese + an OPTIONAL, opt-in Email.
 //
-// THEATRICAL in Phase 1: there is no order backend. PROGRESSIVE ENHANCEMENT +
-// PRIVACY CONTRACT:
-//   - Inputs have NO `name` attributes, so the no-JS GET submit navigates to
-//     /text with a CLEAN url — no name/phone/address is serialized (which would
-//     leak PII into history, referrers, logs). When a real backend exists, add
-//     names + a POST endpoint then.
-//   - With JS on (step 3), a handler intercepts submit and runs the install gag.
-//     `data-descent-trigger` is that hook.
+// PRIVACY: the email is captured only with JavaScript AND an explicit opt-in,
+// POSTed (never serialized into a URL) to /api/order which writes it to Vercel
+// Blob. The inputs are nameless, so the no-JS fallback (GET to /text) transmits
+// nothing. The capture is fire-and-forget: it never blocks the descent, and a
+// failed/absent backend is swallowed.
 export function OrderForm() {
+  const requestDescent = useSceneStore((s) => s.requestDescent);
+
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const email = (document.getElementById('of-email') as HTMLInputElement | null)?.value.trim() ?? '';
+    const optin = (document.getElementById('of-optin') as HTMLInputElement | null)?.checked ?? false;
+    const cheese = (document.getElementById('of-cheese') as HTMLSelectElement | null)?.value ?? '';
+
+    if (optin && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      void fetch('/api/order', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, cheese, optin: true }),
+      }).catch(() => {
+        /* capture is best-effort; never block the experience */
+      });
+    }
+
+    // Mobile / reduced-motion skip the descent (step 6); everyone else descends.
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const small = window.matchMedia('(max-width: 768px)').matches;
+    if (reduced || small) window.location.assign('/text');
+    else requestDescent();
+  }
+
   return (
     <div className="order-callout">
       <h2 className="order-callout__header">
         <span className="order-callout__new">&#9733; NEW! &#9733;</span> Order Online &mdash;
         Hot &amp; Fresh
       </h2>
-      <form
-        id="order-form"
-        className="order-form"
-        method="get"
-        action="/text"
-        autoComplete="off"
-        aria-label="Place your order"
-        data-descent-trigger
-      >
-        <p className="field">
-          <label htmlFor="of-name">Name:</label>
-          <br />
-          <input id="of-name" type="text" size={32} />
-        </p>
-
-        <p className="field">
-          <label htmlFor="of-phone">Voice Phone:</label>
-          <br />
-          <input id="of-phone" type="tel" size={24} />
-        </p>
-
+      <form id="order-form" className="order-form" method="get" action="/text" onSubmit={onSubmit}>
         <p className="field">
           <label htmlFor="of-cheese">Favorite Cheese:</label>
           <br />
@@ -53,9 +55,16 @@ export function OrderForm() {
         </p>
 
         <p className="field">
-          <label htmlFor="of-address">Delivery Address:</label>
+          <label htmlFor="of-email">Email (optional):</label>
           <br />
-          <textarea id="of-address" rows={3} cols={32} />
+          <input id="of-email" type="email" size={28} autoComplete="email" placeholder="you@example.com" />
+        </p>
+
+        <p className="field optin-field">
+          <label htmlFor="of-optin">
+            <input id="of-optin" type="checkbox" /> Email me when there&rsquo;s a new release. No
+            spam.
+          </label>
         </p>
 
         <p className="order-cta">

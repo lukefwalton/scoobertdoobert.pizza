@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
-// Scene/game state. Drives the descent (step 3), the world mount (WorldMount),
-// the hotspot prompts + dialogs (step 5), and the pause menu (step 5).
+// Scene/game state. Drives the descent (the order form requests it), the world
+// mount (WorldMount), the hotspot prompts + dialogs, and the pause menu.
 type SceneState = {
   worldActive: boolean;
   /** id of the hotspot the camera is currently near (or null) */
@@ -10,6 +10,8 @@ type SceneState = {
   openHotspot: string | null;
   /** pause menu visible */
   paused: boolean;
+  /** the order form asked to start the descent (consumed by Descent) */
+  descentRequested: boolean;
 
   enterWorld: () => void;
   exitWorld: () => void;
@@ -18,6 +20,8 @@ type SceneState = {
   closeHotspotDialog: () => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
+  requestDescent: () => void;
+  clearDescentRequest: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -25,6 +29,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearHotspot: null,
   openHotspot: null,
   paused: false,
+  descentRequested: false,
 
   enterWorld: () => set({ worldActive: true }),
   exitWorld: () =>
@@ -34,4 +39,6 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeHotspotDialog: () => set({ openHotspot: null }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
+  requestDescent: () => set({ descentRequested: true }),
+  clearDescentRequest: () => set({ descentRequested: false }),
 }));
