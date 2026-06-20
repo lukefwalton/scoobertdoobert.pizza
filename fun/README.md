@@ -1,8 +1,8 @@
 # fun/ — placeholder (separate repo, not yet wired in)
 
 `fun/` is meant to hold a **separate project** — Luke's half-built JS music
-apps — that will be borrowed from later (see the "Post-loop: wire up / borrow
-from `fun/`" note in [`../CLAUDE.md`](../CLAUDE.md)).
+apps — that will be borrowed from later (see "Post-loop — wire up `fun/`" in
+[`../docs/PHASES.md`](../docs/PHASES.md); the instrument rooms come from here).
 
 It was originally copied in as a nested git repository, so git recorded it as a
 broken **gitlink** (a submodule pointer with no `.gitmodules`) and none of the
