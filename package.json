@@ -20,7 +20,8 @@
     "shoot:mobius": "node scripts/shoot-mobius.mjs",
     "shoot:persistence": "node scripts/shoot-persistence.mjs",
     "shoot:ballpit": "node scripts/shoot-ballpit.mjs",
-    "shoot:monster": "node scripts/shoot-monster.mjs"
+    "shoot:monster": "node scripts/shoot-monster.mjs",
+    "shoot:props": "node scripts/shoot-props.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
