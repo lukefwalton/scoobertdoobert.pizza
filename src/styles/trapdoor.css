@@ -1,0 +1,142 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   Trap doors — the storefront's soft spot in the floor + the d20 random-drop.
+   Period-accurate on purpose: NO rounded corners, no soft shadows, no neon
+   gradients — a flat DOS/CRT register (sharp bevels, Courier, EGA-ish palette),
+   so it reads 1997, not 2020s. Desktop + motion-OK only (the component gates
+   itself); these styles never reach mobile / the crawlable HTML.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* The visible-but-wrong element: a hairline seam at the foot of the page. Looks
+   like a 1px render glitch; sits full-width like a crack in the floorboards. */
+.trapdoor-seam {
+  display: block;
+  width: 100%;
+  margin: 18px 0 0;
+  padding: 2px 0;
+  background: transparent;
+  border: 0;
+  border-top: 1px dashed #6b6b6b;
+  font: 10px 'Courier New', monospace;
+  color: #8a8a8a;
+  text-align: center;
+  line-height: 0.6;
+  /* the "wrong" tell: a seam shouldn't be clickable, but the cursor says it is */
+  cursor: url('/cursor.cur'), pointer;
+}
+.trapdoor-seam__notch {
+  display: inline-block;
+  transform: translateY(-2px);
+  font-size: 9px;
+  opacity: 0.45;
+}
+.trapdoor-seam:hover .trapdoor-seam__notch {
+  opacity: 0.85;
+}
+.trapdoor-seam:focus-visible {
+  outline: 1px dotted #888;
+  outline-offset: 2px;
+}
+
+/* The fall: a full-screen black CRT takeover while the die rolls + the world
+   chunk loads, then the drop. Above the world canvas (60) and HUD. */
+.trapdoor-fall {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: #000;
+  color: #d8d2be;
+  font: 13px/1.5 'Courier New', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.trapdoor-roll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.trapdoor-roll__head {
+  margin: 0;
+  letter-spacing: 3px;
+  color: #e9e0c8;
+}
+.trapdoor-roll__sub {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #b7a96f;
+}
+
+/* The d20: a flat, sharp polygon die (icosahedron silhouette via clip-path),
+   bone/ivory on black — the same ivory as the in-world D20. No gloss. */
+.trapdoor-d20 {
+  width: 92px;
+  height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9e0c8;
+  color: #160a02;
+  /* a hexagonal-ish 20-sided die outline, flat-shaded look */
+  clip-path: polygon(
+    50% 0%,
+    93% 25%,
+    93% 75%,
+    50% 100%,
+    7% 75%,
+    7% 25%
+  );
+  /* a couple of hard inner facets, flat — no soft shadow */
+  box-shadow: inset 0 -16px 0 rgba(0, 0, 0, 0.16), inset 0 16px 0 rgba(255, 255, 255, 0.18);
+}
+.trapdoor-d20.is-rolling {
+  animation: trapdoorTumble 0.5s linear infinite;
+}
+.trapdoor-d20__face {
+  font: bold 30px 'Courier New', monospace;
+}
+@keyframes trapdoorTumble {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.06);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* The "floor holds" failure card — a sharp DOS dialog (double bevel), not a
+   rounded modern card. */
+.trapdoor-card {
+  background: #1a1a1a;
+  border: 2px solid #d8d2be;
+  box-shadow: 0 0 0 2px #000, 4px 4px 0 0 #000;
+  padding: 18px 22px;
+  max-width: 320px;
+}
+.trapdoor-card__head {
+  margin: 0 0 6px;
+  letter-spacing: 2px;
+  color: #e9e0c8;
+}
+.trapdoor-card__sub {
+  margin: 0 0 14px;
+  font-size: 11px;
+  color: #b7a96f;
+}
+.trapdoor-card__btn {
+  font: 12px 'Courier New', monospace;
+  padding: 4px 14px;
+  color: #160a02;
+  background: #d8d2be;
+  border: 2px outset #b7a96f; /* beveled, period — not flat/rounded */
+  cursor: pointer;
+}
+.trapdoor-card__btn:active {
+  border-style: inset;
+}

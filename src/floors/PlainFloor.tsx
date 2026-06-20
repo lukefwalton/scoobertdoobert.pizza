@@ -9,6 +9,7 @@ import { useProgressStore, selectRatGreeting } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
+import { TrapDoor } from '../components/TrapDoor';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Floor 0 — the `plain` template. The offensively plain 1995–97 commercial web
@@ -212,6 +213,10 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           .
         </p>
       </footer>
+
+      {/* The soft spot in the floor. Renders nothing in the crawlable / JS-off
+          HTML and nothing on mobile/reduced-motion — a desktop-only secret. */}
+      <TrapDoor />
     </div>
   );
 }
