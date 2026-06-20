@@ -6,6 +6,11 @@ import { audio } from '../audio/engine';
 import { isLowPower } from '../lib/lowPower';
 import { TEXT_ONLY_PATH } from '../data/links';
 
+// On a phone the order button lands in the arcade (mobile's reward), not the 3D
+// descent. Kept as a literal here (links.ts destinations are external/content
+// links; /arcade is an app route).
+const ARCADE_PATH = '/arcade';
+
 // The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
 // Favorite Cheese + an OPTIONAL, opt-in Email.
 //
@@ -46,10 +51,19 @@ export function OrderForm() {
       });
     }
 
-    // Mobile / reduced-motion stay on floor zero and just get the flat list;
-    // everyone else starts the descent through the era floors.
+    // Mobile / reduced-motion can't run the 3D world, so they don't descend.
+    // But mobile's reward IS the arcade (the minigames are the whole mobile
+    // experience), so on a phone the order button lands in the arcade — "order's
+    // in, play while it bakes." Reduced-motion (desktop) still gets the flat
+    // /text list, since the arcade is an animated game. The no-JS form GET still
+    // targets /text (action="/text"), and the flat list stays one tap away via
+    // the "text only version" link up top.
     if (isLowPower()) {
-      window.location.assign(TEXT_ONLY_PATH);
+      const onPhone =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(max-width: 768px)').matches;
+      window.location.assign(onPhone ? ARCADE_PATH : TEXT_ONLY_PATH);
     } else {
       audio.unlock();
       descend();
