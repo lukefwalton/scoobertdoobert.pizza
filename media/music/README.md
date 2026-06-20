@@ -12,6 +12,14 @@ shipped**: only degraded/web-sized derivatives under `public/` are served.
 
 Convert WAVs → MP3 with `scripts/convert-music-to-mp3.sh` (defaults to this folder).
 
+## The MÖBIUS arc
+
+`mob` · `i` · `us` · **MOBIUS** — a four-album arc; the first three names run
+together into **MÖBIUS** (the album motif threaded through the site). Two are
+done so far. **`moonlight-beach`** is the earlier LP that *sets up* the arc (its
+track 10 is the upside-down "möbius" gag). The capstone **MOBIUS** album isn't in
+this archive yet — no folder until its files land.
+
 > **Why album-keyed (not `year/album/`)?** The newly-added archive came with no
 > release-year info, so grouping by album avoids guessing. Year lives in the
 > table below. Give me the missing years and I can switch the tree to
@@ -21,18 +29,18 @@ Convert WAVs → MP3 with `scripts/convert-music-to-mp3.sh` (defaults to this fo
 
 | folder | album | year | notes |
 |---|---|---|---|
+| `mob/` | MÖB | ? | MÖBIUS arc #1; was `newnewmusic/MP3 (1)` — Stories, MEMORY LAN, Sunlight, DMV, Aliens, … All I Need |
+| `i/` | I | ? | MÖBIUS arc #2; was `newnewmusic/MP3s` — daydreaming, time with u, the cycle, … golden state of mind |
+| `us/` | US | 2025 | MÖBIUS arc #3; singles incl. AFTER PARTY, PARTY, JAZZ FLUTE, LOL… — each in a per-song subfolder with master + instrumental |
+| `moonlight-beach/` | Moonlight Beach (LP) | ? | sets up the MÖBIUS arc; track 10's title is the upside-down "möbius" gag |
+| `koan/` | KŌAN (LP) | ? | the LP the site's themes come from — "Information", "Jolly Roger Bay (64)", "1101" |
+| `big-hug/` | Big Hug (LP) | ? | |
+| `little-hug/` | Little Hug (EP) | ? | |
+| `friends-covering-friends/` | Friends Covering Friends (with Okudaxij) | ? | 2-track covers split |
 | `finding-d/` | Finding $D | 2018 | `$` dropped from the folder name |
 | `to-sleep/` | to sleep | 2019 | a setting of Hamlet's "to be or not to be" |
 | `dragon-ball-sd/` | Dragon Ball SD | 2020 | |
 | `masks-and-monsters/` | masks and monsters | 2020 | |
-| `koan/` | KŌAN (LP) | ? | the LP the site's themes come from — "Information", "Jolly Roger Bay (64)", "1101" |
-| `mobius/` | Mobius (LP)? | ? | **inferred** — track 10's title is the upside-down "mobius" gag; plugs the *Mobius* album motif. **Confirm name?** |
-| `big-hug/` | Big Hug (LP) | ? | |
-| `little-hug/` | Little Hug (EP) | ? | |
-| `friends-covering-friends/` | Friends Covering Friends (with Okudaxij) | ? | 2-track covers split |
-| `us/` | US | 2025 | singles — each kept in a per-song subfolder with master + instrumental |
-| `untitled-a/` | **?? needs name** | ? | was `newnewmusic/MP3 (1)` — Stories, MEMORY LAN, Sunlight, DMV, Aliens, TOO HOT, Underwater, Gemini, … All I Need |
-| `untitled-b/` | **?? needs name** | ? | was `newnewmusic/MP3s` — daydreaming, time with u, the cycle, ez pz, … golden state of mind |
 
 ## Filenames sanitized (real titles preserved here)
 
@@ -41,8 +49,8 @@ real title is kept here.
 
 | file | real title |
 |---|---|
-| `untitled-b/11 see you again.mp3` | `see you again?` |
-| `untitled-b/14 where did the sun go.mp3` | `where did the sun go?` |
+| `i/11 see you again.mp3` | `see you again?` |
+| `i/14 where did the sun go.mp3` | `where did the sun go?` |
 | `to-sleep/04 untitled.mp3` | `?` |
 | `to-sleep/05 where did You set my love.mp3` | `where did You set my love?` |
 | `to-sleep/06 to sleep.mp3` | `to sleep?` |
@@ -50,7 +58,7 @@ real title is kept here.
 | `to-sleep/08 is her's the better lot.mp3` | `is her's the better lot?` |
 | `to-sleep/10 dad, are you o.k.mp3` | `dad, are you o.k.?` |
 
-`mobius/Track 10_mobius_LP Ver.mp3` — the original title was stylized
+`moonlight-beach/Track 10_mobius_LP Ver.mp3` — the original title was stylized
 **upside-down**: `spuǝ ʇᴉ ʍoɥ ʇoN` (reads "Not how it ends" — a möbius gag).
 
 Everything else is the real title verbatim — apostrophes, parens, `!`, the `é`
