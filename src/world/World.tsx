@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PS1 } from './constants';
@@ -8,6 +8,8 @@ import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
+import { PoolroomsRoom } from './PoolroomsRoom';
+import { GlbRoom } from './GlbRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
@@ -33,6 +35,12 @@ function RoomEnvironment({ room }: { room: Room }) {
 // Which room geometry to render. Each room kind owns its own scene + lights, so
 // adding a room is: a ROOMS entry + a case here (+ a geometry component).
 function RoomScene({ room }: { room: Room }) {
+  // GLB levels (lazy-loaded; suspends until decoded). The DOM LoaderGame masks
+  // the wait and offers TAP-TO-ENTER (see LevelLoader / GlbRoom). Keyed by
+  // room.id so a future GLB→GLB hop force-remounts GlbRoom (fresh useGLTF +
+  // mount effect) rather than reusing the instance and inheriting a stale
+  // ready/error signal — same component type, different model.
+  if (room.glb) return <GlbRoom key={room.id} room={room} />;
   switch (room.kind) {
     case 'hallway':
       return <HallwayRoom room={room} />;
@@ -40,6 +48,8 @@ function RoomScene({ room }: { room: Room }) {
       return <JukeboxRoom room={room} />;
     case 'classified':
       return <ClassifiedRoom room={room} />;
+    case 'poolrooms':
+      return <PoolroomsRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -81,7 +91,11 @@ export default function World() {
       }}
     >
       <RoomEnvironment room={room} />
-      <RoomScene room={room} />
+      {/* Suspense for GLB levels (useGLTF). Fallback is null — the DOM
+          LoaderGame (LevelLoader) covers the wait. No-op for procedural rooms. */}
+      <Suspense fallback={null}>
+        <RoomScene room={room} />
+      </Suspense>
       <Doors />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +
