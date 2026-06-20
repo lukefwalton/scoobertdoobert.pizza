@@ -48,7 +48,7 @@ scoobertdoobert.pizza/
 │
 ├── media/                 # ── SOURCE ORIGINALS (NOT shipped) ── see media/README.md
 │   ├── masters/           # the few masters wired into the site (boot loop + layer themes)
-│   ├── music/             # full master catalog, one folder per album → media/music/README.md
+│   ├── music/             # full master catalog, by year/album    → media/music/README.md
 │   ├── sfx/               # sound effects (owned sitar takes)
 │   ├── models/            # all .glb source models by theme     → media/models/README.md
 │   ├── photos/            # full-res photo archive, grouped by shoot

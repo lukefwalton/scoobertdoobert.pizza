@@ -7,7 +7,7 @@ Git LFS — but originals don't belong in the deploy, only their derivatives.
 | folder | what | ships as |
 |---|---|---|
 | `masters/` | the few song masters **wired into the site** (boot loop + per-layer themes) | `public/audio/boot.wav` (degraded 8-bit bounce via `scripts/make-boot-audio.mjs`) |
-| `music/` | the **fuller master catalog**, one folder per album — see [`music/README.md`](music/README.md) | derivatives only |
+| `music/` | the **fuller master catalog**, by `year/album/` — see [`music/README.md`](music/README.md) | derivatives only |
 | `sfx/` | **sound effects** (the owned sitar takes) | degraded derivatives only |
 | `models/` | all **3D source models** (`.glb`), grouped by theme — see [`models/README.md`](models/README.md) | optimized → `public/models/` (crunch to PS1 first) |
 | `photos/` | full-resolution **press/photo archive** | web-sized picks → `public/press/` |

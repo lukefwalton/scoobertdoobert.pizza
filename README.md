@@ -104,7 +104,7 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 ├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image, …)
 ├── media/                # SOURCE originals, NOT shipped (see media/README.md)
 │   ├── masters/          # masters wired into the site (boot loop + layer themes)
-│   ├── music/            # full master catalog, one folder per album
+│   ├── music/            # full master catalog, by year/album
 │   ├── sfx/              # sound effects (owned sitar takes)
 │   ├── models/           # all .glb source models, grouped by theme (+ IP flags)
 │   ├── photos/           # full-res photo archive, grouped by shoot
