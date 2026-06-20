@@ -59,6 +59,13 @@ const noFirstFramePrompt = (await page.$('.hud-prompt--door')) === null;
 if (!noFirstFramePrompt) fail('a door prompt flashed on load (camera booted inside a door radius)');
 await page.waitForTimeout(1500); // WebGL warmup + a few frames
 
+// The world's ambient boot loop ("Best Day Ever") must actually decode — guards
+// the global boot.wav asset, separate from "the jukebox room works".
+const bootReady = await page
+  .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, { timeout: 12000 })
+  .then(() => true, () => false);
+if (!bootReady) fail('boot ambience (boot.wav) never decoded — engine not ready');
+
 // 1) Start in the shop — and the back-hall door must NOT prompt at spawn (you
 //    discover it by turning around, not instantly on load).
 const startShop = await roomIs('Beach Pizza Shop');
@@ -149,6 +156,39 @@ await page.screenshot({ path: '.shots/rooms-jukebox.png' });
 // The jukebox room ducks the loop by proximity, so the gain should be < 1 here.
 const duckedInJuke = (await page.evaluate(() => window.__sdpProximity ?? 1)) < 0.999;
 if (!duckedInJuke) fail('jukebox room did not duck the loop by proximity');
+
+// The jukebox plays the catalog: a track auto-selects on entry, and clicking the
+// cabinet (dead ahead at spawn) cycles to the next one.
+// Engine-level confirmation FIRST: __sdpJukeboxActive flips true only when
+// playJukeboxTrack() actually swaps the loop voice (after decode), so it tracks
+// real playback — unlike __sdpJukebox.slug, which is the React selection set
+// before the async decode/swap finishes.
+const jukeEngineActive = await page
+  .waitForFunction(() => window.__sdpJukeboxActive === true, null, { timeout: 5000 })
+  .then(() => true, () => false);
+if (!jukeEngineActive) fail('jukebox entry did not actually start a track (engine voice inactive)');
+const jukeOpen = await page.evaluate(() => window.__sdpJukebox?.slug);
+const jukeAutoPlay = jukeOpen === 'information';
+if (!jukeAutoPlay) fail(`jukebox did not auto-play the opening track (got ${jukeOpen})`);
+// Capture the ENGINE's active url before the click so we can prove the click
+// actually swapped the loop voice (decoded the next track), not just advanced
+// the React selection.
+const engineUrlBefore = await page.evaluate(() => window.__sdpJukeboxUrl);
+const jbBox = await page.locator('canvas').boundingBox();
+await page.mouse.click(jbBox.x + jbBox.width / 2, jbBox.y + jbBox.height / 2); // click the cabinet
+const engineSwapped = await page
+  .waitForFunction((prev) => !!window.__sdpJukeboxUrl && window.__sdpJukeboxUrl !== prev, engineUrlBefore, {
+    timeout: 5000,
+  })
+  .then(() => true, () => false);
+if (!engineSwapped) fail('clicking the jukebox did not swap the engine voice to the next track');
+const jukeNext = await page.evaluate(() => window.__sdpJukebox?.slug);
+const jukeNextUrl = await page.evaluate(() => window.__sdpJukeboxUrl);
+// Selection advanced AND the engine's active url matches the new slug (React
+// state and the engine voice agree on the same track).
+const jukeCycles =
+  engineSwapped && !!jukeNext && jukeNext !== jukeOpen && !!jukeNextUrl && jukeNextUrl.includes(jukeNext);
+if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (slug ${jukeOpen}->${jukeNext}, url ${jukeNextUrl})`);
 
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.
@@ -294,14 +334,59 @@ let turnWorks = false;
   await cCtx.close();
 }
 
+// Audio lifecycle: entering the jukebox then LEAVING before the first track
+// finishes decoding must NOT switch the loop voice after the room is gone. The
+// race is timing-sensitive through gameplay, so drive the engine directly via
+// the test-gated singleton: route-delay the track so its decode is still in
+// flight, start a select, immediately restoreBoot() (the unmount), then let the
+// decode resolve and assert the jukebox voice never activated. A second, cached
+// select then DOES activate (the guard isn't over-eager). Regression for the
+// red-flag race.
+let noStaleVoice = false;
+let sanityPlays = false;
+{
+  const sCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const sp = await sCtx.newPage();
+  sp.on('pageerror', (e) => fail(`audio-race pageerror: ${e.message}`));
+  // Hold the opening track's bytes ~1.2s so its decode can't finish before we
+  // bail. Only the first network fetch is delayed; the cached re-select is fast.
+  await sp.route('**/audio/jukebox/information.wav', async (route) => {
+    await new Promise((r) => setTimeout(r, 1200));
+    await route.continue();
+  });
+  await sp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  try {
+    await sp.waitForFunction(() => !!window.__sdpAudio, { timeout: 12000 });
+    const r = await sp.evaluate(async () => {
+      const a = window.__sdpAudio;
+      const url = '/audio/jukebox/information.wav';
+      const pending = a.playJukeboxTrack(url); // select while it's still loading
+      a.restoreBoot(); // the room unmounts mid-decode
+      await pending; // let the delayed decode resolve
+      const stale = a.isJukeboxPlaying; // must be false — the guard bailed
+      await a.playJukeboxTrack(url); // now cached → resolves fast → activates
+      const plays = a.isJukeboxPlaying;
+      a.restoreBoot();
+      return { stale, plays };
+    });
+    noStaleVoice = r.stale === false;
+    sanityPlays = r.plays === true;
+    if (!noStaleVoice) fail('leave-before-decode still switched the loop voice (race not fixed)');
+    if (!sanityPlays) fail('a normal jukebox select failed to activate the voice');
+  } catch (e) {
+    fail(`audio-race check failed: ${e.message}`);
+  }
+  await sCtx.close();
+}
+
 await browser.close();
 console.log(
-  `rooms: shop=${startShop} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
+  `rooms: shop=${startShop} bootReady=${bootReady} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
     `classified=${inClassified} backToHall=${backToHall} ratStaysDone=${ratStaysDone} jukePrompt=${jukePrompt} ` +
-    `jukebox=${inJuke} ducked=${duckedInJuke} heldNoBounce=${heldNoBounce} ` +
+    `jukebox=${inJuke} ducked=${duckedInJuke} engineActive=${jukeEngineActive} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
-    `strafeRight=${strafeRight} turnWorks=${turnWorks} | errors=${errors}`,
+    `strafeRight=${strafeRight} turnWorks=${turnWorks} noStaleVoice=${noStaleVoice} sanityPlays=${sanityPlays} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
