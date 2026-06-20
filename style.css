@@ -1,0 +1,344 @@
+/* CSS files add styling rules to your content */
+
+body {
+  font-family: "azo-sans-web", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1em;
+  margin: 0;
+  background-image: linear-gradient(lightblue, skyblue);
+    background-image: url("scoob new bg.jpg");
+  background-attachment: fixed;
+  background-position-x: 50%;
+  background-position-y: 25%;
+  background-size: cover;
+  line-height: 1.2em;
+  /* background-repeat: no-repeat; */
+  cursor: url("cursor.cur"), auto;
+}
+
+body,
+html {
+  height: 100%;
+}
+
+/* The Modal (background) */
+.modal {
+  display: block; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: hidden; /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0); /* Fallback color */
+  background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 1em;
+  border: 1px solid #888;
+  max-width: 50%; /* Could be more or less, depending on screen size */
+}
+
+.modal-content img {
+  max-height: 100%;
+
+}
+
+/* The Close Button */
+.close {
+  color: black;
+  float: right;
+  font-size: 1em;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+video {
+  /* position: fixed;
+  z-index: -1;
+  height: 100%; */
+}
+
+#myVideo {
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-image: url("ScoobertDoobert_v02.mp4");
+  background-size: cover;
+  background-color: transparent;
+  z-index: -1;
+}
+
+a {
+  font-family: "azo-sans-web", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: white;
+}
+
+h1 {
+  font-family: "azo-sans-uber", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0;
+  font-style: bold;
+  text-transform: uppercase;
+  font-size: 8vw;
+  color: rgba(0, 0, 0, 0.8);
+  text-align: left;
+  line-height: 100%;
+  /*   display: block; */
+}
+
+h2 {
+  font-family: "azo-sans-uber", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  text-transform: uppercase;
+  margin-left: auto;
+  margin-right: auto;
+  color: white;
+  text-align: center;
+  font-size: 4vw;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+h3 {
+  font-family: "azo-sans-uber", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  color: black;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-weight: bold;
+  font-size: 2vw;
+  text-transform: uppercase;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+h4 {
+  font-family: "azo-sans-uber", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 2vw;
+}
+
+.navbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.link {
+  text-align: center;
+  padding: 0.5vh;
+  margin: 0.5vw 0.5vh;
+  flex: 25%;
+  max-width: 25%;
+  /* transform: scale(.25); */
+  /* border-radius: 50%; */
+  text-transform: uppercase;
+  display: inline-block;
+  box-shadow: 0.25vw 0.25vh;
+}
+
+.link:hover {
+  background-color: rgba(110, 180, 220, 0.8);
+  transform: rotateZ(3deg);
+}
+
+.video {
+  position: relative;
+  padding-bottom: 56.25%;
+  padding-top: 30px;
+  height: 0;
+  overflow: hidden;
+}
+
+.video iframe,
+.video object,
+.video embed {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  width: 90%;
+  height: 90%;
+}
+
+.page-content {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.bio {
+  background-image: linear-gradient(
+    rgba(50, 110, 220, 0.5),
+    rgba(60, 140, 250, 0.5)
+  );
+  font-size: 0.8em;
+  text-align: justify;
+  display: block;
+  margin: 5%;
+  padding: 3% 4%;
+  color: white;
+}
+
+#scoobVideo {
+  max-width: 100vw;
+}
+
+.bio a {
+  color: black;
+}
+
+.footer {
+  text-align: center;
+  padding: 10px;
+}
+
+#scroll-up {
+  background-color: rgba(255, 255, 255, 0.7);
+  max-width: 110px;
+  margin-left: auto;
+  margin-right: auto;
+  cursor: pointer;
+}
+
+#scroll-up:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+}
+
+#beformer {
+  text-align: left;
+  font-family: "Beth Ellen", cursive;
+  font-size: 14px;
+  width: 8em;
+  height: 2.5em;
+  /*   text-align: center; */
+  padding: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  line-height: 50%;
+  top: 10px;
+  right: -20px;
+  border-radius: 40px;
+  transition: background-color 0.1s linear;
+}
+
+#beformer a {
+  transition: color 0.1s linear;
+}
+
+#beformer:hover a {
+  color: black;
+}
+
+#records {
+  /*     text-align: right; */
+  transform: scale(-1, 1);
+  padding-bottom: 1em;
+  margin-bottom: 1em;
+  margin-right: 0.5em;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+#records a {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer {
+  color: white;
+  font-size: 8px;
+}
+
+/* FOR DESKTOP */
+@media only screen and (min-width: 1200px) {
+  h2 {
+  }
+
+  h3 {
+  }
+
+  .navbar {
+    max-width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .bio {
+    max-width: 40%;
+    flex: 40%;
+  }
+
+  #scoobVideo {
+    flex: 40%;
+    max-width: 40%;
+  }
+
+  .video {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 30px;
+    margin-bottom: -400px;
+    height: 0;
+    overflow: hidden;
+  }
+
+  .video iframe,
+  .video object,
+  .video embed {
+    position: absolute;
+    top: 0;
+    left: 25%;
+    width: 50%;
+    height: 50%;
+  }
+
+  .bio {
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+#custom-substack-embed{
+  margin-left: auto; 
+  margin-right: auto;
+  margin-top: 2em;
+  margin-bottom: 4em;
+}
+
+
+#preloader {
+  background: #000;
+  background: url("SD.gif") center center;
+  background-size: 5%;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  z-index: 100;
+}
