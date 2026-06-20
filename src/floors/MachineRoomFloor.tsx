@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import '../styles/machineroom.css';
 import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
+import { useLowPower } from '../lib/lowPower';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
 import type { Floor } from '../data/floors';
@@ -29,11 +30,9 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   // The 3D world (and the CRT's live WebGL render) is desktop + motion-OK only.
   // Mobile / reduced-motion can still WALK the machine room — it's a normal page
   // — but the CRT shows a static screen and Install hands off to the flat menu.
-  // (MachineRoomFloor only ever renders client-side, so window is safe here.)
-  const lowPower =
-    typeof window !== 'undefined' &&
-    (window.matchMedia('(max-width: 768px)').matches ||
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Reactive: if the viewport crosses the breakpoint or reduced-motion flips
+  // after this floor has mounted, the CRT and the install behavior follow suit.
+  const lowPower = useLowPower();
 
   const install = () => {
     if (lowPower) {
