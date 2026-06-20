@@ -192,3 +192,24 @@ export const selectReturning = (s: ProgressState): boolean =>
  * deep gets the crack. (Distinct from selectReturning, which is surface-safe.)
  */
 export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7;
+
+/**
+ * The rat's storefront greeting — the "site remembers you" payoff made legible.
+ * Returns null for a cold visitor (no wink at all), else the MOST specific line
+ * for what they've actually done, so coming back having gone deeper / found the
+ * back room / heard the music each gets its own callback. Surface-safe by design:
+ * the storefront stays a sweet zone (docs/DESIGN "dosage"), so even the
+ * deep-diver line is goofy-with-a-hair-of-wrong, then deflects — never dread.
+ * Order matters: deepest/most specific first.
+ */
+export function selectRatGreeting(s: ProgressState): string | null {
+  if (!selectReturning(s)) return null; // a cold/first-time visitor gets no wink
+  if (s.maxUnease >= 0.7)
+    return 'Oh. It’s you. You went all the way down there, didn’t you… forget I said that. The usual?';
+  if (s.secretsFound.includes('classified'))
+    return 'Oh, you’re back. Found your way out of the back room okay? ’Course you did. The usual?';
+  if (s.visitedRooms.includes('jukebox'))
+    return 'Back for more of the music, huh. Kept your booth warm. The usual?';
+  if (s.everEnteredWorld) return 'Oh. You. Back again — and you’ve seen downstairs. The usual?';
+  return 'Oh. You. Back again. The usual?';
+}

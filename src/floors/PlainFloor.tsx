@@ -5,7 +5,7 @@ import { MuteToggle } from '../components/MuteToggle';
 import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
-import { useProgressStore, selectReturning } from '../state/progressStore';
+import { useProgressStore, selectRatGreeting } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -25,13 +25,15 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   const insideScoop = destById('podcast')?.href ?? TEXT_ONLY_PATH;
   const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
-  // Surface-safe returning-visitor wink (the rat clocks you). Gated on
-  // useMounted so it's a post-hydration enhancement only — never in the
-  // prerendered / JS-off HTML, and no hydration mismatch. Funny, not dread:
-  // the storefront stays a safe zone (see docs/DESIGN.md "dosage").
+  // Surface-safe returning-visitor wink (the rat clocks you) — now HISTORY-AWARE:
+  // the greeting reflects what you've actually done (gone deep / found the back
+  // room / heard the music), so coming back feels remembered, not generic. Gated
+  // on useMounted so it's a post-hydration enhancement only — never in the
+  // prerendered / JS-off HTML, and no hydration mismatch. Funny, not dread: the
+  // storefront stays a safe zone (see docs/DESIGN.md "dosage").
   const mounted = useMounted();
-  const returning = useProgressStore(selectReturning);
-  const remembersYou = mounted && returning;
+  const greeting = useProgressStore(selectRatGreeting);
+  const remembersYou = mounted ? greeting : null;
 
   return (
     <div className="store" data-floor={floor.id}>
@@ -83,7 +85,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         </p>
         {remembersYou && (
           <p className="news-returning">
-            <i>&mdash; The rat says: &ldquo;Oh. <b>You.</b> Back again. The usual?&rdquo;</i>
+            <i>&mdash; The rat says: &ldquo;{remembersYou}&rdquo;</i>
           </p>
         )}
       </section>
