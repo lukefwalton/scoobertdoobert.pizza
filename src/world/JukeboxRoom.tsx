@@ -10,6 +10,7 @@ import {
 import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
+import { D20 } from './D20';
 
 // The jukebox room — the music payoff at the end of the hall. Warm, dim, a
 // little womb-like. The jukebox plays Scoobert's OWN catalog, "kinda fucked up"
@@ -145,10 +146,21 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const H = room.dims.height;
   const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
 
-  // Which catalog track the jukebox is on. Clicking the cabinet advances it.
+  // Which catalog track the jukebox is on. Clicking the cabinet advances it in
+  // order; rolling the d20 jumps to whatever the dice picks (the chaos path).
   const [index, setIndex] = useState(0);
+  const [roll, setRoll] = useState<number | null>(null);
   const track = JUKEBOX_TRACKS[index];
   const cycle = () => setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
+  // A d20 face (1..20) maps onto the catalog by modulo, so every track is
+  // reachable and the rolled number still reads as a real D&D roll.
+  const rollTo = (face: number) => {
+    setRoll(face);
+    setIndex((face - 1) % JUKEBOX_TRACKS.length);
+    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
+      (window as Window & { __sdpDice?: number }).__sdpDice = face;
+    }
+  };
 
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
   // loop voice back to the ambient boot loop and clear the test selection global
@@ -217,6 +229,9 @@ export function JukeboxRoom({ room }: { room: Room }) {
       </mesh>
 
       <Jukebox title={track.title} onSelect={cycle} />
+      {/* The dice-music selector: roll for a random track. Off to the side of
+          the cabinet, on the player's path in from the door. */}
+      <D20 position={[2.7, 1.0, -3.4]} onRoll={rollTo} lastRoll={roll} />
       <JukeboxAudio />
     </group>
   );
