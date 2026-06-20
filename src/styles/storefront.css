@@ -215,6 +215,41 @@ h2 {
   font-size: 0.9rem;
 }
 
+/* Small inline press JPEGs, floated like a 1996 page would: a thin gray inset
+   border, a tiny centered caption. Deliberately undersized and a little wrong. */
+.snapshot {
+  margin: 0 0 6px 14px;
+  padding: 0;
+  width: 150px;
+}
+.snapshot--right {
+  float: right;
+  clear: right;
+}
+.snapshot img {
+  display: block;
+  width: 150px;
+  height: 150px;
+  border: 2px inset #c0c0c0;
+  background: #ffffff;
+}
+.snapshot figcaption {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #444444;
+  text-align: center;
+  margin-top: 2px;
+}
+@media (max-width: 480px) {
+  .snapshot,
+  .snapshot img {
+    width: 108px;
+  }
+  .snapshot img {
+    height: 108px;
+  }
+}
+
 .slogan {
   margin-top: 10px;
 }
