@@ -1,6 +1,8 @@
 import '../styles/storefront.css';
 import { SampleMenu } from '../components/SampleMenu';
 import { OrderForm } from '../components/OrderForm';
+import { BootScreen } from '../components/BootScreen';
+import { MuteToggle } from '../components/MuteToggle';
 import { destById } from '../data/links';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -17,6 +19,7 @@ export default function Storefront() {
 
   return (
     <>
+      <BootScreen />
       <a className="skip-link" href="#menu">
         Skip to the menu
       </a>
@@ -24,6 +27,7 @@ export default function Storefront() {
       <div className="store">
         <p className="util">
           <a href="/text">text only version of this page</a>
+          <MuteToggle />
         </p>
 
         <header>
