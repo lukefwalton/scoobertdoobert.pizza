@@ -178,6 +178,7 @@ let reEnter = false;
 let errLoader = false;
 let bouncedBack = false;
 let overlayGoneOnAbort = false;
+let retryRecovered = false;
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
@@ -219,6 +220,27 @@ let overlayGoneOnAbort = false;
         .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, { timeout: 4000 })
         .then(() => true, () => false);
       if (!overlayGoneOnAbort) fail('loader overlay did not disappear after TURN BACK');
+
+      // ── in-session RETRY after a TRANSIENT failure. The error path cleared the
+      //    poisoned useGLTF cache, so once the asset is reachable again, re-entering
+      //    the room in the SAME tab should now load (no page reload required).
+      await page.unroute('**/models/liminal-other-space.glb'); // the hiccup passes
+      // Back in poolrooms at the 'fromLiminal' spawn (z=-5, facing +Z) → the deep
+      // door is behind us at -Z, so walk S to reach it again.
+      await page.keyboard.down('s');
+      await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
+      await page.keyboard.up('s');
+      await page.keyboard.press('e'); // → liminal, retry
+      retryRecovered = await page
+        .waitForFunction(
+          () =>
+            document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+          null,
+          { timeout: 12000 },
+        )
+        .then(() => true, () => false);
+      if (!retryRecovered)
+        fail('a transient GLB failure stayed poisoned — re-entry did not recover in-session');
     }
   } catch (e) {
     fail(`error-path check failed: ${e.message}`);
@@ -231,6 +253,6 @@ console.log(
   `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
     `ready=${loaderReady} liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
     `reReady=${reReady} reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
-    `overlayGoneOnAbort=${overlayGoneOnAbort} | errors=${errors}`,
+    `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
