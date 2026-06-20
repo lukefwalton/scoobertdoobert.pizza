@@ -16,6 +16,7 @@
     "shoot:fallback": "node scripts/shoot-fallback.mjs",
     "shoot:rooms": "node scripts/shoot-rooms.mjs",
     "shoot:levels": "node scripts/shoot-levels.mjs",
+    "shoot:dice": "node scripts/shoot-dice.mjs",
     "shoot:ballpit": "node scripts/shoot-ballpit.mjs"
   },
   "dependencies": {
