@@ -508,6 +508,33 @@ export const ROOMS: Room[] = [
   },
 ];
 
+// ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
+// The "soft spot in the floor" on the dead-plain storefront drops you, via an
+// interstitial d20 roll, straight into the BOTTOM of the back rooms — skipping
+// the descent entirely. This is the drop table the die rolls on: the deep,
+// wrong rooms only (never the safe surface — shop/hallway/jukebox), so wherever
+// you land it's already too far down. Each is a real room id + a valid spawn.
+//
+// Deliberately the PROCEDURAL deep rooms + the medium liminal GLB — NOT the
+// heaviest deeppool GLB: a whimsical storefront click shouldn't spring a 5 MB
+// download on a casual visitor (the abandoned pool stays something you EARN by
+// descending). The d20 face maps onto this list (face → list index), so the
+// number the die lands on genuinely decides where the floor drops you.
+export type TrapDrop = { room: string; spawn: string; title: string };
+export const TRAP_DROP_ROOMS: TrapDrop[] = [
+  { room: 'classified', spawn: 'default', title: 'Classified' },
+  { room: 'dicepit', spawn: 'default', title: 'The Back Room' },
+  { room: 'mobius', spawn: 'default', title: 'The Long Corridor' },
+  { room: 'liminal', spawn: 'default', title: 'Liminal Space' },
+];
+
+/** Map a d20 face (1..20) to a drop destination. The face decides — same face,
+ *  same room — so the roll isn't decorative: it's the randomizer. */
+export function trapDropForRoll(face: number): TrapDrop {
+  const i = (Math.max(1, Math.min(20, Math.floor(face))) - 1) % TRAP_DROP_ROOMS.length;
+  return TRAP_DROP_ROOMS[i];
+}
+
 // The jukebox's world position (the music source). Lives here so JukeboxRoom can
 // place the object and the proximity-audio can measure distance to the same spot.
 export const JUKEBOX_POS: [number, number, number] = [0, 1.2, -5.5];
