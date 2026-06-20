@@ -47,6 +47,7 @@ export const DREAD: DreadConfig = {
     hallway: 0.42, // dim backrooms corridor — the first real tension
     jukebox: 0.05, // the warm payoff shrine — a relief valve, kept safe
     classified: 0.8, // the cold X-Files file room — the bitter end
+    poolrooms: 0.3, // the level below — over-lit, empty, uncanny (not dark dread)
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)

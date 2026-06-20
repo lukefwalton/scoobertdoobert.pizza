@@ -8,6 +8,7 @@ import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
+import { PoolroomsRoom } from './PoolroomsRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
@@ -40,6 +41,8 @@ function RoomScene({ room }: { room: Room }) {
       return <JukeboxRoom room={room} />;
     case 'classified':
       return <ClassifiedRoom room={room} />;
+    case 'poolrooms':
+      return <PoolroomsRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
