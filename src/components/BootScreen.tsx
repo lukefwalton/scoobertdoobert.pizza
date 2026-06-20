@@ -27,13 +27,16 @@ export function BootScreen() {
 
   useEffect(() => {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Mobile gets the plain storefront immediately — no boot gate, matching the
+    // reduced-motion/no-descent fallback intent.
+    const small = window.matchMedia('(max-width: 768px)').matches;
     let seen = false;
     try {
       seen = sessionStorage.getItem('sdp_booted') === '1';
     } catch {
       /* ignore */
     }
-    if (seen || reduced) return;
+    if (seen || reduced || small) return;
     try {
       sessionStorage.setItem('sdp_booted', '1');
     } catch {

@@ -19,7 +19,10 @@ import { destById } from '../data/links';
 // ───────────────────────────────────────────────────────────────────────────
 
 export default function Storefront() {
-  const insideScoop = destById('about')?.href ?? '/text';
+  // The "inside scoop" points at the podcast (the actual behind-the-scenes
+  // talk show), not at lukefwalton.com — that stays a subtle footer/schema
+  // backlink, not a navigation destination.
+  const insideScoop = destById('podcast')?.href ?? '/text';
 
   return (
     <>

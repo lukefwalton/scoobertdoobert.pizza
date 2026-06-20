@@ -79,16 +79,6 @@ export const DESTINATIONS: Dest[] = [
     external: true,
   },
   {
-    id: 'about',
-    label: 'the inside scoop',
-    href: 'https://lukefwalton.com/',
-    blurb:
-      'The pizza shop is a solo music project by a philosopher. Here is the philosopher.',
-    topping: 'pepper',
-    era: 'world',
-    external: true,
-  },
-  {
     id: 'contact',
     label: 'submit a comment to the webmaster',
     href: 'https://www.instagram.com/scoobertdoobert.pizza/',
@@ -98,10 +88,10 @@ export const DESTINATIONS: Dest[] = [
     external: true,
   },
   {
-    id: 'surmado',
+    id: 'beformer',
     label: 'the usual corporate stuff',
-    href: 'https://www.surmado.com/',
-    blurb: 'Corporate.',
+    href: 'https://beformer.co',
+    blurb: 'Corporate. (It is a record label.)',
     topping: 'anchovy',
     era: '2000',
     external: true,

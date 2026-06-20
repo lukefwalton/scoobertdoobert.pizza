@@ -145,6 +145,13 @@ easter-egg list. Those are Phase 2+. If you start adding them, stop and ask.
 4. **Floor-one water must be the DEGRADED version** per the PS1 hard constraints
    — crunchy, affine-wobbly, low-res, fog. The GDScout water is the glossy
    "before"; if floor-one water looks that clean, it's wrong.
+5. **The order form is the one loud exception (Luke).** It's the easter-egg
+   entrance, so it's an intentionally prominent period "ORDER ONLINE!" callout
+   (blinking NEW! badge, big button) on the otherwise dead-plain page. Don't
+   flatten it back.
+6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** Footer `rel=me` +
+   JSON-LD `sameAs`, never a navigation destination. This is Scoobert's site,
+   not Luke's — users shouldn't really find the link via nav.
 
 ## WORKING AGREEMENT
 
@@ -169,7 +176,7 @@ easter-egg list. Those are Phase 2+. If you start adding them, stop and ask.
 | catalog | more about our menu | full catalog |
 | podcast | community involvement | Love Music More |
 | about | the inside scoop | the project / bio |
-| surmado | the usual corporate stuff | Surmado (deadpan) |
+| beformer | the usual corporate stuff | beformer.co — the band's label (deadpan) |
 | contact | submit a comment to the webmaster | contact |
 
 Storefront copy, 1999 register (original — do not use Pizza Hut's words):

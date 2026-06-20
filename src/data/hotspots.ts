@@ -42,7 +42,7 @@ export const HOTSPOTS: Hotspot[] = [
   },
   {
     id: 'counter',
-    destId: 'about',
+    destId: 'catalog',
     position: [5.6, 2.2, -2],
     prompt: 'Press E to read the pizza box',
     mesh: 'pizzaBox',
