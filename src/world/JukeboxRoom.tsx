@@ -165,12 +165,19 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
   // loop voice back to the ambient boot loop and clear the test selection global
   // (so a later smoke can't read a stale "still on this track" after exit).
+  // __sdpDice is cleared on BOTH enter and exit so it always means "the roll
+  // from THIS visit" (edge-triggered), never a sticky last-roll-since-page-load.
   useEffect(() => {
     audio.preloadJukebox(JUKEBOX_TRACKS.map((t) => jukeboxTrackUrl(t.slug)));
+    if (typeof window !== 'undefined') {
+      (window as Window & { __sdpDice?: number }).__sdpDice = undefined;
+    }
     return () => {
       audio.restoreBoot();
       if (typeof window !== 'undefined') {
-        (window as Window & { __sdpJukebox?: unknown }).__sdpJukebox = undefined;
+        const w = window as Window & { __sdpJukebox?: unknown; __sdpDice?: number };
+        w.__sdpJukebox = undefined;
+        w.__sdpDice = undefined;
       }
     };
   }, []);
