@@ -10,7 +10,8 @@
     "postbuild": "node scripts/check-build.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc --noEmit",
-    "shoot": "node scripts/shoot.mjs"
+    "shoot": "node scripts/shoot.mjs",
+    "shoot:world": "node scripts/shoot-world.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

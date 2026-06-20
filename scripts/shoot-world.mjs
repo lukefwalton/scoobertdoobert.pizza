@@ -34,4 +34,8 @@ await page.screenshot({ path: '.shots/world.png' });
 await page.waitForTimeout(1600);
 await page.screenshot({ path: '.shots/world2.png' });
 await browser.close();
-console.log('world shots done');
+if (errors) {
+  console.error(`world shots done with ${errors} page error(s) — failing.`);
+  process.exit(1);
+}
+console.log('world shots done (no page errors).');
