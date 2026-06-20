@@ -24,6 +24,10 @@ import { useProgressStore, selectDeepDiver } from '../state/progressStore';
 function Watcher() {
   const deep = useProgressStore(selectDeepDiver);
   const grp = useRef<THREE.Group>(null);
+  // Random per-mount phase so the reveal isn't synced to Canvas mount time —
+  // otherwise every deep returner would catch it in the first ~1.1s. Now it's
+  // genuinely sporadic: sometimes soon, sometimes after you've looked away.
+  const phaseOffset = useMemo(() => Math.random() * 11, []);
   const mat = useMemo(() => {
     const m = new THREE.MeshBasicMaterial({ color: '#070709', transparent: true, opacity: 0 });
     applyVertexSnap(m, 64);
@@ -38,7 +42,7 @@ function Watcher() {
     }
     // Visible ~1.1s out of every ~11s, eased in and out (a sine bump, never a
     // hard cut → no flash). "Did I just see that?"
-    const c = state.clock.elapsedTime % 11;
+    const c = (state.clock.elapsedTime + phaseOffset) % 11;
     const f = c < 1.1 ? Math.sin((c / 1.1) * Math.PI) : 0;
     mat.opacity = f * 0.9;
     g.visible = f > 0.01;
