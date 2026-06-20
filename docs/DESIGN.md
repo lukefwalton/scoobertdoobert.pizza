@@ -382,10 +382,10 @@ linked from `/arcade`; progressive enhancement (crawlable shell, canvas mounts
 post-hydration). Next passes: a dedicated face asset, more expressive audio
 mapping, maybe a "record your poke" share.
 
-**The webcam is a SEPARATE idea (Luke), not a layer of this.** Poke-Scoobert is
-pointer/touch only and complete on its own. A camera-driven version (use your hand
-to grab the face) is its own future thread, gated by the Webcam policy below —
-don't couple them.
+**Pointer/touch ONLY — no webcam, ever, for this toy (Luke).** Poke-Scoobert is
+complete as a finger/mouse instrument; there is no camera-driven version of it.
+The webcam is a **wholly separate idea** (its own future thread, gated by the
+Webcam policy below) — NOT a layer or a camera-mode of this. Don't couple them.
 
 ### Webcam policy (the one narrow exception to "no real camera")
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
