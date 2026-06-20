@@ -1,0 +1,108 @@
+// ───────────────────────────────────────────────────────────────────────────
+// src/data/dread.ts — the DREAD LAYER, as data (Phase 5, ckpt 1).
+//
+// The whole emotional arc is tuned HERE. One `unease` value (0..1) rises with
+// depth + dwell + triggers and decays in safe zones; everything the dread layer
+// touches (audio bed, PS1 shader uniforms, fog, camera, the rat) reads `unease`
+// and nothing else. This file is the conductor's score; DreadConductor is the
+// conductor; the instruments come online in later checkpoints.
+//
+// DOSAGE (docs/DESIGN.md "bitterness in a beer"): the baseline lives LOW, decay
+// is generous, the SURFACE STAYS SWEET, and ascending always calms it. When in
+// doubt, dial it DOWN — it's trivial to add bitterness, ruinous to over-hop.
+// ───────────────────────────────────────────────────────────────────────────
+
+export type DreadConfig = {
+  /** Resting unease 0..1 for a zone — keyed by floor id (floors.ts) OR room id
+   *  (rooms.ts). Surface zones are 0; the deep/cold rooms are the bitter end. */
+  baseUnease: Record<string, number>;
+  /** Lingering in a tense zone (base > SAFE) nudges unease up, per second. */
+  dwellRatePerSec: number;
+  /** Dwell ceiling as a fraction of a zone's base: lingering can push unease up
+   *  to base + base*dwellFactor, so milder zones stay milder (keeps the
+   *  hallway/classified hierarchy instead of everything converging to one band). */
+  dwellFactor: number;
+  /** How fast unease eases UP to a zone's resting value on entering it. */
+  riseRatePerSec: number;
+  /** Safe zones pull unease DOWN, per second — must out-pace dwell so a climb
+   *  back toward the surface always calms you within a few beats. */
+  decayRatePerSec: number;
+  /** One-shot event deltas. Some are declared-dormant until their source ships
+   *  (the terminal in Phase 4, the Möbius loop in Phase 6) — see DESIGN. */
+  triggers: Record<string, number>;
+};
+
+/** Below this, a zone counts as "safe" (decays rather than dwells). */
+export const SAFE_UNEASE = 0.06;
+
+export const DREAD: DreadConfig = {
+  baseUnease: {
+    // ── era floors (descent) — surface/near-surface, barely a tickle ──
+    storefront: 0,
+    y1999: 0.04,
+    y2000: 0.05, // still a surface era floor — kept below SAFE so it stays sweet
+    machine: 0.18,
+    // ── 3D rooms (rooms.ts) ──
+    shop: 0, // the safe, goofy spawn — stays sweet, always
+    hallway: 0.42, // dim backrooms corridor — the first real tension
+    jukebox: 0.05, // the warm payoff shrine — a relief valve, kept safe
+    classified: 0.8, // the cold X-Files file room — the bitter end
+  },
+  dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
+  dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
+  riseRatePerSec: 0.32, // entering a tense room ramps to its base in ~1–2s
+  decayRatePerSec: 0.16, // safe zones calm faster than dwell raises
+  triggers: {
+    'enter-classified': 0.12, // a jolt on first slipping into the file room
+    // dormant until their source exists (declared so they light up for free):
+    'terminal-forbidden-cmd': 0.2, // Phase 4
+    'mobius-loop': 0.15, // Phase 6 recurrence
+  },
+};
+
+/** Resting unease for a zone id (floor or room). Unknown → 0 (safe). */
+export function baseUneaseFor(zoneId: string): number {
+  return DREAD.baseUnease[zoneId] ?? 0;
+}
+
+// ── unease → instrument targets ──────────────────────────────────────────────
+// The mapping every later checkpoint reads. Curves are intentionally back-loaded
+// so most of the descent feels fine and the wrongness only blooms past the
+// midpoint. Nothing consumes these yet in ckpt1 (the debug panel displays them);
+// the audio bed (ckpt2) and visual ramp (ckpt3) wire them to real uniforms.
+
+export type DreadTargets = {
+  subBassGain: number; // 0..1 — the felt-not-heard bed
+  dropoutChance: number; // 0..~0.03 — rare total audio dropouts (fade, never spike)
+  bitcrush: number; // 0..1 — degradation of the music/ambient
+  fogDensityMul: number; // 1..~2.4 — multiplies fog "closeness" (draw distance shrinks)
+  vertexJitter: number; // 0..1 — extra vertex-snap coarseness
+  affineStrength: number; // 0..1 — extra affine texture swim
+  cameraShake: number; // 0..1 — micro-shake / lurch
+  vignette: number; // 0..1 — edges tighten
+  ratMenace: number; // 0..1 — drives the rat's inverted boids (ckpt4)
+};
+
+/** Linear ramp of `u` across [start, end], clamped to 0..1. */
+function ramp(u: number, start: number, end: number): number {
+  if (end <= start) return u >= end ? 1 : 0;
+  return Math.min(1, Math.max(0, (u - start) / (end - start)));
+}
+
+export function mapUnease(u: number): DreadTargets {
+  return {
+    // The bed comes in FIRST and lowest — felt before anything is seen.
+    subBassGain: ramp(u, 0.1, 0.85),
+    // Dropouts only at the high end, and rare even then.
+    dropoutChance: ramp(u, 0.7, 1) * 0.03,
+    bitcrush: ramp(u, 0.35, 1),
+    // Fog closes from 1× (no change) toward ~2.4× as draw distance shrinks.
+    fogDensityMul: 1 + ramp(u, 0.25, 1) * 1.4,
+    vertexJitter: ramp(u, 0.4, 1),
+    affineStrength: ramp(u, 0.45, 1),
+    // Visual motion held back hard (comfort + WCAG): only past 0.55, capped.
+    cameraShake: ramp(u, 0.55, 1) * 0.8,
+    vignette: ramp(u, 0.3, 1),
+    ratMenace: ramp(u, 0.5, 1),
+  };
+}
