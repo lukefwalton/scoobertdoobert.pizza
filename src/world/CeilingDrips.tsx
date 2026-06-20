@@ -27,9 +27,10 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
         return {
           x: (Math.random() * 2 - 1) * (halfW - 0.6),
           z: (Math.random() * 2 - 1) * (halfD - 0.6),
-          // y is the box CENTRE; keep the whole streak below the ceiling line
-          // (top = y + len/2 ≤ height) so it never pokes through.
-          y: Math.random() * (height - len),
+          // y is the box CENTRE; seed in [len/2, height - len/2] so the whole
+          // streak stays between floor and ceiling on first paint (no clip at
+          // either end).
+          y: len / 2 + Math.random() * (height - len),
           speed: 1.4 + Math.random() * 1.8,
           len,
         };

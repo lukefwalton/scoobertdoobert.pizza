@@ -36,6 +36,12 @@ const POOL = 5;
 const WATER_Y = 0.14;
 const WAVE_AMP_MAX = 0.1; // 0.04 + unease*0.06, capped — must stay < WATER_Y
 
+// Make the deck-clip invariant executable: tuning one constant without the other
+// would silently bring the animated surface back through the deck.
+if (import.meta.env?.DEV && WATER_Y <= WAVE_AMP_MAX) {
+  console.warn('[poolrooms] WATER_Y must exceed WAVE_AMP_MAX or the false water clips the deck');
+}
+
 // A low-res caustic-ish ripple texture (PS1: tiny + NearestFilter). Interfering
 // sine bands read as light dancing on water once it's scrolled.
 function makeRippleTexture(): THREE.Texture {
