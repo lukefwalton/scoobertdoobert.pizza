@@ -1,0 +1,215 @@
+/* starburst.css — the 1999 floor. Loud, primary-colored, busy: a spinning
+   starburst, a scrolling marquee, a left nav rail, blinking news. A MEMORY of
+   1999 (a beat too eager, colors slightly off), not a faithful restoration. */
+
+.sb {
+  min-height: 100vh;
+  background:
+    repeating-linear-gradient(0deg, #1a3acc 0 2px, #1633b8 2px 4px),
+    #1633b8;
+  color: #ffffff;
+  font-family: Arial, Helvetica, sans-serif;
+  padding-bottom: 48px;
+}
+
+/* scrolling marquee */
+.sb__marquee {
+  overflow: hidden;
+  white-space: nowrap;
+  background: #000000;
+  color: #ffe600;
+  font-weight: bold;
+  font-size: 0.95rem;
+  border-bottom: 3px ridge #ffe600;
+  padding: 4px 0;
+}
+.sb__marquee span {
+  display: inline-block;
+  padding-left: 100%;
+  animation: sb-marquee 18s linear infinite;
+}
+@keyframes sb-marquee {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* header with the spinning starburst */
+.sb__head {
+  text-align: center;
+  padding: 22px 16px 14px;
+  position: relative;
+}
+.sb__star {
+  width: 92px;
+  height: 92px;
+  margin: 0 auto 8px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 0deg,
+      #ff2b2b 0 18deg,
+      #ffe600 18deg 36deg
+    );
+  box-shadow: 0 0 0 4px #ffffff, 0 0 22px rgba(255, 230, 0, 0.7);
+  animation: sb-spin 9s linear infinite;
+}
+.sb__star-text {
+  font-family: 'Comic Sans MS', 'Times New Roman', cursive;
+  font-weight: bold;
+  font-size: 1.4rem;
+  color: #c1121f;
+  background: #ffffff;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transform: rotate(-8deg);
+  animation: sb-spin-rev 9s linear infinite;
+}
+@keyframes sb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sb-spin-rev {
+  to {
+    transform: rotate(-368deg);
+  }
+}
+.sb__title {
+  font-size: 2.1rem;
+  margin: 6px 0 2px;
+  color: #ffe600;
+  text-shadow: 2px 2px 0 #c1121f, 4px 4px 0 rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.01em;
+}
+.sb__sub {
+  margin: 0;
+  color: #bcd0ff;
+  font-size: 0.9rem;
+}
+
+/* body: left rail + main column */
+.sb__body {
+  max-width: 860px;
+  margin: 10px auto 0;
+  display: flex;
+  gap: 16px;
+  padding: 0 14px;
+  align-items: flex-start;
+}
+.sb__rail {
+  flex: 0 0 180px;
+  background: #c0c0c0;
+  color: #000080;
+  border: 3px outset #e8e8e8;
+  padding: 8px;
+}
+.sb__rail-h {
+  margin: 0 0 6px;
+  font-weight: bold;
+  text-align: center;
+  color: #c1121f;
+}
+.sb__rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sb__rail li {
+  margin: 4px 0;
+  border-bottom: 1px dotted #808080;
+  padding-bottom: 3px;
+}
+.sb__rail a {
+  color: #0000cc;
+}
+.sb__counter {
+  margin: 10px 0 0;
+  font-size: 0.78rem;
+  text-align: center;
+  color: #222222;
+  background: #000000;
+  color: #00ff66;
+  font-family: 'Courier New', monospace;
+  padding: 3px;
+  border: 1px inset #808080;
+}
+.sb__counter b {
+  color: #00ff66;
+}
+
+.sb__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sb__news {
+  background: #fffbe6;
+  color: #000000;
+  border: 4px ridge #ff2b2b;
+  padding: 12px;
+}
+.sb__rat {
+  margin: 0 0 6px;
+  color: #c1121f;
+  font-size: 1.1rem;
+  animation: sb-blink 1.1s steps(1) infinite;
+}
+.sb__news a {
+  color: #0000cc;
+}
+.sb__copy {
+  margin: 8px 0 0;
+}
+@keyframes sb-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.sb__construction {
+  text-align: center;
+  background: #000000;
+  color: #ffe600;
+  font-weight: bold;
+  border: 2px dashed #ffe600;
+  margin: 12px 0;
+  padding: 7px;
+}
+.sb__cone {
+  color: #ff8c00;
+}
+
+.sb__doors {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 18px;
+}
+/* doors read in a brighter frame on this loud floor */
+.sb .floor-door__label {
+  color: #ffffff;
+}
+
+@media (max-width: 560px) {
+  .sb__body {
+    flex-direction: column;
+  }
+  .sb__rail {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb__marquee span,
+  .sb__star,
+  .sb__star-text,
+  .sb__rat {
+    animation: none;
+  }
+}
