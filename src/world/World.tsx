@@ -10,6 +10,7 @@ import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
 import { Doors } from './Doors';
 import { Controls } from './Controls';
+import { DreadVisuals } from './DreadVisuals';
 
 // Per-room background + fog. The world graph (rooms.ts) carries each room's
 // palette; this pushes it onto the scene whenever the current room changes, so
@@ -83,6 +84,9 @@ export default function World() {
       <RoomScene room={room} />
       <Doors />
       <Controls />
+      {/* After <Controls/> so its useFrame runs last — layers the dread fog +
+          bob/shake on top of the camera Controls just positioned. */}
+      <DreadVisuals />
     </Canvas>
   );
 }
