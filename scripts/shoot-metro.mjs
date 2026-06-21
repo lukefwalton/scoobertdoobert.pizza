@@ -44,7 +44,11 @@ const toDoor = async (key, label) => {
   await page.keyboard.press('e');
   return true;
 };
-// Wait out a GLB loader and tap in.
+// Wait out a GLB loader and tap in. Tapping in has two equivalent paths in
+// LoaderGame: the "TAP TO ENTER" button and the Enter key. We try the button,
+// but fall back to Enter — the keyboard path can't be intercepted by an overlay
+// or tripped by actionability/stability checks, which is what flaked this
+// (heaviest) level's click under CI. Never let the click throw uncaught.
 const enterLoadedLevel = async (label, timeout = 25000) => {
   const ready = await page
     .waitForFunction(
@@ -57,7 +61,19 @@ const enterLoadedLevel = async (label, timeout = 25000) => {
     fail(`${label} loader never reached ready`);
     return false;
   }
-  await page.getByRole('button', { name: /TAP TO ENTER/i }).click({ timeout: 4000 });
+  const clicked = await page
+    .getByRole('button', { name: /TAP TO ENTER/i })
+    .click({ timeout: 4000 })
+    .then(() => true, () => false);
+  if (!clicked) await page.keyboard.press('Enter'); // LoaderGame: Enter enters when ready
+  // Confirm we actually left the loader, whichever path took.
+  const gone = await page
+    .waitForFunction(() => !document.querySelector('[data-level-loader]'), null, { timeout: 6000 })
+    .then(() => true, () => false);
+  if (!gone) {
+    fail(`${label} loader never dismissed after entering`);
+    return false;
+  }
   return true;
 };
 

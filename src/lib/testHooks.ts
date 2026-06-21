@@ -10,8 +10,10 @@ export function isTestEntrance(): boolean {
 }
 
 /** Set `window[name] = value`, but only on a test entrance (a no-op otherwise).
- *  Pass `undefined` to clear it. */
+ *  Pass `undefined` to actually REMOVE the property (so presence checks work too). */
 export function exposeTestGlobal(name: string, value: unknown): void {
   if (!isTestEntrance()) return;
-  (window as unknown as Record<string, unknown>)[name] = value;
+  const w = window as unknown as Record<string, unknown>;
+  if (value === undefined) delete w[name];
+  else w[name] = value;
 }

@@ -18,8 +18,12 @@ const smokes = Object.keys(pkg.scripts)
 
 console.log(`shoot:all — ${smokes.length} smoke suites against ${BASE}\n`);
 
-// One preview server for all of them.
-const preview = spawn('npm', ['run', 'preview'], { stdio: 'ignore', detached: false });
+// One preview server for all of them. Capture its output so a startup failure is
+// debuggable (rather than a bare "never came up").
+const preview = spawn('npm', ['run', 'preview'], { stdio: ['ignore', 'pipe', 'pipe'] });
+let previewLog = '';
+preview.stdout.on('data', (d) => (previewLog += d));
+preview.stderr.on('data', (d) => (previewLog += d));
 const stop = () => {
   try {
     preview.kill('SIGKILL');
@@ -47,16 +51,18 @@ const up = async () => {
 };
 
 if (!(await up())) {
-  console.error('shoot:all: preview server never came up');
+  console.error('shoot:all: preview server never came up. preview output:\n' + previewLog);
   stop();
   process.exit(1);
 }
 
 const results = [];
 for (const name of smokes) {
-  const script = pkg.scripts[name].replace(/^node\s+/, '').trim().split(/\s+/)[0];
+  // Invoke the package script as declared (`npm run <name> -- <BASE>`) rather than
+  // parsing out `node <file>`, so any future arg/env wrapper is preserved and the
+  // "auto-discovered" claim can't silently drift from how the scripts actually run.
   const t0 = Date.now();
-  const r = spawnSync('node', [script, BASE], { encoding: 'utf8' });
+  const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8' });
   const ok = r.status === 0;
   const secs = ((Date.now() - t0) / 1000).toFixed(0);
   results.push({ name, ok });
