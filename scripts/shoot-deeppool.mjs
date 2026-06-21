@@ -5,6 +5,7 @@
 // (This is the load the minigame was built for.)
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { makeLoaderHelpers } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -46,22 +47,10 @@ const toDoor = async (key, label) => {
   await page.keyboard.press('e');
   return true;
 };
-// Wait out a GLB loader and tap in. Generous timeout for the heavy deep level.
-const enterLoadedLevel = async (label, timeout = 25000) => {
-  const ready = await page
-    .waitForFunction(
-      () => document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
-      null,
-      { timeout },
-    )
-    .then(() => true, () => false);
-  if (!ready) {
-    fail(`${label} loader never reached ready`);
-    return false;
-  }
-  await page.getByRole('button', { name: /TAP TO ENTER/i }).click({ timeout: 4000 });
-  return true;
-};
+// Wait out a GLB loader and tap in (shared, resilient: button → Enter fallback
+// → confirm the loader dismissed; never throws uncaught). Generous timeout for
+// the heavy deep level. See lib/smoke.mjs.
+const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 try {

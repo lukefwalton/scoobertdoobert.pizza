@@ -22,8 +22,10 @@ console.log(`shoot:all — ${smokes.length} smoke suites against ${BASE}\n`);
 // debuggable (rather than a bare "never came up").
 const preview = spawn('npm', ['run', 'preview'], { stdio: ['ignore', 'pipe', 'pipe'] });
 let previewLog = '';
+let previewExited = false;
 preview.stdout.on('data', (d) => (previewLog += d));
 preview.stderr.on('data', (d) => (previewLog += d));
+preview.on('exit', () => (previewExited = true));
 const stop = () => {
   try {
     preview.kill('SIGKILL');
@@ -39,6 +41,9 @@ process.on('SIGINT', () => {
 
 const up = async () => {
   for (let i = 0; i < 80; i++) {
+    // Fail fast: if preview died on startup, don't burn the whole poll budget
+    // (~40s) waiting for a server that's never coming.
+    if (previewExited) return false;
     try {
       const r = await fetch(BASE);
       if (r.ok) return true;
@@ -62,11 +67,15 @@ for (const name of smokes) {
   // parsing out `node <file>`, so any future arg/env wrapper is preserved and the
   // "auto-discovered" claim can't silently drift from how the scripts actually run.
   const t0 = Date.now();
-  const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8' });
-  const ok = r.status === 0;
+  // Per-suite timeout so one hung smoke fails on its own (a clear "timed out"
+  // line) instead of stalling the whole run until the workflow's 20-min job
+  // timeout kills it with no useful signal.
+  const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8', timeout: 180000 });
+  const timedOut = r.error?.code === 'ETIMEDOUT';
+  const ok = !timedOut && r.status === 0;
   const secs = ((Date.now() - t0) / 1000).toFixed(0);
   results.push({ name, ok });
-  console.log(`${ok ? '✓' : '✗'} ${name}  (${secs}s)`);
+  console.log(`${ok ? '✓' : '✗'} ${name}  (${secs}s)${timedOut ? ' [timed out]' : ''}`);
   if (!ok) {
     const lines = `${r.stdout || ''}\n${r.stderr || ''}`
       .split('\n')

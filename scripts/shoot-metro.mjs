@@ -5,6 +5,7 @@
 // tunnel → shrine (return door) and shrine → tunnel (the new track door).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { makeLoaderHelpers } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -44,38 +45,9 @@ const toDoor = async (key, label) => {
   await page.keyboard.press('e');
   return true;
 };
-// Wait out a GLB loader and tap in. Tapping in has two equivalent paths in
-// LoaderGame: the "TAP TO ENTER" button and the Enter key. We try the button,
-// but fall back to Enter — the keyboard path can't be intercepted by an overlay
-// or tripped by actionability/stability checks, which is what flaked this
-// (heaviest) level's click under CI. Never let the click throw uncaught.
-const enterLoadedLevel = async (label, timeout = 25000) => {
-  const ready = await page
-    .waitForFunction(
-      () => document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
-      null,
-      { timeout },
-    )
-    .then(() => true, () => false);
-  if (!ready) {
-    fail(`${label} loader never reached ready`);
-    return false;
-  }
-  const clicked = await page
-    .getByRole('button', { name: /TAP TO ENTER/i })
-    .click({ timeout: 4000 })
-    .then(() => true, () => false);
-  if (!clicked) await page.keyboard.press('Enter'); // LoaderGame: Enter enters when ready
-  // Confirm we actually left the loader, whichever path took.
-  const gone = await page
-    .waitForFunction(() => !document.querySelector('[data-level-loader]'), null, { timeout: 6000 })
-    .then(() => true, () => false);
-  if (!gone) {
-    fail(`${label} loader never dismissed after entering`);
-    return false;
-  }
-  return true;
-};
+// Wait out a GLB loader and tap in (shared, resilient: button → Enter fallback
+// → confirm the loader dismissed; never throws uncaught). See lib/smoke.mjs.
+const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
 // ?room=metro-tunnel drops straight at the tunnel (otherwise reached by following
 // the shrine's tracks, itself behind the rat's secret torii).
