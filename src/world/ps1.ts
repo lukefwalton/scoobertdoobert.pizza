@@ -60,6 +60,22 @@ export function applyVertexSnap(material: THREE.Material, grid = 64): { value: n
   return uSnap;
 }
 
+/**
+ * Flat-shaded, vertex-snapped Lambert material — the default surface for the
+ * hand-built PS1 rooms (a snapped MeshLambertMaterial, no PBR). Every room used
+ * to re-declare its own `flatMat`; this is the one home. `side` defaults to
+ * FrontSide (pass DoubleSide for thin / inside-visible geometry like walls);
+ * `map` is optional.
+ */
+export function flatMat(
+  color: THREE.ColorRepresentation,
+  { side = THREE.FrontSide, map }: { side?: THREE.Side; map?: THREE.Texture } = {},
+): THREE.MeshLambertMaterial {
+  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side });
+  applyVertexSnap(m, 64);
+  return m;
+}
+
 /** Red/white pizzeria checkerboard. Nearest-filtered, <=128px, no mipmaps. */
 export function makeCheckerTexture(cells = 8, a = '#c7402f', b = '#efe6d2'): THREE.Texture {
   const size = 128;

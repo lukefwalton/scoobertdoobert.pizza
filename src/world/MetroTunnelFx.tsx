@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap, makeCheckerTexture } from './ps1';
+import { flatMat, makeCheckerTexture } from './ps1';
 import { audio } from '../audio/engine';
 import type { Room } from '../data/rooms';
 
@@ -23,12 +23,6 @@ import type { Room } from '../data/rooms';
 // Original parody only — no JR / Shinkansen marks, just the grammar of a white
 // bullet train with a blue livery stripe.
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 // The bullet train. Nose points -Z; the group is swept down the tunnel in Z.
 function Shinkansen() {

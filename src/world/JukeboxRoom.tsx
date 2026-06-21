@@ -2,11 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
-  applyVertexSnap,
+  flatMat,
   makeAffineTexturedMaterial,
   makeCheckerTexture,
   makeTextTexture,
 } from './ps1';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
@@ -21,12 +22,6 @@ import { D20 } from './D20';
 // whatever's playing to the cabinet (JukeboxAudio's proximity duck), so the
 // selected song swells as you cross to it and fades as you walk off. Leaving
 // the room hands the loop voice back to the boot loop (restoreBoot).
-function flatMat(color: string, map?: THREE.Texture, side: THREE.Side = THREE.FrontSide): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
-
 // Drives the engine's spatial duck from camera distance to the jukebox.
 function JukeboxAudio() {
   const { camera } = useThree();
@@ -65,7 +60,7 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
     t.repeat.set(2, 2);
     return t;
   }, []);
-  const grilleMat = useMemo(() => flatMat('#ffffff', grilleTex), [grilleTex]);
+  const grilleMat = useMemo(() => flatMat('#ffffff', { map: grilleTex }), [grilleTex]);
   const signTex = useMemo(
     () => makeTextTexture('WHAT DO YOU\nWANT TO HEAR?', { fg: '#ffe9c2', w: 256, h: 128 }),
     [],
@@ -158,9 +153,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const rollTo = (face: number) => {
     setRoll(face);
     setIndex((face - 1) % JUKEBOX_TRACKS.length);
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpDice?: number }).__sdpDice = face;
-    }
+    exposeTestGlobal('__sdpDice', face);
   };
 
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
@@ -170,18 +163,13 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // from THIS visit" (edge-triggered), never a sticky last-roll-since-page-load.
   useEffect(() => {
     audio.preloadJukebox(JUKEBOX_TRACKS.map((t) => jukeboxTrackUrl(t.slug)));
-    if (typeof window !== 'undefined') {
-      (window as Window & { __sdpDice?: number }).__sdpDice = undefined;
-    }
+    exposeTestGlobal('__sdpDice', undefined);
     return () => {
       // Leaving the cabinet hands the loop voice back to the user's chosen track
       // (the switcher), not unconditionally to boot.
       useMusicStore.getState().restorePreferred();
-      if (typeof window !== 'undefined') {
-        const w = window as Window & { __sdpJukebox?: unknown; __sdpDice?: number };
-        w.__sdpJukebox = undefined;
-        w.__sdpDice = undefined;
-      }
+      exposeTestGlobal('__sdpJukebox', undefined);
+      exposeTestGlobal('__sdpDice', undefined);
     };
   }, []);
 
@@ -190,12 +178,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
     void audio.playJukeboxTrack(jukeboxTrackUrl(track.slug));
     // Expose the selection for the rooms smoke (auto-play + click-to-cycle),
     // gated to the test entrances so it isn't part of the normal global surface.
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpJukebox?: { index: number; slug: string } }).__sdpJukebox = {
-        index,
-        slug: track.slug,
-      };
-    }
+    exposeTestGlobal('__sdpJukebox', { index, slug: track.slug });
   }, [index, track.slug]);
 
   const carpetTex = useMemo(() => {
@@ -208,7 +191,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [carpetTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#241026', undefined, THREE.DoubleSide), []);
+  const wallMat = useMemo(() => flatMat('#241026', { side: THREE.DoubleSide }), []);
   const ceilMat = useMemo(() => flatMat('#160a18'), []);
 
   return (

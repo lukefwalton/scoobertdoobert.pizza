@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap } from './ps1';
+import { flatMat } from './ps1';
 import { useMonsterStore, monsterScale } from '../state/monsterStore';
 import { useDreadStore } from '../state/dreadStore';
 
@@ -14,12 +14,6 @@ import { useDreadStore } from '../state/dreadStore';
 // Never a threat that can hurt you (taste guardrail) — the size IS the joke.
 // Scale eases toward the target so a loss reads as a visible "puff up".
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 export function DiceMonster({ position }: { position: [number, number, number] }) {
   const { camera } = useThree();

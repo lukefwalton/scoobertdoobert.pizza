@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { applyVertexSnap, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
 import { Rat } from './Rat';
 import { SECRET_PANEL, type Room } from '../data/rooms';
 
@@ -8,12 +8,6 @@ import { SECRET_PANEL, type Room } from '../data/rooms';
 // nod, a corridor not a maze). Over-evenly lit with a few dim ceiling pools so
 // it reads liminal/backrooms: nostalgic and a beat wrong. Doors at each end are
 // rendered separately (Doors.tsx); this is just the shell + dressing.
-function flatMat(color: string, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side: THREE.DoubleSide });
-  applyVertexSnap(m, 64);
-  return m;
-}
-
 export function HallwayRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
@@ -42,12 +36,12 @@ export function HallwayRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [floorTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#ffffff', brickTex), [brickTex]);
-  const endMat = useMemo(() => flatMat('#ffffff', endTex), [endTex]);
-  const ceilMat = useMemo(() => flatMat('#160d0c'), []);
-  const signMat = useMemo(() => flatMat('#caa14a'), []);
-  const panelMat = useMemo(() => flatMat('#241410'), []); // flatMat is already DoubleSide
-  const panelFrameMat = useMemo(() => flatMat('#3a2018'), []);
+  const wallMat = useMemo(() => flatMat('#ffffff', { map: brickTex, side: THREE.DoubleSide }), [brickTex]);
+  const endMat = useMemo(() => flatMat('#ffffff', { map: endTex, side: THREE.DoubleSide }), [endTex]);
+  const ceilMat = useMemo(() => flatMat('#160d0c', { side: THREE.DoubleSide }), []);
+  const signMat = useMemo(() => flatMat('#caa14a', { side: THREE.DoubleSide }), []);
+  const panelMat = useMemo(() => flatMat('#241410', { side: THREE.DoubleSide }), []); // flatMat is already DoubleSide
+  const panelFrameMat = useMemo(() => flatMat('#3a2018', { side: THREE.DoubleSide }), []);
 
   return (
     <group>

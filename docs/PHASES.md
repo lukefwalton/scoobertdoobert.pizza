@@ -21,10 +21,13 @@ unless the work is genuinely ambiguous.
 | 3 | The world grows — rooms graph, rat, the one secret, jukebox | ✅ done (mobile/README tail open) |
 | 4 | The terminal (hidden command line) | ✅ done |
 | 5 | The dread conductor (`unease` modulation layer) | ✅ built (steps 1–5 live) |
-| 6+ | World-content backlog + wire up `fun/` | ⬜ backlog |
+| 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
+| — | CI + smoke gate, repo DRY pass | ✅ shipped |
+| 7+ | `fun/` instrument rooms; Freedoom shrine (likely dropped) | ⬜ small tail |
 
-Cross-cutting: the **persistence spine** (localStorage) underpins retention, the
-curdled copy, cleared-games, and dread's max-`unease` memory — land it early.
+Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
+retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
+✅ landed, read by the terminal + dread + the curdled-copy gate.
 
 ---
 
@@ -52,11 +55,12 @@ rooms.ts`, three-free). beach shop (`ROOMS[0]`) ⇄ **rat hallway** (3D-Maze bri
 - ✅ ckpt1 rooms system + 3D doors (`Doors.tsx`, black-wipe transitions,
   room-aware `Controls`).
 - ✅ ckpt2 jukebox room + the music swell (proximity duck via
-  `audio.setProximityGain`). **Now shipped on `main`: a real cycling catalog** —
-  `public/audio/jukebox/*.wav` (information, 1101, best-day-ever, jolly-roger-bay),
-  tape-warbled 8-bit loops rendered from `src/data/jukebox.catalog.json` by
-  `scripts/make-jukebox-audio.mjs`; click the jukebox to cycle. (drei
-  `<PositionalAudio>` swap can still drop in at `JUKEBOX_POS` later.)
+  `audio.setProximityGain`). **Shipped: a real cycling catalog** — an 18-track
+  aquatic set in `public/audio/jukebox/*.mp3` (optimized MP3, **no WAV ships** —
+  the repo is WAV-free), tape-warbled low-bitrate loops rendered from
+  `src/data/jukebox.catalog.json` by `scripts/make-jukebox-audio.mjs`; click the
+  jukebox to cycle, and a user track-switcher (`src/data/music.ts` CUES +
+  `musicStore`). (drei `<PositionalAudio>` swap can still drop in at `JUKEBOX_POS`.)
 - ✅ ckpt3 the rat (`src/world/Rat.tsx`, one steering agent — leads, then flees).
 - ✅ ckpt4 the secret (rat knocks a panel → `revealSecret()` → hidden door → the
   X-Files **classified room** of rejected demos).
@@ -138,43 +142,59 @@ then the CRT beat. Don't expand a step to compensate.
 
 ---
 
-## ⬜ Phase 6+ — World-content backlog (build in any sensible order)
-These extend THE WORLD GROWS and are detailed in `docs/DESIGN.md`. They are
-*content/systems*, not the dread layer — though the dread conductor modulates
-each once it exists.
+## ✅ Phase 6 — World-content (LARGELY SHIPPED)
+These extend THE WORLD GROWS (detailed in `docs/DESIGN.md`); content/systems, not
+the dread layer (which modulates each). Most of this is now live behind the
+descent, each covered by a `shoot:*` smoke:
 
-- **The persistence spine (do this early — others depend on it).** localStorage:
-  depth reached, max-`unease`, secrets seen, rooms found, door-games cleared →
-  returning visitors get a quietly-changed world. The retention mechanism.
-- **GLB levels below the shop.** Crunch `media/models/levels/` + `greek-vaporwave`
-  to PS1 fidelity (`gltf-transform`), lazy-load per level, hidden behind the
-  descent. **Provenance homework before any ships** (drop NC / unprovenanced /
-  Nickelodeon IP). These are the *bitter* deep liminal spaces.
-- **Recurrence / the Möbius loop.** Looping rooms (Scooby-Doo gag at low unease →
-  oppressive deep); seeded shuffle over hand-authored variants; never a fail-maze.
-  Home for the Möbius motif (`media/models/mobius/`).
-- **The minigame / loader layer.** Loaders-as-ritual masking GLB loads (tap-to-
-  enter; Domino's-grammar tracker skin; ZzFX sound) + door-games that clear into
-  localStorage unlocks. One tiny base (vanilla canvas / Kontra / BSD runner),
-  never a second engine, never a tax on the real links.
-- **The d20.** Dice-music selector (lightweight, sooner) + the dice-monster
-  roll-off (lose → it grows → walk around it; a *new NPC/encounter*, so it's
-  world-content, not Phase 5).
-- **The plain `/about` page.** A normal, crawlable page telling the Scoobert story
-  PLAINLY (linked "Our Secret Recipe →"); research from lukefwalton.com/music
-  /#scoobert, /love-music-more/, and lovemusicmore.substack.com before writing.
-- **The Doom / Freedoom shrine.** Hidden lazy route; Freedoom (BSD) assets only;
-  `THIRD_PARTY_NOTICES.md`; isolated. (Full protections in DESIGN.)
+- ✅ **Persistence spine** (`src/state/progressStore.ts`, localStorage): depth,
+  max-`unease`, secrets, rooms, cleared games → returning visitors get a
+  quietly-changed world. The terminal's `status`/`whoami` read it.
+- ✅ **GLB levels below the shop** — lazy-loaded PS1-crunched levels: the
+  poolrooms → liminal space → the deep **abandoned pool** (`shoot:levels`,
+  `shoot:deeppool`), the **backrooms-vr** terminus. Each shipped model has a
+  `THIRD_PARTY_NOTICES.md` entry (enforced by `scripts/check-build.mjs`).
+- ✅ **The minigame / loader layer** — `LoaderGame` masks each GLB load
+  (tap-to-enter / Enter, a Domino's-grammar tracker skin), with a graceful
+  TURN BACK on load failure. The shared smoke flow lives in `scripts/lib/smoke.mjs`.
+- ✅ **Recurrence / the Möbius loop** (`MobiusRoom`, `shoot:mobius`): one corridor,
+  comic at low unease → oppressive deep; breaks open after N laps. Not a fail-maze.
+- ✅ **Wayside shrine → undersea metro → "End of the Line"** — the shrine (sweet
+  relief beat) follows the tracks into the **metro tunnel** (Seikan/青函 neon,
+  shitty-shinkansen pass; `shoot:metro`) out into the backrooms **terminus**
+  (`shoot:terminus`).
+- ✅ **The d20 + dice monster** (`DicePitRoom`/`DiceMonster`, `shoot:dice`/
+  `shoot:monster`): roll-off; lose → it grows → walk around it.
+- ✅ **The practice room** (`PracticeRoom`, `shoot:practice`): a door-game +
+  instrument room — the first "play it" rung; clearing it promotes a demo to your
+  preferred jukebox track.
+- ✅ **Poke Scoobert** (`FaceStretch`, `/poke`): the face-stretch instrument —
+  pull-and-hold warps his own sample live (touch-first).
 
-## ⬜ Post-loop — wire up `fun/`
-`fun/` is a git submodule of half-built JS music apps. Init it first, then borrow
-tastefully — this is where the **instrument rooms** ("play it") come from: the
-generative-synth toys become discovered exhale-valves deep in the descent
-(optionally hand-played via the consensual, fully-local webcam — see DESIGN).
+**Remaining tail (small):**
+- ⬜ **`fun/` instrument rooms.** `fun/` is a git submodule of half-built JS music
+  apps; init it, then borrow tastefully for more "play it" exhale-valves deep in
+  the descent (optionally the consensual, fully-local webcam — see DESIGN). The
+  practice room is the first of these.
+- ⬜/❓ **The Doom / Freedoom shrine — likely DROPPED.** The point of it (a hidden,
+  lazy, dread-tinged liminal level) is effectively already delivered by our OWN
+  GLB levels (deep pool / liminal / backrooms) — without taking on Freedoom's
+  copyleft + provenance burden. Only revisit if we specifically want the *Doom
+  grammar*; otherwise leave it unbuilt. (`/about` is intentionally NOT on the
+  roadmap — out of scope, per Luke.)
 
 ---
 
 ## Open hygiene / notes
+- **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
+  build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-
+  once). A `shoot`/`shoot:*` script == a CI-gating smoke; non-gating helpers must
+  avoid that prefix. Shared smoke flows live in `scripts/lib/smoke.mjs`. See
+  `README.md` → Self-verification.
+- **Repo DRY (shipped):** the PS1 `flatMat` material helper is one export in
+  `src/world/ps1.ts` (was copy-pasted into 13 rooms); the `?world`/`?debug` smoke
+  globals all route through `src/lib/testHooks.ts` (`isTestEntrance` /
+  `exposeTestGlobal`).
 - **Media reorg (done on `main`, 2026-06-20):** source media now nests under
   `media/` (`media/masters`, `media/music/<year>`, `media/photos`, `media/sfx`,
   and the GLB troves under `media/models/<category>`). Old loose root folders are
