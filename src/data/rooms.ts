@@ -715,7 +715,7 @@ export const ROOMS: Room[] = [
 // descending). The d20 face maps onto this list (face → list index), so the
 // number the die lands on genuinely decides where the floor drops you.
 export type TrapDrop = { room: string; spawn: string; title: string };
-export const TRAP_DROP_ROOMS: TrapDrop[] = [
+const TRAP_DROP_ROOMS: TrapDrop[] = [
   { room: 'classified', spawn: 'default', title: 'Classified' },
   { room: 'dicepit', spawn: 'default', title: 'The Back Room' },
   { room: 'mobius', spawn: 'default', title: 'The Long Corridor' },
@@ -759,12 +759,6 @@ export function roomById(id: string): Room {
     return ROOMS[0];
   }
   return r;
-}
-
-/** A door's spawn, resolved against the target room (falls back to 'default'). */
-export function doorSpawn(door: RoomDoor): Spawn {
-  const target = roomById(door.to);
-  return target.spawns[door.toSpawn ?? 'default'] ?? target.spawns.default;
 }
 
 // Dev guardrail: every door must point at a real room + an existing spawn, and
