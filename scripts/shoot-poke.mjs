@@ -42,7 +42,12 @@ const bad = (m) => {
   await ctx.close();
 }
 
-// --- 3. JS ON: the warp mounts + survives a drag ---
+// --- 3. JS ON: the warp mounts, a TOUCH drag stretches it, the stretch HOLDS
+//        while pressed (the "tap just giggles, won't pull and stay" bug — which
+//        was mobile-specific), and springs back on release. Driven by real touch
+//        events (CDP Input.dispatchTouchEvent), not page.mouse, so it exercises
+//        the actual pointerType:'touch' path + setPointerCapture on a phone.
+//        ?debug exposes window.__sdpPokeStretch (max node displacement, px). ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
@@ -52,24 +57,54 @@ const bad = (m) => {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(base + '/poke', { waitUntil: 'networkidle' });
+  await page.goto(base + '/poke?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page.waitForSelector('.poke-canvas', { timeout: 8000 }).catch(() => null);
   if (!canvas) bad('JS: face-stretch canvas did not mount');
 
+  let heldStretch = 0;
+  let stayStretch = 0;
+  let releasedStretch = 0;
   if (canvas) {
     await page.waitForTimeout(600); // let the face image load
     const box = await canvas.boundingBox();
-    // grab near the centre and yank down-left to stretch the face
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.42);
-    await page.mouse.down();
-    await page.mouse.move(box.x + box.width * 0.25, box.y + box.height * 0.78, { steps: 14 });
-    await page.waitForTimeout(250);
+    const stretch = () => page.evaluate(() => window.__sdpPokeStretch ?? 0);
+    // Real touch input (a finger), not a mouse — the original bug only showed on
+    // touch. touchEnd carries no points.
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type, x, y) =>
+      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+    const sx = box.x + box.width / 2;
+    const sy = box.y + box.height * 0.42;
+    const ex = box.x + box.width * 0.25;
+    const ey = box.y + box.height * 0.78;
+    // grab near the centre and yank down-left to stretch the face — then HOLD.
+    await touch('touchStart', sx, sy);
+    for (let i = 1; i <= 14; i++) {
+      await touch('touchMove', sx + (ex - sx) * (i / 14), sy + (ey - sy) * (i / 14));
+    }
+    await page.waitForTimeout(120);
+    heldStretch = await stretch();
+    // Keep the finger STILL (no further movement). The bug was the face springing
+    // straight back to rest here; with pull-and-hold it should stay deformed.
+    await page.waitForTimeout(500);
+    stayStretch = await stretch();
     await page.screenshot({ path: '.shots/poke.png' });
-    await page.mouse.up();
+    await touch('touchEnd', ex, ey);
+    // Released → jelly springs home.
+    await page.waitForTimeout(600);
+    releasedStretch = await stretch();
+
+    if (heldStretch < 15) bad(`JS: drag did not stretch the face (held displ ${heldStretch.toFixed(1)}px)`);
+    if (stayStretch < heldStretch * 0.5)
+      bad(`JS: stretch did not HOLD while pressed (held ${heldStretch.toFixed(1)} -> stayed ${stayStretch.toFixed(1)}px) — the "won't pull and stay" bug`);
+    if (releasedStretch > stayStretch * 0.5)
+      bad(`JS: face did not spring back after release (stayed ${stayStretch.toFixed(1)} -> released ${releasedStretch.toFixed(1)}px)`);
   }
   if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
-  console.log(`play     -> canvas=${!!canvas} errors=${errors.length}`);
+  console.log(
+    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${errors.length}`,
+  );
   await ctx.close();
 }
 

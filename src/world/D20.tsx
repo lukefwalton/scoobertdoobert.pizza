@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap, makeTextTexture } from './ps1';
+import { flatMat, makeTextTexture } from './ps1';
 
 // ───────────────────────────────────────────────────────────────────────────
 // D20 — the dice-music selector (Phase 6). A low-poly twenty-sided die on a
@@ -17,12 +17,6 @@ import { applyVertexSnap, makeTextTexture } from './ps1';
 // ───────────────────────────────────────────────────────────────────────────
 
 const ROLL_MS = 1100;
-
-function flatMat(color: string): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 export function D20({
   position,

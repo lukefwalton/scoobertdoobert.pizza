@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import {
-  applyVertexSnap,
+  flatMat,
   makeAffineTexturedMaterial,
   makeCheckerTexture,
   makeTextTexture,
@@ -32,12 +32,6 @@ import { exposeTestGlobal } from '../lib/testHooks';
 // MOBIUS_BREAK laps the loop "breaks on its own": a door that wasn't there
 // (revealOn 'mobius') opens and you pop out somewhere else (Doors / rooms.ts).
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side: THREE.DoubleSide });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 // Hand-authored wall tints — the lap count indexes this, so the corridor is the
 // "same but slightly off" each time around (faded motel greens drifting browner).
@@ -93,9 +87,9 @@ export function MobiusRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [floorTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat(wallTint), [wallTint]);
-  const ceilMat = useMemo(() => flatMat('#2b3324'), []);
-  const stripMat = useMemo(() => flatMat('#cfe0b8'), []); // fluorescents
+  const wallMat = useMemo(() => flatMat(wallTint, { side: THREE.DoubleSide }), [wallTint]);
+  const ceilMat = useMemo(() => flatMat('#2b3324', { side: THREE.DoubleSide }), []);
+  const stripMat = useMemo(() => flatMat('#cfe0b8', { side: THREE.DoubleSide }), []); // fluorescents
 
   // The sign at the far end — its copy is the register made legible.
   const signText = broken ? SIGN_BROKEN : unease > 0.5 ? SIGN_TENSE : SIGN_COMIC;
