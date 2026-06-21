@@ -60,11 +60,11 @@ if (!noFirstFramePrompt) fail('a door prompt flashed on load (camera booted insi
 await page.waitForTimeout(1500); // WebGL warmup + a few frames
 
 // The world's ambient boot loop ("Best Day Ever") must actually decode — guards
-// the global boot.wav asset, separate from "the jukebox room works".
+// the global boot.mp3 asset, separate from "the jukebox room works".
 const bootReady = await page
   .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, { timeout: 12000 })
   .then(() => true, () => false);
-if (!bootReady) fail('boot ambience (boot.wav) never decoded — engine not ready');
+if (!bootReady) fail('boot ambience (boot.mp3) never decoded — engine not ready');
 
 // 1) Start in the shop — and the back-hall door must NOT prompt at spawn (you
 //    discover it by turning around, not instantly on load).
@@ -350,7 +350,7 @@ let sanityPlays = false;
   sp.on('pageerror', (e) => fail(`audio-race pageerror: ${e.message}`));
   // Hold the opening track's bytes ~1.2s so its decode can't finish before we
   // bail. Only the first network fetch is delayed; the cached re-select is fast.
-  await sp.route('**/audio/jukebox/information.wav', async (route) => {
+  await sp.route('**/audio/jukebox/information.mp3', async (route) => {
     await new Promise((r) => setTimeout(r, 1200));
     await route.continue();
   });
@@ -359,7 +359,7 @@ let sanityPlays = false;
     await sp.waitForFunction(() => !!window.__sdpAudio, { timeout: 12000 });
     const r = await sp.evaluate(async () => {
       const a = window.__sdpAudio;
-      const url = '/audio/jukebox/information.wav';
+      const url = '/audio/jukebox/information.mp3';
       const pending = a.playJukeboxTrack(url); // select while it's still loading
       a.restoreBoot(); // the room unmounts mid-decode
       await pending; // let the delayed decode resolve
