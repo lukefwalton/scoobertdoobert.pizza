@@ -30,6 +30,11 @@ type SceneState = {
   currentSpawn: string;
   /** a door was activated: fade out, then commit. null once the room is swapped. */
   pendingRoom: { to: string; spawn: string } | null;
+  /** A navigation requested DURING a wipe. Input is frozen mid-wipe, so this only
+   *  ever catches a fast PROGRAMMATIC re-nav (e.g. recovering from a failed GLB
+   *  level and heading straight back down). Deferred, never dropped — WorldHud
+   *  flushes it the instant the wipe ends, so a re-entry can't silently vanish. */
+  queuedRoom: { to: string; spawn: string } | null;
   /** true for the WHOLE door wipe (fade-out + commit + fade-in), so input stays
    *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
   transitioning: boolean;
@@ -94,6 +99,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   currentRoom: FIRST_ROOM,
   currentSpawn: 'default',
   pendingRoom: null,
+  queuedRoom: null,
   transitioning: false,
   nearDoor: null,
   secretRevealed: false,
@@ -115,6 +121,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       currentRoom: room,
       currentSpawn: spawn,
       pendingRoom: null,
+      queuedRoom: null,
       transitioning: false,
       secretRevealed: false,
       mobiusLoops: 0,
@@ -133,6 +140,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearHotspot: null,
       nearDoor: null,
       pendingRoom: null,
+      queuedRoom: null,
       transitioning: false,
       secretRevealed: false,
       mobiusLoops: 0,
@@ -156,11 +164,23 @@ export const useSceneStore = create<SceneState>((set) => ({
   // a swap is already in flight (debounces double-press / click-through-the-HUD).
   // Also clears door/hotspot prompts so nothing lingers over the black.
   goToRoom: (to, spawn) =>
-    set((s) =>
-      s.transitioning || s.paused || s.openHotspot
-        ? {}
-        : { pendingRoom: { to, spawn }, transitioning: true, nearDoor: null, nearHotspot: null },
-    ),
+    set((s) => {
+      // A pause/dialog is a hard block — never honor a nav fired into a menu.
+      if (s.paused || s.openHotspot) return {};
+      // Mid-wipe: don't start an overlapping wipe, but don't silently LOSE the
+      // intent either. Dropping it stranded fast re-navigations — recover from a
+      // failed GLB level then immediately head back down and the re-entry vanished
+      // (you sat in the prior room, no loader, no feedback). Keep the latest;
+      // WorldHud flushes it when the wipe ends.
+      if (s.transitioning) return { queuedRoom: { to, spawn } };
+      return {
+        pendingRoom: { to, spawn },
+        transitioning: true,
+        queuedRoom: null,
+        nearDoor: null,
+        nearHotspot: null,
+      };
+    }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.
   commitRoom: () =>
