@@ -67,6 +67,8 @@ const bad = (m) => {
   let cells = 0;
   let started = false;
   let bred = 0;
+  let gainLive = null;
+  let gainMuted = null;
   if (canvas) {
     const read = () =>
       page.evaluate(() => window.__sdpCultures ?? { collisions: 0, started: false, cells: 0 });
@@ -95,10 +97,21 @@ const bad = (m) => {
     if (!started) bad('JS: stirring did not start the audio engine');
     if (bred <= 0) bad('JS: stirring the colony bred no notes (no collisions)');
     await page.screenshot({ path: '.shots/cultures.png' });
+
+    // Mute path (regression): the colony's CONTINUOUS drone bed must actually go
+    // silent — master gain ramps to ~0 — when you hit ♪ OFF, not just stop
+    // spawning collision voices. Read the engine's live master gain before/after.
+    gainLive = await page.evaluate(() => window.__sdpCultures?.masterGain ?? null);
+    await page.click('.cultures-btn'); // the ♪ ON/OFF toggle → mutes
+    await page.waitForTimeout(500); // let master ramp down
+    gainMuted = await page.evaluate(() => window.__sdpCultures?.masterGain ?? null);
+    if (!(gainLive > 0.5)) bad(`JS: colony master not live after start (gain ${gainLive})`);
+    if (!(gainMuted != null && gainMuted < 0.1))
+      bad(`JS: colony did not mute — master gain ${gainMuted} (drone bed still audible)`);
   }
   if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(
-    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} errors=${errors.length}`,
+    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} gain=${gainLive}->${gainMuted} errors=${errors.length}`,
   );
   await ctx.close();
 }

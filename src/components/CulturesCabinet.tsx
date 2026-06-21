@@ -82,6 +82,21 @@ class CultureEngine {
     void this.ctx.close();
   }
 
+  /** Mute the WHOLE colony by ramping master to ~0. The drone bed runs
+   *  continuously through master, so gating only the collide()/swell() voices
+   *  isn't enough — the master gain IS the mute, so a started colony actually
+   *  goes silent when the UI says ♪ OFF. */
+  setMuted(m: boolean): void {
+    const now = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setTargetAtTime(m ? 0.0001 : 0.9, now, 0.04);
+  }
+
+  /** Current master gain — exposed so shoot:cultures can assert the mute path. */
+  get masterLevel(): number {
+    return this.master.gain.value;
+  }
+
   /** Start one continuous drone per cell (called once the engine exists). */
   setDrones(freqs: number[]): void {
     if (this.drones.length) return;
@@ -188,6 +203,7 @@ export function CulturesCabinet() {
       try {
         engine.current = new CultureEngine();
         engine.current.setDrones(sim.current.cells.map((c) => c.freq));
+        engine.current.setMuted(useAudioStore.getState().muted); // honour mute from the start
         setStarted(true);
       } catch {
         engine.current = null; // no Web Audio → it still drifts, silently
@@ -240,6 +256,7 @@ export function CulturesCabinet() {
         started: !!engine.current,
         muted,
         cells: s.cells.length,
+        masterGain: engine.current ? engine.current.masterLevel : null,
       });
 
       drawCultures(ctx, s, children.current, now);
@@ -258,6 +275,13 @@ export function CulturesCabinet() {
   useEffect(() => {
     sim.current.params.attraction = pull;
   }, [pull]);
+
+  // Mute the live engine when the global mute flips: the drone bed runs through
+  // master continuously, so it must be ramped to silence — gating only the
+  // per-collision voices (in the frame loop) leaves the drones audible.
+  useEffect(() => {
+    engine.current?.setMuted(muted);
+  }, [muted]);
 
   useEffect(
     () => () => {
