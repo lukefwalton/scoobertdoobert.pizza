@@ -6,6 +6,7 @@ import { SECRET_PANEL } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { mapUnease } from '../data/dread';
+import { isTestEntrance } from '../lib/testHooks';
 
 // The rat — one steering agent (the single-boid version of the school sim):
 // it seeks a waypoint a few steps AHEAD of you down the hall (so it leads), and
@@ -69,8 +70,7 @@ function RatBody() {
 
 // Gated test hook (the ?world / ?debug entrances) so the rooms smoke can assert
 // the rat doesn't reset its progression on hallway re-entry.
-const EXPOSE_PHASE =
-  typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search);
+const EXPOSE_PHASE = isTestEntrance();
 
 export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
   const ref = useRef<THREE.Group>(null);

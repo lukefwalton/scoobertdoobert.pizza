@@ -10,6 +10,7 @@
     "postbuild": "node scripts/check-build.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc --noEmit",
+    "shoot:all": "node scripts/shoot-all.mjs",
     "shoot": "node scripts/shoot.mjs",
     "shoot:world": "node scripts/shoot-world.mjs",
     "shoot:descent": "node scripts/shoot-descent.mjs",

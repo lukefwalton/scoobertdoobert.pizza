@@ -55,11 +55,12 @@ await page.keyboard.up('s');
 await page.keyboard.press('e');
 const inHall = await roomIs('Back Hall');
 
-// down the long corridor to the far jukebox door (no rat detour needed).
+// down the long corridor to the far jukebox door (no rat detour needed). Hold
+// 'w' and POLL for the prompt rather than walking a fixed time, so a slow
+// machine (CI) still covers the corridor.
 await page.keyboard.down('w');
-await page.waitForTimeout(5200);
+await page.waitForSelector('.hud-prompt--door', { timeout: 9000 }).catch(() => {});
 await page.keyboard.up('w');
-await page.waitForSelector('.hud-prompt--door', { timeout: 4000 }).catch(() => {});
 await page.keyboard.press('e');
 const inJuke = await roomIs('The Jukebox');
 await page.waitForTimeout(800);

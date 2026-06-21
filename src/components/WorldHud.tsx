@@ -145,6 +145,17 @@ export function WorldHud() {
           role="status"
         >
           <div className="hud-welcome__card">
+            <button
+              type="button"
+              className="hud-welcome__close"
+              aria-label="dismiss intro"
+              onClick={() => {
+                setWelcomeLeaving(true);
+                window.setTimeout(() => setWelcome(false), 600);
+              }}
+            >
+              ×
+            </button>
             {WELCOME_LINES.map((line, idx) => {
               const start = WELCOME_OFFSETS[idx];
               const rev = Math.max(0, Math.min(line.length, typed - start));

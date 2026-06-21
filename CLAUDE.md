@@ -232,6 +232,7 @@ Storefront copy, 1999 register (original — never Pizza Hut's words):
 
 ---
 
-`legacy/` holds the previous hand-built site (preserved, not part of the build).
-Source media lives under `media/`; only degraded/web-sized derivatives in
-`public/` ship. See `README.md` for run/deploy + where things live.
+The previous hand-built site was removed from the working tree — it's preserved
+in git history if ever needed. Source media lives under `media/`; only degraded/
+web-sized derivatives in `public/` ship. See `README.md` for run/deploy + where
+things live.
