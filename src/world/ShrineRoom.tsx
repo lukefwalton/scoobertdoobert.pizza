@@ -230,7 +230,8 @@ function Furin({ x, y, z, pan }: { x: number; y: number; z: number; pan: number 
     kick.current *= Math.pow(0.15, dt); // decay the post-ring flutter
     const t = state.clock.elapsedTime;
     if (strip.current) {
-      strip.current.rotation.z = Math.sin(t * 1.5 + x) * 0.12 + Math.sin(t * 4.2 + x) * 0.06 * kick.current;
+      strip.current.rotation.z =
+        Math.sin(t * 1.5 + x) * 0.12 + Math.sin(t * 4.2 + x) * 0.06 * kick.current;
     }
   });
 
