@@ -138,7 +138,8 @@ let reEnter = false;
   if (!loaderReady) fail('the GLB never loaded — loader never reached the ready/TAP-TO-ENTER state');
 
   if (loaderReady) {
-    await tapLoaderCta(page); // button, else Enter — never throws uncaught (CI flake)
+    // button, else Enter — never throws uncaught (CI flake); fail keeps CTA coverage
+    await tapLoaderCta(page, /TAP TO ENTER/i, { fail, label: 'liminal' });
     inLiminal = await roomIs(page, 'Liminal Space');
     // The overlay must actually go away on enter (not just the room label flip).
     overlayGoneOnEnter = await page
@@ -194,7 +195,7 @@ let reEnter = false;
       .then(() => true, () => false);
     if (!reReady) fail('cached re-entry left the loader stranded (ready never flipped on revisit)');
     if (reReady) {
-      await tapLoaderCta(page);
+      await tapLoaderCta(page, /TAP TO ENTER/i, { fail, label: 'liminal (cached)' });
       reEnter = await roomIs(page, 'Liminal Space');
     }
   }
@@ -239,7 +240,8 @@ let retryRecovered = false;
     await page.screenshot({ path: '.shots/levels-loader-error.png' });
 
     if (errLoader) {
-      await tapLoaderCta(page, /TURN BACK/i); // Enter triggers onAbort in the error state too
+      // Enter triggers onAbort in the error state too; fail asserts the control is present
+      await tapLoaderCta(page, /TURN BACK/i, { fail, label: 'liminal (error)' });
       bouncedBack = await roomIs(page, 'The Poolrooms');
       if (!bouncedBack) fail('TURN BACK did not bounce the player out of the failed level');
       // The overlay must clear once we're back in a non-GLB room.

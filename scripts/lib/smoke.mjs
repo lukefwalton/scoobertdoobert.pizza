@@ -20,7 +20,19 @@
 // "TAP TO ENTER" and "TURN BACK" alike. Returns false if the fallback was needed
 // (the button click itself failed), which callers log so a broken button stays
 // visible even though entry still succeeded.
-export async function tapLoaderCta(page, name = /TAP TO ENTER/i) {
+//
+// Pass `{ fail, label }` to ALSO assert the visible control is present first —
+// the single CTA-coverage contract shared by every loader-entry path (so a
+// missing/mislabeled button is a real failure), kept separate from the resilient
+// click so a transient actionability stall still falls back to Enter, not red.
+export async function tapLoaderCta(page, name = /TAP TO ENTER/i, { fail, label = 'loader' } = {}) {
+  if (fail) {
+    const visible = await page
+      .getByRole('button', { name })
+      .waitFor({ state: 'visible', timeout: 4000 })
+      .then(() => true, () => false);
+    if (!visible) fail(`${label} reached ready but the ${name.source ?? name} control never appeared`);
+  }
   const clicked = await page
     .getByRole('button', { name })
     .click({ timeout: 4000 })
@@ -71,17 +83,10 @@ export function makeLoaderHelpers(page, fail) {
       fail(`${label} loader never reached ready`);
       return false;
     }
-    // Keep CTA-button coverage despite the resilient Enter fallback: when the
-    // loader is ready the visible "TAP TO ENTER" control MUST be present. This
-    // catches a missing/mislabeled button (a real regression) without the
-    // flakiness of asserting the *click* — clicking still falls back to Enter so
-    // a transient actionability stall doesn't fail the run.
-    const ctaVisible = await page
-      .getByRole('button', { name: /TAP TO ENTER/i })
-      .waitFor({ state: 'visible', timeout: 4000 })
-      .then(() => true, () => false);
-    if (!ctaVisible) fail(`${label} reached ready but the TAP TO ENTER button never appeared`);
-    if (!(await tapLoaderCta(page))) {
+    // Keep CTA-button coverage despite the resilient Enter fallback (shared
+    // contract: asserts the visible control is present, then taps with Enter
+    // fallback).
+    if (!(await tapLoaderCta(page, /TAP TO ENTER/i, { fail, label }))) {
       console.log(`NOTE: '${label}' entered via Enter fallback (button click failed)`);
     }
     const gone = await page
