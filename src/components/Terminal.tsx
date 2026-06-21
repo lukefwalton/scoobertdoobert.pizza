@@ -3,6 +3,7 @@ import { useMounted } from '../lib/useMounted';
 import { lookupCommand } from '../data/commands';
 import { DREAD } from '../data/dread';
 import { useDreadStore } from '../state/dreadStore';
+import { getProgressSnapshot, useProgressStore } from '../state/progressStore';
 
 // ───────────────────────────────────────────────────────────────────────────
 // Terminal — Phase 4. A hidden dead-web SGI/X-Files command line. Press the
@@ -55,7 +56,11 @@ export function Terminal() {
   }, []);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (!open) return;
+    inputRef.current?.focus();
+    // Summoning the hidden terminal IS a discovery — record it durably so the
+    // site "remembers" you poked the machine (idempotent; feeds the rat's wink).
+    useProgressStore.getState().findSecret('terminal');
   }, [open]);
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -75,7 +80,7 @@ export function Terminal() {
         setLines((ls) => [...ls, { text: `'${name}' is not recognized. try \`help\`.`, kind: 'out' }]);
         return;
       }
-      const res = cmd.run({ args, history });
+      const res = cmd.run({ args, history, progress: getProgressSnapshot() });
       // Forbidden commands poke the machine: a one-shot unease bump.
       if (cmd.forbidden) {
         const d = DREAD.triggers['terminal-forbidden-cmd'] ?? 0;

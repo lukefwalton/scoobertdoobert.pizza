@@ -12,11 +12,17 @@
 // machine doesn't like being poked.
 // ───────────────────────────────────────────────────────────────────────────
 
+import type { Progress } from '../state/progressStore';
+
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
   args: string[];
   /** Prior command lines this session (for `history`). */
   history: string[];
+  /** The durable cross-session progress (localStorage), passed in by the Terminal
+   *  so the dead-web `status`/`whoami` can read what the machine remembers about
+   *  you — without commands.ts importing a store (kept pure: type-only). */
+  progress: Progress;
 };
 
 export type CommandAction =
@@ -109,9 +115,35 @@ export const COMMANDS: Command[] = [
   {
     name: 'whoami',
     help: 'ask the machine who you are',
-    run: () => ({
-      output: ['guest@scoobertdoobert', '(the machine is not convinced you are a guest.)'],
-    }),
+    run: ({ progress }) => {
+      const out = ['guest@scoobertdoobert', '(the machine is not convinced you are a guest.)'];
+      // The machine remembers returning deep-divers — the persistence spine, made
+      // diegetic. Surface-safe phrasing; the real dread lives downstairs.
+      if (progress.maxUnease >= 0.7) out.push('(it has seen you all the way down. it has not forgotten.)');
+      else if (progress.everEnteredWorld) out.push('(you have been downstairs before. it noticed.)');
+      return { output: out };
+    },
+  },
+  {
+    name: 'status',
+    help: 'what the machine has on file about you',
+    run: ({ progress }) => {
+      const yn = (b: boolean) => (b ? 'YES' : 'no');
+      const secrets = progress.secretsFound.length;
+      return {
+        output: [
+          'SCOOBERT DOOBERT INC. — VISITOR RECORD',
+          `  visits logged ....... ${progress.visits}`,
+          `  plug-in installed ... ${yn(progress.everEnteredWorld)}`,
+          `  floors descended .... ${progress.maxFloor}`,
+          `  rooms walked ........ ${progress.visitedRooms.length}`,
+          `  secrets uncovered ... ${secrets}${secrets ? '  (' + progress.secretsFound.join(', ') + ')' : ''}`,
+          `  games cleared ....... ${progress.clearedGames.length}`,
+          ' ',
+          '(the machine keeps better records than it admits.)',
+        ],
+      };
+    },
   },
   {
     name: 'about',
