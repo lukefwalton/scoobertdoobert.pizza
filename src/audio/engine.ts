@@ -308,6 +308,7 @@ class PizzaAudio {
     this.restorePitch(300); // clean rate + full brightness (warble is in the file)
     this.applyGain(); // honors mute + the current proximity duck
     this.publishJukeboxState();
+    this.emitLoopChange();
   }
 
   /** Leave the jukebox: hand the loop voice back to the ambient boot loop. Always
@@ -331,6 +332,7 @@ class PizzaAudio {
       else this.stopBootLoop();
     }
     this.publishJukeboxState();
+    this.emitLoopChange();
   }
 
   /** Whether a jukebox track is currently the loop voice (exposed for tests). */
@@ -349,6 +351,24 @@ class PizzaAudio {
     // The url actually swapped into the loop voice (post-decode), so the smoke
     // can prove a click really changed the engine voice, not just React state.
     w.__sdpJukeboxUrl = this.activeJukeboxUrl;
+  }
+
+  // ── loop-voice change notification (the music store mirrors this) ───────────
+  // The ENGINE is the source of truth for what's actually playing. Anything that
+  // changes the loop voice — the pause-menu switcher, the jukebox cabinet, a room
+  // reward stinger — calls playJukeboxTrack/restoreBoot, which fire this. The
+  // music store subscribes so the HUD "now playing" readout can never drift from
+  // reality. Payload is the jukebox url, or null for the boot loop.
+  private loopListeners = new Set<(url: string | null) => void>();
+  /** Subscribe to loop-voice changes (fires once immediately). Returns unsub. */
+  onLoopChange(cb: (url: string | null) => void): () => void {
+    this.loopListeners.add(cb);
+    cb(this.jukeboxActive ? this.activeJukeboxUrl ?? null : null);
+    return () => this.loopListeners.delete(cb);
+  }
+  private emitLoopChange(): void {
+    const url = this.jukeboxActive ? this.activeJukeboxUrl ?? null : null;
+    for (const cb of this.loopListeners) cb(url);
   }
 
   /** Master target = base 0.5, ducked by spatial proximity, killed by mute. */

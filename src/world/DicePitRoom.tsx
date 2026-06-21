@@ -6,6 +6,7 @@ import { DiceMonster } from './DiceMonster';
 import { useMonsterStore, monsterScale } from '../state/monsterStore';
 import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
+import { useMusicStore } from '../state/musicStore';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
@@ -85,7 +86,9 @@ export function DicePitRoom({ room }: { room: Room }) {
   useEffect(() => {
     audio.preloadJukebox([cueUrl('diceReward')]);
     return () => {
-      audio.restoreBoot();
+      // Hand the loop voice back to the user's chosen track (the switcher), not
+      // unconditionally to boot — the user's pick stays authoritative.
+      useMusicStore.getState().restorePreferred();
       if (typeof window !== 'undefined') {
         (window as Window & { __sdpMonster?: unknown }).__sdpMonster = undefined;
       }
