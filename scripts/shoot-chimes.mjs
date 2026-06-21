@@ -23,8 +23,7 @@ const bad = (m) => {
   const page = await ctx.newPage();
   await page.goto(base + '/chimes', { waitUntil: 'load' });
   const title = await page.title();
-  if (!title.includes('Pendulum Chimes'))
-    bad(`no-JS title unexpected -> ${JSON.stringify(title)}`);
+  if (!title.includes('Pendulum Chimes')) bad(`no-JS title unexpected -> ${JSON.stringify(title)}`);
   const back = await page.$('a[href="/arcade"]');
   if (!back) bad('no-JS: missing "back to the arcade" anchor');
   const canvas = await page.$('canvas');

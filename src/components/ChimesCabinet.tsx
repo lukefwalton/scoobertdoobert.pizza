@@ -205,11 +205,21 @@ export function ChimesCabinet() {
       <div className="chimes-controls">
         <div className="chimes-ctl">
           <span className="chimes-ctl__label">BELLS</span>
-          <button type="button" className="chimes-btn" aria-label="fewer bells" onClick={() => nudge(-1)}>
+          <button
+            type="button"
+            className="chimes-btn"
+            aria-label="fewer bells"
+            onClick={() => nudge(-1)}
+          >
             &minus;
           </button>
           <span className="chimes-ctl__val">{count}</span>
-          <button type="button" className="chimes-btn" aria-label="more bells" onClick={() => nudge(1)}>
+          <button
+            type="button"
+            className="chimes-btn"
+            aria-label="more bells"
+            onClick={() => nudge(1)}
+          >
             +
           </button>
         </div>

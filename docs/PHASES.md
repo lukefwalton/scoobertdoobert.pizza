@@ -23,7 +23,7 @@ unless the work is genuinely ambiguous.
 | 5 | The dread conductor (`unease` modulation layer) | ✅ built (steps 1–5 live) |
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
-| 7+ | `fun/` instrument rooms; Freedoom shrine (likely dropped) | ⬜ small tail |
+| 7+ | `fun/` instruments → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -172,10 +172,17 @@ descent, each covered by a `shoot:*` smoke:
   pull-and-hold warps his own sample live (touch-first).
 
 **Remaining tail (small):**
-- ⬜ **`fun/` instrument rooms.** `fun/` is a git submodule of half-built JS music
-  apps; init it, then borrow tastefully for more "play it" exhale-valves deep in
-  the descent (optionally the consensual, fully-local webcam — see DESIGN). The
-  practice room is the first of these.
+- ✅/⬜ **`fun/` instruments — borrowed by VENDORING (the repo stays standalone).**
+  Rather than submodule `fun/`, the two pure-synthesis instruments were ported and
+  **re-homed as our own files** (so `fun/` can be deleted — Luke's ask). Shipped as
+  touch-first arcade cabinets: **`/chimes`** (Pendulum Chimes — `src/lib/chimes.ts`
+  + `ChimesCabinet`) and **`/cultures`** (the DNA cell-drone — `src/lib/cultures.ts`
+  + `CulturesCabinet`), both synthesised, mute-aware, brickwall-limited, crawlable,
+  covered by `shoot:chimes` / `shoot:cultures`. **The bell synth is a reusable
+  engine** (`strikeBell` → `audio.playChime`): it also rings the **furin** in the
+  Wayside Shrine — the first "use the ENGINE for in-room effects" (Luke). ⬜ More
+  in-room/"odd-thing" uses + a possible deep instrument ROOM (vs. surface cabinet)
+  remain; the webcam stays its own gated thread (DESIGN → Webcam policy).
 - ⬜/❓ **The Doom / Freedoom shrine — likely DROPPED.** The point of it (a hidden,
   lazy, dread-tinged liminal level) is effectively already delivered by our OWN
   GLB levels (deep pool / liminal / backrooms) — without taking on Freedoom's

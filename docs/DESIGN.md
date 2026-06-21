@@ -157,6 +157,20 @@ rat, the music, recurrence, even the loaders all flip the same way.
     a growing phrase to play back; clearing four rounds fires the (previously
     unused) `clearGame('practice')` unlock + plays a sealed demo — the "earn
     sound" turn of the ladder. `fun/` isn't needed for this one; it's procedural.
+  - **SHIPPED — the instrument cabinets** (`fun/` borrowed by VENDORING, never
+    submoduled — see `fun/README.md`). The two pure-synthesis toys from Luke's
+    `fun` playground, re-homed as our own standalone files and surfaced as
+    touch-first arcade cabinets beside Poke/Run: **`/chimes`** (Pendulum Chimes —
+    a tap-to-play pendulum-wave bell instrument) and **`/cultures`** (a stir-to-
+    play living-colony drone: cells breed notes by musical interval over a bed of
+    drones). Both synthesise their own sound (no shipped samples), are mute-aware
+    + brickwall-limited + WCAG-safe, and stay crawlable. These are the surface
+    "play it" seed; a deeper instrument ROOM can still come later.
+  - **The synth is a reusable ENGINE, not just a cabinet (Luke).** `strikeBell`
+    (`src/lib/chimes.ts`) is context-agnostic, so the same bell voice powers the
+    cabinet *and* the 3D world via `audio.playChime` — first use: the **furin
+    wind-chimes** in the Wayside Shrine. The same hook is how instruments wire
+    into rooms / "odd things" without each one re-implementing sound.
 - **Gamble for it.** A **d20** (DnD luck/chaos, on-brand goblin-mode) as a
   chaotic music selector — roll picks *which* demo or *how* degraded the variant
   is. Chaos = replayability = share fuel ("I rolled a 1 and got the cursed one").

@@ -59,7 +59,9 @@ const bad = (m) => {
   });
   await page.goto(base + '/cultures?debug=1', { waitUntil: 'networkidle' });
 
-  const canvas = await page.waitForSelector('.cultures-canvas', { timeout: 8000 }).catch(() => null);
+  const canvas = await page
+    .waitForSelector('.cultures-canvas', { timeout: 8000 })
+    .catch(() => null);
   if (!canvas) bad('JS: cultures canvas did not mount');
 
   let cells = 0;
