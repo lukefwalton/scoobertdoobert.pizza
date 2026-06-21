@@ -52,6 +52,10 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   const inputIdx = useRef(0);
   const phaseRef = useRef<Phase>('idle');
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // The win fires on a short delay (a stinger pause) after the last correct note.
+  // This guards that window: start() is blocked until win() resolves, so hitting
+  // REC in those ~450ms can't clearTimers() and silently cancel the unlock.
+  const pendingWin = useRef(false);
 
   const setPhaseBoth = (p: Phase) => {
     phaseRef.current = p;
@@ -85,7 +89,9 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   };
 
   const start = () => {
-    if (phaseRef.current === 'demo') return; // can't interrupt the machine mid-call
+    // Don't interrupt the machine mid-call, NOR a pending win (else clearTimers()
+    // here would cancel the unlock that's about to fire).
+    if (phaseRef.current === 'demo' || pendingWin.current) return;
     clearTimers();
     seq.current = [Math.floor(Math.random() * PADS.length)];
     setRound(1);
@@ -93,6 +99,7 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   };
 
   const win = () => {
+    pendingWin.current = false;
     setPhaseBoth('won');
     setCleared(true);
     // The unlock: the previously-unused persistence hook fires, the rat clocks it,
@@ -112,6 +119,7 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
       if (inputIdx.current >= seq.current.length) {
         // phrase complete. four rounds (= length 4) clears it.
         if (seq.current.length >= ROUNDS_TO_WIN) {
+          pendingWin.current = true; // lock start() until win() resolves
           setPhaseBoth('idle');
           push(setTimeout(win, 450));
         } else {
