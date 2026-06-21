@@ -1,5 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import { useProgressStore } from '../state/progressStore';
+import { exposeTestGlobal } from '../lib/testHooks';
+
+// The runner is an 18px-wide box whose left edge sits at x=44; `py` is its FEET
+// (it's drawn from py-height up to py). It clears an obstacle the instant its
+// feet rise above the obstacle's top edge (groundY - o.h); +6px is a little
+// grace so grazing the very top doesn't count as a hit.
+//
+// The bug this guards against: the old check ALSO subtracted the runner's height
+// here (groundY - ph - o.h), which put the lose-line ~12px above the obstacle —
+// so a clean jump that visibly cleared still registered as a collision ("you
+// lose when you succeed"). Pure + exported so shoot:arcade can assert it.
+export const RUNNER_X = 44;
+export const RUNNER_W = 18;
+export function runnerHitsObstacle(
+  py: number,
+  groundY: number,
+  o: { x: number; w: number; h: number },
+): boolean {
+  const overlapsX = RUNNER_X < o.x + o.w && RUNNER_X + RUNNER_W > o.x;
+  const feetBelowTop = py > groundY - o.h + 6;
+  return overlapsX && feetBelowTop;
+}
 
 // ───────────────────────────────────────────────────────────────────────────
 // RunnerGame — Phase 6. The standalone, touch-first version of the loader
@@ -114,12 +136,9 @@ export function RunnerGame() {
         g.speed += dt * 7; // creeps faster the longer you last
         g.score += dt * 10;
 
-        // collision (runner is a ~18px box at x=44)
-        const px = 44;
-        const pw = 18;
-        const ph = 18;
+        // collision — see runnerHitsObstacle (pure, exported, smoke-checked)
         for (const o of g.obs) {
-          if (px < o.x + o.w && px + pw > o.x && g.py > groundY - ph - o.h + 6) {
+          if (runnerHitsObstacle(g.py, groundY, o)) {
             const final = Math.floor(g.score);
             g.phase = 'over';
             setLastScore(final);
@@ -182,6 +201,14 @@ export function RunnerGame() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Smoke hook (?debug / ?world only): expose the collision predicate so
+  // shoot:arcade can assert the geometry that regressed — a clean jump-clear
+  // must NOT read as a hit, while standing on the ground in front of one must.
+  useEffect(() => {
+    exposeTestGlobal('__sdpRunnerHit', runnerHitsObstacle);
+    return () => exposeTestGlobal('__sdpRunnerHit', undefined);
   }, []);
 
   // Keyboard for desktop play-testing; the canvas/button cover touch.

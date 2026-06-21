@@ -54,12 +54,30 @@ const bad = (msg) => {
     hasTouch: true,
   });
   const page = await ctx.newPage();
-  await page.goto(base + '/arcade', { waitUntil: 'networkidle' });
+  await page.goto(base + '/arcade?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page.$('.arcade-canvas');
   if (!canvas) bad('JS: live <canvas> did not mount');
   const jumpBtn = await page.$('.arcade-jump');
   if (!jumpBtn) bad('JS: JUMP/START button missing');
+
+  // Collision geometry (the "lose when you succeed" regression). groundY is
+  // H(180) - 30 = 150; an obstacle in front of the runner is at x≈44, h=24.
+  // Standing (feet at groundY) must hit it; a clean jump-clear (feet above its
+  // top, 150-24=126) must NOT.
+  const hit = await page.evaluate(() => {
+    const f = window.__sdpRunnerHit;
+    if (typeof f !== 'function') return null;
+    const o = { x: 44, w: 16, h: 24 };
+    return { grounded: f(150, 150, o), cleared: f(118, 150, o), behind: f(150, 150, { x: 120, w: 16, h: 24 }) };
+  });
+  if (!hit) bad('JS: __sdpRunnerHit not exposed under ?debug');
+  else {
+    if (!hit.grounded) bad('collision: standing in front of an obstacle should be a hit');
+    if (hit.cleared) bad('collision: a clean jump-clear still registered as a hit (lose-when-you-succeed)');
+    if (hit.behind) bad('collision: an obstacle the runner has not reached should not be a hit');
+    console.log(`hitbox  -> grounded=${hit?.grounded} cleared=${hit?.cleared} behind=${hit?.behind}`);
+  }
 
   if (canvas && jumpBtn) {
     // Start a run and let the score tick up, then write a deterministic high
