@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAudioStore } from '../state/audioStore';
 import { cueUrl } from '../data/music';
-import { isTestEntrance } from '../lib/testHooks';
+import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // FaceStretch — "Poke Scoobert." The Mario-64-face-stretch toy, but it's Luke's
@@ -219,7 +219,13 @@ export function FaceStretch() {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      // Clear the test global on unmount so a stale stretch doesn't survive after
+      // leaving /poke (the per-frame write stays a raw assign for hot-loop speed;
+      // the one-shot clear goes through the helper, which deletes it).
+      exposeTestGlobal('__sdpPokeStretch', undefined);
+    };
   }, []);
 
   // clean up audio on unmount
