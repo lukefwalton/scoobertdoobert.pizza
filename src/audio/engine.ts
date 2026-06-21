@@ -335,6 +335,67 @@ class PizzaAudio {
     this.applyGain();
   }
 
+  /**
+   * One-shot "train pass" whoosh for the metro tunnel — filtered noise with a
+   * Doppler-ish pitch arc (bandpass up→down = approach→recede) and a stereo pan
+   * sweep, so the shinkansen reads in the EARS as it crosses you. Routed through
+   * `master`, so the global mute kills it and it tracks the music volume; it
+   * builds its own throwaway nodes and frees them on end. No-op until the graph
+   * exists and a gesture has unlocked us, and when muted — so it never forces
+   * audio on; it degrades to silence like everything else here.
+   */
+  playTrainPass(durationMs = 1700): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = durationMs / 1000;
+
+    // white-noise source — the wheel/air rush
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    // bandpass rises to the closest approach, then falls — the Doppler arc
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 0.7;
+    bp.frequency.setValueAtTime(260, now);
+    bp.frequency.linearRampToValueAtTime(900, now + dur * 0.5);
+    bp.frequency.linearRampToValueAtTime(170, now + dur);
+
+    // gain envelope: swell to the pass, then away (felt, not loud)
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(0.6, now + dur * 0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+    // stereo pan sweep L→R as the train crosses (guarded — older Safari lacks it)
+    let tail: AudioNode = g;
+    let panner: StereoPannerNode | undefined;
+    if (typeof ctx.createStereoPanner === 'function') {
+      panner = ctx.createStereoPanner();
+      panner.pan.setValueAtTime(-0.85, now);
+      panner.pan.linearRampToValueAtTime(0.6, now + dur);
+      g.connect(panner);
+      tail = panner;
+    }
+
+    src.connect(bp);
+    bp.connect(g);
+    tail.connect(this.master);
+    src.start(now);
+    src.stop(now + dur);
+    src.onended = () => {
+      src.disconnect();
+      bp.disconnect();
+      g.disconnect();
+      panner?.disconnect();
+    };
+  }
+
   /** Pitch-bend the whole loop downward as the era "ages" (the descent). */
   pitchBendDown(durationMs = 2200, target = 0.45): void {
     if (!this.ctx || !this.source) return;
