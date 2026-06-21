@@ -105,6 +105,10 @@ for (const name of smokes) {
 
 stop();
 const failed = results.filter((r) => !r.ok);
+const flaky = results.filter((r) => r.flaked);
 console.log(`\n${results.length - failed.length}/${results.length} suites passed`);
 if (failed.length) console.log(`FAILED: ${failed.map((f) => f.name).join(', ')}`);
+// Keep intermittent suites visible even on a green run, so flakiness doesn't hide
+// behind the retry: a recurring name here is a smoke worth hardening.
+if (flaky.length) console.log(`FLAKY (passed on retry): ${flaky.map((f) => f.name).join(', ')}`);
 process.exit(failed.length ? 1 : 0);
