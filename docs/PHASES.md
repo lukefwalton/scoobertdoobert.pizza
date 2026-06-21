@@ -20,7 +20,7 @@ unless the work is genuinely ambiguous.
 | 2 | Data-driven era-floor descent + SGI machine room | ✅ done |
 | 3 | The world grows — rooms graph, rat, the one secret, jukebox | ✅ done (mobile/README tail open) |
 | 4 | The terminal (hidden command line) | ✅ done |
-| 5 | The dread conductor (`unease` modulation layer) | ⬜ specced, not built |
+| 5 | The dread conductor (`unease` modulation layer) | ✅ built (steps 1–5 live) |
 | 6+ | World-content backlog + wire up `fun/` | ⬜ backlog |
 
 Cross-cutting: the **persistence spine** (localStorage) underpins retention, the
@@ -80,11 +80,25 @@ the `terminal-forbidden-cmd` `unease` bump — the live Phase-4→5 bridge.
 
 ---
 
-## ⬜ Phase 5 — THE DREAD LAYER (the `unease` conductor)
+## ✅ Phase 5 — THE DREAD LAYER (the `unease` conductor) — BUILT
 **The full spec lives in `docs/DESIGN.md` → "The dread layer."** This is a
 *modulation* layer: it builds **no new place**, it wires one `unease` value
 (0→1) to knobs that already exist. If you're writing a new system, you've left
 Phase 5 — stop. Honor **both** guardrails, especially the taste one.
+
+**Live:** the conductor (`DreadConductor` rAF + `dread.ts` score) drives `unease`
+from zone base + dwell/decay, records the high-water mark to persistence, and
+feeds the audio sub-bass bed (`setDreadLevel`), the PS1/fog visual ramp
+(`DreadVisuals`/`DreadVignette`), the rat's inversion (`Rat.tsx`), and the
+persistence-gated curdled copy (`selectDeepDiver`). The terminal's forbidden
+commands + the Möbius/dice pokes are wired triggers.
+- **Deep-room coverage:** `baseUnease` now tunes every deep room (dicepit, mobius,
+  liminal, deeppool, metro-tunnel) — the shrine stays a *sweet* relief beat
+  (below SAFE, so it decays). Before this the post-ckpt1 rooms read dead-safe.
+- **Safety guard:** a brickwall **output limiter** (`DynamicsCompressorNode`,
+  master → limiter → destination) sits across ALL audio, so no sum of sources or
+  sudden onset can spike the speakers (WCAG 2.3.1 audio rule + ears). Covered by
+  `shoot:dread` alongside the dosage curve (sweet surface/shrine, bitter deep).
 
 Build in this order, checkpoint at each. **Trim point:** steps 1–3 are the
 viable spine (audio bed + visual ramp make it visceral). Ship 1–3, then the rat,
