@@ -22,7 +22,8 @@ export type RoomKind =
   | 'liminal'
   | 'mobius'
   | 'dicepit'
-  | 'shrine';
+  | 'shrine'
+  | 'metro';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -542,6 +543,10 @@ export const ROOMS: Room[] = [
       // the path (-Z) toward the shrine. Clear of the return door's 3.2 radius.
       default: { position: [0, EYE, 11], yaw: Math.PI },
       fromPool: { position: [0, EYE, 11], yaw: Math.PI },
+      // Climbing back up out of the metro tunnel — beside the +X portal where the
+      // tracks go under, a step clear of its door radius, facing back into the
+      // room (-X) toward the shrine.
+      fromTunnel: { position: [6.8, EYE, 2], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -551,6 +556,56 @@ export const ROOMS: Room[] = [
         position: [0, 0, 14.95], // +Z (entrance) wall — back through the torii
         rotationY: 0,
         label: 'step back through the torii',
+        radius: 3.2,
+      },
+      {
+        id: 'shrine-to-tunnel',
+        to: 'metro-tunnel',
+        toSpawn: 'fromShrine',
+        // The +X end of the level crossing, where the rails run underground —
+        // follow them down into the metro tunnel (Luke: "connect to the tunnel
+        // cuz of trains"). The shrine breather's one way DEEPER. The portal
+        // geometry that frames this sits at the same spot in ShrineRoom.
+        position: [10.6, 0, 2], // TRACK_Z = 2 in ShrineRoom
+        rotationY: -Math.PI / 2, // in the +X wall, opening faces -X into the room
+        label: 'follow the tracks into the tunnel',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'metro-tunnel',
+    kind: 'metro',
+    title: 'Metro Tunnel',
+    // Deeper than the sweet shrine breather: the country tracks run underground
+    // into an abandoned transit tunnel — a real (wide-permission) GLB level,
+    // crunched (46 MB → 1.4 MB) + lazy-loaded behind the loader minigame, like
+    // the abandoned pool. Provenance in THIRD_PARTY_NOTICES.md. Reached by
+    // following the shrine's rails (Luke: "connect to the tunnel cuz of trains").
+    glb: {
+      url: '/models/metro-tunnel.glb',
+      fit: 26,
+      // If the model fails to load, send the player back up to the shrine.
+      recoverTo: { to: 'shrine', spawn: 'fromTunnel' },
+    },
+    drips: true, // underground damp, deep down — the flooded undersea tunnel
+    dims: { halfW: 9, halfD: 12, height: 6.5, eye: EYE },
+    // Cold dead-transit dark, tinted deep-sea teal — the Seikan is UNDERSEA, so
+    // this is where the line meets the water (MetroTunnelFx floods the floor).
+    palette: { background: '#08161c', fog: '#0b2630', fogNear: 5, fogFar: 28 },
+    spawns: {
+      // Arrive at the +Z mouth, facing -Z down the length of the tunnel.
+      default: { position: [0, EYE, 8.5], yaw: Math.PI },
+      fromShrine: { position: [0, EYE, 8.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'tunnel-to-shrine',
+        to: 'shrine',
+        toSpawn: 'fromTunnel',
+        position: [0, 0, 11.9], // +Z wall — climb back up to the surface crossing
+        rotationY: 0,
+        label: 'climb back up to the shrine',
         radius: 3.2,
       },
     ],

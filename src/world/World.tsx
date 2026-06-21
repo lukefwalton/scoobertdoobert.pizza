@@ -12,6 +12,7 @@ import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
 import { DicePitRoom } from './DicePitRoom';
 import { ShrineRoom } from './ShrineRoom';
+import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
@@ -52,6 +53,9 @@ function RoomScene({ room }: { room: Room }) {
         {/* Ambient water dripping from the ceiling — opt-in per room (room.drips),
             not coupled to the room kind, so a future liminal room can skip it. */}
         {room.drips && <CeilingDrips bounds={room.dims} />}
+        {/* Kind-specific procedural dressing layered over a GLB level: the metro
+            tunnel's shitty-fake shinkansen + 青函トンネル neon + flooded floor. */}
+        {room.kind === 'metro' && <MetroTunnelFx room={room} />}
       </>
     );
   switch (room.kind) {

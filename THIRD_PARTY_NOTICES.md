@@ -21,6 +21,7 @@ the public repo carries proper attribution. Anything not yet filled in is marked
 | `arcade-cabinet.glb` | `props/arcade-cabinet.glb` | 4.01 MB → 110 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `mobius-strip.glb` | `mobius/triple-twist-mobius-strip.glb` | 113 KB → 13 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `greek-statue.glb` | `greek-vaporwave/greek-underwater-broken-statue.glb` | 9.98 MB → 361 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `metro-tunnel.glb` | `levels/metro-tunnel.glb` | 46.4 MB → 1.42 MB (optimize: meshopt, 128px) — the tunnel deep below the wayside shrine | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `crt-tv.glb` | `crt-tvs/crt-tv-lowpoly.glb` | 101 KB → 25 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 
 ## Tooling
