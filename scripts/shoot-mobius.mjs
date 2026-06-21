@@ -1,6 +1,8 @@
-// Phase 6 Möbius smoke: the looping corridor (warped into directly via ?room=).
-// Walk the FORWARD door once — it must drop you back at the corridor's start
-// (same room) and tick the lap count up — then fast-forward to MOBIUS_BREAK. At
+// Phase 6 Möbius smoke: warp into the pool, then PHYSICALLY take the door down
+// into the looping corridor (covers the newly-critical pool→mobius descent
+// entrance with a real door). Walk the FORWARD door once — it must drop you back
+// at the corridor's start (same room) and tick the lap count up — then
+// fast-forward to MOBIUS_BREAK. At
 // the break the loop "breaks on its own": a door that wasn't there is revealed
 // and drops you DOWN to the liminal (the level's earned way down — the descent
 // fires the waterfall overlay).
@@ -53,10 +55,11 @@ const laps = () => page.evaluate(() => window.__sdpMobius ?? 0);
 // fallback), so we can assert the broken-loop descent actually ARRIVES.
 const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
-// Warp straight into the corridor (?room=ID). The surface → jukebox → pool →
-// corridor walk is covered by shoot-rooms; this smoke is about the LOOP itself,
-// so a direct warp keeps it tight now that the way down lives deep.
-await page.goto(base + '/?room=mobius&debug=1', { waitUntil: 'commit' });
+// Warp into the POOL (the underwater lobby), then PHYSICALLY take the door down
+// into the corridor — so this smoke still covers the newly-critical "find the
+// way down by going deeper" entrance (pool→mobius) with a real door, not a warp.
+// The surface→jukebox→pool walk above it is shoot-rooms'.
+await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -64,6 +67,9 @@ try {
 }
 await page.waitForTimeout(1500);
 
+const inPool = await roomIs('The Poolrooms');
+// pool → corridor: the door is in the +X wall → strafe D to it (a REAL door).
+if (!(await toDoor('d'))) fail('pool→corridor door prompt never appeared (the descent entrance)');
 const inCorridor = await roomIs('The Long Corridor');
 await page.screenshot({ path: '.shots/mobius-corridor.png' });
 const lapsFresh = await laps(); // a fresh arrival resets the count to 0
@@ -140,7 +146,7 @@ if (lapsCounted) {
 
 await browser.close();
 console.log(
-  `mobius: corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
+  `mobius: pool=${inPool} corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
     `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} ` +
     `descended=${descended} arrived=${arrived} | errors=${errors}`,
 );
