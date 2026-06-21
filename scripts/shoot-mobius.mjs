@@ -94,18 +94,17 @@ await page.screenshot({ path: '.shots/mobius-looped.png' });
 // end's -X wall. Walk up to it and step through → pop out in the shop.
 let escaped = false;
 if (lapsCounted) {
+  // Walk forward-AND-left toward the new door (it's in the -X wall, ~z=-9):
+  // holding both pins us along the -X wall heading down-corridor, and we POLL
+  // for the prompt rather than walking a fixed time — robust on a slow machine.
   await page.keyboard.down('w');
-  await page.waitForTimeout(3300); // down to ~z=-9, level with the new -X door
+  await page.keyboard.down('a');
+  const prompted = await page
+    .waitForSelector('.hud-prompt--door', { timeout: 9000 })
+    .then(() => true, () => false);
   await page.keyboard.up('w');
-  await page.keyboard.down('a'); // veer to the -X wall where the new door is
-  let prompted = false;
-  try {
-    await page.waitForSelector('.hud-prompt--door', { timeout: 4000 });
-    prompted = true;
-  } catch {
-    fail('the broken-loop "onward" door never prompted');
-  }
   await page.keyboard.up('a');
+  if (!prompted) fail('the broken-loop "onward" door never prompted');
   if (prompted) {
     await page.keyboard.press('e');
     escaped = await roomIs('Beach Pizza Shop');
