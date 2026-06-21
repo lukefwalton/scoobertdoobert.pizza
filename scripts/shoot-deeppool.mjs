@@ -39,8 +39,14 @@ const toDoor = (key, label) => walkToDoor(page, fail, key, label);
 // → confirm the loader dismissed; never throws uncaught). Generous timeout for
 // the heavy deep level. See lib/smoke.mjs.
 const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
+// Drive the descent into the liminal via the gated transition hook (a real
+// pendingRoom → loader transition). The surface → pool walk is shoot-rooms'; the
+// in-world way down (break the Möbius) is shoot-mobius'; THIS smoke is the heavy
+// liminal → DEEP GLB→GLB hop, so we drop into the pool and get into the liminal
+// directly rather than walking the whole descent.
+const descendToLiminal = () => page.evaluate(() => window.__sdpGoToRoom?.('liminal', 'fromPool'));
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -57,12 +63,14 @@ let deepReady = false;
 let inDeep = false;
 let backUp = false;
 
+inPool = await roomIs('The Poolrooms');
+// Fail fast if the gated transition hook isn't exposed (a gating regression).
+if (inPool && !(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+  fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
+if (inPool) await descendToLiminal();
 if (
-  (await roomIs('Beach Pizza Shop')) &&
-  (await toDoor('d', 'the poolrooms')) &&
-  (inPool = await roomIs('The Poolrooms')) &&
-  // pool → liminal (centre door across the water), through its loader.
-  (await toDoor('w', 'the centre water door')) &&
+  inPool &&
+  // pool → liminal, through its loader.
   (await enterLoadedLevel('liminal')) &&
   (inLiminal = await roomIs('Liminal Space'))
 ) {

@@ -39,7 +39,7 @@ const toDoor = async (key) => {
 };
 const monster = () => page.evaluate(() => window.__sdpMonster ?? null);
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -48,9 +48,13 @@ try {
 await page.waitForTimeout(1500);
 
 const startShop = await roomIs('Beach Pizza Shop');
-await toDoor('d'); // → poolrooms (+X stairwell)
-const inPool = await roomIs('The Poolrooms');
-await toDoor('a'); // → the back room (-X door)
+// Fail fast if the gated transition hook isn't exposed (a gating regression), so
+// it surfaces here with a targeted message instead of a later room timeout.
+if (!(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+  fail('__sdpGoToRoom hook not exposed under ?world&debug (gating regression?)');
+// Jump straight to the back room via the gated transition hook — the
+// surface → pool → back-room walk is shoot-rooms'; this smoke is the dice monster.
+await page.evaluate(() => window.__sdpGoToRoom?.('dicepit', 'fromPool'));
 const inPit = await roomIs('The Back Room');
 await page.screenshot({ path: '.shots/monster-start.png' });
 
@@ -127,7 +131,7 @@ if (!ratClocks) fail(`rat greeting didn't clock the dice-monster win (got: ${gre
 
 await browser.close();
 console.log(
-  `monster: shop=${startShop} pool=${inPool} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
+  `monster: shop=${startShop} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
     `won=${won} maxed=${maxed} monotonic=${monotonic} capped=${cappedScale} left=${left} ` +
     `secret=${secretSaved} ratClocks=${ratClocks} | errors=${errors}`,
 );

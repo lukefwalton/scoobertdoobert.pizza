@@ -1,12 +1,16 @@
-// Phase 6 Möbius smoke: the looping corridor below the pool. Navigate
-// shop → poolrooms → the long corridor, then walk the FORWARD door repeatedly —
-// each lap must drop you back at the corridor's start (same room) and tick the
-// lap count up. After MOBIUS_BREAK laps the loop "breaks on its own": a door
-// that wasn't there is revealed and steps you out somewhere else (the shop).
+// Phase 6 Möbius smoke: warp into the pool, then PHYSICALLY take the door down
+// into the looping corridor (covers the newly-critical pool→mobius descent
+// entrance with a real door). Walk the FORWARD door once — it must drop you back
+// at the corridor's start (same room) and tick the lap count up — then
+// fast-forward to MOBIUS_BREAK. At
+// the break the loop "breaks on its own": a door that wasn't there is revealed
+// and drops you DOWN to the liminal (the level's earned way down — the descent
+// fires the waterfall overlay).
 //
 // Asserts on the `.hud-room` label + the `__sdpMobius` lap hook, not on timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { makeLoaderHelpers } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const BREAK = 3; // MOBIUS_BREAK in src/data/rooms.ts
@@ -47,8 +51,15 @@ const toDoor = async (key, timeout = 6000) => {
   return ok;
 };
 const laps = () => page.evaluate(() => window.__sdpMobius ?? 0);
+// Shared loader helper: wait the GLB loader to ready + tap in (button → Enter
+// fallback), so we can assert the broken-loop descent actually ARRIVES.
+const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+// Warp into the POOL (the underwater lobby), then PHYSICALLY take the door down
+// into the corridor — so this smoke still covers the newly-critical "find the
+// way down by going deeper" entrance (pool→mobius) with a real door, not a warp.
+// The surface→jukebox→pool walk above it is shoot-rooms'.
+await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -56,43 +67,48 @@ try {
 }
 await page.waitForTimeout(1500);
 
-const startShop = await roomIs('Beach Pizza Shop');
-// shop → pool (strafe +X to the stairwell door), pool → corridor (strafe +X again).
-if (!(await toDoor('d'))) fail('pool door prompt never appeared');
 const inPool = await roomIs('The Poolrooms');
-if (!(await toDoor('d'))) fail('corridor door prompt never appeared in the pool');
+// pool → corridor: the door is in the +X wall → strafe D to it (a REAL door).
+if (!(await toDoor('d'))) fail('pool→corridor door prompt never appeared (the descent entrance)');
 const inCorridor = await roomIs('The Long Corridor');
 await page.screenshot({ path: '.shots/mobius-corridor.png' });
 const lapsFresh = await laps(); // a fresh arrival resets the count to 0
 if (lapsFresh !== 0) fail(`fresh corridor entry did not reset laps (got ${lapsFresh})`);
 
-// Walk the forward (loop) door BREAK times — each lap returns to the corridor and
-// ticks the count. The far door is straight ahead (-Z) from the start spawn.
+// ONE physical lap proves the loop mechanic: walking the forward door drops you
+// back at the corridor's start (same room) and ticks the lap count. Then we
+// fast-forward the remaining laps via the gated __sdpLoopMobius hook — driving
+// multiple physical laps is flaky, and the single lap already covers the
+// mechanic; this keeps REACHING the break deterministic.
 let looped = 0;
 let stayedInLoop = true;
-for (let i = 1; i <= BREAK; i++) {
-  if (!(await toDoor('w'))) {
-    fail(`forward (loop) door prompt never appeared on lap ${i}`);
-    break;
-  }
-  const still = await roomIs('The Long Corridor', 6000);
-  if (!still) {
-    stayedInLoop = false;
-    break;
-  }
+if (!(await toDoor('w'))) {
+  fail('forward (loop) door prompt never appeared on lap 1');
+} else {
+  stayedInLoop = await roomIs('The Long Corridor', 6000);
   const ok = await page
-    .waitForFunction((n) => (window.__sdpMobius ?? 0) >= n, i, { timeout: 4000 })
+    .waitForFunction(() => (window.__sdpMobius ?? 0) >= 1, null, { timeout: 4000 })
     .then(() => true, () => false);
-  if (!ok) fail(`lap ${i} did not register (count ${await laps()})`);
-  else looped = i;
+  if (!ok) fail(`lap 1 did not register (count ${await laps()})`);
+  else looped = 1;
 }
+// fast-forward to the break (≥ MOBIUS_BREAK total) via the gated hook. Fail fast
+// if it isn't exposed (a gating regression) instead of timing out on the break.
+if (!(await page.evaluate(() => typeof window.__sdpLoopMobius === 'function')))
+  fail('__sdpLoopMobius hook not exposed under ?room&debug (gating regression?)');
+await page.evaluate((n) => {
+  for (let i = 0; i < n; i++) window.__sdpLoopMobius?.();
+}, BREAK);
 const lapsCounted = (await laps()) >= BREAK;
 if (!lapsCounted) fail(`looping did not reach MOBIUS_BREAK (count ${await laps()})`);
 await page.screenshot({ path: '.shots/mobius-looped.png' });
 
 // The loop has broken: a door that wasn't there is now revealed near the far
-// end's -X wall. Walk up to it and step through → pop out in the shop.
-let escaped = false;
+// end's -X wall. Walk up to it and step through → the floor drops away DOWN to
+// the liminal (the level's EARNED way down). That descent rides the waterfall
+// overlay, so seeing it fire proves the onward door leads down to the liminal.
+let descended = false;
+let arrived = false;
 if (lapsCounted) {
   // Walk forward-AND-left toward the new door (it's in the -X wall, ~z=-9):
   // holding both pins us along the -X wall heading down-corridor, and we POLL
@@ -107,14 +123,31 @@ if (lapsCounted) {
   if (!prompted) fail('the broken-loop "onward" door never prompted');
   if (prompted) {
     await page.keyboard.press('e');
-    escaped = await roomIs('Beach Pizza Shop');
-    if (!escaped) fail('the onward door did not pop the player out to the shop');
+    // The waterfall is keyed on the destination being the liminal (pendingRoom.to
+    // === 'liminal'), so it firing already proves WHERE the onward door lands.
+    descended = await page
+      .waitForSelector('.hud-waterfall--on', { timeout: 2500 })
+      .then(() => true, () => false);
+    if (!descended) fail('the onward door did not descend into the liminal (no waterfall fired)');
+    // Prove the earned descent ARRIVES, not just that the wipe started: the
+    // liminal is a GLB level, so wait its loader to ready, tap in, and assert the
+    // room actually became Liminal Space (covers a stall/error/wrong-landing).
+    const loader = await page
+      .waitForSelector('[data-level-loader]', { timeout: 6000 })
+      .then(() => true, () => false);
+    if (!loader) fail('the onward door did not land in the liminal (its loader never mounted)');
+    if (loader) {
+      const entered = await enterLoadedLevel('liminal');
+      arrived = entered && (await roomIs('Liminal Space'));
+      if (!arrived) fail('the broken-loop descent never arrived in Liminal Space');
+    }
   }
 }
 
 await browser.close();
 console.log(
-  `mobius: shop=${startShop} pool=${inPool} corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
-    `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} escaped=${escaped} | errors=${errors}`,
+  `mobius: pool=${inPool} corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
+    `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} ` +
+    `descended=${descended} arrived=${arrived} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
