@@ -25,7 +25,9 @@ export type RoomKind =
   | 'shrine'
   | 'metro'
   | 'practice'
-  | 'grass';
+  | 'grass'
+  | 'grassbattle'
+  | 'grove';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -668,6 +670,11 @@ export const ROOMS: Room[] = [
       // field (-Z), a step clear of the return door's radius.
       default: { position: [0, EYE, 11.5], yaw: Math.PI },
       fromShrine: { position: [0, EYE, 11.5], yaw: Math.PI },
+      // Back in the field's heart after a lost/fled battle — a beat to breathe
+      // before the grass can rustle again.
+      fromBattle: { position: [0, EYE, 2], yaw: Math.PI },
+      // Stepping back out of the hidden grove.
+      fromGrove: { position: [0, EYE, 5], yaw: Math.PI },
     },
     doors: [
       {
@@ -678,6 +685,57 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'step back through the torii',
         radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'grassbattle',
+    kind: 'grassbattle',
+    title: 'A Wild Goblin!',
+    // The Pokémon beat: the grass rustled and a wild GOBLIN leapt out. You're
+    // dropped here (via the screen-to-black room fade) to roll the d20 against it —
+    // the SAME dice-monster as the pit (shared monsterStore; it's the one goblin,
+    // bigger every time it wins). Win → a path opens (the grove). Lose/flee → back
+    // to the field, no penalty (taste guardrail: losing never hard-fails).
+    dims: { halfW: 9, halfD: 10, height: 8, eye: EYE },
+    palette: { background: '#c9a765', fog: '#b08f51', fogNear: 6, fogFar: 30 },
+    spawns: {
+      // Facing the goblin across the trampled grass.
+      default: { position: [0, EYE, 5.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'battle-flee',
+        to: 'grassfield',
+        toSpawn: 'fromBattle',
+        position: [0, 0, 9.4], // behind you — turn tail and bolt back into the field
+        rotationY: 0,
+        label: 'flee back into the grass',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'grove',
+    kind: 'grove',
+    title: 'The Hidden Grove',
+    // The reward for beating the goblin (Luke: "winning gives you a new room"). A
+    // hush after the bright field — dusk settling cool and blue, a single glowing
+    // thing at the centre, and the reward-is-sound spine: a soft chord on arrival.
+    dims: { halfW: 8, halfD: 9, height: 8, eye: EYE },
+    palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
+    spawns: {
+      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grove-to-grass',
+        to: 'grassfield',
+        toSpawn: 'fromGrove',
+        position: [0, 0, 8.4],
+        rotationY: 0,
+        label: 'leave the grove',
+        radius: 3.0,
       },
     ],
   },

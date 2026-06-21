@@ -1,6 +1,12 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat } from './ps1';
+import { exposeTestGlobal } from '../lib/testHooks';
+import { useSceneStore } from '../state/sceneStore';
+import { useProgressStore, selectLuck } from '../state/progressStore';
+import { announce } from '../state/toastStore';
+import { audio } from '../audio/engine';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -107,6 +113,51 @@ export function GrassRoom({ room }: { room: Room }) {
       s: 0.4 + rnd() * 0.6,
     }));
   }, [W, D]);
+
+  // ── the wild-grass encounter ───────────────────────────────────────────────
+  // Wade into the field and the grass can rustle: each ~stride rolls a luck-tuned
+  // chance (luck tips the site's randomness your way — you WANT the rare fight) to
+  // ambush you with a wild goblin, dropping you into the screen-to-black battle.
+  const { camera } = useThree();
+  const last = useRef(new THREE.Vector2());
+  const walked = useRef(0);
+  const grace = useRef(1.2); // a breath after arrival before the grass can ambush
+  const fired = useRef(false);
+
+  const triggerEncounter = () => {
+    if (fired.current) return;
+    fired.current = true;
+    audio.unlock();
+    announce('the grass rustles — a wild GOBLIN leaps out!', 'info');
+    useSceneStore.getState().goToRoom('grassbattle', 'default');
+  };
+
+  useEffect(() => {
+    exposeTestGlobal('__sdpGrassEncounter', triggerEncounter);
+    return () => exposeTestGlobal('__sdpGrassEncounter', undefined);
+  }, []);
+
+  useFrame((_, dt) => {
+    if (fired.current) return;
+    const st = useSceneStore.getState();
+    if (st.transitioning || st.paused) return;
+    const px = camera.position.x;
+    const pz = camera.position.z;
+    if (grace.current > 0) {
+      grace.current -= dt;
+      last.current.set(px, pz);
+      return;
+    }
+    const dist = Math.hypot(px - last.current.x, pz - last.current.y);
+    last.current.set(px, pz);
+    if (pz > D - 3) return; // no ambush while loitering by the entrance torii
+    walked.current += dist;
+    if (walked.current >= 2.0) {
+      walked.current = 0;
+      const luck = selectLuck(useProgressStore.getState());
+      if (Math.random() < Math.min(0.6, 0.2 + luck * 0.03)) triggerEncounter();
+    }
+  });
 
   const toriiH = 3.6;
   const toriiPx = 1.5;
