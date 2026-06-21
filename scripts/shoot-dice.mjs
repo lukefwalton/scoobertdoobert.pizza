@@ -5,6 +5,7 @@
 // selection, not on tumble timing.
 import { chromium } from 'playwright';
 import { mkdirSync, readFileSync } from 'node:fs';
+import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -24,22 +25,9 @@ const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(
-      () => true,
-      () => (fail(`room never became "${name}"`), false),
-    );
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 try {
