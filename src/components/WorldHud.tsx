@@ -39,6 +39,8 @@ export function WorldHud() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const commitRoom = useSceneStore((s) => s.commitRoom);
   const endTransition = useSceneStore((s) => s.endTransition);
+  const queuedRoom = useSceneStore((s) => s.queuedRoom);
+  const goToRoom = useSceneStore((s) => s.goToRoom);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
@@ -109,6 +111,14 @@ export function WorldHud() {
       window.clearTimeout(tEnd);
     };
   }, [transitioning, commitRoom, endTransition]);
+
+  // Flush a navigation that arrived mid-wipe (queued by goToRoom, not dropped):
+  // once this wipe has fully lifted, start the deferred one. This is what makes a
+  // fast re-entry — bouncing out of a failed level then heading straight back
+  // down — actually land instead of silently vanishing into the transition.
+  useEffect(() => {
+    if (queuedRoom && !transitioning) goToRoom(queuedRoom.to, queuedRoom.spawn);
+  }, [queuedRoom, transitioning, goToRoom]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
