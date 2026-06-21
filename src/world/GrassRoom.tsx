@@ -47,7 +47,7 @@ function makeGrassTexture(): THREE.Texture {
 // Tiny seeded LCG so the scatter is STABLE across frames/reloads (never reshuffles).
 function lcg(seed: number): () => number {
   let s = seed >>> 0;
-  return () => ((s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff);
+  return () => (s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff;
 }
 
 type Tuft = { x: number; z: number; s: number; r: number };
