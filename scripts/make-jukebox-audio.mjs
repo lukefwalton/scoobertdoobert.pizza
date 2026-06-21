@@ -1,5 +1,5 @@
 // Render the jukebox catalog: each master in media/masters/ becomes a degraded,
-// tape-warped loop in public/audio/jukebox/<slug>.wav — the "fucked up" versions
+// tape-warped loop in public/audio/jukebox/<slug>.mp3 — the "fucked up" versions
 // the jukebox plays. Same headless-Chromium / Web-Audio trick as
 // make-boot-audio.mjs (no ffmpeg here), with an added TAPE pass: the segment is
 // resampled at a wobbling, slightly-slow read rate (wow + flutter + a warped
@@ -9,6 +9,7 @@
 //   node scripts/make-jukebox-audio.mjs
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { encodeMp3, int16FromB64 } from './lib/mp3.mjs';
 
 const TARGET_SR = 11025;
 const LOOP_SECONDS = 18;
@@ -25,15 +26,20 @@ const TRACKS = JSON.parse(readFileSync(new URL('../src/data/jukebox.catalog.json
 // Preflight: every catalog `source` must exist before we spin up Chromium, so a
 // bad catalog edit (typo'd filename, master not dropped in yet) fails fast with
 // a clear message instead of partway through a render.
-const missing = TRACKS.filter((t) => !existsSync(`media/masters/${t.file}`));
+// A catalog `source` is either a bare filename (lives in media/masters/) OR a
+// path with a slash (resolved under media/ — e.g. "music/2023/mob/07 Underwater.mp3"),
+// so the catalog can pull straight from the album tree without copying masters in.
+const masterPath = (f) => (f.includes('/') ? `media/${f}` : `media/masters/${f}`);
+
+const missing = TRACKS.filter((t) => !existsSync(masterPath(t.file)));
 if (missing.length) {
-  console.error('make-jukebox-audio: missing masters in media/masters/:');
-  for (const m of missing) console.error(`  - ${m.file}  (slug "${m.slug}")`);
+  console.error('make-jukebox-audio: missing masters:');
+  for (const m of missing) console.error(`  - ${masterPath(m.file)}  (slug "${m.slug}")`);
   process.exit(1);
 }
 
 // And slugs must be unique — a duplicate would silently overwrite another
-// track's <slug>.wav (the slug is the output filename).
+// track's <slug>.mp3 (the slug is the output filename).
 const dupes = [...new Set(TRACKS.map((t) => t.slug).filter((s, i, a) => a.indexOf(s) !== i))];
 if (dupes.length) {
   console.error(`make-jukebox-audio: duplicate catalog slug(s) — would overwrite output: ${dupes.join(', ')}`);
@@ -45,7 +51,7 @@ const page = await browser.newPage();
 mkdirSync(OUT_DIR, { recursive: true });
 
 for (const { file, slug } of TRACKS) {
-  const srcB64 = readFileSync(`media/masters/${file}`).toString('base64');
+  const srcB64 = readFileSync(masterPath(file)).toString('base64');
   const b64 = await page.evaluate(
     async ({ srcB64, TARGET_SR, loopSeconds }) => {
       const bin = atob(srcB64);
@@ -128,31 +134,25 @@ for (const { file, slug } of TRACKS) {
       for (let i = 0; i < outLen; i++) peak = Math.max(peak, Math.abs(out[i]));
       const gain = 0.9 / peak;
 
-      // 8-bit unsigned PCM WAV
-      const headerLen = 44;
-      const wav = new Uint8Array(headerLen + outLen);
-      const dv = new DataView(wav.buffer);
-      const wstr = (off, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(off + i, s.charCodeAt(i)); };
-      wstr(0, 'RIFF'); dv.setUint32(4, 36 + outLen, true); wstr(8, 'WAVE');
-      wstr(12, 'fmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true);
-      dv.setUint16(22, 1, true); dv.setUint32(24, TARGET_SR, true);
-      dv.setUint32(28, TARGET_SR, true); dv.setUint16(32, 1, true); dv.setUint16(34, 8, true);
-      wstr(36, 'data'); dv.setUint32(40, outLen, true);
+      // Quantize to 8-bit (the crunch), then expand back to 16-bit PCM for the
+      // MP3 encoder — so the lo-fi character is baked in before MP3 compression.
+      const pcm = new Int16Array(outLen);
       for (let i = 0; i < outLen; i++) {
         let s = out[i] * gain;
         s = Math.max(-1, Math.min(1, s));
-        wav[headerLen + i] = Math.round((s + 1) * 127.5);
+        const q = Math.round((s + 1) * 127.5); // 8-bit (0..255)
+        pcm[i] = Math.max(-32768, Math.min(32767, Math.round((q / 127.5 - 1) * 32767)));
       }
-
+      const u8 = new Uint8Array(pcm.buffer);
       let s = '';
-      for (let i = 0; i < wav.length; i++) s += String.fromCharCode(wav[i]);
+      for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
       return btoa(s);
     },
     { srcB64, TARGET_SR, loopSeconds: LOOP_SECONDS },
   );
-  const buf = Buffer.from(b64, 'base64');
-  writeFileSync(`${OUT_DIR}/${slug}.wav`, buf);
-  console.log(`wrote ${OUT_DIR}/${slug}.wav (${(buf.length / 1024) | 0} kB)`);
+  const mp3 = encodeMp3(int16FromB64(b64), TARGET_SR);
+  writeFileSync(`${OUT_DIR}/${slug}.mp3`, mp3);
+  console.log(`wrote ${OUT_DIR}/${slug}.mp3 (${(mp3.length / 1024) | 0} kB)`);
 }
 
 await browser.close();
