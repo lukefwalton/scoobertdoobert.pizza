@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // The boot loop. The voice is a deliberately degraded bounce of a Scoobert
 // track — "Jolly Roger Bay (64)", the #1 / top-layer theme — pre-crushed to
-// 8-bit / 11 kHz mono (see scripts/make-boot-audio.mjs) and lazy-loaded from
-// /audio/boot.wav. It loops under the storefront and pitch-bends downward as the
+// 8-bit / 11 kHz mono, then a small MP3 (see scripts/make-boot-audio.mjs) and
+// lazy-loaded from /audio/boot.mp3. It loops under the storefront, pitch-bends as the
 // descent "ages" the era into the world.
 //
 // LAZY + GATED (per Luke): the track is fetched and decoded in the background
@@ -21,7 +21,7 @@ import { mapUnease } from '../data/dread';
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
 // bends it down to 700.
 const REST_CUTOFF = 4200;
-const TRACK_URL = '/audio/boot.wav';
+const TRACK_URL = '/audio/boot.mp3';
 
 // Peak gain of the sub-bass dread bed (added under the mix at max unease). Kept
 // low — it's meant to be FELT, a pressure change, not heard as a tone.
@@ -208,9 +208,41 @@ class PizzaAudio {
     const src = this.ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
+    // MP3 decode adds ~100ms of encoder/decoder-delay silence at the head (and a
+    // little padding at the tail), which would be an audible GAP on every loop.
+    // Loop only the real content — the crossfade-matched region between the
+    // silences — and start AT loopStart so the very first pass skips it too.
+    const { start, end } = this.loopPoints(buf);
+    src.loopStart = start;
+    src.loopEnd = end;
     src.connect(this.lowpass);
-    src.start();
+    src.start(0, start);
     this.source = src;
+  }
+
+  // Real-content loop points for a decoded buffer: trim leading/trailing near-
+  // silence (the MP3 codec delay/padding) so the loop is seamless. Computed once
+  // per buffer (cached) — the underlying PCM was already crossfaded end↔start, so
+  // looping the trimmed [start,end] repeats cleanly.
+  private loopPointsCache = new WeakMap<AudioBuffer, { start: number; end: number }>();
+  private loopPoints(buf: AudioBuffer): { start: number; end: number } {
+    const cached = this.loopPointsCache.get(buf);
+    if (cached) return cached;
+    const d = buf.getChannelData(0);
+    const N = d.length;
+    const sr = buf.sampleRate;
+    const thr = 0.008;
+    let s = 0;
+    while (s < N && Math.abs(d[s]) < thr) s++;
+    let e = N - 1;
+    while (e > s && Math.abs(d[e]) < thr) e--;
+    const start = s / sr;
+    const end = (e + 1) / sr;
+    // Guard against a pathological scan (e.g. a near-silent buffer): fall back to
+    // the whole buffer rather than collapse the loop to nothing.
+    const pts = end - start > 0.5 ? { start, end } : { start: 0, end: buf.duration };
+    this.loopPointsCache.set(buf, pts);
+    return pts;
   }
 
   stopBootLoop(): void {

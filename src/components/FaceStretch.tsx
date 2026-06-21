@@ -18,7 +18,7 @@ const W = 270; // logical canvas size (portrait, to frame a face)
 const H = 320;
 const N = 9; // control points per axis (N-1 cells)
 const FACE_SRC = '/press/scoobert-shades.jpg';
-const SAMPLE_SRC = '/audio/best-day-ever.wav';
+const SAMPLE_SRC = '/audio/jukebox/best-day-ever.mp3';
 
 type Node = { x: number; y: number; vx: number; vy: number; rx: number; ry: number };
 
