@@ -49,7 +49,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 const loaded = async (file, timeout = 6000) =>
   page
     .waitForFunction(
@@ -58,7 +61,10 @@ const loaded = async (file, timeout = 6000) =>
       file,
       { timeout },
     )
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
 
 await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {

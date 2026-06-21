@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import {
-  flatMat,
-  makeAffineTexturedMaterial,
-  makeCheckerTexture,
-  makeTextTexture,
-} from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
@@ -72,7 +67,8 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 
   const pulse = useRef<THREE.PointLight>(null);
   useFrame((state) => {
-    if (pulse.current) pulse.current.intensity = 0.9 + Math.sin(state.clock.elapsedTime * 2.1) * 0.28;
+    if (pulse.current)
+      pulse.current.intensity = 0.9 + Math.sin(state.clock.elapsedTime * 2.1) * 0.28;
   });
 
   // Restore the world's resting cursor if we unmount while hovered.
@@ -100,7 +96,13 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
       }}
     >
       {/* glow pool from the jukebox */}
-      <pointLight ref={pulse} position={[0, 1.4, 1.4]} intensity={0.9} distance={11} color="#ff9ad6" />
+      <pointLight
+        ref={pulse}
+        position={[0, 1.4, 1.4]}
+        intensity={0.9}
+        distance={11}
+        color="#ff9ad6"
+      />
 
       {/* cabinet */}
       <mesh material={bodyMat} position={[0, 0.2, 0]}>

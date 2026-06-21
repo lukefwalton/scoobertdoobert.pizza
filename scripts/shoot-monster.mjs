@@ -29,7 +29,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 const toDoor = async (key) => {
   await page.keyboard.down(key);
   await page.waitForSelector('.hud-prompt--door', { timeout: 5000 }).catch(() => {});
@@ -91,7 +94,8 @@ if (inPit) {
 }
 const mEnd = await monster();
 if (!won) fail('never won a single bout in 30 rolls (improbable — clicks missing the die?)');
-if (!grew) fail('the monster never grew after many rolls (no losses registered — clicks missing the die?)');
+if (!grew)
+  fail('the monster never grew after many rolls (no losses registered — clicks missing the die?)');
 if (!maxed) fail(`the monster never reached TOO BIG TO MOVE (ended ${JSON.stringify(mEnd)})`);
 if (!monotonic) fail('monster losses went DOWN at some point (should be monotonic)');
 // Capped: at maxed, scale must equal monsterScale(CAP) ≈ 3.8 and not exceed it.
@@ -111,9 +115,9 @@ if (!left) fail('could not leave the back room past the maxed monster');
 // survives the in-tab nav back to "/".)
 const secretSaved = await page.evaluate(() => {
   try {
-    return (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []).includes(
-      'dice-monster',
-    );
+    return (
+      JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+    ).includes('dice-monster');
   } catch {
     return false;
   }

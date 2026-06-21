@@ -30,7 +30,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 // Walk `key` until a door prompts, then E — shared, hold-and-poll with a
 // CI-generous timeout (see lib/smoke.mjs).
 const toDoor = (key, label) => walkToDoor(page, fail, key, label);
@@ -56,11 +59,17 @@ if ((await enterLoadedLevel('metro tunnel')) && (inTunnel = await roomIs('Metro 
   await page.screenshot({ path: '.shots/metro.png' });
   // tunnel → shrine via the +Z return door (spawn faces -Z, so 's' walks +Z to it).
   // The shrine is procedural — no loader on the way back up.
-  if ((await toDoor('s', 'the climb-back-up door')) && (backAtShrine = await roomIs('Wayside Shrine'))) {
+  if (
+    (await toDoor('s', 'the climb-back-up door')) &&
+    (backAtShrine = await roomIs('Wayside Shrine'))
+  ) {
     await page.waitForTimeout(500);
     // shrine → tunnel: arrived at fromTunnel (+X, facing -X), so 's' walks +X back
     // toward the new track door. Re-enters the tunnel (cached loader → quick).
-    if ((await toDoor('s', 'the tunnel track door')) && (await enterLoadedLevel('metro tunnel (return)', 15000))) {
+    if (
+      (await toDoor('s', 'the tunnel track door')) &&
+      (await enterLoadedLevel('metro tunnel (return)', 15000))
+    ) {
       inTunnelAgain = await roomIs('Metro Tunnel');
     }
   }

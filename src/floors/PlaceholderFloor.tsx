@@ -26,7 +26,10 @@ export function PlaceholderFloor({ floor, index }: { floor: Floor; index: number
       <ul className="floor-links">
         {dests.map((d) => (
           <li key={d.id}>
-            <a href={d.href} {...(d.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+            <a
+              href={d.href}
+              {...(d.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+            >
               {d.label}
             </a>
           </li>
@@ -37,8 +40,8 @@ export function PlaceholderFloor({ floor, index }: { floor: Floor; index: number
         <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
         {isBottom ? (
           <p className="floor-note floor-note--terminus">
-            Terminus. The Calzone Player&trade; install + the push through the screen into the
-            world fire here (Checkpoint 3).
+            Terminus. The Calzone Player&trade; install + the push through the screen into the world
+            fire here (Checkpoint 3).
           </p>
         ) : (
           <FloorDoor direction="down" label={floor.descendLabel} onActivate={descend} />

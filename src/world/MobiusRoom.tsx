@@ -1,11 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import {
-  flatMat,
-  makeAffineTexturedMaterial,
-  makeCheckerTexture,
-  makeTextTexture,
-} from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { MOBIUS_BREAK, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
@@ -99,7 +94,13 @@ export function MobiusRoom({ room }: { room: Room }) {
   // The sign at the far end — its copy is the register made legible.
   const signText = broken ? SIGN_BROKEN : unease > 0.5 ? SIGN_TENSE : SIGN_COMIC;
   const signTex = useMemo(
-    () => makeTextTexture(signText, { fg: broken ? '#ffd0c0' : '#dfe9c2', bg: '#10160e', w: 256, h: 128 }),
+    () =>
+      makeTextTexture(signText, {
+        fg: broken ? '#ffd0c0' : '#dfe9c2',
+        bg: '#10160e',
+        w: 256,
+        h: 128,
+      }),
     [signText, broken],
   );
   const signMat = useMemo(() => new THREE.MeshBasicMaterial({ map: signTex }), [signTex]);

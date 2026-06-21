@@ -60,5 +60,7 @@ if (!gone) fail('back button did not close the ball pit');
 if (!backOnFloor) fail('did not return to the 2000 floor after the ball pit');
 
 await browser.close();
-console.log(`ballpit: appeared=${appeared} backClosed=${gone} backOnFloor=${backOnFloor} | errors=${errors}`);
+console.log(
+  `ballpit: appeared=${appeared} backClosed=${gone} backOnFloor=${backOnFloor} | errors=${errors}`,
+);
 process.exit(errors ? 1 : 0);

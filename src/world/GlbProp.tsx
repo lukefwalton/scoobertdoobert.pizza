@@ -16,7 +16,14 @@ import type { RoomProp } from '../data/rooms';
 // group origin so placement is "feet at (x,z)". Provenance: THIRD_PARTY_NOTICES.
 // ───────────────────────────────────────────────────────────────────────────
 
-const TEX_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap'] as const;
+const TEX_KEYS = [
+  'map',
+  'emissiveMap',
+  'roughnessMap',
+  'metalnessMap',
+  'normalMap',
+  'aoMap',
+] as const;
 
 // A failed prop load must never blow up the room — render nothing on error and
 // drop the poisoned cache entry so a transient failure can recover on revisit.

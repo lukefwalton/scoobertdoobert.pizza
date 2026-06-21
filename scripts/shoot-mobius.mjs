@@ -36,7 +36,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 const toDoor = async (key, timeout = 6000) => {
   await page.keyboard.down(key);
   let ok = false;
@@ -88,7 +91,10 @@ if (!(await toDoor('w'))) {
   stayedInLoop = await roomIs('The Long Corridor', 6000);
   const ok = await page
     .waitForFunction(() => (window.__sdpMobius ?? 0) >= 1, null, { timeout: 4000 })
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
   if (!ok) fail(`lap 1 did not register (count ${await laps()})`);
   else looped = 1;
 }
@@ -115,9 +121,10 @@ if (lapsCounted) {
   // for the prompt rather than walking a fixed time — robust on a slow machine.
   await page.keyboard.down('w');
   await page.keyboard.down('a');
-  const prompted = await page
-    .waitForSelector('.hud-prompt--door', { timeout: 9000 })
-    .then(() => true, () => false);
+  const prompted = await page.waitForSelector('.hud-prompt--door', { timeout: 9000 }).then(
+    () => true,
+    () => false,
+  );
   await page.keyboard.up('w');
   await page.keyboard.up('a');
   if (!prompted) fail('the broken-loop "onward" door never prompted');
@@ -125,16 +132,18 @@ if (lapsCounted) {
     await page.keyboard.press('e');
     // The waterfall is keyed on the destination being the liminal (pendingRoom.to
     // === 'liminal'), so it firing already proves WHERE the onward door lands.
-    descended = await page
-      .waitForSelector('.hud-waterfall--on', { timeout: 2500 })
-      .then(() => true, () => false);
+    descended = await page.waitForSelector('.hud-waterfall--on', { timeout: 2500 }).then(
+      () => true,
+      () => false,
+    );
     if (!descended) fail('the onward door did not descend into the liminal (no waterfall fired)');
     // Prove the earned descent ARRIVES, not just that the wipe started: the
     // liminal is a GLB level, so wait its loader to ready, tap in, and assert the
     // room actually became Liminal Space (covers a stall/error/wrong-landing).
-    const loader = await page
-      .waitForSelector('[data-level-loader]', { timeout: 6000 })
-      .then(() => true, () => false);
+    const loader = await page.waitForSelector('[data-level-loader]', { timeout: 6000 }).then(
+      () => true,
+      () => false,
+    );
     if (!loader) fail('the onward door did not land in the liminal (its loader never mounted)');
     if (loader) {
       const entered = await enterLoadedLevel('liminal');

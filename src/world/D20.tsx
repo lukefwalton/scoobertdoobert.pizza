@@ -74,11 +74,7 @@ export function D20({
     rolling.current = true;
     elapsed.current = 0;
     // A lively random tumble that eases out over ROLL_MS.
-    spin.current.set(
-      6 + Math.random() * 8,
-      6 + Math.random() * 8,
-      6 + Math.random() * 8,
-    );
+    spin.current.set(6 + Math.random() * 8, 6 + Math.random() * 8, 6 + Math.random() * 8);
   };
 
   useFrame((_, delta) => {

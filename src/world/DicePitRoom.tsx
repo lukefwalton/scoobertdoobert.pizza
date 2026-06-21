@@ -51,7 +51,10 @@ export function DicePitRoom({ room }: { room: Room }) {
     t.repeat.set(Math.round(W / 1.5), 2);
     return t;
   }, [W]);
-  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const wallMat = useMemo(
+    () => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }),
+    [wallTex],
+  );
   const ceilMat = useMemo(() => flatMat('#140e16', { side: THREE.DoubleSide }), []);
   const tableMat = useMemo(() => flatMat('#3a2030', { side: THREE.DoubleSide }), []);
 

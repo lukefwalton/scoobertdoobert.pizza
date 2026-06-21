@@ -39,8 +39,8 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   const [lit, setLit] = useState(-1);
   const [phase, setPhase] = useState<Phase>('idle');
   const [round, setRound] = useState(0);
-  const [cleared, setCleared] = useState(
-    () => useProgressStore.getState().clearedGames.includes('practice'),
+  const [cleared, setCleared] = useState(() =>
+    useProgressStore.getState().clearedGames.includes('practice'),
   );
 
   const seq = useRef<number[]>([]);
@@ -76,10 +76,13 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
     const step = 520;
     seq.current.forEach((idx, k) => push(setTimeout(() => flash(idx, 360), 450 + k * step)));
     push(
-      setTimeout(() => {
-        inputIdx.current = 0;
-        setPhaseBoth('listen');
-      }, 450 + seq.current.length * step + 150),
+      setTimeout(
+        () => {
+          inputIdx.current = 0;
+          setPhaseBoth('listen');
+        },
+        450 + seq.current.length * step + 150,
+      ),
     );
   };
 
@@ -139,7 +142,14 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   // Test hook (gated to ?world / ?debug) — lets shoot:practice drive the game
   // deterministically: read the expected phrase while listening, play it back.
   useEffect(() => {
-    exposeTestGlobal('__sdpPractice', { phase, round, cleared, expected: seq.current.slice(), start, press });
+    exposeTestGlobal('__sdpPractice', {
+      phase,
+      round,
+      cleared,
+      expected: seq.current.slice(),
+      start,
+      press,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, round, cleared]);
 

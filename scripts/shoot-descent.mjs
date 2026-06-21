@@ -24,7 +24,10 @@ const floor = (p, id, timeout = 8000) =>
   );
 
 // ── desktop full loop ──────────────────────────────────────────────────────
-const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 }, deviceScaleFactor: 1 });
+const ctx = await browser.newContext({
+  viewport: { width: 1100, height: 850 },
+  deviceScaleFactor: 1,
+});
 const page = await ctx.newPage();
 page.on('pageerror', (e) => fail(`desktop pageerror: ${e.message}`));
 

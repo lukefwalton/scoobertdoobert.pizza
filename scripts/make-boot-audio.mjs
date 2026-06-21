@@ -64,7 +64,7 @@ const b64 = await page.evaluate(
     const seg = mono.slice(start, start + segLen);
 
     // Gentle one-pole lowpass for warmth (tames resampler/quantization fizz).
-    const a = 0.30;
+    const a = 0.3;
     let prev = seg[0];
     for (let i = 0; i < seg.length; i++) {
       prev = prev + a * (seg[i] - prev);

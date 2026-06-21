@@ -31,13 +31,27 @@ const EXPOSE_STRETCH = isTestEntrance();
 
 // Affine matrix mapping source triangle s→ dest triangle d (3 correspondences).
 function affineFromTri(
-  s0: number[], s1: number[], s2: number[],
-  d0: number[], d1: number[], d2: number[],
+  s0: number[],
+  s1: number[],
+  s2: number[],
+  d0: number[],
+  d1: number[],
+  d2: number[],
 ): [number, number, number, number, number, number] | null {
-  const x0 = s0[0], y0 = s0[1], x1 = s1[0], y1 = s1[1], x2 = s2[0], y2 = s2[1];
+  const x0 = s0[0],
+    y0 = s0[1],
+    x1 = s1[0],
+    y1 = s1[1],
+    x2 = s2[0],
+    y2 = s2[1];
   const det = x0 * (y1 - y2) - x1 * (y0 - y2) + x2 * (y0 - y1);
   if (Math.abs(det) < 1e-6) return null;
-  const u0 = d0[0], v0 = d0[1], u1 = d1[0], v1 = d1[1], u2 = d2[0], v2 = d2[1];
+  const u0 = d0[0],
+    v0 = d0[1],
+    u1 = d1[0],
+    v1 = d1[1],
+    u2 = d2[0],
+    v2 = d2[1];
   const a = (u0 * (y1 - y2) - u1 * (y0 - y2) + u2 * (y0 - y1)) / det;
   const c = (x0 * (u1 - u2) - x1 * (u0 - u2) + x2 * (u0 - u1)) / det;
   const e = (x0 * (y1 * u2 - y2 * u1) - x1 * (y0 * u2 - y2 * u0) + x2 * (y0 * u1 - y1 * u0)) / det;
@@ -55,7 +69,11 @@ export function FaceStretch() {
   // ── the warp grid + pointer, in refs (the rAF loop owns them) ──
   const grid = useRef<Node[]>([]);
   const pointer = useRef<{ x: number; y: number; down: boolean; lx: number; ly: number }>({
-    x: 0, y: 0, down: false, lx: 0, ly: 0,
+    x: 0,
+    y: 0,
+    down: false,
+    lx: 0,
+    ly: 0,
   });
 
   // ── audio: a small self-contained, mute-aware instrument graph ──
@@ -83,7 +101,9 @@ export function FaceStretch() {
   const startAudio = () => {
     if (audioRef.current) return;
     try {
-      const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const Ctor =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       const ctx = new Ctor();
       const gain = ctx.createGain();
       gain.gain.value = 0.0001;
@@ -209,7 +229,10 @@ export function FaceStretch() {
         const at = (i: number, j: number) => nodes[j * N + i];
         for (let j = 0; j < N - 1; j++) {
           for (let i = 0; i < N - 1; i++) {
-            const a00 = at(i, j), a10 = at(i + 1, j), a01 = at(i, j + 1), a11 = at(i + 1, j + 1);
+            const a00 = at(i, j),
+              a10 = at(i + 1, j),
+              a01 = at(i, j + 1),
+              a11 = at(i + 1, j + 1);
             drawTri(ctx, off, a00, a10, a11);
             drawTri(ctx, off, a00, a11, a01);
           }
@@ -233,7 +256,11 @@ export function FaceStretch() {
     () => () => {
       const a = audioRef.current;
       if (a) {
-        try { a.src.stop(); } catch { /* already stopped */ }
+        try {
+          a.src.stop();
+        } catch {
+          /* already stopped */
+        }
         void a.ctx.close();
         audioRef.current = null;
       }
@@ -283,7 +310,11 @@ export function FaceStretch() {
         }}
       />
       <p className="poke-hint">
-        {grabbed ? 'mmmfffhgh—' : soundOn ? 'pull up/down to bend the pitch · sideways to muffle' : 'grab his face and pull'}
+        {grabbed
+          ? 'mmmfffhgh—'
+          : soundOn
+            ? 'pull up/down to bend the pitch · sideways to muffle'
+            : 'grab his face and pull'}
       </p>
     </div>
   );
@@ -291,17 +322,28 @@ export function FaceStretch() {
 
 // Draw image triangle (source = node rest positions, dest = current positions),
 // slightly expanded around the centroid to hide hairline seams.
-function drawTri(ctx: CanvasRenderingContext2D, img: HTMLCanvasElement, n0: Node, n1: Node, n2: Node) {
-  const s0 = [n0.rx, n0.ry], s1 = [n1.rx, n1.ry], s2 = [n2.rx, n2.ry];
+function drawTri(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLCanvasElement,
+  n0: Node,
+  n1: Node,
+  n2: Node,
+) {
+  const s0 = [n0.rx, n0.ry],
+    s1 = [n1.rx, n1.ry],
+    s2 = [n2.rx, n2.ry];
   // expand dest verts ~0.6px outward
   const cx = (n0.x + n1.x + n2.x) / 3;
   const cy = (n0.y + n1.y + n2.y) / 3;
   const ex = (x: number, y: number): number[] => {
-    const dx = x - cx, dy = y - cy;
+    const dx = x - cx,
+      dy = y - cy;
     const l = Math.hypot(dx, dy) || 1;
     return [x + (dx / l) * 0.6, y + (dy / l) * 0.6];
   };
-  const d0 = ex(n0.x, n0.y), d1 = ex(n1.x, n1.y), d2 = ex(n2.x, n2.y);
+  const d0 = ex(n0.x, n0.y),
+    d1 = ex(n1.x, n1.y),
+    d2 = ex(n2.x, n2.y);
   const m = affineFromTri(s0, s1, s2, d0, d1, d2);
   if (!m) return;
   ctx.save();

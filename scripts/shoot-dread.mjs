@@ -42,7 +42,9 @@ else if (lim.threshold > -1 || lim.ratio < 8)
 const uneaseAt = async (query, settleMs = 4200) => {
   await page.goto(base + query, { waitUntil: 'commit' });
   // wait for the DREAD overlay, then let unease ease to the zone's resting value
-  await page.waitForFunction(() => /unease \d/.test(document.body.textContent || ''), null, { timeout: 8000 });
+  await page.waitForFunction(() => /unease \d/.test(document.body.textContent || ''), null, {
+    timeout: 8000,
+  });
   await page.waitForTimeout(settleMs);
   const txt = (await page.textContent('body')) || '';
   const m = txt.match(/unease (\d\.\d+)/);
