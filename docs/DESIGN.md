@@ -271,9 +271,12 @@ panel) — discovered, not on the main path.
   tracks are rails + sleepers. **Original parody only**, no real marks. Easy to
   swap individual pieces for sourced/crunched GLBs later; this gets the place
   *standing* first ("scaffold").
-- **The train tracks run off into the fog on purpose** — the planned hookup is
-  the `metro-tunnel.glb` level (Luke: "connect to the tunnel cuz of trains"). The
-  rural crossing is the surface end; the tunnel is the deep end of the same line.
+- **The train tracks run off into the fog on purpose, and now connect** — a
+  concrete portal at the +X end of the crossing is the mouth of the
+  `metro-tunnel.glb` level (Luke: "connect to the tunnel cuz of trains"). The
+  rural crossing is the surface end; the tunnel (a crunched GLB, lazy-loaded
+  behind the loader, like the abandoned pool) is the deep end of the same line —
+  the shrine breather's one way *deeper*.
 - Test entry: `?room=<id>` drops straight into any room (added for this — deep/
   hidden rooms like the shrine are otherwise gated behind the rat's secret).
 

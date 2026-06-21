@@ -226,6 +226,8 @@ export function ShrineRoom({ room }: { room: Room }) {
   const trainGlassMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#23303a' }), []);
   const mountainMat = useMemo(() => flatMat('#7d6f96', THREE.DoubleSide), []); // dusty vaporwave blue
   const sunMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffdca0' }), []);
+  const concreteMat = useMemo(() => flatMat('#6a6e72'), []); // the tunnel portal surround
+  const portalDarkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#08090d' }), []); // its mouth
 
   // dispose the canvas textures we generated
   useEffect(
@@ -338,8 +340,9 @@ export function ShrineRoom({ room }: { room: Room }) {
         <boxGeometry args={[W * 2 + 10, 0.12, 0.1]} />
       </mesh>
 
-      {/* a single rail car parked on the crossing, trailing off into the fog */}
-      <group position={[8.5, 0, TRACK_Z]}>
+      {/* a single rail car parked on the crossing — pulled clear to the -X side
+          (just left the tunnel), trailing off into the fog */}
+      <group position={[-9, 0, TRACK_Z]}>
         <mesh material={trainBodyMat} position={[0, 1.4, 0]}>
           <boxGeometry args={[6.5, 2.0, 1.7]} />
         </mesh>
@@ -352,6 +355,26 @@ export function ShrineRoom({ room }: { room: Room }) {
         </mesh>
         <mesh material={trainStripeMat} position={[0, 1.0, 0.86]}>
           <boxGeometry args={[6.5, 0.3, 0.06]} />
+        </mesh>
+      </group>
+
+      {/* the tunnel portal at the +X end — where the rails run underground. The
+          way DEEPER (the metro-tunnel GLB level) is on the other side; the
+          'shrine-to-tunnel' door in rooms.ts sits just in front of this mouth. */}
+      <group position={[11.5, 0, TRACK_Z]}>
+        {/* concrete surround flanking the track gauge, + a lintel over the top */}
+        <mesh material={concreteMat} position={[0, 2, -1.7]}>
+          <boxGeometry args={[1.4, 4, 0.7]} />
+        </mesh>
+        <mesh material={concreteMat} position={[0, 2, 1.7]}>
+          <boxGeometry args={[1.4, 4, 0.7]} />
+        </mesh>
+        <mesh material={concreteMat} position={[0, 3.7, 0]}>
+          <boxGeometry args={[1.4, 0.7, 4.1]} />
+        </mesh>
+        {/* the dark mouth the rails disappear into */}
+        <mesh material={portalDarkMat} position={[0.4, 1.7, 0]}>
+          <boxGeometry args={[0.3, 3.4, 2.8]} />
         </mesh>
       </group>
 
