@@ -39,7 +39,7 @@
     "shoot:music": "node scripts/shoot-music.mjs"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
