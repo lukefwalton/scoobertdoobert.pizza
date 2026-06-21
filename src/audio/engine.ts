@@ -17,6 +17,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import { mapUnease } from '../data/dread';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
 // bends it down to 700.
@@ -344,13 +345,10 @@ class PizzaAudio {
    *  asserts a leave-before-decode never switches the voice post-unmount). Gated
    *  to the test entrances so it isn't part of the normal global surface. */
   private publishJukeboxState(): void {
-    if (typeof window === 'undefined') return;
-    if (!/[?&](world|debug)(=|&|$)/.test(window.location.search)) return;
-    const w = window as Window & { __sdpJukeboxActive?: boolean; __sdpJukeboxUrl?: string };
-    w.__sdpJukeboxActive = this.jukeboxActive;
+    exposeTestGlobal('__sdpJukeboxActive', this.jukeboxActive);
     // The url actually swapped into the loop voice (post-decode), so the smoke
     // can prove a click really changed the engine voice, not just React state.
-    w.__sdpJukeboxUrl = this.activeJukeboxUrl;
+    exposeTestGlobal('__sdpJukeboxUrl', this.activeJukeboxUrl);
   }
 
   // ── loop-voice change notification (the music store mirrors this) ───────────
@@ -394,9 +392,7 @@ class PizzaAudio {
     // Expose for the rooms smoke (asserts the duck restores to 1 after leaving
     // the jukebox). Gated to the ?world / ?debug test entrances so it isn't part
     // of the normal runtime global surface.
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpProximity?: number }).__sdpProximity = this.proximity;
-    }
+    exposeTestGlobal('__sdpProximity', this.proximity);
     if (!this.ctx || !this.master || this.muted) return;
     // Called every frame by the jukebox room — cancel pending automation first
     // (like applyGain) so setTargetAtTime events don't stack up on the param.
@@ -633,6 +629,4 @@ export const audio = new PizzaAudio();
 // lifecycle directly (the leave-before-decode race is timing-sensitive and hard
 // to reproduce through gameplay). Gated to the ?world / ?debug entrances, like
 // the other __sdp* globals, so it isn't part of the normal runtime surface.
-if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-  (window as Window & { __sdpAudio?: typeof audio }).__sdpAudio = audio;
-}
+exposeTestGlobal('__sdpAudio', audio);

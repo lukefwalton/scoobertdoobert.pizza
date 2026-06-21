@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat } from './ps1';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { audio } from '../audio/engine';
 import { cueUrl, loopIndexForUrl } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
@@ -138,16 +139,7 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   // Test hook (gated to ?world / ?debug) — lets shoot:practice drive the game
   // deterministically: read the expected phrase while listening, play it back.
   useEffect(() => {
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpPractice?: unknown }).__sdpPractice = {
-        phase,
-        round,
-        cleared,
-        expected: seq.current.slice(),
-        start,
-        press,
-      };
-    }
+    exposeTestGlobal('__sdpPractice', { phase, round, cleared, expected: seq.current.slice(), start, press });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, round, cleared]);
 

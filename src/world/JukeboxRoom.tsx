@@ -7,6 +7,7 @@ import {
   makeCheckerTexture,
   makeTextTexture,
 } from './ps1';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
@@ -152,9 +153,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const rollTo = (face: number) => {
     setRoll(face);
     setIndex((face - 1) % JUKEBOX_TRACKS.length);
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpDice?: number }).__sdpDice = face;
-    }
+    exposeTestGlobal('__sdpDice', face);
   };
 
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
@@ -164,18 +163,13 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // from THIS visit" (edge-triggered), never a sticky last-roll-since-page-load.
   useEffect(() => {
     audio.preloadJukebox(JUKEBOX_TRACKS.map((t) => jukeboxTrackUrl(t.slug)));
-    if (typeof window !== 'undefined') {
-      (window as Window & { __sdpDice?: number }).__sdpDice = undefined;
-    }
+    exposeTestGlobal('__sdpDice', undefined);
     return () => {
       // Leaving the cabinet hands the loop voice back to the user's chosen track
       // (the switcher), not unconditionally to boot.
       useMusicStore.getState().restorePreferred();
-      if (typeof window !== 'undefined') {
-        const w = window as Window & { __sdpJukebox?: unknown; __sdpDice?: number };
-        w.__sdpJukebox = undefined;
-        w.__sdpDice = undefined;
-      }
+      exposeTestGlobal('__sdpJukebox', undefined);
+      exposeTestGlobal('__sdpDice', undefined);
     };
   }, []);
 
@@ -184,12 +178,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
     void audio.playJukeboxTrack(jukeboxTrackUrl(track.slug));
     // Expose the selection for the rooms smoke (auto-play + click-to-cycle),
     // gated to the test entrances so it isn't part of the normal global surface.
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpJukebox?: { index: number; slug: string } }).__sdpJukebox = {
-        index,
-        slug: track.slug,
-      };
-    }
+    exposeTestGlobal('__sdpJukebox', { index, slug: track.slug });
   }, [index, track.slug]);
 
   const carpetTex = useMemo(() => {

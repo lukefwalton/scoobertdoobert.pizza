@@ -4,6 +4,11 @@ import * as THREE from 'three';
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
+import { isTestEntrance } from '../lib/testHooks';
+
+// Gate the per-frame __sdpCam test global once at module load (it's read by the
+// world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
+const EXPOSE_CAM = isTestEntrance();
 
 // True when a modal overlay (pause / hotspot dialog), a room transition, or a
 // GLB level loader should freeze input. `transitioning` covers the WHOLE door
@@ -97,11 +102,15 @@ export function Controls() {
 
   useFrame((_, delta) => {
     // Expose camera position + heading for automated checks (pause-freeze, turn).
-    (window as Window & { __sdpCam?: { x: number; z: number; yaw: number } }).__sdpCam = {
-      x: camera.position.x,
-      z: camera.position.z,
-      yaw: yaw.current,
-    };
+    // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
+    // frame, and the global stays off the normal runtime surface.
+    if (EXPOSE_CAM) {
+      (window as Window & { __sdpCam?: { x: number; z: number; yaw: number } }).__sdpCam = {
+        x: camera.position.x,
+        z: camera.position.z,
+        yaw: yaw.current,
+      };
+    }
     if (inputFrozen()) return;
     const dt = Math.min(delta, 0.05);
     const speed = 6 * dt;
