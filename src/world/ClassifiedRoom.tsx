@@ -1,8 +1,70 @@
-import { useMemo, useRef } from 'react';
+import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import type { Room } from '../data/rooms';
+
+// The "suspect board": the masked-Scoobert photos (Luke's own, degraded to tiny
+// PS1 textures by scripts/make-classified-photos.mjs) pinned askew on the +X wall
+// with red string — the X-Files surveillance corkboard. Loaded behind its own
+// Suspense so the tiny textures never gate the rest of the room.
+const PHOTO_URLS = Array.from({ length: 8 }, (_, i) => `/textures/classified/photo-${i + 1}.jpg`);
+
+function SuspectBoard({ W }: { W: number }) {
+  const maps = useTexture(PHOTO_URLS) as THREE.Texture[];
+  useMemo(() => {
+    for (const t of maps) {
+      t.magFilter = THREE.NearestFilter;
+      t.minFilter = THREE.NearestFilter;
+      t.generateMipmaps = false;
+      t.needsUpdate = true;
+    }
+  }, [maps]);
+
+  const cols = [-1.35, -0.45, 0.45, 1.35];
+  const rows = [2.15, 1.35];
+  const frameMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#d9d2c4' }), []); // polaroid
+  const corkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#2c2114' }), []);
+  const stringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#8a1f17' }), []); // red yarn
+  const pinMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#c9302c' }), []);
+
+  // The group sits on the +X wall and faces -X into the room; children lay out in
+  // local X (→ along the wall) and Y (up).
+  return (
+    <group position={[W - 0.07, 0, 0]} rotation-y={-Math.PI / 2}>
+      <mesh material={corkMat} position={[0, 1.72, 0]}>
+        <planeGeometry args={[3.3, 1.7]} />
+      </mesh>
+      {/* a couple of red "string" runs across the suspects */}
+      <mesh material={stringMat} position={[-0.45, 1.75, 0.02]} rotation-z={0.5}>
+        <planeGeometry args={[1.9, 0.025]} />
+      </mesh>
+      <mesh material={stringMat} position={[0.55, 1.7, 0.02]} rotation-z={-0.7}>
+        <planeGeometry args={[1.7, 0.025]} />
+      </mesh>
+      {maps.map((map, i) => {
+        const lx = cols[i % 4];
+        const ly = rows[i < 4 ? 0 : 1];
+        const tilt = (((i * 37) % 7) - 3) * 0.045; // deterministic askew
+        return (
+          <group key={i} position={[lx, ly, 0.03]} rotation-z={tilt}>
+            <mesh material={frameMat}>
+              <planeGeometry args={[0.62, 0.62]} />
+            </mesh>
+            <mesh position={[0, -0.03, 0.005]}>
+              <planeGeometry args={[0.52, 0.52]} />
+              <meshBasicMaterial map={map} />
+            </mesh>
+            <mesh material={pinMat} position={[0, 0.27, 0.01]}>
+              <circleGeometry args={[0.03, 8]} />
+            </mesh>
+          </group>
+        );
+      })}
+    </group>
+  );
+}
 
 // The classified room — the one secret, behind the panel the rat knocked open.
 // A tiny, cold, X-Files file room: filing cabinets, a desk buried in manila
@@ -136,6 +198,11 @@ export function ClassifiedRoom({ room }: { room: Room }) {
       <Cabinet x={-W + 0.6} z={-D + 2.4} ry={Math.PI / 2} />
       <Cabinet x={W - 0.6} z={-D + 1.6} ry={-Math.PI / 2} />
       <Desk />
+
+      {/* the masked-Scoobert suspect board on the +X wall */}
+      <Suspense fallback={null}>
+        <SuspectBoard W={W} />
+      </Suspense>
     </group>
   );
 }
