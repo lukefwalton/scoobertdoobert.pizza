@@ -3,7 +3,8 @@ import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap } from './ps1';
 import { audio } from '../audio/engine';
-import { cueUrl } from '../data/music';
+import { cueUrl, loopIndexForUrl } from '../data/music';
+import { useMusicStore } from '../state/musicStore';
 import { useProgressStore } from '../state/progressStore';
 import type { Room } from '../data/rooms';
 
@@ -105,7 +106,10 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
     // and the sealed demo plays (exploration's reward is sound).
     useProgressStore.getState().clearGame('practice');
     useProgressStore.getState().findSecret('practice');
-    void audio.playJukeboxTrack(cueUrl('practiceDemo'));
+    // You EARNED it: promote the sealed demo to the user's preferred track, so it
+    // becomes your loop (and shows in the pause-menu readout) instead of a
+    // transient stinger. Consistent with the "manual selection wins" rule.
+    useMusicStore.getState().setIndex(loopIndexForUrl(cueUrl('practiceDemo')));
   };
 
   // Press a pad: always sounds it (free play); during 'listen' it also scores.
