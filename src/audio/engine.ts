@@ -509,9 +509,9 @@ class PizzaAudio {
    * other one-shots here, it degrades to silence and never forces audio on.
    * `peak` is kept low by callers: in-world bells are ambient, not foreground.
    */
-  playChime(freq: number, pan = 0, peak = 0.16): void {
+  playChime(freq: number, pan = 0, peak = 0.16, decayScale = 1): void {
     if (!this.ctx || !this.master || this.muted) return;
-    strikeBell(this.ctx, this.master, freq, { pan, peak });
+    strikeBell(this.ctx, this.master, freq, { pan, peak, decayScale });
   }
 
   /**
