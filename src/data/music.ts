@@ -44,6 +44,14 @@ export const cueUrl = (cue: CueName): string => jukeboxTrackUrl(CUES[cue]);
 export const trackBySlug = (slug: string): JukeboxTrack | undefined =>
   JUKEBOX_TRACKS.find((t) => t.slug === slug);
 
+/** The LOOP_OPTIONS index for an actually-playing url (null/boot → 0). Lets the
+ *  music store mirror the engine's real loop voice. */
+export const loopIndexForUrl = (url: string | null): number => {
+  if (!url) return 0;
+  const i = JUKEBOX_TRACKS.findIndex((t) => jukeboxTrackUrl(t.slug) === url);
+  return i >= 0 ? i + 1 : 0; // +1: LOOP_OPTIONS[0] is the boot loop
+};
+
 /** The loop-voice options the pause-menu song switcher steps through: the boot
  *  loop, then the whole catalog (slug null = the boot loop). */
 export type LoopOption = { slug: string | null; title: string };
