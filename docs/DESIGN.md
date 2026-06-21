@@ -257,6 +257,26 @@ storefront has a soft spot in the floor, and if you find it, you fall.
   the *wrongness* is the wink, the *landing* is where the dread can begin.
 - Status: **design captured, not built.** Its own thread (after the arcade).
 
+### The Wayside Shrine — the Japan level (world-content; SHIPPED as scaffold)
+The one **outdoor, *sweet*** deep room — a rural Japanese golden-hour dusk: a
+torii path, a little wayside shrine (honden), a country railway crossing, distant
+vaporwave mountains, a low sun, and **fireflies**. A deliberate breather among the
+bitter depths — the taste-guardrail contrast (not everything down there is wrong;
+the calm ones make the wrong ones land). Reached via a **hidden torii** half-sunk
+in the poolrooms' false water (revealed by the rat's secret, like the classified
+panel) — discovered, not on the main path.
+
+- **Built procedurally** (`src/world/ShrineRoom.tsx`) in the PS1 register —
+  torii are two posts + two beams, the shrine is a platform + a gabled roof, the
+  tracks are rails + sleepers. **Original parody only**, no real marks. Easy to
+  swap individual pieces for sourced/crunched GLBs later; this gets the place
+  *standing* first ("scaffold").
+- **The train tracks run off into the fog on purpose** — the planned hookup is
+  the `metro-tunnel.glb` level (Luke: "connect to the tunnel cuz of trains"). The
+  rural crossing is the surface end; the tunnel is the deep end of the same line.
+- Test entry: `?room=<id>` drops straight into any room (added for this — deep/
+  hidden rooms like the shrine are otherwise gated behind the rat's secret).
+
 ### Minigames — two opposite shapes (world-content / infra, Phase 3+)
 A tiny easter-egg + loader layer. NOT a "game area" — keep it tiny; don't reach
 for Phaser. These are 2D canvas overlays (on the load screen / behind doors),

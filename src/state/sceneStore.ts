@@ -50,8 +50,9 @@ type SceneState = {
   /** Go back up one floor, clamped to the storefront. */
   ascend: () => void;
   setFloor: (i: number) => void;
-  /** Enter the 3D world. Defaults to the first room (the normal descent); the
-   *  trap door passes a deep room + spawn to drop you straight into the back. */
+  /** Enter the 3D world. Defaults to the first room (the normal descent); an
+   *  optional room + spawn drops you straight into a specific room — used by the
+   *  trap door (a deep room the d20 picks) and the ?room= test entrance. */
   enterWorld: (room?: string, spawn?: string) => void;
   exitWorld: () => void;
   setNearHotspot: (id: string | null) => void;
@@ -105,8 +106,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   // Entering the world starts in the first room (the beach shop) by default,
   // with a clean slate — defensively clear any modal/proximity state so the
   // world's input gates never inherit a stale dialog/pause/prompt from the
-  // descent. The trap door passes a deep room + spawn to drop you into the back
-  // instead of the shop (the d20 picks which); the clean-slate reset is the same.
+  // descent. An explicit room + spawn drops you elsewhere — the trap door (a deep
+  // room the d20 picks) and the ?room= test entrance both use it; the clean-slate
+  // reset is the same either way.
   enterWorld: (room = FIRST_ROOM, spawn = 'default') =>
     set({
       worldActive: true,
