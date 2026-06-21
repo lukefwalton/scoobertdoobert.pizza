@@ -3,7 +3,7 @@ import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap } from './ps1';
 import { audio } from '../audio/engine';
-import { jukeboxTrackUrl } from '../data/jukebox';
+import { cueUrl } from '../data/music';
 import { useProgressStore } from '../state/progressStore';
 import type { Room } from '../data/rooms';
 
@@ -29,7 +29,6 @@ const PADS = [
   { freq: 523.25, dim: '#552a44', lit: '#ffb0e0' },
 ];
 const ROUNDS_TO_WIN = 4; // play back phrases of length 1,2,3,4 — short (friction budget)
-const SEALED_SLUG = 'jolly-roger-bay'; // the sealed demo the game unlocks
 
 function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.Material {
   const m = new THREE.MeshLambertMaterial({ color, flatShading: true, side });
@@ -106,7 +105,7 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
     // and the sealed demo plays (exploration's reward is sound).
     useProgressStore.getState().clearGame('practice');
     useProgressStore.getState().findSecret('practice');
-    void audio.playJukeboxTrack(jukeboxTrackUrl(SEALED_SLUG));
+    void audio.playJukeboxTrack(cueUrl('practiceDemo'));
   };
 
   // Press a pad: always sounds it (free play); during 'listen' it also scores.
