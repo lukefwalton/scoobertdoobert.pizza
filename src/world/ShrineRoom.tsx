@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useProgressStore } from '../state/progressStore';
+import { announce } from '../state/toastStore';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // Furin tuning — a bright, glassy high pentatonic from the site's D6/9 world, so
 // the wind-chimes always agree with the music. (Reuses the chimes note math.)
@@ -258,6 +261,77 @@ function Furin({ x, y, z, pan }: { x: number; y: number; z: number; pan: number 
   );
 }
 
+// The offering box (賽銭箱) — the shrine ritual + the game layer's luck faucet.
+// Click it to pay respects the proper way: 二拍手, two claps, and a coin tinkle.
+// The FIRST clap per visit grants luck (announced) — small, easy, repeatable by
+// coming back. A SWEET interaction (no dread): the box gives a little bow-pulse.
+function OfferingBox({ mat }: { mat: THREE.Material }) {
+  const { gl } = useThree();
+  const box = useRef<THREE.Mesh>(null);
+  const claimed = useRef(false); // one luck grant per visit (resets on re-entry)
+  const cooldown = useRef(0);
+  const pulse = useRef(0);
+
+  useFrame((_, dt) => {
+    if (cooldown.current > 0) cooldown.current -= dt;
+    pulse.current *= Math.pow(0.015, dt); // decay the bow-pulse
+    if (box.current) box.current.scale.setScalar(1 + pulse.current * 0.05);
+  });
+
+  useEffect(
+    () => () => {
+      gl.domElement.style.cursor = 'grab';
+    },
+    [gl],
+  );
+
+  const doClap = () => {
+    if (cooldown.current > 0) return;
+    cooldown.current = 1.2;
+    pulse.current = 1;
+    audio.unlock(); // the click is the gesture
+    audio.playClap();
+    window.setTimeout(() => audio.playClap(), 190); // …clap clap (二拍手)
+    window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0, 0.1), 360); // a coin tinkle
+    if (!claimed.current) {
+      claimed.current = true;
+      useProgressStore.getState().gainLuck(1);
+      announce('🍀 You clap twice. Fortune smiles · +1 luck', 'luck');
+    } else {
+      announce('🙏 The kami have already heard you this visit.', 'info');
+    }
+  };
+  const clap = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    doClap();
+  };
+
+  // Test hook (?world / ?debug): let shoot:luck perform the ritual deterministically
+  // (clicking a swinging 3D target through Playwright is fragile).
+  useEffect(() => {
+    exposeTestGlobal('__sdpShrineClap', doClap);
+    return () => exposeTestGlobal('__sdpShrineClap', undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <mesh
+      ref={box}
+      material={mat}
+      position={[0, 0.85, 1.7]}
+      onClick={clap}
+      onPointerOver={() => {
+        gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
+      }}
+      onPointerOut={() => {
+        gl.domElement.style.cursor = 'grab';
+      }}
+    >
+      <boxGeometry args={[1.0, 0.6, 0.5]} />
+    </mesh>
+  );
+}
+
 export function ShrineRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
@@ -388,10 +462,8 @@ export function ShrineRoom({ room }: { room: Room }) {
         <mesh material={woodMat} position={[0, 3.45, 0]}>
           <boxGeometry args={[4.9, 0.18, 0.18]} />
         </mesh>
-        {/* a small offering box at the front */}
-        <mesh material={woodMat} position={[0, 0.85, 1.7]}>
-          <boxGeometry args={[1.0, 0.6, 0.5]} />
-        </mesh>
+        {/* the offering box — click to clap twice (二拍手) and earn luck */}
+        <OfferingBox mat={woodMat} />
         {/* furin under the front eaves — they ring themselves via the chimes
             engine (audio.playChime), the cabinet's synthesis reused in-world */}
         <Furin x={-1.45} y={2.5} z={1.25} pan={-0.4} />

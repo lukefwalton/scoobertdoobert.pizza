@@ -6,7 +6,8 @@ import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
-import { useProgressStore } from '../state/progressStore';
+import { useProgressStore, selectLuck } from '../state/progressStore';
+import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
@@ -51,6 +52,12 @@ export function WorldHud() {
   const shiftSong = useMusicStore((s) => s.shift);
   // The flip-through radio is an UPGRADE: locked until you roll the jukebox d20.
   const radioUnlocked = useProgressStore((s) => s.radioUnlocked);
+  // The game layer's LUCK stat — shown in the pause menu (allowed since the
+  // "no-HUD" rule was lifted), earned by rituals, spent by the system on d20s.
+  const luck = useProgressStore(selectLuck);
+  // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
+  const toast = useToastStore((s) => s.toast);
+  const clearToast = useToastStore((s) => s.clear);
 
   // The Scoobertverse welcome — a quest intro that streams in char-by-char on
   // world entry (WorldHud mounts with the world), holds, then fades. Non-blocking,
@@ -149,12 +156,26 @@ export function WorldHud() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Auto-dismiss the announce toast after a beat (a gentle, non-flashing fade —
+  // the CSS handles the visual; WCAG-safe, no strobe).
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => clearToast(), 2800);
+    return () => window.clearTimeout(t);
+  }, [toast, clearToast]);
+
   const nearHs = near ? HOTSPOTS.find((h) => h.id === near) : undefined;
   const openHs = open ? HOTSPOTS.find((h) => h.id === open) : undefined;
   const openDest = openHs ? destById(openHs.destId) : undefined;
 
   return (
     <>
+      {toast && (
+        <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
+          {toast.msg}
+        </div>
+      )}
+
       {welcome && (
         <div
           className={`hud-welcome${welcomeLeaving ? ' hud-welcome--leaving' : ''}`}
@@ -233,6 +254,9 @@ export function WorldHud() {
             </div>
             <div className="window-body">
               <p className="hud-pause__hint">Every destination, always one keypress away.</p>
+              <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
+                <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
+              </p>
               <ul className="hud-pause__list">
                 {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>

@@ -514,6 +514,44 @@ class PizzaAudio {
     strikeBell(this.ctx, this.master, freq, { pan, peak });
   }
 
+  /**
+   * A hand CLAP — the shrine ritual (二拍手). A short band-passed noise burst with
+   * a fast percussive decay, routed through `master` so the limiter + global mute
+   * apply; builds + frees its own nodes. No-op pre-gesture / when muted, like the
+   * other one-shots, so it never forces audio on.
+   */
+  playClap(peak = 0.5): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = 0.13;
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const t = i / frames;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3); // sharp attack, fast decay
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1700; // the "smack" band of a clap
+    bp.Q.value = 0.6;
+    const g = ctx.createGain();
+    g.gain.value = Math.max(0.0001, peak);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.master);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+    src.onended = () => {
+      src.disconnect();
+      bp.disconnect();
+      g.disconnect();
+    };
+  }
+
   /** Pitch-bend the whole loop downward as the era "ages" (the descent). */
   pitchBendDown(durationMs = 2200, target = 0.45): void {
     if (!this.ctx || !this.source) return;
