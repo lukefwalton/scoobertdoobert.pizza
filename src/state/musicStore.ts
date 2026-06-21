@@ -18,6 +18,10 @@ type MusicState = {
   preferred: number;
   /** Pick an option, make it the persistent preference, and play it. */
   setIndex: (i: number) => void;
+  /** Record the preferred station WITHOUT playing it — the jukebox d20 already
+   *  has the track playing locally; this just makes it the pick that follows you
+   *  out of the room (restorePreferred plays it on exit). */
+  setPreferred: (i: number) => void;
   /** Step ± from what's currently playing and play it (wraps). */
   shift: (dir: 1 | -1) => void;
   /** Re-assert the user's preferred track (rooms call this when they stop
@@ -50,6 +54,7 @@ export const useMusicStore = create<MusicState>((set, get) => {
       set({ preferred: idx }); // index/title update when the engine confirms
       playOption(idx);
     },
+    setPreferred: (i) => set({ preferred: wrap(i) }),
     // Step from what's actually playing, so ◀/▶ never jump from a stale value.
     shift: (dir) => get().setIndex(get().index + dir),
     restorePreferred: () => playOption(get().preferred),
