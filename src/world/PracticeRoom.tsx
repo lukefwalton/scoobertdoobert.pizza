@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ThreeEvent } from '@react-three/fiber';
+import { ThreeEvent, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat } from './ps1';
+import { ChimesSim } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { audio } from '../audio/engine';
 import { cueUrl, loopIndexForUrl } from '../data/music';
@@ -201,6 +202,114 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   );
 }
 
+// ── The CHIME RIG — the room's focal point (Luke: "give it a focal point"). A
+//    spotlit row of pendulum chimes hung in the centre that swings in a pendulum
+//    wave and rings itself through the SHARED bell engine (audio.playChime /
+//    src/lib/chimes) — the /chimes cabinet made a physical, in-world instrument
+//    (the "deep 3D instrument room"). Click any bell to re-launch the wave. The
+//    pads on the back wall become its backing. Kept SWEET (it's a relief room).
+const WHITE = new THREE.Color('#ffffff');
+const BOB_PALETTE = ['#ffcf8f', '#ffe0a0', '#cdef9c', '#a0e6f0', '#c0c0ff', '#ffb0e0', '#ffd27a'];
+const RIG_COUNT = 7;
+const RIG_SPAN = 3.0;
+const RIG_Z = -0.6;
+
+function ChimeRig({ room }: { room: Room }) {
+  const H = room.dims.height;
+  const beamY = H - 0.5;
+  const restY = 1.7; // bobs hang to about chest/eye height — a clear target
+  const L = Math.max(0.8, beamY - restY);
+
+  const sim = useMemo(() => {
+    const s = new ChimesSim(RIG_COUNT, true);
+    s.tempo = 0.7; // gentle, so the chimes are ambience you can play over
+    s.swingAmp = 0.5;
+    return s;
+  }, []);
+
+  const pivots = useRef<(THREE.Group | null)[]>([]);
+  const bobMats = useMemo(
+    () => BOB_PALETTE.slice(0, RIG_COUNT).map((c) => new THREE.MeshBasicMaterial({ color: c })),
+    [],
+  );
+  const baseColors = useMemo(() => bobMats.map((m) => m.color.clone()), [bobMats]);
+  const frameMat = useMemo(() => flatMat('#2a201a'), []);
+  const stringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#7a6a52' }), []);
+  useEffect(
+    () => () => {
+      bobMats.forEach((m) => m.dispose());
+      frameMat.dispose();
+      stringMat.dispose();
+    },
+    [bobMats, frameMat, stringMat],
+  );
+
+  const xs = useMemo(
+    () =>
+      Array.from({ length: RIG_COUNT }, (_, i) =>
+        RIG_COUNT > 1 ? (i / (RIG_COUNT - 1) - 0.5) * RIG_SPAN : 0,
+      ),
+    [],
+  );
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.05);
+    for (const s of sim.step(dt)) audio.playChime(s.freq, s.pan, 0.07); // soft, ambient
+    const pend = sim.pendulums;
+    for (let i = 0; i < pend.length; i++) {
+      const g = pivots.current[i];
+      if (g) g.rotation.x = pend[i].theta; // swing forward/back — the pendulum wave
+      const mat = bobMats[i];
+      if (mat) mat.color.copy(baseColors[i]).lerp(WHITE, Math.min(1, pend[i].flash * 0.85));
+    }
+  });
+
+  const reswing = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    audio.unlock(); // the click is the gesture
+    sim.reset();
+    // an instant chord + flash so the click feels responsive, then the wave runs
+    for (const p of sim.pendulums) {
+      p.flash = 1;
+      audio.playChime(p.freq, p.index % 2 ? 0.35 : -0.35, 0.08);
+    }
+  };
+
+  return (
+    <group position={[0, 0, RIG_Z]}>
+      {/* the focal spotlight — the rig is the brightest thing, drawing the eye */}
+      <pointLight position={[0, beamY - 0.3, 0.6]} intensity={0.95} distance={10} color="#ffe6b0" />
+      {/* the beam the chimes hang from (clickable) + posts up to the ceiling */}
+      <mesh material={frameMat} position={[0, beamY, 0]} onClick={reswing}>
+        <boxGeometry args={[RIG_SPAN + 0.6, 0.16, 0.16]} />
+      </mesh>
+      <mesh material={frameMat} position={[-(RIG_SPAN / 2 + 0.3), beamY + (H - beamY) / 2, 0]}>
+        <boxGeometry args={[0.12, H - beamY, 0.12]} />
+      </mesh>
+      <mesh material={frameMat} position={[RIG_SPAN / 2 + 0.3, beamY + (H - beamY) / 2, 0]}>
+        <boxGeometry args={[0.12, H - beamY, 0.12]} />
+      </mesh>
+      {/* the pendulum bells — click any to re-launch the wave */}
+      {xs.map((x, i) => (
+        <group
+          key={i}
+          position={[x, beamY, 0]}
+          ref={(el) => {
+            pivots.current[i] = el;
+          }}
+        >
+          <mesh material={stringMat} position={[0, -L / 2, 0]}>
+            <boxGeometry args={[0.02, L, 0.02]} />
+          </mesh>
+          <mesh material={bobMats[i]} position={[0, -L, 0]} onClick={reswing}>
+            <cylinderGeometry args={[0.05, 0.12, 0.18, 6]} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
 export function PracticeRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
@@ -266,6 +375,9 @@ export function PracticeRoom({ room }: { room: Room }) {
       </group>
 
       <PadInstrument room={room} deckMat={deckMat} />
+
+      {/* the focal point: a spotlit pendulum-chime rig in the centre */}
+      <ChimeRig room={room} />
     </group>
   );
 }
