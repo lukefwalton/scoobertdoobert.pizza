@@ -48,9 +48,9 @@ try {
 await page.waitForTimeout(1500);
 
 const startShop = await roomIs('Beach Pizza Shop');
-await toDoor('d'); // → poolrooms (+X stairwell)
-const inPool = await roomIs('The Poolrooms');
-await toDoor('a'); // → the back room (-X door)
+// Jump straight to the back room via the gated transition hook — the
+// surface → pool → back-room walk is shoot-rooms'; this smoke is the dice monster.
+await page.evaluate(() => window.__sdpGoToRoom?.('dicepit', 'fromPool'));
 const inPit = await roomIs('The Back Room');
 await page.screenshot({ path: '.shots/monster-start.png' });
 
@@ -127,7 +127,7 @@ if (!ratClocks) fail(`rat greeting didn't clock the dice-monster win (got: ${gre
 
 await browser.close();
 console.log(
-  `monster: shop=${startShop} pool=${inPool} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
+  `monster: shop=${startShop} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
     `won=${won} maxed=${maxed} monotonic=${monotonic} capped=${cappedScale} left=${left} ` +
     `secret=${secretSaved} ratClocks=${ratClocks} | errors=${errors}`,
 );

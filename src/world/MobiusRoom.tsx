@@ -70,9 +70,13 @@ export function MobiusRoom({ room }: { room: Room }) {
     }
   }, [roomNonce]);
 
-  // Test hook (gated to the test entrances): the lap count, for shoot-mobius.
+  // Test hooks (gated to the test entrances): the lap count for shoot-mobius,
+  // plus a way to FORCE laps so shoot-levels can reveal the 'onward' door (the way
+  // down to the liminal) deterministically without physically walking the loop.
   useEffect(() => {
     exposeTestGlobal('__sdpMobius', loops);
+    exposeTestGlobal('__sdpLoopMobius', () => useSceneStore.getState().loopMobius());
+    return () => exposeTestGlobal('__sdpLoopMobius', undefined);
   }, [loops]);
 
   const wallTint = WALL_TINTS[loops % WALL_TINTS.length];
