@@ -23,7 +23,8 @@ export type RoomKind =
   | 'mobius'
   | 'dicepit'
   | 'shrine'
-  | 'metro';
+  | 'metro'
+  | 'practice';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -242,6 +243,9 @@ export const ROOMS: Room[] = [
       // across the room (-Z) so you walk toward it and the song swells.
       default: { position: [0, EYE, 3.5], yaw: Math.PI },
       fromHall: { position: [0, EYE, 3.5], yaw: Math.PI },
+      // Stepping back out of the practice room: by the -X stage door, facing into
+      // the room (+X), clear of every door radius.
+      fromPractice: { position: [-2.5, EYE, 0], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -251,6 +255,44 @@ export const ROOMS: Room[] = [
         position: [0, 0, 6.95],
         rotationY: 0,
         label: 'back to the hall',
+        radius: 3.2,
+      },
+      {
+        id: 'juke-to-practice',
+        to: 'practice',
+        toSpawn: 'fromJuke',
+        // A STAGE DOOR in the -X wall — backstage, where the music gets made.
+        position: [-5.95, 0, 0],
+        rotationY: Math.PI / 2, // in the -X wall, opening faces +X into the room
+        label: 'slip backstage',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'practice',
+    kind: 'practice',
+    title: 'The Practice Room',
+    // Backstage from the jukebox shrine: where the music gets MADE. A warm, SAFE
+    // relief room (a "play it" reward, kept sweet) — a wall of pads you can
+    // actually play, and a 4-track that calls a phrase to play back (the sequence
+    // door-game → clearGame unlock of a sealed demo). Procedural PS1.
+    dims: { halfW: 6, halfD: 6, height: 4.5, eye: EYE },
+    // Warm amber, cosy — a sibling to the jukebox's womb, deliberately sweet.
+    palette: { background: '#1c130a', fog: '#2a1d0e', fogNear: 5, fogFar: 30 },
+    spawns: {
+      // Just inside the +Z door, clear of its radius, facing the pad wall (-Z).
+      default: { position: [0, EYE, 2.5], yaw: Math.PI },
+      fromJuke: { position: [0, EYE, 2.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'practice-to-juke',
+        to: 'jukebox',
+        toSpawn: 'fromPractice',
+        position: [0, 0, 5.95], // +Z wall — back out to the jukebox
+        rotationY: 0,
+        label: 'back to the jukebox',
         radius: 3.2,
       },
     ],

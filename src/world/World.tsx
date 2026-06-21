@@ -12,6 +12,7 @@ import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
 import { DicePitRoom } from './DicePitRoom';
 import { ShrineRoom } from './ShrineRoom';
+import { PracticeRoom } from './PracticeRoom';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
@@ -73,6 +74,8 @@ function RoomScene({ room }: { room: Room }) {
       return <DicePitRoom room={room} />;
     case 'shrine':
       return <ShrineRoom room={room} />;
+    case 'practice':
+      return <PracticeRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
