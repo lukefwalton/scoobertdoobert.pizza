@@ -150,6 +150,13 @@ rat, the music, recurrence, even the loaders all flip the same way.
   that double as dread relief. Seed *one* light "you can make sound here" touch
   near the surface so the idea's planted early; the real instrument rooms pay off
   deep. (Optionally hand-played via the webcam — see policy.)
+  - **SHIPPED — the Practice Room** (`src/world/PracticeRoom.tsx`), backstage
+    through the jukebox's stage door: a wall of six pentatonic pads you can
+    actually play (mute-aware `audio.playTone()` through the limiter), kept a
+    SWEET relief beat. It also hosts the first **door-game**: a 4-track that calls
+    a growing phrase to play back; clearing four rounds fires the (previously
+    unused) `clearGame('practice')` unlock + plays a sealed demo — the "earn
+    sound" turn of the ladder. `fun/` isn't needed for this one; it's procedural.
 - **Gamble for it.** A **d20** (DnD luck/chaos, on-brand goblin-mode) as a
   chaotic music selector — roll picks *which* demo or *how* degraded the variant
   is. Chaos = replayability = share fuel ("I rolled a 1 and got the cursed one").
