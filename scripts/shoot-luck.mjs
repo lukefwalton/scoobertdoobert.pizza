@@ -40,7 +40,22 @@ if (!hasHook) bad('luck: __sdpShrineClap hook never appeared (shrine not mounted
 
 let toast = false;
 let pauseLuck = '';
+let luckBefore = null;
+let luckAfter = null;
 if (hasHook) {
+  // Read luck straight from the durable store BEFORE the ritual so we can prove a
+  // DELTA — stale saved state can't mask a broken earn (the reviewer's point).
+  const readLuck = () =>
+    page.evaluate(() => {
+      try {
+        const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
+        return (p.luckEarned || 0) - (p.luckSpent || 0);
+      } catch {
+        return null;
+      }
+    });
+  luckBefore = await readLuck();
+
   // Perform the ritual (clap clap → +1 luck), then check the announce toast.
   await page.evaluate(() => window.__sdpShrineClap());
   toast = await page.waitForSelector('.hud-toast--luck', { timeout: 4000 }).then(
@@ -48,21 +63,26 @@ if (hasHook) {
     () => false,
   );
   if (!toast) bad('luck: clapping did not raise the luck announce toast');
+
+  // The clap must move luck by exactly +1 on THIS run (first clap per visit).
+  luckAfter = await readLuck();
+  if (luckAfter !== luckBefore + 1)
+    bad(`luck: clap did not earn exactly +1 (before ${luckBefore}, after ${luckAfter})`);
   await page.screenshot({ path: '.shots/luck.png' });
 
-  // Open the pause menu and read the luck stat (should be at least 1).
+  // Open the pause menu and read the luck stat — it must match the stored value.
   await page.keyboard.press('Escape');
   const luckEl = await page
     .waitForSelector('.hud-pause__luck strong', { timeout: 4000 })
     .catch(() => null);
   pauseLuck = luckEl ? ((await luckEl.textContent()) ?? '').trim() : '';
-  if (!(Number(pauseLuck) >= 1))
-    bad(`luck: pause menu shows luck ${JSON.stringify(pauseLuck)}, expected >= 1`);
+  if (Number(pauseLuck) !== luckAfter)
+    bad(`luck: pause menu shows ${JSON.stringify(pauseLuck)}, expected ${luckAfter} (stored)`);
 }
 
 if (errors.length) bad(`luck: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} pauseLuck=${JSON.stringify(pauseLuck)} errors=${errors.length}`,
+  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} pauseLuck=${JSON.stringify(pauseLuck)} errors=${errors.length}`,
 );
 
 await ctx.close();
