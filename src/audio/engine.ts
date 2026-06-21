@@ -17,6 +17,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import { mapUnease } from '../data/dread';
+import { strikeBell } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
@@ -497,6 +498,20 @@ class PizzaAudio {
       osc.disconnect();
       g.disconnect();
     };
+  }
+
+  /**
+   * Strike a bell into the WORLD mix — the /chimes cabinet's synthesis engine
+   * (src/lib/chimes.strikeBell) reused to power in-room effects (the shrine's
+   * furin wind-chimes). Routed through `master`, so the output limiter + the
+   * global mute apply and it sits under the music; it builds + frees its own
+   * voice. No-op until a gesture has built the ctx, and when muted — so, like the
+   * other one-shots here, it degrades to silence and never forces audio on.
+   * `peak` is kept low by callers: in-world bells are ambient, not foreground.
+   */
+  playChime(freq: number, pan = 0, peak = 0.16): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    strikeBell(this.ctx, this.master, freq, { pan, peak });
   }
 
   /** Pitch-bend the whole loop downward as the era "ages" (the descent). */

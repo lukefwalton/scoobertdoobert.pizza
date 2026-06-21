@@ -62,6 +62,76 @@ function clampCount(n: number): number {
   return Math.max(MIN_COUNT, Math.min(MAX_COUNT, Math.round(n)));
 }
 
+export type BellVoiceOpts = {
+  pan?: number; // -1..1 stereo placement
+  peak?: number; // peak gain (the cabinet ducks this as voices stack)
+  decayScale?: number; // multiply the natural ring length
+  onEnded?: () => void; // fired when the voice frees itself (for voice-counting)
+};
+
+/**
+ * Strike one bell into an arbitrary Web Audio destination — THE reusable engine.
+ *
+ * It's deliberately context-agnostic (takes the `ctx` and an output node), so the
+ * exact same voice powers BOTH the /chimes cabinet (its own AudioContext) and any
+ * in-world effect routed through the shared world engine's master→limiter (e.g.
+ * `audio.playChime`, the shrine's furin). A bell = three sine partials —
+ * fundamental + octave + ~2.76× inharmonic — through an exponential decay (lower
+ * notes ring longer), optionally panned. One throwaway voice; it frees its own
+ * nodes on end. SSR-safe: nothing runs until you call it with a live context.
+ */
+export function strikeBell(
+  ctx: AudioContext,
+  out: AudioNode,
+  freq: number,
+  opts: BellVoiceOpts = {},
+): void {
+  const { pan = 0, peak = 0.5, decayScale = 1, onEnded } = opts;
+  const now = ctx.currentTime;
+  const dur = (1.5 + 1.5 * Math.max(0, 1 - freq / 600)) * decayScale;
+
+  const vgain = ctx.createGain();
+  vgain.gain.setValueAtTime(0.0001, now);
+  vgain.gain.linearRampToValueAtTime(Math.max(0.0001, peak), now + 0.004); // fast bell attack
+  vgain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+  let tail: AudioNode = vgain;
+  let panner: StereoPannerNode | undefined;
+  if (typeof ctx.createStereoPanner === 'function') {
+    panner = ctx.createStereoPanner();
+    panner.pan.value = Math.max(-1, Math.min(1, pan)) * 0.7;
+    vgain.connect(panner);
+    tail = panner;
+  }
+  tail.connect(out);
+
+  const partials: [number, number][] = [
+    [freq, 1],
+    [freq * 2, 0.5],
+    [freq * 2.76, 0.25], // the inharmonic partial that makes it a bell, not an organ
+  ];
+  const oscs: OscillatorNode[] = [];
+  for (const [f, amp] of partials) {
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    osc.detune.value = Math.random() * 6 - 3; // ±3 cents of life
+    const pg = ctx.createGain();
+    pg.gain.value = amp;
+    osc.connect(pg);
+    pg.connect(vgain);
+    osc.start(now);
+    osc.stop(now + dur + 0.05);
+    oscs.push(osc);
+  }
+  oscs[0].onended = () => {
+    for (const o of oscs) o.disconnect();
+    vgain.disconnect();
+    panner?.disconnect();
+    onEnded?.();
+  };
+}
+
 export class ChimesSim {
   count: number;
   voiced: boolean;
@@ -118,6 +188,8 @@ export class ChimesSim {
       p.flash = 0;
     }
   }
+
+  // (synthesis lives in strikeBell below — see that for the bell voice itself)
 
   /** Advance `dt` seconds (scaled by tempo) and return this frame's strikes. */
   step(dt: number): Strike[] {

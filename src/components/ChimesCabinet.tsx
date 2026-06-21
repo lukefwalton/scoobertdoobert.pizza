@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChimesSim, type Strike, MIN_COUNT, MAX_COUNT } from '../lib/chimes';
+import { ChimesSim, strikeBell, type Strike, MIN_COUNT, MAX_COUNT } from '../lib/chimes';
 import { useAudioStore } from '../state/audioStore';
 import { exposeTestGlobal } from '../lib/testHooks';
 
@@ -75,53 +75,16 @@ class BellEngine {
 
   strike(freq: number, pan: number): void {
     if (this.active >= MAX_VOICES) return; // drop a strike rather than overload
-    const ctx = this.ctx;
-    const now = ctx.currentTime;
-    // Lower notes ring longer (~3s) than high ones (~1.5s), like a real bell.
-    const dur = 1.5 + 1.5 * Math.max(0, 1 - freq / 600);
-
-    const vgain = ctx.createGain();
-    const peak = 0.5 / Math.sqrt(this.active + 1); // duck as voices stack
-    vgain.gain.setValueAtTime(0.0001, now);
-    vgain.gain.linearRampToValueAtTime(peak, now + 0.004); // fast bell attack
-    vgain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-    let tail: AudioNode = vgain;
-    let panner: StereoPannerNode | undefined;
-    if (typeof ctx.createStereoPanner === 'function') {
-      panner = ctx.createStereoPanner();
-      panner.pan.value = Math.max(-1, Math.min(1, pan)) * 0.7;
-      vgain.connect(panner);
-      tail = panner;
-    }
-    tail.connect(this.master);
-
-    const partials: [number, number][] = [
-      [freq, 1],
-      [freq * 2, 0.5],
-      [freq * 2.76, 0.25], // the inharmonic partial that makes it a bell, not an organ
-    ];
-    const oscs: OscillatorNode[] = [];
-    for (const [f, amp] of partials) {
-      const osc = ctx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.value = f;
-      osc.detune.value = Math.random() * 6 - 3; // ±3 cents of life
-      const pg = ctx.createGain();
-      pg.gain.value = amp;
-      osc.connect(pg);
-      pg.connect(vgain);
-      osc.start(now);
-      osc.stop(now + dur + 0.05);
-      oscs.push(osc);
-    }
+    // The voice itself is the shared, reusable engine (src/lib/chimes.strikeBell);
+    // the cabinet only owns the polyphony cap + ducking as voices stack.
     this.active++;
-    oscs[0].onended = () => {
-      this.active = Math.max(0, this.active - 1);
-      for (const o of oscs) o.disconnect();
-      vgain.disconnect();
-      panner?.disconnect();
-    };
+    strikeBell(this.ctx, this.master, freq, {
+      pan,
+      peak: 0.5 / Math.sqrt(this.active),
+      onEnded: () => {
+        this.active = Math.max(0, this.active - 1);
+      },
+    });
   }
 }
 
