@@ -10,7 +10,7 @@ import { MOBIUS_BREAK, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { DREAD } from '../data/dread';
-import { exposeTestGlobal } from '../lib/testHooks';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // MobiusRoom — Phase 6. The Scooby-Doo hallway gag / the "Mobius" motif: walk to
@@ -70,11 +70,12 @@ export function MobiusRoom({ room }: { room: Room }) {
     }
   }, [roomNonce]);
 
-  // Test hooks (gated to the test entrances): the lap count for shoot-mobius,
-  // plus a way to FORCE laps so shoot-levels can reveal the 'onward' door (the way
-  // down to the liminal) deterministically without physically walking the loop.
+  // The lap count is a READ-only global (?world / ?debug). Forcing laps is an
+  // ACTION (it advances the Möbius progression), so __sdpLoopMobius gates on the
+  // narrower ?debug entrance only — never on the guessable ?world=1.
   useEffect(() => {
     exposeTestGlobal('__sdpMobius', loops);
+    if (!isDebugEntrance()) return;
     exposeTestGlobal('__sdpLoopMobius', () => useSceneStore.getState().loopMobius());
     return () => exposeTestGlobal('__sdpLoopMobius', undefined);
   }, [loops]);
