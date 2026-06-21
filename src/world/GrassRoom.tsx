@@ -141,6 +141,9 @@ export function GrassRoom({ room }: { room: Room }) {
     if (fired.current) return;
     const st = useSceneStore.getState();
     if (st.transitioning || st.paused) return;
+    // Once you've bested the goblin the grass goes calm — no more forced ambushes,
+    // so the opened grove path (the revealed -Z door) is yours to walk in peace.
+    if (useProgressStore.getState().secretsFound.includes('grass-cleared')) return;
     const px = camera.position.x;
     const pz = camera.position.z;
     if (grace.current > 0) {

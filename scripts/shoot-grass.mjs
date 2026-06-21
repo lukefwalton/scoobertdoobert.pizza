@@ -79,9 +79,31 @@ if (battleHook) {
   await page.screenshot({ path: '.shots/grass-grove.png' });
 }
 
+// Durable unlock: from the grove back to the field, the goblin's beaten — so the
+// grass is calm (no forced ambush) and a revealed path to the grove has opened at
+// the far edge. Proves the 'grass-cleared' flag is actually CONSUMED, not dead.
+let revisit = false;
+if (cleared) {
+  await page.evaluate(() => window.__sdpGoToRoom?.('grassfield', 'fromGrove'));
+  await page.waitForTimeout(700);
+  await page.keyboard.down('w'); // wade to the field's far edge in peace
+  revisit = await page
+    .waitForFunction(
+      () => document.body.innerText.toLowerCase().includes('opened path to the grove'),
+      null,
+      { timeout: 9000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  await page.keyboard.up('w');
+  if (!revisit) bad('grass: the grove path did not durably re-open after a win');
+}
+
 if (errors.length) bad(`grass: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `grass    -> field="${inGrass}" battle="${inBattle}" grove="${inGrove}" cleared=${cleared} errors=${errors.length}`,
+  `grass    -> field="${inGrass}" battle="${inBattle}" grove="${inGrove}" cleared=${cleared} revisit=${revisit} errors=${errors.length}`,
 );
 
 await ctx.close();

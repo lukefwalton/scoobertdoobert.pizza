@@ -73,6 +73,10 @@ export type RoomDoor = {
    *  (secretRevealed); 'mobius' = the loop broke (mobiusLoops ≥ MOBIUS_BREAK).
    *  Defaults to 'secret'. */
   revealOn?: 'secret' | 'mobius';
+  /** Or reveal — for good — once a durable progress secret is earned
+   *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
+   *  after you beat the grass goblin. Takes precedence over revealOn when set. */
+  revealSecret?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };
@@ -684,6 +688,20 @@ export const ROOMS: Room[] = [
         position: [0, 0, 15.5], // +Z (entrance) torii — back to the shrine grounds
         rotationY: 0,
         label: 'step back through the torii',
+        radius: 3.2,
+      },
+      {
+        id: 'grass-to-grove',
+        to: 'grove',
+        toSpawn: 'default',
+        // Opens FOR GOOD once you've beaten the grass goblin (the 'grass-cleared'
+        // unlock) — a trodden path at the field's far edge, so the new room is
+        // durably yours, not a one-shot you can only reach by re-fighting.
+        position: [0, 0, -15.5], // -Z far edge of the field
+        rotationY: Math.PI, // faces +Z back into the field
+        label: 'take the opened path to the grove',
+        hidden: true,
+        revealSecret: 'grass-cleared',
         radius: 3.2,
       },
     ],
