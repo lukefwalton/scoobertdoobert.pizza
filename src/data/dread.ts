@@ -48,6 +48,18 @@ export const DREAD: DreadConfig = {
     jukebox: 0.05, // the warm payoff shrine — a relief valve, kept safe
     classified: 0.8, // the cold X-Files file room — the bitter end
     poolrooms: 0.3, // the level below — over-lit, empty, uncanny (not dark dread)
+    // ── the deeper rooms (added after ckpt1 — covered here so the bottom of the
+    //    world actually modulates instead of reading dead-safe) ──
+    dicepit: 0.4, // dim back-room gamble; losing pokes it (the dice trigger)
+    mobius: 0.34, // the loop reads COMIC at first (kept modest); each lap curdles
+    //              it via the 'mobius-loop' trigger — the base stays goofy-low
+    liminal: 0.5, // bright empty backrooms GLB — uncanny, a notch past the pool
+    deeppool: 0.78, // the drained deep end, lights long dead — near the bitter end
+    'metro-tunnel': 0.55, // abandoned undersea tunnel — uncanny, but its shitty
+    //                       shinkansen + neon are a GOOFY beat, so kept moderate
+    //                       (don't let dread smother the gag — dial it down)
+    shrine: 0.02, // the OUTDOOR sweet breather — a deliberate relief beat (below
+    //              SAFE so it DECAYS): the exhale that makes the tunnel land
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
