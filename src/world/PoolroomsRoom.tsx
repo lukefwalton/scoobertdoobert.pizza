@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { applyVertexSnap, flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { useDreadStore } from '../state/dreadStore';
 import type { Room } from '../data/rooms';
 
@@ -21,12 +21,6 @@ import type { Room } from '../data/rooms';
 // ripple as unease rises. Doors are rendered by Doors.tsx; this is the shell +
 // the false pool.
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side: THREE.DoubleSide });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 // Half-extent of the (flat, walk-on) water sheet, centred. Big enough that you
 // genuinely cross water to reach the centre door, with a tiled deck border.
@@ -92,10 +86,10 @@ export function PoolroomsRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [deckTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#ffffff', wallTex), [wallTex]);
-  const ceilMat = useMemo(() => flatMat('#eef5f7'), []);
-  const lightMat = useMemo(() => flatMat('#ffffff'), []); // flat fluorescent quads
-  const pillarMat = useMemo(() => flatMat('#e3eef1'), []);
+  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const ceilMat = useMemo(() => flatMat('#eef5f7', { side: THREE.DoubleSide }), []);
+  const lightMat = useMemo(() => flatMat('#ffffff', { side: THREE.DoubleSide }), []); // flat fluorescent quads
+  const pillarMat = useMemo(() => flatMat('#e3eef1', { side: THREE.DoubleSide }), []);
 
   // The false water: scrolling caustic map + a gentle vertex wave. Walk-on, so
   // the wave is tiny (cosmetic) — your feet never leave the flat floor.

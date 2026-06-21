@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap } from './ps1';
+import { flatMat } from './ps1';
 import { audio } from '../audio/engine';
 import { cueUrl, loopIndexForUrl } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
@@ -30,12 +30,6 @@ const PADS = [
   { freq: 523.25, dim: '#552a44', lit: '#ffb0e0' },
 ];
 const ROUNDS_TO_WIN = 4; // play back phrases of length 1,2,3,4 — short (friction budget)
-
-function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 type Phase = 'idle' | 'demo' | 'listen' | 'won';
 
@@ -210,7 +204,7 @@ export function PracticeRoom({ room }: { room: Room }) {
   const D = room.dims.halfD;
   const H = room.dims.height;
 
-  const wallMat = useMemo(() => flatMat('#3a2a1c', THREE.DoubleSide), []); // warm wood-panel
+  const wallMat = useMemo(() => flatMat('#3a2a1c', { side: THREE.DoubleSide }), []); // warm wood-panel
   const floorMat = useMemo(() => flatMat('#241810'), []);
   const ceilMat = useMemo(() => flatMat('#16100a'), []);
   const trimMat = useMemo(() => flatMat('#52331f'), []);

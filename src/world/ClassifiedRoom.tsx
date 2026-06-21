@@ -2,7 +2,7 @@ import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
-import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import type { Room } from '../data/rooms';
 
 // The "suspect board": the masked-Scoobert photos (Luke's own, degraded to tiny
@@ -70,12 +70,6 @@ function SuspectBoard({ W }: { W: number }) {
 // A tiny, cold, X-Files file room: filing cabinets, a desk buried in manila
 // folders stamped REJECTED / DO NOT RELEASE — the demos that never got out.
 // One buzzing fluorescent that can't quite hold steady.
-function flatMat(color: string, map?: THREE.Texture, side: THREE.Side = THREE.FrontSide): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
-
 function Cabinet({ x, z, ry }: { x: number; z: number; ry: number }) {
   const bodyMat = useMemo(() => flatMat('#6a6f6c'), []);
   const drawerMat = useMemo(() => flatMat('#565b58'), []);
@@ -149,7 +143,7 @@ export function ClassifiedRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [floorTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#16201b', undefined, THREE.DoubleSide), []);
+  const wallMat = useMemo(() => flatMat('#16201b', { side: THREE.DoubleSide }), []);
   const ceilMat = useMemo(() => flatMat('#0c130f'), []);
   const fixtureMat = useMemo(() => flatMat('#e7f2ec'), []);
 

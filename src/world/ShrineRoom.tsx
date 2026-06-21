@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import type { Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -17,12 +17,6 @@ import type { Room } from '../data/rooms';
 // hookup ("connect to the tunnel cuz of trains"). All easy to swap for sourced
 // GLBs later; this gets the place STANDING.
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string, side: THREE.Side = THREE.FrontSide, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 // A torii gate: two pillars, the lower tie-beam (nuki), the top lintel (kasagi +
 // shimaki), and the little centre strut. Vermilion. Spans the path at `z`.
@@ -214,17 +208,17 @@ export function ShrineRoom({ room }: { room: Room }) {
     [pathTex, fog.color, fog.near, fog.far],
   );
   const toriiMat = useMemo(() => flatMat('#c4352a'), []); // vermilion
-  const woodMat = useMemo(() => flatMat('#6b4a2f', THREE.DoubleSide), []);
-  const roofMat = useMemo(() => flatMat('#33414c', THREE.DoubleSide), []); // dark slate
+  const woodMat = useMemo(() => flatMat('#6b4a2f', { side: THREE.DoubleSide }), []);
+  const roofMat = useMemo(() => flatMat('#33414c', { side: THREE.DoubleSide }), []); // dark slate
   const stoneMat = useMemo(() => flatMat('#9a958a'), []);
   const glowMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffe6a0' }), []);
   const railMat = useMemo(() => flatMat('#aab0b6'), []);
   const sleeperMat = useMemo(() => flatMat('#3a2e22'), []);
   const ballastMat = useMemo(() => flatMat('#6f6a60'), []);
-  const trainBodyMat = useMemo(() => flatMat('#c9c2a6', THREE.DoubleSide), []); // cream
+  const trainBodyMat = useMemo(() => flatMat('#c9c2a6', { side: THREE.DoubleSide }), []); // cream
   const trainStripeMat = useMemo(() => flatMat('#3f6b4a'), []); // rural green stripe
   const trainGlassMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#23303a' }), []);
-  const mountainMat = useMemo(() => flatMat('#7d6f96', THREE.DoubleSide), []); // dusty vaporwave blue
+  const mountainMat = useMemo(() => flatMat('#7d6f96', { side: THREE.DoubleSide }), []); // dusty vaporwave blue
   const sunMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffdca0' }), []);
   const concreteMat = useMemo(() => flatMat('#6a6e72'), []); // the tunnel portal surround
   const portalDarkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#08090d' }), []); // its mouth

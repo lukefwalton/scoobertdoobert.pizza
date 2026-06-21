@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { roomById, MOBIUS_BREAK, type RoomDoor } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
-import { applyVertexSnap } from './ps1';
+import { flatMat } from './ps1';
 
 // The 3D doors — the room exits. Same metaphor as the flat era-floor doors:
 // doors all the way down. Each is a real object you walk up to; proximity
@@ -20,18 +20,12 @@ function doorRevealed(door: RoomDoor, secretRevealed: boolean, mobiusLoops: numb
   return door.revealOn === 'mobius' ? mobiusLoops >= MOBIUS_BREAK : secretRevealed;
 }
 
-function flatMat(color: string, side: THREE.Side = THREE.FrontSide): THREE.MeshLambertMaterial {
-  const m = new THREE.MeshLambertMaterial({ color, flatShading: true, side });
-  applyVertexSnap(m, 64);
-  return m;
-}
-
 function DoorMesh({ door }: { door: RoomDoor }) {
   const { gl } = useThree();
   const frameMat = useMemo(() => flatMat('#3a2a22'), []);
   // The dark beyond — DoubleSide so the doorway reads as dark from inside the
   // room (the side you approach from) AND is the click target from that side.
-  const voidMat = useMemo(() => flatMat('#0b0608', THREE.DoubleSide), []);
+  const voidMat = useMemo(() => flatMat('#0b0608', { side: THREE.DoubleSide }), []);
   const signMat = useMemo(() => flatMat('#d8c47a'), []); // a faint lit sign bar
 
   const w = 2.2; // opening width

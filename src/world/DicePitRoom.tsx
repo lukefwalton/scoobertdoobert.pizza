@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { applyVertexSnap, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { D20 } from './D20';
 import { DiceMonster } from './DiceMonster';
 import { useMonsterStore, monsterScale } from '../state/monsterStore';
@@ -20,12 +20,6 @@ import type { Room } from '../data/rooms';
 // little amber sign. Losing nudges unease (the 'mobius-loop'-style poke); a first
 // win records a secret so the rat clocks it back upstairs.
 // ───────────────────────────────────────────────────────────────────────────
-
-function flatMat(color: string, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side: THREE.DoubleSide });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 const MONSTER_POS: [number, number, number] = [0, 0, -3.6];
 
@@ -56,9 +50,9 @@ export function DicePitRoom({ room }: { room: Room }) {
     t.repeat.set(Math.round(W / 1.5), 2);
     return t;
   }, [W]);
-  const wallMat = useMemo(() => flatMat('#ffffff', wallTex), [wallTex]);
-  const ceilMat = useMemo(() => flatMat('#140e16'), []);
-  const tableMat = useMemo(() => flatMat('#3a2030'), []);
+  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const ceilMat = useMemo(() => flatMat('#140e16', { side: THREE.DoubleSide }), []);
+  const tableMat = useMemo(() => flatMat('#3a2030', { side: THREE.DoubleSide }), []);
 
   // The amber bout readout — regenerated per bout / state.
   // NB: a win never shrinks it — the monster only ever bloats (one-directional;
