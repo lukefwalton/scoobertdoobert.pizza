@@ -22,12 +22,12 @@ export default function LinkArchive() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
-    '@id': 'https://scoobertdoobert.pizza/links#page',
+    '@id': 'https://www.scoobertdoobert.pizza/links#page',
     name: 'Scoobert Doobert — Link Archive',
     description:
       'A complete, crawlable index of every Scoobert Doobert link on the web: profiles, streaming, releases, the Love Music More podcast, press, and live shows.',
-    url: 'https://scoobertdoobert.pizza/links',
-    isPartOf: { '@id': 'https://scoobertdoobert.pizza/#website' },
+    url: 'https://www.scoobertdoobert.pizza/links',
+    isPartOf: { '@id': 'https://www.scoobertdoobert.pizza/#website' },
     about: { '@id': 'https://lukefwalton.com/#scoobert' },
     mainEntity: {
       '@type': 'ItemList',
@@ -44,13 +44,13 @@ export default function LinkArchive() {
     <main className="archive">
       <Head>
         <title>Link Archive — Scoobert Doobert</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/links" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/links" />
         <meta
           name="description"
           content="The complete index of every Scoobert Doobert link on the web: streaming, profiles, releases, the Love Music More podcast, press, radio, and live shows."
         />
         <meta name="robots" content="index,follow" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/links" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/links" />
         <meta property="og:title" content="Link Archive — Scoobert Doobert" />
         <meta
           property="og:description"
