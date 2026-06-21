@@ -13,13 +13,13 @@ export default function TextOnly() {
     <main className="textonly">
       <Head>
         <title>Text-Only Menu — Scoobert Doobert</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/text" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/text" />
         <meta
           name="description"
           content="Every destination on scoobertdoobert.pizza as a flat, text-only list. No images, no scripts, no plug-ins."
         />
         <meta name="robots" content="index,follow" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/text" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/text" />
         <meta property="og:title" content="Text-Only Menu — Scoobert Doobert" />
         <meta
           property="og:description"
