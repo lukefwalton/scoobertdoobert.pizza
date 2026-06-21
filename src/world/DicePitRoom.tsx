@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { D20 } from './D20';
 import { DiceMonster } from './DiceMonster';
 import { useMonsterStore, monsterScale } from '../state/monsterStore';
@@ -83,21 +84,13 @@ export function DicePitRoom({ room }: { room: Room }) {
       // Hand the loop voice back to the user's chosen track (the switcher), not
       // unconditionally to boot — the user's pick stays authoritative.
       useMusicStore.getState().restorePreferred();
-      if (typeof window !== 'undefined') {
-        (window as Window & { __sdpMonster?: unknown }).__sdpMonster = undefined;
-      }
+      exposeTestGlobal('__sdpMonster', undefined); // clear on exit
     };
   }, []);
 
   // Publish the monster state for the smoke (gated to the test entrances).
   useEffect(() => {
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (
-        window as Window & {
-          __sdpMonster?: { losses: number; wins: number; scale: number; maxed: boolean };
-        }
-      ).__sdpMonster = { losses, wins, scale: monsterScale(losses), maxed };
-    }
+    exposeTestGlobal('__sdpMonster', { losses, wins, scale: monsterScale(losses), maxed });
   }, [losses, wins, maxed]);
 
   // A roll: resolve the bout, then reward sound on a win / unease poke on a loss.
