@@ -498,7 +498,13 @@ shipped degraded loops are rendered to `public/audio/jukebox/<slug>.wav` from
 the "hear it" rung is partly built — the jukebox already cycles four real,
 tape-warbled, 8-bit tracks.)
 
-## The Doom / Freedoom shrine (decided, hidden lazy route — Phase 3+ secret)
+## The Doom / Freedoom shrine (LIKELY DROPPED — see PHASES.md Phase 6)
+**Status (2026-06-21, Luke):** probably not building this. The thing it was for
+— a hidden, lazy, dread-tinged liminal level — is already delivered by our OWN
+PS1 GLB levels (the deep pool / liminal space / backrooms terminus), which cost
+us no copyleft or asset-provenance burden. Only revisit if we specifically want
+the *Doom grammar* itself. The notes below stand if we ever do.
+
 Copyleft isn't the blocker; asset theft would be.
 - **Freedoom (BSD) assets ONLY** — never id's original Doom WADs / sprites /
   sounds / music. (Or a cursed home-made pizza WAD.) Engine/port lineage is
