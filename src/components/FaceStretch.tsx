@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAudioStore } from '../state/audioStore';
 import { cueUrl } from '../data/music';
+import { isTestEntrance } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // FaceStretch — "Poke Scoobert." The Mario-64-face-stretch toy, but it's Luke's
@@ -18,10 +19,15 @@ import { cueUrl } from '../data/music';
 const W = 270; // logical canvas size (portrait, to frame a face)
 const H = 320;
 const N = 9; // control points per axis (N-1 cells)
-const FACE_SRC = '/press/scoobert-shades.jpg';
+const FACE_SRC = '/press/scoobert-poke.jpg';
 const SAMPLE_SRC = cueUrl('pokeSample'); // which Scoobert track the face warps — see data/music CUES
 
-type Node = { x: number; y: number; vx: number; vy: number; rx: number; ry: number };
+type Node = { x: number; y: number; vx: number; vy: number; rx: number; ry: number; grab: number };
+
+// Gated (?debug / ?world) test hook: the current average face displacement, so
+// shoot:poke can assert the pull actually HOLDS while pressed and springs back on
+// release (the "tap just giggles, won't pull and stay" regression).
+const EXPOSE_STRETCH = isTestEntrance();
 
 // Affine matrix mapping source triangle s→ dest triangle d (3 correspondences).
 function affineFromTri(
@@ -67,7 +73,7 @@ export function FaceStretch() {
       for (let i = 0; i < N; i++) {
         const x = (i / (N - 1)) * W;
         const y = (j / (N - 1)) * H;
-        g.push({ x, y, vx: 0, vy: 0, rx: x, ry: y });
+        g.push({ x, y, vx: 0, vy: 0, rx: x, ry: y, grab: 0 });
       }
     }
     grid.current = g;
@@ -137,7 +143,11 @@ export function FaceStretch() {
       const nodes = grid.current;
       const p = pointer.current;
 
-      // grab: pull nearby nodes by the pointer delta (gaussian falloff)
+      // grab: pull nearby nodes by the pointer delta (gaussian falloff) AND mark
+      // how strongly each is held, so held nodes resist the spring and STAY where
+      // you drag them (the Mario-64 pull-and-hold) instead of snapping straight
+      // back — the snap-back was the "tap and it just giggles" feel on touch,
+      // where you can't keep a mouse moving to outrun the spring.
       if (p.down) {
         const dx = p.x - p.lx;
         const dy = p.y - p.ly;
@@ -147,24 +157,36 @@ export function FaceStretch() {
           const w = Math.exp(-(ddx * ddx + ddy * ddy) / (2 * SIGMA * SIGMA));
           n.x += dx * w;
           n.y += dy * w;
+          n.grab = w; // 1 right under the finger → ~0 far away
         }
         p.lx = p.x;
         p.ly = p.y;
+      } else {
+        for (const n of nodes) n.grab = 0; // released → everything springs home
       }
 
-      // spring every node back toward its rest position (jelly)
+      // spring every node back toward rest (jelly), but a held node's restoring
+      // force is scaled down by its grab weight, so the part under your finger
+      // holds its stretch while you press and only lets go on release.
       let adx = 0;
       let ady = 0;
+      let maxDisp = 0; // most-stretched node — the visible "is it pulled" signal
       for (const n of nodes) {
-        n.vx = (n.vx + (n.rx - n.x) * K) * DAMP;
-        n.vy = (n.vy + (n.ry - n.y) * K) * DAMP;
+        const hold = 1 - n.grab;
+        n.vx = (n.vx + (n.rx - n.x) * K * hold) * DAMP;
+        n.vy = (n.vy + (n.ry - n.y) * K * hold) * DAMP;
         n.x += n.vx;
         n.y += n.vy;
         adx += n.x - n.rx;
         ady += n.y - n.ry;
+        const d = Math.hypot(n.x - n.rx, n.y - n.ry);
+        if (d > maxDisp) maxDisp = d;
       }
       adx /= nodes.length; // average displacement → drives the audio
       ady /= nodes.length;
+      if (EXPOSE_STRETCH) {
+        (window as Window & { __sdpPokeStretch?: number }).__sdpPokeStretch = maxDisp;
+      }
 
       // ── audio params from the average stretch (mute-aware, smoothed) ──
       const a = audioRef.current;
@@ -245,8 +267,13 @@ export function FaceStretch() {
           pointer.current.down = false;
           setGrabbed(false);
         }}
-        onPointerLeave={() => {
+        onPointerCancel={() => {
+          // Touch can interrupt a drag (call, gesture) — end it cleanly so the
+          // face springs home rather than freezing mid-stretch. (We deliberately
+          // do NOT end the drag on pointerleave: a finger briefly grazing the
+          // canvas edge mid-pull shouldn't drop the grab.)
           pointer.current.down = false;
+          setGrabbed(false);
         }}
       />
       <p className="poke-hint">
