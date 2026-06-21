@@ -1,0 +1,97 @@
+// Verifies "Pendulum Chimes" — the tap-to-play bell instrument cabinet.
+//   1. JS-OFF: /chimes prerenders to a real crawlable page (title + back anchor),
+//      with NO live canvas (the instrument is a post-hydration enhancement).
+//   2. The arcade page links to /chimes (the cabinet is discoverable).
+//   3. JS ON: the canvas mounts, the pendulum sim runs (bells strike on their
+//      own), and a tap starts the audio engine — all without throwing.
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+
+const base = process.argv[2] || 'http://localhost:4173';
+mkdirSync('.shots', { recursive: true });
+
+const browser = await chromium.launch();
+let fail = 0;
+const bad = (m) => {
+  fail++;
+  console.log('FAIL:', m);
+};
+
+// --- 1. JS-OFF crawlable shell ---
+{
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto(base + '/chimes', { waitUntil: 'load' });
+  const title = await page.title();
+  if (!title.includes('Pendulum Chimes'))
+    bad(`no-JS title unexpected -> ${JSON.stringify(title)}`);
+  const back = await page.$('a[href="/arcade"]');
+  if (!back) bad('no-JS: missing "back to the arcade" anchor');
+  const canvas = await page.$('canvas');
+  if (canvas) bad('no-JS: a <canvas> rendered into crawlable HTML (should be JS-only)');
+  console.log(
+    `no-JS    -> titled=${title.includes('Pendulum Chimes')} back=${!!back} canvas=${!!canvas}`,
+  );
+  await ctx.close();
+}
+
+// --- 2. discoverable from the arcade ---
+{
+  const ctx = await browser.newContext({ javaScriptEnabled: false });
+  const page = await ctx.newPage();
+  await page.goto(base + '/arcade', { waitUntil: 'load' });
+  const link = await page.$('a[href="/chimes"]');
+  if (!link) bad('arcade: missing link to the /chimes cabinet');
+  console.log(`arcade   -> chimes-link=${!!link}`);
+  await ctx.close();
+}
+
+// --- 3. JS ON: the canvas mounts, the sim strikes bells, and a tap starts audio.
+//        ?debug exposes window.__sdpChimes = { strikes, started, muted }. ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 412, height: 900 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  await page.goto(base + '/chimes?debug=1', { waitUntil: 'networkidle' });
+
+  const canvas = await page.waitForSelector('.chimes-canvas', { timeout: 8000 }).catch(() => null);
+  if (!canvas) bad('JS: chimes canvas did not mount');
+
+  let struckEarly = 0;
+  let struckLater = 0;
+  let started = false;
+  if (canvas) {
+    const read = () => page.evaluate(() => window.__sdpChimes ?? { strikes: 0, started: false });
+    await page.waitForTimeout(700); // let the pendulums swing and start striking
+    struckEarly = (await read()).strikes;
+    if (struckEarly <= 0) bad('JS: the pendulum sim produced no strikes (loop not running?)');
+
+    // Tap the glass — starts the audio engine and re-swings the wave.
+    const box = await canvas.boundingBox();
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForTimeout(700);
+    const after = await read();
+    started = after.started;
+    struckLater = after.strikes;
+    if (!started) bad('JS: tapping the glass did not start the audio engine');
+    if (struckLater <= struckEarly) bad('JS: the sim stopped striking after the tap');
+    await page.screenshot({ path: '.shots/chimes.png' });
+  }
+  if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
+  console.log(
+    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} errors=${errors.length}`,
+  );
+  await ctx.close();
+}
+
+await browser.close();
+console.log(fail ? `\n${fail} chimes check(s) FAILED` : '\nchimes checks passed.');
+process.exit(fail ? 1 : 0);
