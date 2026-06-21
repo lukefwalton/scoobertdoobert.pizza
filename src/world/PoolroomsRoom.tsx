@@ -15,15 +15,16 @@ import type { Room } from '../data/rooms';
 // THE FALSE POOL (Luke): the pool is NOT a recess you go into — it's a flat sheet
 // of "water" set FLUSH with the deck that you simply WALK ACROSS. It only LOOKS
 // like water (scrolling caustics + a gentle surface wave); your feet stay on the
-// floor. Dead center, standing ON the water, is the door down to the liminal
-// level — the only way deeper. Walking out across an impossible still pool to a
-// freestanding door is the whole liminal beat. The dread layer speeds/curdles the
-// ripple as unease rises. Doors are rendered by Doors.tsx; this is the shell +
-// the false pool.
+// floor. The broken greek statue standing in the impossible still pool is the
+// focal point; the way DOWN to the liminal is NOT here in the lobby — it's earned
+// by going deep into the long corridor and breaking the loop (Luke's descent
+// rule). The dread layer speeds/curdles the ripple as unease rises. Doors are
+// rendered by Doors.tsx; this is the shell + the false pool.
 // ───────────────────────────────────────────────────────────────────────────
 
 // Half-extent of the (flat, walk-on) water sheet, centred. Big enough that you
-// genuinely cross water to reach the centre door, with a tiled deck border.
+// genuinely cross water to reach the statue / the far doors, with a tiled deck
+// border.
 const POOL = 5;
 // Sits above the deck by MORE than the wave's max amplitude (see WAVE_AMP_MAX
 // below) so the animated surface never dips below y=0 and clips the deck.

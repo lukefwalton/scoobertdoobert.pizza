@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { roomById, MOBIUS_BREAK, type RoomDoor } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
 
 // The 3D doors — the room exits. Same metaphor as the flat era-floor doors:
@@ -97,6 +98,18 @@ export function Doors() {
   const mobiusLoops = useSceneStore((s) => s.mobiusLoops);
   const doors = useMemo(() => roomById(currentRoom).doors, [currentRoom]);
   const lastNear = useRef<string | null>(null);
+
+  // Test hook (gated to ?world / ?debug): drive a real room transition the same
+  // way a door does (pendingRoom → wipe → waterfall/loader). Lets the loader +
+  // waterfall smokes (shoot-levels/deeppool) descend deterministically without
+  // routing through the deep navigation graph — that's shoot-rooms/shoot-mobius'
+  // job. NOT a player affordance: ?world/?debug only.
+  useEffect(() => {
+    exposeTestGlobal('__sdpGoToRoom', (to: string, spawn?: string) =>
+      useSceneStore.getState().goToRoom(to, spawn ?? 'default'),
+    );
+    return () => exposeTestGlobal('__sdpGoToRoom', undefined);
+  }, []);
 
   useFrame(() => {
     const st = useSceneStore.getState();
