@@ -78,7 +78,9 @@ if (hasHook) {
   await page.waitForTimeout(300);
   luckRepeat = await readLuck();
   if (luckRepeat !== luckAfter)
-    bad(`luck: a 2nd clap this visit changed luck ${luckAfter}->${luckRepeat} (per-visit gate broken)`);
+    bad(
+      `luck: a 2nd clap this visit changed luck ${luckAfter}->${luckRepeat} (per-visit gate broken)`,
+    );
 
   // Open the pause menu and read the luck stat — it must match the stored value.
   await page.keyboard.press('Escape');
