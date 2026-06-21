@@ -42,7 +42,9 @@ const bad = (m) => {
   await ctx.close();
 }
 
-// --- 3. JS ON: the warp mounts + survives a drag ---
+// --- 3. JS ON: the warp mounts, a drag stretches it, the stretch HOLDS while
+//        pressed (the "tap just giggles, won't pull and stay" bug), and springs
+//        back on release. ?debug exposes window.__sdpPokeStretch (avg displ px). ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
@@ -52,24 +54,44 @@ const bad = (m) => {
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message));
-  await page.goto(base + '/poke', { waitUntil: 'networkidle' });
+  await page.goto(base + '/poke?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page.waitForSelector('.poke-canvas', { timeout: 8000 }).catch(() => null);
   if (!canvas) bad('JS: face-stretch canvas did not mount');
 
+  let heldStretch = 0;
+  let stayStretch = 0;
+  let releasedStretch = 0;
   if (canvas) {
     await page.waitForTimeout(600); // let the face image load
     const box = await canvas.boundingBox();
-    // grab near the centre and yank down-left to stretch the face
+    const stretch = () => page.evaluate(() => window.__sdpPokeStretch ?? 0);
+    // grab near the centre and yank down-left to stretch the face — then HOLD.
     await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.42);
     await page.mouse.down();
     await page.mouse.move(box.x + box.width * 0.25, box.y + box.height * 0.78, { steps: 14 });
-    await page.waitForTimeout(250);
+    await page.waitForTimeout(120);
+    heldStretch = await stretch();
+    // Keep holding STILL (no further movement). The bug was the face springing
+    // straight back to rest here; with pull-and-hold it should stay deformed.
+    await page.waitForTimeout(500);
+    stayStretch = await stretch();
     await page.screenshot({ path: '.shots/poke.png' });
     await page.mouse.up();
+    // Released → jelly springs home.
+    await page.waitForTimeout(600);
+    releasedStretch = await stretch();
+
+    if (heldStretch < 15) bad(`JS: drag did not stretch the face (held displ ${heldStretch.toFixed(1)}px)`);
+    if (stayStretch < heldStretch * 0.5)
+      bad(`JS: stretch did not HOLD while pressed (held ${heldStretch.toFixed(1)} -> stayed ${stayStretch.toFixed(1)}px) — the "won't pull and stay" bug`);
+    if (releasedStretch > stayStretch * 0.5)
+      bad(`JS: face did not spring back after release (stayed ${stayStretch.toFixed(1)} -> released ${releasedStretch.toFixed(1)}px)`);
   }
   if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
-  console.log(`play     -> canvas=${!!canvas} errors=${errors.length}`);
+  console.log(
+    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${errors.length}`,
+  );
   await ctx.close();
 }
 
