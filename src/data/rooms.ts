@@ -22,7 +22,8 @@ export type RoomKind =
   | 'liminal'
   | 'mobius'
   | 'dicepit'
-  | 'shrine';
+  | 'shrine'
+  | 'metro';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -574,7 +575,7 @@ export const ROOMS: Room[] = [
   },
   {
     id: 'metro-tunnel',
-    kind: 'liminal',
+    kind: 'metro',
     title: 'Metro Tunnel',
     // Deeper than the sweet shrine breather: the country tracks run underground
     // into an abandoned transit tunnel — a real (wide-permission) GLB level,
@@ -587,10 +588,11 @@ export const ROOMS: Room[] = [
       // If the model fails to load, send the player back up to the shrine.
       recoverTo: { to: 'shrine', spawn: 'fromTunnel' },
     },
-    drips: true, // underground damp, deep down
+    drips: true, // underground damp, deep down — the flooded undersea tunnel
     dims: { halfW: 9, halfD: 12, height: 6.5, eye: EYE },
-    // Cold dead-transit dark — concrete and sodium-ghost, the lights long out.
-    palette: { background: '#0c0e12', fog: '#10131a', fogNear: 5, fogFar: 30 },
+    // Cold dead-transit dark, tinted deep-sea teal — the Seikan is UNDERSEA, so
+    // this is where the line meets the water (MetroTunnelFx floods the floor).
+    palette: { background: '#08161c', fog: '#0b2630', fogNear: 5, fogFar: 28 },
     spawns: {
       // Arrive at the +Z mouth, facing -Z down the length of the tunnel.
       default: { position: [0, EYE, 8.5], yaw: Math.PI },
