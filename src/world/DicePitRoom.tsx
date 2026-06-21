@@ -6,8 +6,9 @@ import { DiceMonster } from './DiceMonster';
 import { useMonsterStore, monsterScale } from '../state/monsterStore';
 import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
+import { useMusicStore } from '../state/musicStore';
 import { DREAD } from '../data/dread';
-import { jukeboxTrackUrl } from '../data/jukebox';
+import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
 import type { Room } from '../data/rooms';
 
@@ -26,7 +27,6 @@ function flatMat(color: string, map?: THREE.Texture): THREE.Material {
   return m;
 }
 
-const REWARD_SLUG = 'best-day-ever'; // the win stinger — exploration's reward is sound
 const MONSTER_POS: [number, number, number] = [0, 0, -3.6];
 
 export function DicePitRoom({ room }: { room: Room }) {
@@ -84,9 +84,11 @@ export function DicePitRoom({ room }: { room: Room }) {
   // Warm the reward track on entry; hand the loop back to the boot ambience on
   // leave (and clear the test hook).
   useEffect(() => {
-    audio.preloadJukebox([jukeboxTrackUrl(REWARD_SLUG)]);
+    audio.preloadJukebox([cueUrl('diceReward')]);
     return () => {
-      audio.restoreBoot();
+      // Hand the loop voice back to the user's chosen track (the switcher), not
+      // unconditionally to boot — the user's pick stays authoritative.
+      useMusicStore.getState().restorePreferred();
       if (typeof window !== 'undefined') {
         (window as Window & { __sdpMonster?: unknown }).__sdpMonster = undefined;
       }
@@ -108,7 +110,7 @@ export function DicePitRoom({ room }: { room: Room }) {
   const onRoll = (face: number) => {
     const bout = useMonsterStore.getState().resolve(face);
     if (bout.won) {
-      void audio.playJukeboxTrack(jukeboxTrackUrl(REWARD_SLUG));
+      void audio.playJukeboxTrack(cueUrl('diceReward'));
       useProgressStore.getState().findSecret('dice-monster'); // the rat clocks it
     } else {
       const d = DREAD.triggers['mobius-loop'] ?? 0.12; // reuse a gentle poke

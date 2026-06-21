@@ -165,6 +165,33 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+/* the song switcher: ◀ NOW PLAYING ▶ — shift the loop track from anywhere */
+.hud-pause__nowplaying {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.hud-pause__songbtn {
+  min-width: 30px;
+  flex: 0 0 auto;
+}
+.hud-pause__songtitle {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 0.85em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: #000000;
+  color: #33ff88;
+  border: 1px solid #888888;
+  box-shadow: inset 1px 1px 0 #000000;
+}
 
 /* ── Scoobertverse welcome ──────────────────────────────────────────────────
    A staged quest intro on world entry. Non-blocking (pointer-events:none) so
