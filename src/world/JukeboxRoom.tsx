@@ -12,6 +12,7 @@ import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
 import { useMusicStore } from '../state/musicStore';
+import { useProgressStore } from '../state/progressStore';
 import { D20 } from './D20';
 
 // The jukebox room — the music payoff at the end of the hall. Warm, dim, a
@@ -149,10 +150,17 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const track = JUKEBOX_TRACKS[index];
   const cycle = () => setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
   // A d20 face (1..20) maps onto the catalog by modulo, so every track is
-  // reachable and the rolled number still reads as a real D&D roll.
+  // reachable and the rolled number still reads as a real D&D roll. Rolling the
+  // bone is also the UPGRADE: it unlocks the flip-through radio (durable) and
+  // makes the rolled track your STATION, so it follows you out of the room (the
+  // jukebox already plays it locally; setPreferred records it without re-playing,
+  // and restorePreferred hands that pick back on exit instead of the boot loop).
   const rollTo = (face: number) => {
     setRoll(face);
-    setIndex((face - 1) % JUKEBOX_TRACKS.length);
+    const i = (face - 1) % JUKEBOX_TRACKS.length;
+    setIndex(i);
+    useProgressStore.getState().unlockRadio();
+    useMusicStore.getState().setPreferred(i + 1); // +1: LOOP_OPTIONS[0] is the boot loop
     exposeTestGlobal('__sdpDice', face);
   };
 
