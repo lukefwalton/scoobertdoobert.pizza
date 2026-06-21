@@ -211,6 +211,7 @@
   animation: hud-welcome-bg-out 1s ease forwards;
 }
 .hud-welcome__card {
+  position: relative;
   width: min(34rem, 86vw);
   padding: 1.5em 1.9em;
   text-align: center;
@@ -218,6 +219,23 @@
   border: 1px solid rgba(255, 154, 82, 0.28);
   border-radius: 8px;
   box-shadow: 0 12px 44px rgba(0, 0, 0, 0.6);
+}
+/* Dismiss the intro early — the container is pointer-events:none, so the button
+   re-enables pointer events for just this corner. */
+.hud-welcome__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  pointer-events: auto;
+  background: transparent;
+  border: none;
+  color: rgba(255, 243, 224, 0.6);
+  font: 1.4rem/1 'Times New Roman', Times, serif;
+  padding: 4px 8px;
+  cursor: url('/cursor.cur'), pointer;
+}
+.hud-welcome__close:hover {
+  color: #fff3e0;
 }
 .hud-welcome__line {
   margin: 0.55em 0;

@@ -5,6 +5,7 @@
 // line to the tunnel.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { makeLoaderHelpers, walkToDoor } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -30,34 +31,12 @@ const roomIs = (name, timeout = 8000) =>
       { timeout },
     )
     .then(() => true, () => (fail(`room never became "${name}"`), false));
-const toDoor = async (key, label) => {
-  await page.keyboard.down(key);
-  const prompted = await page
-    .waitForSelector('.hud-prompt--door', { timeout: 4000 })
-    .then(() => true, () => false);
-  await page.keyboard.up(key);
-  if (!prompted) {
-    fail(`no door prompt walking '${key}' toward ${label} — nav regression at this hop`);
-    return false;
-  }
-  await page.keyboard.press('e');
-  return true;
-};
-const enterLoadedLevel = async (label, timeout = 25000) => {
-  const ready = await page
-    .waitForFunction(
-      () => document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
-      null,
-      { timeout },
-    )
-    .then(() => true, () => false);
-  if (!ready) {
-    fail(`${label} loader never reached ready`);
-    return false;
-  }
-  await page.getByRole('button', { name: /TAP TO ENTER/i }).click({ timeout: 4000 });
-  return true;
-};
+// Walk `key` until a door prompts, then E — shared, hold-and-poll with a
+// CI-generous timeout (see lib/smoke.mjs).
+const toDoor = (key, label) => walkToDoor(page, fail, key, label);
+// Wait out a GLB loader and tap in (shared, resilient: button → Enter fallback
+// → confirm the loader dismissed; never throws uncaught). See lib/smoke.mjs.
+const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
 // ?room=terminus drops straight at the end of the line (otherwise reached by
 // following the metro tunnel's tracks to their far end).

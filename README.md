@@ -87,7 +87,7 @@ npm run typecheck  # tsc --noEmit
 A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 
 ```
-├── index.html            # Vite entry (NOT the old site — that's in legacy/)
+├── index.html            # Vite entry (the old hand-built site lives in git history)
 ├── src/                  # the app
 │   ├── pages/            # Storefront, TextOnly, LinkArchive, About (prerendered routes)
 │   ├── components/       # Descent, BootLog, WorldHud, OrderForm, MuteToggle, …
@@ -103,7 +103,7 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── 1101.html         # the /1101 "save san diego" Twine ARG
 │   └── PIZZA.png, cursor.cur, brand/ …
 ├── api/order.ts          # Vercel function: opt-in email capture → Vercel Blob
-├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image, …)
+├── scripts/              # build/verify tooling (shoot:all + the shoot:* suite, make-*-audio, …)
 ├── media/                # SOURCE originals, NOT shipped (see media/README.md)
 │   ├── masters/          # masters wired into the site (boot loop + layer themes)
 │   ├── music/            # full master catalog, by year/album
@@ -112,7 +112,6 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── photos/           # full-res photo archive, grouped by shoot
 │   └── brand/            # brand-logo source
 ├── links.md              # source of truth for the /links archive
-├── legacy/               # the previous hand-built site (preserved, not built)
 ├── fun/                  # placeholder for a separate repo, not yet wired in
 ├── docs/                 # PHASES.md (roadmap + status) · DESIGN.md (vision + systems)
 ├── STRUCTURE.md          # the repo map ("start here")
@@ -193,13 +192,25 @@ door at each end (and the matching arrival spawn). No other scene code.
 ## Self-verification (Playwright)
 
 ```bash
-npm run build && npm run preview &   # serve dist/ on :4173
+npm run build
+npm run shoot:all       # build once, run EVERY smoke against one preview server
+# …or a single suite (each starts/expects its own preview on :4173):
 npm run shoot           # storefront desktop/mobile/text + JS-DISABLED parity
-npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause
+npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause, intro × dismiss
 npm run shoot:descent   # storefront → 1999 → 2000 → machine room → install → world → exit; + mobile→/text
 npm run shoot:rooms     # shop → hall (rat knocks the secret) → classified → jukebox; doors, wipes, audio duck
 npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text + /about route
 ```
+
+**`shoot:all` is the CI gate** (`.github/workflows/ci.yml`): it builds, starts
+one `vite preview`, and runs every `shoot:*` script — **auto-discovered from
+`package.json`**, so the rule is simply: *a `shoot` or `shoot:*` script is a smoke
+suite and runs in CI; anything else under `scripts/` (e.g. `make-*`, `lib/`) is a
+helper and isn't.* Add a new `shoot:<name>` script and it's covered automatically.
+A failed suite is **retried once** (these are full-browser, frame-timed smokes on
+a shared runner — a real regression still fails the retry; a one-off slow-runner
+blip self-heals, and the retry is logged). The repeated GLB-loader entry +
+hold-and-poll door-walk flows live once in `scripts/lib/smoke.mjs`.
 
 Screenshots land in `.shots/` (gitignored). The `postbuild` step
 (`scripts/check-build.mjs`) fails the build if `/` or `/text` lose their real
@@ -227,8 +238,8 @@ the water and PS1 shaders, the room geometry, and the textures (canvas-drawn). N
 third-party code or art is vendored, and no proprietary marks (Nintendo, SGI,
 Pizza Hut, Doom, Cosmo Player) are used — original parody only. The **boot music**
 is a deliberately degraded bounce of Scoobert Doobert's **own** tracks (Luke's
-copyright), so shipping the lo-fi loop is fine. The `legacy/` folder preserves the
-previous hand-built site for reference; it is not part of the build.
+copyright), so shipping the lo-fi loop is fine. (The previous hand-built site was
+removed from the tree; it's preserved in git history.)
 
 If/when richer assets get added (the Phase 2 Doom/Freedoom shrine), they'll be
 **CC0 or BSD** (e.g. Freedoom), logged in a `THIRD_PARTY_NOTICES.md` with

@@ -10,6 +10,7 @@ import { MOBIUS_BREAK, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { DREAD } from '../data/dread';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // MobiusRoom — Phase 6. The Scooby-Doo hallway gag / the "Mobius" motif: walk to
@@ -77,9 +78,7 @@ export function MobiusRoom({ room }: { room: Room }) {
 
   // Test hook (gated to the test entrances): the lap count, for shoot-mobius.
   useEffect(() => {
-    if (typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search)) {
-      (window as Window & { __sdpMobius?: number }).__sdpMobius = loops;
-    }
+    exposeTestGlobal('__sdpMobius', loops);
   }, [loops]);
 
   const wallTint = WALL_TINTS[loops % WALL_TINTS.length];
