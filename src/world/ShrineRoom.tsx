@@ -3,6 +3,18 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
+import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
+
+// Furin tuning — a bright, glassy high pentatonic from the site's D6/9 world, so
+// the wind-chimes always agree with the music. (Reuses the chimes note math.)
+const FURIN_FREQS = [
+  noteToFreq('A', 5),
+  noteToFreq('B', 5),
+  noteToFreq('D', 6),
+  noteToFreq('E', 6),
+  noteToFreq('F#', 6),
+];
 
 // ───────────────────────────────────────────────────────────────────────────
 // ShrineRoom — the Japan level (scaffold). The one OUTDOOR, *sweet* deep room:
@@ -181,6 +193,70 @@ function Fireflies({ count = 44 }: { count?: number }) {
   return <points ref={ref} geometry={geom} material={mat} />;
 }
 
+// Furin (風鈴) — a glass wind-chime hung under the shrine eave. The bell DOME is a
+// little truncated cone; a paper strip (tanzaku) sways below in the "wind." It
+// rings itself at gentle random intervals by driving `audio.playChime` — the SAME
+// synthesis engine as the /chimes cabinet (src/lib/chimes.strikeBell), reused to
+// power an in-room effect. Mute-aware + ambient-quiet by construction (the engine
+// no-ops when muted / pre-gesture), and it's a SWEET room, so this stays a relief
+// beat — never dread. The strip sway is the only motion; no flashing.
+function Furin({ x, y, z, pan }: { x: number; y: number; z: number; pan: number }) {
+  const strip = useRef<THREE.Group>(null);
+  const timer = useRef(1.5 + Math.random() * 3.5); // delay before the first ring
+  const kick = useRef(0); // a little extra sway right after it rings
+
+  const bellMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffe39a' }), []);
+  const lineMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#c8a35c' }), []);
+  const stripMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: '#eae3d2', side: THREE.DoubleSide }),
+    [],
+  );
+  useEffect(
+    () => () => {
+      bellMat.dispose();
+      lineMat.dispose();
+      stripMat.dispose();
+    },
+    [bellMat, lineMat, stripMat],
+  );
+
+  useFrame((state, dt) => {
+    timer.current -= dt;
+    if (timer.current <= 0) {
+      audio.playChime(FURIN_FREQS[Math.floor(Math.random() * FURIN_FREQS.length)], pan, 0.12);
+      kick.current = 1;
+      timer.current = 2.4 + Math.random() * 4.5; // sparse + unhurried
+    }
+    kick.current *= Math.pow(0.15, dt); // decay the post-ring flutter
+    const t = state.clock.elapsedTime;
+    if (strip.current) {
+      strip.current.rotation.z = Math.sin(t * 1.5 + x) * 0.12 + Math.sin(t * 4.2 + x) * 0.06 * kick.current;
+    }
+  });
+
+  return (
+    <group position={[x, y, z]}>
+      {/* cord up to the eave */}
+      <mesh material={lineMat} position={[0, 0.2, 0]}>
+        <boxGeometry args={[0.02, 0.4, 0.02]} />
+      </mesh>
+      {/* the little glass bell (a truncated-cone dome) */}
+      <mesh material={bellMat} position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.05, 0.12, 0.13, 8]} />
+      </mesh>
+      {/* clapper + the tanzaku paper strip, swaying in the wind */}
+      <group ref={strip} position={[0, -0.08, 0]}>
+        <mesh material={lineMat} position={[0, -0.13, 0]}>
+          <boxGeometry args={[0.015, 0.26, 0.015]} />
+        </mesh>
+        <mesh material={stripMat} position={[0, -0.34, 0]}>
+          <planeGeometry args={[0.1, 0.28]} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
 export function ShrineRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
@@ -315,6 +391,10 @@ export function ShrineRoom({ room }: { room: Room }) {
         <mesh material={woodMat} position={[0, 0.85, 1.7]}>
           <boxGeometry args={[1.0, 0.6, 0.5]} />
         </mesh>
+        {/* furin under the front eaves — they ring themselves via the chimes
+            engine (audio.playChime), the cabinet's synthesis reused in-world */}
+        <Furin x={-1.45} y={2.5} z={1.25} pan={-0.4} />
+        <Furin x={1.45} y={2.5} z={1.25} pan={0.4} />
       </group>
 
       {/* ── the country railway crossing (tracks run along X, off into the fog
