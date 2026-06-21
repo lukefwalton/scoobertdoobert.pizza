@@ -23,11 +23,15 @@ export function WorldMount() {
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('debug');
 
-  // Testing / debug entrance: ?world jumps straight into the room. The real
+  // Testing / debug entrance: ?world jumps straight into the first room; ?room=ID
+  // drops straight into any room (deterministic smoke entry for deep/hidden rooms
+  // like the shrine, which otherwise need the rat's secret to reach). The real
   // entrance is the Calzone Player install gag (step 3).
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (new URLSearchParams(window.location.search).has('world')) enter();
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('world')) enter();
+    else if (params.has('room')) enter(params.get('room') || undefined);
   }, [enter]);
 
   if (!mounted) return null;

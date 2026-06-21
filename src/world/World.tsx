@@ -11,6 +11,7 @@ import { ClassifiedRoom } from './ClassifiedRoom';
 import { PoolroomsRoom } from './PoolroomsRoom';
 import { MobiusRoom } from './MobiusRoom';
 import { DicePitRoom } from './DicePitRoom';
+import { ShrineRoom } from './ShrineRoom';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
@@ -66,6 +67,8 @@ function RoomScene({ room }: { room: Room }) {
       return <MobiusRoom room={room} />;
     case 'dicepit':
       return <DicePitRoom room={room} />;
+    case 'shrine':
+      return <ShrineRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
