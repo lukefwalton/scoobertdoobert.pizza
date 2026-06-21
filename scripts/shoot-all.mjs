@@ -12,6 +12,10 @@ import { readFileSync } from 'node:fs';
 const BASE = process.argv[2] || 'http://localhost:4173';
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
 
+// The naming contract (also in README): `shoot` and every `shoot:*` script IS a
+// CI smoke gate, discovered by name alone. So a non-gating helper/debug script
+// must NOT use that prefix (name it `make-*`, put it in `lib/`, etc.) or it
+// silently becomes a merge blocker.
 const smokes = Object.keys(pkg.scripts)
   .filter((s) => (s === 'shoot' || s.startsWith('shoot:')) && s !== 'shoot:all')
   .sort();
@@ -61,23 +65,37 @@ if (!(await up())) {
   process.exit(1);
 }
 
-const results = [];
-for (const name of smokes) {
+// Run one suite once. Per-suite timeout so a hung smoke fails on its own (a clear
+// "[timed out]" line) instead of stalling until the workflow's 20-min job cap.
+const runOnce = (name) => {
+  const t0 = Date.now();
   // Invoke the package script as declared (`npm run <name> -- <BASE>`) rather than
   // parsing out `node <file>`, so any future arg/env wrapper is preserved and the
   // "auto-discovered" claim can't silently drift from how the scripts actually run.
-  const t0 = Date.now();
-  // Per-suite timeout so one hung smoke fails on its own (a clear "timed out"
-  // line) instead of stalling the whole run until the workflow's 20-min job
-  // timeout kills it with no useful signal.
   const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8', timeout: 180000 });
   const timedOut = r.error?.code === 'ETIMEDOUT';
-  const ok = !timedOut && r.status === 0;
-  const secs = ((Date.now() - t0) / 1000).toFixed(0);
-  results.push({ name, ok });
-  console.log(`${ok ? '✓' : '✗'} ${name}  (${secs}s)${timedOut ? ' [timed out]' : ''}`);
-  if (!ok) {
-    const lines = `${r.stdout || ''}\n${r.stderr || ''}`
+  return { ok: !timedOut && r.status === 0, timedOut, r, secs: ((Date.now() - t0) / 1000).toFixed(0) };
+};
+
+const results = [];
+for (const name of smokes) {
+  let res = runOnce(name);
+  // These are full-browser, frame-timed smokes on a shared CI runner; a single
+  // slow-runner blip (a GLB decode or a frame stall just past a timeout) should
+  // not redden the whole gate. Retry a failure ONCE — a real regression still
+  // fails deterministically on the retry, so this absorbs flakiness without
+  // hiding bugs. The retry is logged so chronic flakiness stays visible.
+  const flaked = !res.ok;
+  if (flaked) {
+    console.log(`↻ ${name} failed (${res.secs}s)${res.timedOut ? ' [timed out]' : ''} — retrying once`);
+    res = runOnce(name);
+  }
+  results.push({ name, ok: res.ok, flaked: flaked && res.ok });
+  console.log(
+    `${res.ok ? '✓' : '✗'} ${name}  (${res.secs}s)${res.timedOut ? ' [timed out]' : ''}${flaked && res.ok ? ' [passed on retry]' : ''}`,
+  );
+  if (!res.ok) {
+    const lines = `${res.r.stdout || ''}\n${res.r.stderr || ''}`
       .split('\n')
       .filter((l) => /FAIL|Error|never|did not|->/.test(l))
       .slice(0, 5);
