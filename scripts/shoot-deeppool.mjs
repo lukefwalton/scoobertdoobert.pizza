@@ -5,7 +5,7 @@
 // (This is the load the minigame was built for.)
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { makeLoaderHelpers } from './lib/smoke.mjs';
+import { makeLoaderHelpers, walkToDoor } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -31,22 +31,10 @@ const roomIs = (name, timeout = 8000) =>
       { timeout },
     )
     .then(() => true, () => (fail(`room never became "${name}"`), false));
-// Walk `key` until a door prompts, then E. Fails IMMEDIATELY (with the hop's
-// name) if the prompt never appears, so a spawn/door drift points at the broken
-// hop instead of surfacing later as a vague "room never became…" timeout.
-const toDoor = async (key, label) => {
-  await page.keyboard.down(key);
-  const prompted = await page
-    .waitForSelector('.hud-prompt--door', { timeout: 4000 })
-    .then(() => true, () => false);
-  await page.keyboard.up(key);
-  if (!prompted) {
-    fail(`no door prompt walking '${key}' toward ${label} — nav regression at this hop`);
-    return false;
-  }
-  await page.keyboard.press('e');
-  return true;
-};
+// Walk `key` until a door prompts, then E — shared, hold-and-poll with a
+// CI-generous timeout (see lib/smoke.mjs). Fails with the hop's name if the
+// prompt never appears, so a spawn/door drift points at the broken hop.
+const toDoor = (key, label) => walkToDoor(page, fail, key, label);
 // Wait out a GLB loader and tap in (shared, resilient: button → Enter fallback
 // → confirm the loader dismissed; never throws uncaught). Generous timeout for
 // the heavy deep level. See lib/smoke.mjs.

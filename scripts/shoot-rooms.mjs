@@ -6,6 +6,7 @@
 // animation timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { holdUntilDoorPrompt } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -39,12 +40,6 @@ const labelHas = (name) =>
     (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
     name,
   );
-const walk = async (key, ms) => {
-  await page.keyboard.down(key);
-  await page.waitForTimeout(ms);
-  await page.keyboard.up(key);
-};
-
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('canvas', { timeout: 12000 });
@@ -73,15 +68,10 @@ const noSpawnPrompt = (await page.$('.hud-prompt--door')) === null;
 if (!noSpawnPrompt) fail('back-hall door prompt was visible at spawn (should require approach)');
 await page.screenshot({ path: '.shots/rooms-shop.png' });
 
-// 2) Back up to the rear wall → keyboard E → the hall.
-await walk('s', 900);
-let doorPrompt = false;
-try {
-  await page.waitForSelector('.hud-prompt--door', { timeout: 3000 });
-  doorPrompt = true;
-} catch {
-  fail('back-hall door prompt never appeared');
-}
+// 2) Back up to the rear wall → keyboard E → the hall. Hold-and-poll (not a fixed
+//    walk) so a slow CI runner still reaches the door before we check.
+const doorPrompt = await holdUntilDoorPrompt(page, 's', { timeout: 8000 });
+if (!doorPrompt) fail('back-hall door prompt never appeared');
 // Pause/unpause while standing in the door radius: pause opens, resume restores
 // the prompt, and the door still activates after (nearDoor + modal gating).
 await page.keyboard.press('Escape'); // pause while near the door
@@ -102,12 +92,21 @@ if (!noPauseMidWipe) fail('Escape opened the pause menu mid-wipe (transition not
 const inHall = await roomIs('Back Hall');
 await page.screenshot({ path: '.shots/rooms-hall.png' }); // the rat leads down the hall
 
-// 3) Down the corridor. The rat breaks off, knocks a blank panel in the wall,
-//    and a hidden CLASSIFIED door clicks open. Slip into it.
+// 3) Down the corridor. The rat breaks off, knocks a blank panel in the -X wall
+//    (mid-hall, door at z=-2, radius 2.8), and a hidden CLASSIFIED door clicks
+//    open. Hold w+a (diagonal toward the panel) and POLL the camera z to stop AT
+//    the panel band rather than walking a fixed time — on a slow runner the
+//    clamped-delta movement covers less ground per real second, so the old fixed
+//    2.4s walk fell short of the panel (and the rat's z<4 knock trigger), which
+//    cascaded into every later failure. Stop just inside the radius (don't
+//    overshoot it), then hold position and wait for the rat to reveal the door.
 await page.keyboard.down('w');
-await page.waitForTimeout(2400); // past the welcome + the rat's knock trigger
+await page.keyboard.down('a');
+await page
+  .waitForFunction(() => (window.__sdpCam?.z ?? 99) <= -0.5, null, { timeout: 12000 })
+  .catch(() => {});
 await page.keyboard.up('w');
-await walk('a', 700); // veer to the -X wall panel (facing -Z down the hall, A strafes left/-X)
+await page.keyboard.up('a');
 await page.screenshot({ path: '.shots/rooms-secret.png' }); // the rat at the panel
 let secretOpened = false;
 try {
@@ -115,7 +114,7 @@ try {
     () =>
       document.querySelector('.hud-prompt--door')?.textContent?.includes('slip through the gap') ??
       false,
-    { timeout: 4000 },
+    { timeout: 8000 },
   );
   secretOpened = true;
 } catch {
@@ -127,8 +126,7 @@ await page.waitForTimeout(700);
 await page.screenshot({ path: '.shots/rooms-classified.png' });
 
 // Back out to the hall (arrive at the panel, facing on toward the music).
-await walk('s', 750);
-await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+await holdUntilDoorPrompt(page, 's', { timeout: 6000 });
 await page.keyboard.press('e');
 const backToHall = await roomIs('Back Hall');
 
@@ -190,8 +188,7 @@ if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (slug ${juke
 
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.
-await walk('s', 800); // to the exit door (now behind us)
-await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+await holdUntilDoorPrompt(page, 's', { timeout: 6000 }); // to the exit door (now behind us)
 await page.evaluate(() =>
   window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', repeat: true })),
 );
@@ -216,10 +213,7 @@ if (!audioRestored) fail('loop stayed ducked after leaving the jukebox');
 // And exiting the WORLD from inside the jukebox (full teardown, not a room-to-
 // room door) must reset the duck too — go back in, then leave via the pause menu.
 let exitAudioReset = false;
-await page.keyboard.down('s'); // back to the jukebox door (-Z, behind us)
-await page.waitForTimeout(900);
-await page.keyboard.up('s');
-await page.waitForSelector('.hud-prompt--door', { timeout: 3000 }).catch(() => {});
+await holdUntilDoorPrompt(page, 's', { timeout: 6000 }); // back to the jukebox door (-Z, behind us)
 await page.keyboard.press('e');
 if (await roomIs('The Jukebox')) {
   await page.waitForTimeout(500); // let it duck again

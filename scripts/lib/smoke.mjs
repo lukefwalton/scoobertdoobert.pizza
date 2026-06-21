@@ -29,6 +29,35 @@ export async function tapLoaderCta(page, name = /TAP TO ENTER/i) {
   return clicked;
 }
 
+// Hold a movement key (or several) and POLL for the door prompt, releasing once
+// it shows. Replaces fixed-duration `walk(key, ms)` hops: world movement uses a
+// clamped per-frame delta, so on a slow runner (CI most of all) the same wall-
+// clock time covers less ground — a fixed walk can fall short of the door and
+// the later assertions cascade. Returns whether the prompt appeared.
+export async function holdUntilDoorPrompt(page, keys, { timeout = 8000 } = {}) {
+  const list = Array.isArray(keys) ? keys : [keys];
+  for (const k of list) await page.keyboard.down(k);
+  const shown = await page
+    .waitForSelector('.hud-prompt--door', { timeout })
+    .then(() => true, () => false);
+  for (const k of list) await page.keyboard.up(k);
+  return shown;
+}
+
+// Walk (hold `key`) until a door prompts, then press E — failing (via `fail`)
+// with the hop's name if the prompt never appears. The generous default timeout
+// is the whole point: this replaces per-file `toDoor` helpers whose 4s budget was
+// too short for a slow CI runner to traverse a long room, surfacing as a bogus
+// "nav regression at this hop". Returns whether it entered.
+export async function walkToDoor(page, fail, key, label, { timeout = 8000 } = {}) {
+  if (!(await holdUntilDoorPrompt(page, key, { timeout }))) {
+    fail(`no door prompt walking '${key}' toward ${label} — nav regression at this hop`);
+    return false;
+  }
+  await page.keyboard.press('e');
+  return true;
+}
+
 export function makeLoaderHelpers(page, fail) {
   const enterLoadedLevel = async (label, timeout = 25000) => {
     const ready = await page
