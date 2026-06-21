@@ -23,12 +23,12 @@ export default function Storefront() {
     <>
       <Head>
         <title>Electronic Pizza Storefront — Scoobert Doobert</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/" />
         <meta
           name="description"
           content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
         />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/" />
         <meta property="og:title" content="Electronic Pizza Storefront — Scoobert Doobert" />
         <meta
           property="og:description"
