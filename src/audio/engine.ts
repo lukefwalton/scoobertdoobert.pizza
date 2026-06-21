@@ -500,6 +500,23 @@ class PizzaAudio {
     };
   }
 
+  // Cap concurrent ambient one-shots (playChime/playColony) so a busy room can't
+  // stack unbounded voices that muddy the mix or burn CPU on weak devices — the
+  // output limiter guards LOUDNESS, this guards voice COUNT. Timer-based release,
+  // so it's approximate on purpose (a ceiling, not exact accounting).
+  private worldVoices = 0;
+  private claimVoice(seconds: number): boolean {
+    if (this.worldVoices >= 16) return false; // drop the new voice rather than pile on
+    this.worldVoices++;
+    window.setTimeout(
+      () => {
+        this.worldVoices = Math.max(0, this.worldVoices - 1);
+      },
+      Math.max(150, seconds * 1000),
+    );
+    return true;
+  }
+
   /**
    * Strike a bell into the WORLD mix — the /chimes cabinet's synthesis engine
    * (src/lib/chimes.strikeBell) reused to power in-room effects (the shrine's
@@ -511,6 +528,7 @@ class PizzaAudio {
    */
   playChime(freq: number, pan = 0, peak = 0.16, decayScale = 1): void {
     if (!this.ctx || !this.master || this.muted) return;
+    if (!this.claimVoice(1.6 * decayScale + 0.4)) return; // drop past the voice cap
     strikeBell(this.ctx, this.master, freq, { pan, peak, decayScale });
   }
 
@@ -523,6 +541,7 @@ class PizzaAudio {
    */
   playColony(freq: number, pan = 0, peak = 0.08): void {
     if (!this.ctx || !this.master || this.muted) return;
+    if (!this.claimVoice(1.7)) return; // drop past the voice cap (release ≈ rel)
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const rel = 1.6;
