@@ -5,6 +5,7 @@ import { MENU_DESTINATIONS, destById } from '../data/links';
 import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
+import { useMusicStore } from '../state/musicStore';
 import { audio } from '../audio/engine';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
@@ -43,6 +44,8 @@ export function WorldHud() {
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
+  const nowPlaying = useMusicStore((s) => s.title);
+  const shiftSong = useMusicStore((s) => s.shift);
 
   // The Scoobertverse welcome — a quest intro that streams in char-by-char on
   // world entry (WorldHud mounts with the world), holds, then fades. Non-blocking,
@@ -218,6 +221,28 @@ export function WorldHud() {
                   </li>
                 ))}
               </ul>
+              {/* the song switcher — shift the world's loop track from anywhere */}
+              <div className="hud-pause__nowplaying">
+                <button
+                  className="hud-pause__songbtn"
+                  aria-label="previous song"
+                  disabled={!audioReady}
+                  onClick={() => shiftSong(-1)}
+                >
+                  ◀
+                </button>
+                <span className="hud-pause__songtitle" title="Now playing">
+                  ♪ {!audioReady ? 'loading…' : nowPlaying}
+                </span>
+                <button
+                  className="hud-pause__songbtn"
+                  aria-label="next song"
+                  disabled={!audioReady}
+                  onClick={() => shiftSong(1)}
+                >
+                  ▶
+                </button>
+              </div>
               <div className="hud-pause__actions">
                 <button
                   disabled={!audioReady}

@@ -10,6 +10,7 @@ import {
 import { JUKEBOX_POS, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
+import { useMusicStore } from '../state/musicStore';
 import { D20 } from './D20';
 
 // The jukebox room — the music payoff at the end of the hall. Warm, dim, a
@@ -173,7 +174,9 @@ export function JukeboxRoom({ room }: { room: Room }) {
       (window as Window & { __sdpDice?: number }).__sdpDice = undefined;
     }
     return () => {
-      audio.restoreBoot();
+      // Leaving the cabinet hands the loop voice back to the user's chosen track
+      // (the switcher), not unconditionally to boot.
+      useMusicStore.getState().restorePreferred();
       if (typeof window !== 'undefined') {
         const w = window as Window & { __sdpJukebox?: unknown; __sdpDice?: number };
         w.__sdpJukebox = undefined;
