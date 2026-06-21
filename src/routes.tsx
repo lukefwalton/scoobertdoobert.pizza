@@ -4,6 +4,7 @@ import TextOnly from './pages/TextOnly';
 import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
 import Arcade from './pages/Arcade';
+import Poke from './pages/Poke';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
 //   /       -> the dead-plain Electronic Pizza Storefront (the fallback layer)
@@ -21,4 +22,6 @@ export const routes: RouteRecord[] = [
   // /arcade -> the touch-first Pizza Run minigame (the mobile reward). A real,
   // crawlable route; the live canvas game is a post-hydration enhancement.
   { path: '/arcade', element: <Arcade /> },
+  // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
+  { path: '/poke', element: <Poke /> },
 ];

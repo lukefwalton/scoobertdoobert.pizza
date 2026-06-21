@@ -72,6 +72,10 @@ export default function Arcade() {
         Tap (or press space) to jump the broken web buttons. Your best run is
         remembered on this device.
       </p>
+      <p className="arcade-foot">
+        &#9654; Next cabinet: <a href="/poke">POKE SCOOBERT</a> &mdash; grab his face
+        and pull.
+      </p>
       <p className="arcade-foot arcade-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
       </p>
