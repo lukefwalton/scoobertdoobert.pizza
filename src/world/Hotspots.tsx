@@ -3,6 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { HOTSPOTS } from '../data/hotspots';
 import { useSceneStore } from '../state/sceneStore';
+import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
 
 // In-world interaction. Each frame, find the hotspot the camera is standing in
 // range of and publish it to the store (drives the DOM proximity prompt). The
@@ -30,6 +32,9 @@ export function Hotspots() {
       }
     }
     if (nearest !== lastNear.current) {
+      // A soft "you found something" bell on stepping into a hotspot's range —
+      // the shared chimes engine sprinkled onto the world's interaction points.
+      if (nearest) audio.playChime(noteToFreq('A', 5), 0, 0.07, 0.5);
       lastNear.current = nearest;
       setNear(nearest);
     }
