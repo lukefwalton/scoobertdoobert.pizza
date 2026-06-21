@@ -1,4 +1,5 @@
 import './styles/global.css';
+import './lib/chunkReload'; // recover from stale content-hashed chunks after a redeploy
 import { ViteReactSSG } from 'vite-react-ssg';
 import { routes } from './routes';
 
