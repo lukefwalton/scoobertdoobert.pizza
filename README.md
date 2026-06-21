@@ -87,7 +87,7 @@ npm run typecheck  # tsc --noEmit
 A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 
 ```
-├── index.html            # Vite entry (NOT the old site — that's in legacy/)
+├── index.html            # Vite entry (the old hand-built site lives in git history)
 ├── src/                  # the app
 │   ├── pages/            # Storefront, TextOnly, LinkArchive, About (prerendered routes)
 │   ├── components/       # Descent, BootLog, WorldHud, OrderForm, MuteToggle, …
@@ -103,7 +103,7 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── 1101.html         # the /1101 "save san diego" Twine ARG
 │   └── PIZZA.png, cursor.cur, brand/ …
 ├── api/order.ts          # Vercel function: opt-in email capture → Vercel Blob
-├── scripts/              # build/verify tooling (shoot*, make-boot-audio, resize-image, …)
+├── scripts/              # build/verify tooling (shoot:all + the shoot:* suite, make-*-audio, …)
 ├── media/                # SOURCE originals, NOT shipped (see media/README.md)
 │   ├── masters/          # masters wired into the site (boot loop + layer themes)
 │   ├── music/            # full master catalog, by year/album
@@ -112,7 +112,6 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── photos/           # full-res photo archive, grouped by shoot
 │   └── brand/            # brand-logo source
 ├── links.md              # source of truth for the /links archive
-├── legacy/               # the previous hand-built site (preserved, not built)
 ├── fun/                  # placeholder for a separate repo, not yet wired in
 ├── docs/                 # PHASES.md (roadmap + status) · DESIGN.md (vision + systems)
 ├── STRUCTURE.md          # the repo map ("start here")
@@ -227,8 +226,8 @@ the water and PS1 shaders, the room geometry, and the textures (canvas-drawn). N
 third-party code or art is vendored, and no proprietary marks (Nintendo, SGI,
 Pizza Hut, Doom, Cosmo Player) are used — original parody only. The **boot music**
 is a deliberately degraded bounce of Scoobert Doobert's **own** tracks (Luke's
-copyright), so shipping the lo-fi loop is fine. The `legacy/` folder preserves the
-previous hand-built site for reference; it is not part of the build.
+copyright), so shipping the lo-fi loop is fine. (The previous hand-built site was
+removed from the tree; it's preserved in git history.)
 
 If/when richer assets get added (the Phase 2 Doom/Freedoom shrine), they'll be
 **CC0 or BSD** (e.g. Freedoom), logged in a `THIRD_PARTY_NOTICES.md` with

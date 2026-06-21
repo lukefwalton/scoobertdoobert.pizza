@@ -138,17 +138,15 @@ await page.waitForTimeout(250);
 const ratStaysDone = (await page.evaluate(() => window.__sdpRatPhase)) !== 'lead';
 if (!ratStaysDone) fail('the rat reset to "lead" on hallway re-entry after the secret');
 
-// 3b) Continue to the far door → the jukebox room.
+// 3b) Continue to the far door → the jukebox room. Hold 'w' and POLL for the
+// prompt rather than walking for a fixed time, so a slower machine — CI most of
+// all — still covers the long corridor before we give up.
 await page.keyboard.down('w');
-await page.waitForTimeout(2100);
+const jukePrompt = await page
+  .waitForSelector('.hud-prompt--door', { timeout: 8000 })
+  .then(() => true, () => false);
 await page.keyboard.up('w');
-let jukePrompt = false;
-try {
-  await page.waitForSelector('.hud-prompt--door', { timeout: 3000 });
-  jukePrompt = true;
-} catch {
-  fail('jukebox door prompt never appeared at the hall end');
-}
+if (!jukePrompt) fail('jukebox door prompt never appeared at the hall end');
 await page.keyboard.press('e');
 const inJuke = await roomIs('The Jukebox');
 await page.waitForTimeout(900);
