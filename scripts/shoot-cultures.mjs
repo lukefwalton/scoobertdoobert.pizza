@@ -88,8 +88,16 @@ const bad = (m) => {
       await page.mouse.move(cx + Math.cos(a) * 26, cy + Math.sin(a) * 26);
       await page.waitForTimeout(16);
     }
+    // …then GATHER: hold near the centre with a tiny jitter so the pointer
+    // attractor pulls all five cells onto the same point. Poll until they
+    // actually collide (exit the instant they do) so the assertion no longer
+    // depends on the random Perlin seed / initial layout — robust, not flaky.
+    for (let i = 0; i < 120 && (await read()).collisions <= 0; i++) {
+      await page.mouse.move(cx + Math.sin(i) * 3, cy + Math.cos(i) * 3);
+      await page.waitForTimeout(16);
+    }
     await page.mouse.up();
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(200);
 
     const after = await read();
     started = after.started;
