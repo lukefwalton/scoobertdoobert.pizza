@@ -5,6 +5,7 @@
 // selection, not on tumble timing.
 import { chromium } from 'playwright';
 import { mkdirSync, readFileSync } from 'node:fs';
+import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -24,19 +25,9 @@ const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 try {
@@ -82,17 +73,28 @@ if (inJuke) {
   const box = await page.locator('canvas').boundingBox();
   await page.mouse.click(box.x + box.width * 0.663, box.y + box.height * 0.62);
   rolled = await page
-    .waitForFunction(() => typeof window.__sdpDice === 'number' && window.__sdpDice >= 1 && window.__sdpDice <= 20, null, {
-      timeout: 4000,
-    })
-    .then(() => true, () => false);
-  if (!rolled) fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
+    .waitForFunction(
+      () => typeof window.__sdpDice === 'number' && window.__sdpDice >= 1 && window.__sdpDice <= 20,
+      null,
+      {
+        timeout: 4000,
+      },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!rolled)
+    fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
   if (rolled) {
     const face = await page.evaluate(() => window.__sdpDice);
     const expected = (face - 1) % TRACK_COUNT; // derived from the live catalog
     trackJumped = await page
       .waitForFunction((idx) => window.__sdpJukebox?.index === idx, expected, { timeout: 4000 })
-      .then(() => true, () => false);
+      .then(
+        () => true,
+        () => false,
+      );
     if (!trackJumped) {
       const after = await page.evaluate(() => window.__sdpJukebox?.index);
       fail(

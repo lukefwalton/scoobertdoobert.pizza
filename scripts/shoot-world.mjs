@@ -7,7 +7,10 @@ const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+const ctx = await browser.newContext({
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
+});
 await ctx.addInitScript(() => {
   try {
     sessionStorage.setItem('sdp_booted', '1');
@@ -41,14 +44,18 @@ try {
 // The intro "×" dismiss path (it otherwise only auto-clears, so a broken close
 // could slip through). Click it BEFORE the ~1.9s auto-dismiss kicks in and prove
 // the welcome card actually leaves (the click → 600ms → unmount).
-const welcomeUp = await page
-  .waitForSelector('.hud-welcome', { timeout: 4000 })
-  .then(() => true, () => false);
+const welcomeUp = await page.waitForSelector('.hud-welcome', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
 if (welcomeUp) {
   await page.getByRole('button', { name: /dismiss intro/i }).click({ timeout: 3000 });
   const dismissed = await page
     .waitForSelector('.hud-welcome', { state: 'detached', timeout: 2000 })
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
   if (!dismissed) {
     errors++;
     console.log('INTRO × DID NOT DISMISS: welcome card stayed after clicking close');

@@ -1,17 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import {
-  flatMat,
-  makeAffineTexturedMaterial,
-  makeCheckerTexture,
-  makeTextTexture,
-} from './ps1';
+import { RoomBox } from './RoomBox';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { JUKEBOX_POS, type Room } from '../data/rooms';
+import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
 import { useMusicStore } from '../state/musicStore';
+import { useProgressStore } from '../state/progressStore';
 import { D20 } from './D20';
 
 // The jukebox room — the music payoff at the end of the hall. Warm, dim, a
@@ -72,7 +69,8 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 
   const pulse = useRef<THREE.PointLight>(null);
   useFrame((state) => {
-    if (pulse.current) pulse.current.intensity = 0.9 + Math.sin(state.clock.elapsedTime * 2.1) * 0.28;
+    if (pulse.current)
+      pulse.current.intensity = 0.9 + Math.sin(state.clock.elapsedTime * 2.1) * 0.28;
   });
 
   // Restore the world's resting cursor if we unmount while hovered.
@@ -100,7 +98,13 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
       }}
     >
       {/* glow pool from the jukebox */}
-      <pointLight ref={pulse} position={[0, 1.4, 1.4]} intensity={0.9} distance={11} color="#ff9ad6" />
+      <pointLight
+        ref={pulse}
+        position={[0, 1.4, 1.4]}
+        intensity={0.9}
+        distance={11}
+        color="#ff9ad6"
+      />
 
       {/* cabinet */}
       <mesh material={bodyMat} position={[0, 0.2, 0]}>
@@ -137,10 +141,7 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 }
 
 export function JukeboxRoom({ room }: { room: Room }) {
-  const W = room.dims.halfW;
-  const D = room.dims.halfD;
-  const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   // Which catalog track the jukebox is on. Clicking the cabinet advances it in
   // order; rolling the d20 jumps to whatever the dice picks (the chaos path).
@@ -149,10 +150,17 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const track = JUKEBOX_TRACKS[index];
   const cycle = () => setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
   // A d20 face (1..20) maps onto the catalog by modulo, so every track is
-  // reachable and the rolled number still reads as a real D&D roll.
+  // reachable and the rolled number still reads as a real D&D roll. Rolling the
+  // bone is also the UPGRADE: it unlocks the flip-through radio (durable) and
+  // makes the rolled track your STATION, so it follows you out of the room (the
+  // jukebox already plays it locally; setPreferred records it without re-playing,
+  // and restorePreferred hands that pick back on exit instead of the boot loop).
   const rollTo = (face: number) => {
     setRoll(face);
-    setIndex((face - 1) % JUKEBOX_TRACKS.length);
+    const i = (face - 1) % JUKEBOX_TRACKS.length;
+    setIndex(i);
+    useProgressStore.getState().unlockRadio();
+    useMusicStore.getState().setPreferred(i + 1); // +1: LOOP_OPTIONS[0] is the boot loop
     exposeTestGlobal('__sdpDice', face);
   };
 
@@ -199,27 +207,8 @@ export function JukeboxRoom({ room }: { room: Room }) {
       {/* warm low fill so the cabinet glow does most of the work */}
       <ambientLight intensity={0.34} color="#c98fb6" />
 
-      {/* floor */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* ceiling */}
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* walls */}
-      <mesh material={wallMat} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
+      {/* the box shell */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       <Jukebox title={track.title} onSelect={cycle} />
       {/* The dice-music selector: roll for a random track. Off to the side of

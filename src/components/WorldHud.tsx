@@ -6,6 +6,7 @@ import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
+import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
@@ -38,6 +39,8 @@ export function WorldHud() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const commitRoom = useSceneStore((s) => s.commitRoom);
   const endTransition = useSceneStore((s) => s.endTransition);
+  const queuedRoom = useSceneStore((s) => s.queuedRoom);
+  const goToRoom = useSceneStore((s) => s.goToRoom);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
@@ -46,6 +49,8 @@ export function WorldHud() {
   const toggleMute = useAudioStore((s) => s.toggleMute);
   const nowPlaying = useMusicStore((s) => s.title);
   const shiftSong = useMusicStore((s) => s.shift);
+  // The flip-through radio is an UPGRADE: locked until you roll the jukebox d20.
+  const radioUnlocked = useProgressStore((s) => s.radioUnlocked);
 
   // The Scoobertverse welcome — a quest intro that streams in char-by-char on
   // world entry (WorldHud mounts with the world), holds, then fades. Non-blocking,
@@ -106,6 +111,14 @@ export function WorldHud() {
       window.clearTimeout(tEnd);
     };
   }, [transitioning, commitRoom, endTransition]);
+
+  // Flush a navigation that arrived mid-wipe (queued by goToRoom, not dropped):
+  // once this wipe has fully lifted, start the deferred one. This is what makes a
+  // fast re-entry — bouncing out of a failed level then heading straight back
+  // down — actually land instead of silently vanishing into the transition.
+  useEffect(() => {
+    if (queuedRoom && !transitioning) goToRoom(queuedRoom.to, queuedRoom.spawn);
+  }, [queuedRoom, transitioning, goToRoom]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -232,28 +245,41 @@ export function WorldHud() {
                   </li>
                 ))}
               </ul>
-              {/* the song switcher — shift the world's loop track from anywhere */}
-              <div className="hud-pause__nowplaying">
-                <button
-                  className="hud-pause__songbtn"
-                  aria-label="previous song"
-                  disabled={!audioReady}
-                  onClick={() => shiftSong(-1)}
-                >
-                  ◀
-                </button>
-                <span className="hud-pause__songtitle" title="Now playing">
-                  ♪ {!audioReady ? 'loading…' : nowPlaying}
-                </span>
-                <button
-                  className="hud-pause__songbtn"
-                  aria-label="next song"
-                  disabled={!audioReady}
-                  onClick={() => shiftSong(1)}
-                >
-                  ▶
-                </button>
-              </div>
+              {/* The radio. Locked until you roll the jukebox d20 (the upgrade):
+                  before, it's a read-out of whatever the room is playing; after,
+                  the ◀/▶ flip the catalog and your pick follows you everywhere. */}
+              {radioUnlocked ? (
+                <div className="hud-pause__nowplaying">
+                  <button
+                    className="hud-pause__songbtn"
+                    aria-label="previous song"
+                    disabled={!audioReady}
+                    onClick={() => shiftSong(-1)}
+                  >
+                    ◀
+                  </button>
+                  <span className="hud-pause__songtitle" title="Now playing">
+                    ♪ {!audioReady ? 'loading…' : nowPlaying}
+                  </span>
+                  <button
+                    className="hud-pause__songbtn"
+                    aria-label="next song"
+                    disabled={!audioReady}
+                    onClick={() => shiftSong(1)}
+                  >
+                    ▶
+                  </button>
+                </div>
+              ) : (
+                <div className="hud-pause__nowplaying hud-pause__nowplaying--locked">
+                  <span className="hud-pause__songtitle" title="Now playing">
+                    ♪ {!audioReady ? 'loading…' : nowPlaying}
+                  </span>
+                  <span className="hud-pause__radiohint">
+                    roll the bone at the jukebox to tune the radio
+                  </span>
+                </div>
+              )}
               <div className="hud-pause__actions">
                 <button
                   disabled={!audioReady}

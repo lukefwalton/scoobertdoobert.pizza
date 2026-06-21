@@ -5,7 +5,12 @@
 // (This is the load the minigame was built for.)
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { makeLoaderHelpers, walkToDoor } from './lib/smoke.mjs';
+import {
+  makeLoaderHelpers,
+  roomIs as sharedRoomIs,
+  walkToDoor,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -18,19 +23,9 @@ const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 // Walk `key` until a door prompts, then E — shared, hold-and-poll with a
 // CI-generous timeout (see lib/smoke.mjs). Fails with the hop's name if the
 // prompt never appears, so a spawn/door drift points at the broken hop.
@@ -57,13 +52,12 @@ await page.waitForTimeout(1500);
 // One linear tour, SHORT-CIRCUITED: each step gates the next, so the first
 // broken hop fails with its own context and we stop — no 15–25s of follow-on
 // "loader never reached ready" noise after a nav regression upstream.
-let inPool = false;
 let inLiminal = false;
 let deepReady = false;
 let inDeep = false;
 let backUp = false;
 
-inPool = await roomIs('The Poolrooms');
+const inPool = await roomIs('The Poolrooms');
 // Fail fast if the gated transition hook isn't exposed (a gating regression).
 if (inPool && !(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
   fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
@@ -84,7 +78,10 @@ if (
     await page.waitForTimeout(800);
     await page.screenshot({ path: '.shots/deeppool.png' });
     // climb back up to the liminal (deep → liminal; cached → quick).
-    if ((await toDoor('s', 'the climb-back-up door')) && (await enterLoadedLevel('liminal (return)', 15000))) {
+    if (
+      (await toDoor('s', 'the climb-back-up door')) &&
+      (await enterLoadedLevel('liminal (return)', 15000))
+    ) {
       backUp = await roomIs('Liminal Space');
     }
   }

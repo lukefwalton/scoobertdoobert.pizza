@@ -2,8 +2,9 @@ import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
+import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // The "suspect board": the masked-Scoobert photos (Luke's own, degraded to tiny
 // PS1 textures by scripts/make-classified-photos.mjs) pinned askew on the +X wall
@@ -114,13 +115,28 @@ function Desk() {
         <boxGeometry args={[0.12, 0.74, 1.0]} />
       </mesh>
       {/* a couple of folders, lying flat, labels up */}
-      <mesh material={manila} position={[-0.5, 0.82, 0.1]} rotation-x={-Math.PI / 2} rotation-z={0.15}>
+      <mesh
+        material={manila}
+        position={[-0.5, 0.82, 0.1]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={0.15}
+      >
         <planeGeometry args={[0.9, 0.62]} />
       </mesh>
-      <mesh material={folderMat} position={[-0.5, 0.83, 0.1]} rotation-x={-Math.PI / 2} rotation-z={0.15}>
+      <mesh
+        material={folderMat}
+        position={[-0.5, 0.83, 0.1]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={0.15}
+      >
         <planeGeometry args={[0.86, 0.42]} />
       </mesh>
-      <mesh material={folder2Mat} position={[0.6, 0.83, -0.05]} rotation-x={-Math.PI / 2} rotation-z={-0.2}>
+      <mesh
+        material={folder2Mat}
+        position={[0.6, 0.83, -0.05]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={-0.2}
+      >
         <planeGeometry args={[0.86, 0.46]} />
       </mesh>
     </group>
@@ -131,7 +147,7 @@ export function ClassifiedRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const floorTex = useMemo(() => {
     const t = makeCheckerTexture(8, '#1a201c', '#222a25');
@@ -159,28 +175,16 @@ export function ClassifiedRoom({ room }: { room: Room }) {
   return (
     <group>
       <ambientLight intensity={0.18} color="#9fb7ad" />
-      <pointLight ref={light} position={[0, H - 0.3, 0.4]} intensity={0.62} distance={11} color="#cfe6dc" />
+      <pointLight
+        ref={light}
+        position={[0, H - 0.3, 0.4]}
+        intensity={0.62}
+        distance={11}
+        color="#cfe6dc"
+      />
 
-      {/* floor / ceiling */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* walls */}
-      <mesh material={wallMat} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
+      {/* the box shell */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       {/* the fluorescent fixture */}
       <mesh material={fixtureMat} rotation-x={Math.PI / 2} position={[0, H - 0.02, 0.4]}>

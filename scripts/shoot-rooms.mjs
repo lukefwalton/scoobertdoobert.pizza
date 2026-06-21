@@ -6,35 +6,25 @@
 // animation timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt } from './lib/smoke.mjs';
+import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+const ctx = await browser.newContext({
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
+});
 const page = await ctx.newPage();
 let errors = 0;
 const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(
-      () => true,
-      () => (fail(`room never became "${name}"`), false),
-    );
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 const labelHas = (name) =>
   page.evaluate(
     (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
@@ -57,8 +47,13 @@ await page.waitForTimeout(1500); // WebGL warmup + a few frames
 // The world's ambient boot loop ("Best Day Ever") must actually decode — guards
 // the global boot.mp3 asset, separate from "the jukebox room works".
 const bootReady = await page
-  .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, { timeout: 12000 })
-  .then(() => true, () => false);
+  .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, {
+    timeout: 12000,
+  })
+  .then(
+    () => true,
+    () => false,
+  );
 if (!bootReady) fail('boot ambience (boot.mp3) never decoded — engine not ready');
 
 // 1) Start in the shop — and the back-hall door must NOT prompt at spawn (you
@@ -140,9 +135,10 @@ if (!ratStaysDone) fail('the rat reset to "lead" on hallway re-entry after the s
 // prompt rather than walking for a fixed time, so a slower machine — CI most of
 // all — still covers the long corridor before we give up.
 await page.keyboard.down('w');
-const jukePrompt = await page
-  .waitForSelector('.hud-prompt--door', { timeout: 8000 })
-  .then(() => true, () => false);
+const jukePrompt = await page.waitForSelector('.hud-prompt--door', { timeout: 8000 }).then(
+  () => true,
+  () => false,
+);
 await page.keyboard.up('w');
 if (!jukePrompt) fail('jukebox door prompt never appeared at the hall end');
 await page.keyboard.press('e');
@@ -161,7 +157,10 @@ if (!duckedInJuke) fail('jukebox room did not duck the loop by proximity');
 // before the async decode/swap finishes.
 const jukeEngineActive = await page
   .waitForFunction(() => window.__sdpJukeboxActive === true, null, { timeout: 5000 })
-  .then(() => true, () => false);
+  .then(
+    () => true,
+    () => false,
+  );
 if (!jukeEngineActive) fail('jukebox entry did not actually start a track (engine voice inactive)');
 const jukeOpen = await page.evaluate(() => window.__sdpJukebox?.slug);
 const jukeAutoPlay = jukeOpen === 'information';
@@ -173,18 +172,32 @@ const engineUrlBefore = await page.evaluate(() => window.__sdpJukeboxUrl);
 const jbBox = await page.locator('canvas').boundingBox();
 await page.mouse.click(jbBox.x + jbBox.width / 2, jbBox.y + jbBox.height / 2); // click the cabinet
 const engineSwapped = await page
-  .waitForFunction((prev) => !!window.__sdpJukeboxUrl && window.__sdpJukeboxUrl !== prev, engineUrlBefore, {
-    timeout: 5000,
-  })
-  .then(() => true, () => false);
+  .waitForFunction(
+    (prev) => !!window.__sdpJukeboxUrl && window.__sdpJukeboxUrl !== prev,
+    engineUrlBefore,
+    {
+      timeout: 5000,
+    },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
 if (!engineSwapped) fail('clicking the jukebox did not swap the engine voice to the next track');
 const jukeNext = await page.evaluate(() => window.__sdpJukebox?.slug);
 const jukeNextUrl = await page.evaluate(() => window.__sdpJukeboxUrl);
 // Selection advanced AND the engine's active url matches the new slug (React
 // state and the engine voice agree on the same track).
 const jukeCycles =
-  engineSwapped && !!jukeNext && jukeNext !== jukeOpen && !!jukeNextUrl && jukeNextUrl.includes(jukeNext);
-if (!jukeCycles) fail(`clicking the jukebox did not cycle the track (slug ${jukeOpen}->${jukeNext}, url ${jukeNextUrl})`);
+  engineSwapped &&
+  !!jukeNext &&
+  jukeNext !== jukeOpen &&
+  !!jukeNextUrl &&
+  jukeNextUrl.includes(jukeNext);
+if (!jukeCycles)
+  fail(
+    `clicking the jukebox did not cycle the track (slug ${jukeOpen}->${jukeNext}, url ${jukeNextUrl})`,
+  );
 
 // 4) At the jukebox exit door: a held-E (repeat) must NOT transition; then turn
 //    to face the door and CLICK it (the mouse path) → back to the hall.

@@ -27,7 +27,8 @@ function Ext({ href, children }: { href: string; children: ReactNode }) {
 }
 
 export default function About() {
-  const listen = destById('listen')?.href ?? 'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn';
+  const listen =
+    destById('listen')?.href ?? 'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn';
   const catalog = destById('catalog')?.href ?? 'https://scoobertdoobert.bandcamp.com/';
   const lmm = destById('podcast')?.href ?? 'https://lovemusicmore.substack.com/';
 
@@ -163,7 +164,10 @@ export default function About() {
           property="og:description"
           content="Self-produced San Diego indie pop, chill pop, funk, and lofi. CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
         />
-        <meta property="og:image" content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg" />
+        <meta
+          property="og:image"
+          content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg"
+        />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Head>
 
@@ -182,65 +186,65 @@ export default function About() {
 
         <p className="about__lede">
           <strong>Scoobert Doobert</strong> is a lofi hifi wifi music project from{' '}
-          <strong>San Diego, California</strong>: self-produced indie pop, chill pop, funk,
-          lofi, and homemade studio music for people who like hooks, jokes, feelings, tape
-          hiss, beach weather, internet brain, and burritos.
+          <strong>San Diego, California</strong>: self-produced indie pop, chill pop, funk, lofi,
+          and homemade studio music for people who like hooks, jokes, feelings, tape hiss, beach
+          weather, internet brain, and burritos.
         </p>
 
         <p>
-          Born on the internet and raised near the coast, Scoobert Doobert makes songs that
-          sound sunny even when they’re about trying not to collapse. The project lives
-          somewhere between songwriter record, bedroom studio experiment, California
-          postcard, comedy bit, and sincere little prayer. Most of the music is written,
-          played, produced, recorded, and mixed by Scoobert himself, which is both the
-          problem and the point.
+          Born on the internet and raised near the coast, Scoobert Doobert makes songs that sound
+          sunny even when they’re about trying not to collapse. The project lives somewhere between
+          songwriter record, bedroom studio experiment, California postcard, comedy bit, and sincere
+          little prayer. Most of the music is written, played, produced, recorded, and mixed by
+          Scoobert himself, which is both the problem and the point.
         </p>
 
         <h2>The music</h2>
         <p>
-          Before Scoobert Doobert became a full-time recording universe, Scoobert spent
-          years as a working musician, touring as a guitarist and vocalist with The Doobie
-          Brothers and opening for Gregg Allman while playing with Lara Johnston. After the
-          road, the work moved deeper into production, engineering, and collaboration,
-          eventually folding those skills back into the Scoobert catalog.
+          Before Scoobert Doobert became a full-time recording universe, Scoobert spent years as a
+          working musician, touring as a guitarist and vocalist with The Doobie Brothers and opening
+          for Gregg Allman while playing with Lara Johnston. After the road, the work moved deeper
+          into production, engineering, and collaboration, eventually folding those skills back into
+          the Scoobert catalog.
         </p>
         <p>
-          The solo project started from a bedroom and slowly became a many-room house.
-          Early releases led to <em>I’m an Idiot</em>, which landed on Spotify’s New Music
-          Friday and helped connect Scoobert with the Japanese band <Ext href={ext.chai}>CHAI</Ext>.
-          That became <em>Miracle (Scoobert Doobert Remix)</em> on Sub Pop’s{' '}
-          <Ext href={ext.winkTogether}><em>WINK TOGETHER</em></Ext>, followed by more
-          production and songwriting with CHAI, including <em>WHOLE</em>, the theme for the
-          NHK drama 恋せぬふたり, and <em>MY DREAM</em>, from the film さかなの子. The Japan
-          thread runs all the way through: the collaborations kept going — CHAI, then{' '}
-          <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and
-          the Tokyo band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert
-          co-produced — alongside the language-learning, the live shows, and the general
-          belief that a good melody can travel farther than your passport.
+          The solo project started from a bedroom and slowly became a many-room house. Early
+          releases led to <em>I’m an Idiot</em>, which landed on Spotify’s New Music Friday and
+          helped connect Scoobert with the Japanese band <Ext href={ext.chai}>CHAI</Ext>. That
+          became <em>Miracle (Scoobert Doobert Remix)</em> on Sub Pop’s{' '}
+          <Ext href={ext.winkTogether}>
+            <em>WINK TOGETHER</em>
+          </Ext>
+          , followed by more production and songwriting with CHAI, including <em>WHOLE</em>, the
+          theme for the NHK drama 恋せぬふたり, and <em>MY DREAM</em>, from the film さかなの子. The
+          Japan thread runs all the way through: the collaborations kept going — CHAI, then{' '}
+          <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and the Tokyo
+          band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
+          alongside the language-learning, the live shows, and the general belief that a good melody
+          can travel farther than your passport.
         </p>
         <p>
-          Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award
-          nominee), <em>KŌAN</em>, <em>Moonlight Beach</em>, <em>MÖB</em>, and <em>I</em>.{' '}
-          <em>MÖB</em> and <em>I</em> open the MÖBIUS cycle, a four-part album arc about
-          loops, memory, California, Japan, friendship, identity, and trying to get
-          somewhere without fully leaving the place you started. The{' '}
+          Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award nominee),{' '}
+          <em>KŌAN</em>, <em>Moonlight Beach</em>, <em>MÖB</em>, and <em>I</em>. <em>MÖB</em> and{' '}
+          <em>I</em> open the MÖBIUS cycle, a four-part album arc about loops, memory, California,
+          Japan, friendship, identity, and trying to get somewhere without fully leaving the place
+          you started. The{' '}
           <a href={catalog} target="_blank" rel="noopener noreferrer">
             catalog
           </a>{' '}
-          is large, strange, and still expanding: close to 300 registered compositions
-          across singles, remixes, collaborations, demos, visual releases, alternate
-          identities, and songs that may or may not exist because the burrito demanded it.
+          is large, strange, and still expanding: close to 300 registered compositions across
+          singles, remixes, collaborations, demos, visual releases, alternate identities, and songs
+          that may or may not exist because the burrito demanded it.
         </p>
         <p>
           The music has circulated through official playlists, indie and{' '}
           <Ext href={ext.germanRadio}>German radio</Ext>, Japanese film and television, and
-          international collaborations — and Scoobert has worked with a wide cast of artists
-          and players including CHAI, OKAME, bed, <Ext href={ext.tamtam}>Tamtam</Ext>,{' '}
+          international collaborations — and Scoobert has worked with a wide cast of artists and
+          players including CHAI, OKAME, bed, <Ext href={ext.tamtam}>Tamtam</Ext>,{' '}
           <Ext href={ext.kerriMedders}>Kerri Medders</Ext>,{' '}
           <Ext href={ext.ninaFrancis}>Nina Francis</Ext>, <Ext href={ext.louRoy}>Lou Roy</Ext>,{' '}
-          <Ext href={ext.jamieDrake}>Jamie Drake</Ext>,{' '}
-          <Ext href={ext.limonLimon}>Limón Limón</Ext>,{' '}
-          <Ext href={ext.victorMarc}>Victor Marc</Ext>, and{' '}
+          <Ext href={ext.jamieDrake}>Jamie Drake</Ext>, <Ext href={ext.limonLimon}>Limón Limón</Ext>
+          , <Ext href={ext.victorMarc}>Victor Marc</Ext>, and{' '}
           <Ext href={ext.joshShpak}>Josh Shpak</Ext>. The best way in is simply to{' '}
           <a href={listen} target="_blank" rel="noopener noreferrer">
             listen
@@ -254,19 +258,19 @@ export default function About() {
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>
-          , a newsletter and podcast on the craft, philosophy, and history of music — a
-          top-10% music podcast with conversations across every genre and every role,
-          backstage to the stage: Grammy-winning engineers and producers behind Adele,
-          Beyoncé, Metallica, Janet Jackson, “Weird Al” Yankovic, Lana Del Rey, and St.
-          Vincent, plus punk founders, scene-builders, and the people who actually decide
-          how a record sounds. New episodes Tuesdays; deeper dives on Substack.
+          , a newsletter and podcast on the craft, philosophy, and history of music — a top-10%
+          music podcast with conversations across every genre and every role, backstage to the
+          stage: Grammy-winning engineers and producers behind Adele, Beyoncé, Metallica, Janet
+          Jackson, “Weird Al” Yankovic, Lana Del Rey, and St. Vincent, plus punk founders,
+          scene-builders, and the people who actually decide how a record sounds. New episodes
+          Tuesdays; deeper dives on Substack.
         </p>
 
         <h2>Plato, out loud</h2>
         <p>
           And beyond music, Scoobert has read the Greeks:{' '}
-          <em>Plato’s Dialogues, as Read by Scoobert Doobert</em>, with the{' '}
-          <em>Apology</em> out now on{' '}
+          <em>Plato’s Dialogues, as Read by Scoobert Doobert</em>, with the <em>Apology</em> out now
+          on{' '}
           <a href={audiobookSpotify} target="_blank" rel="noopener noreferrer">
             Spotify
           </a>
@@ -286,10 +290,9 @@ export default function About() {
         </p>
 
         <p>
-          At its core, Scoobert Doobert is abundant songwriting with a smile on its face
-          and a suspicious amount going on under the hood: beachy, dense, goofy, earnest,
-          overcaffeinated, over-reverbed, and usually trying to hand you something warm
-          before it disappears.
+          At its core, Scoobert Doobert is abundant songwriting with a smile on its face and a
+          suspicious amount going on under the hood: beachy, dense, goofy, earnest, overcaffeinated,
+          over-reverbed, and usually trying to hand you something warm before it disappears.
         </p>
         <p>
           Scoobert Doobert is the recording, podcasting, and audio-project name of{' '}
@@ -301,12 +304,11 @@ export default function About() {
 
         <h2>The philosophy of the pizza</h2>
         <p>
-          This website is the goblin-mode archive of all of it. It opens as a deliberately
-          ugly 1996 “electronic pizza storefront” and, if you let it, falls backward
-          through the web eras and drops you into a low-poly world off the coast of San
-          Diego — a long-overdue delivery on a promise the early web made and never quite
-          kept. The retro costume is a joke. Underneath, this is a real musician’s home on
-          the internet, and every link here goes somewhere real.
+          This website is the archive of all of it. It opens as a deliberately ugly 1996 “electronic
+          pizza storefront” and, if you let it, falls backward through the web eras and drops you
+          into a low-poly world off the coast of San Diego — a long-overdue delivery on a promise
+          the early web made and never quite kept. The retro costume is a joke. Underneath, this is
+          a real musician’s home on the internet, and every link here goes somewhere real.
         </p>
 
         <hr />

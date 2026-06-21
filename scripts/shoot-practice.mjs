@@ -36,7 +36,10 @@ if (title !== 'The Practice Room')
 // Wait for the in-world test hook to come online.
 const hookReady = await page
   .waitForFunction(() => !!window.__sdpPractice, null, { timeout: 8000 })
-  .then(() => true, () => false);
+  .then(
+    () => true,
+    () => false,
+  );
 if (!hookReady) bad('practice: __sdpPractice test hook never appeared');
 
 let result = { ok: false };
@@ -72,9 +75,9 @@ if (hookReady) {
     await sleep(300);
     let stored = false;
     try {
-      stored = (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').clearedGames || []).includes(
-        'practice',
-      );
+      stored = (
+        JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').clearedGames || []
+      ).includes('practice');
     } catch {
       /* ignore */
     }
@@ -89,7 +92,8 @@ else {
 }
 
 await page.screenshot({ path: '.shots/practice.png' });
-if (errors.length) bad(`practice: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
+if (errors.length)
+  bad(`practice: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 // Companion guard: the test hook must NOT leak onto a normal (non-debug) load —
 // it's gated to the ?world / ?debug test entrances only.

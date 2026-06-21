@@ -75,7 +75,9 @@ const bad = (m) => {
     if (!title || !DEEP_TITLES.includes(title)) {
       bad(`desktop: dropped into "${title}" which is not a deep room`);
     }
-    console.log(`desktop  -> seam=${!!seam} rolled=${!!fall} canvas=${!!canvas} room=${JSON.stringify(title)}`);
+    console.log(
+      `desktop  -> seam=${!!seam} rolled=${!!fall} canvas=${!!canvas} room=${JSON.stringify(title)}`,
+    );
     await page.waitForTimeout(400);
     await page.screenshot({ path: '.shots/trapdoor-dropped.png' });
   }

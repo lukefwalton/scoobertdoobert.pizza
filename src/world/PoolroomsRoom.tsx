@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap, flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { useDreadStore } from '../state/dreadStore';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PoolroomsRoom — Phase 6, the first level "below the shop". An ORIGINAL,
@@ -72,7 +72,7 @@ export function PoolroomsRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   // Pale wall/deck tile, nearest-filtered.
   const wallTex = useMemo(() => {
@@ -87,7 +87,10 @@ export function PoolroomsRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [deckTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const wallMat = useMemo(
+    () => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }),
+    [wallTex],
+  );
   const ceilMat = useMemo(() => flatMat('#eef5f7', { side: THREE.DoubleSide }), []);
   const lightMat = useMemo(() => flatMat('#ffffff', { side: THREE.DoubleSide }), []); // flat fluorescent quads
   const pillarMat = useMemo(() => flatMat('#e3eef1', { side: THREE.DoubleSide }), []);
@@ -131,7 +134,10 @@ export function PoolroomsRoom({ room }: { room: Room }) {
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
-      pos.setZ(i, baseZ.current[i] + Math.sin(x * 1.3 + t * 1.6) * Math.cos(y * 1.1 + t * 1.2) * amp);
+      pos.setZ(
+        i,
+        baseZ.current[i] + Math.sin(x * 1.3 + t * 1.6) * Math.cos(y * 1.1 + t * 1.2) * amp,
+      );
     }
     pos.needsUpdate = true;
   });
@@ -141,7 +147,12 @@ export function PoolroomsRoom({ room }: { room: Room }) {
       {/* over-lit + too even — the liminal tell (bright, not dark) */}
       <ambientLight intensity={0.95} color="#eaf6f9" />
       <pointLight position={[0, H - 0.3, 0]} intensity={0.5} distance={26} color="#ffffff" />
-      <pointLight position={[-W + 2, H - 0.3, D - 3]} intensity={0.3} distance={16} color="#dff2f7" />
+      <pointLight
+        position={[-W + 2, H - 0.3, D - 3]}
+        intensity={0.3}
+        distance={16}
+        color="#dff2f7"
+      />
 
       {/* full tiled deck floor — you walk on this everywhere, water included */}
       <mesh material={deckMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
@@ -176,7 +187,12 @@ export function PoolroomsRoom({ room }: { room: Room }) {
       {/* bright flat fluorescent panels — the over-even light */}
       {[-W + 3, 0, W - 3].map((x) =>
         [-D + 3, D - 3].map((z) => (
-          <mesh key={`${x},${z}`} material={lightMat} rotation-x={Math.PI / 2} position={[x, H - 0.02, z]}>
+          <mesh
+            key={`${x},${z}`}
+            material={lightMat}
+            rotation-x={Math.PI / 2}
+            position={[x, H - 0.02, z]}
+          >
             <planeGeometry args={[1.6, 1.6]} />
           </mesh>
         )),

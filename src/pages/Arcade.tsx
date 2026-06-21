@@ -56,9 +56,7 @@ export default function Arcade() {
         ) : (
           <div className="arcade-screen arcade-screen--cold">
             <p className="arcade-title">SCOOBERT&rsquo;S PIZZA RUN</p>
-            <p className="arcade-sub">
-              Insert JavaScript to play. No quarters accepted.
-            </p>
+            <p className="arcade-sub">Insert JavaScript to play. No quarters accepted.</p>
             <p className="arcade-sub">
               Or just <a href="/text">browse the menu &raquo;</a>
             </p>
@@ -69,12 +67,11 @@ export default function Arcade() {
       </div>
 
       <p className="arcade-foot">
-        Tap (or press space) to jump the broken web buttons. Your best run is
-        remembered on this device.
+        Tap (or press space) to jump the broken web buttons. Your best run is remembered on this
+        device.
       </p>
       <p className="arcade-foot">
-        &#9654; Next cabinet: <a href="/poke">POKE SCOOBERT</a> &mdash; grab his face
-        and pull.
+        &#9654; Next cabinet: <a href="/poke">POKE SCOOBERT</a> &mdash; grab his face and pull.
       </p>
       <p className="arcade-foot arcade-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation

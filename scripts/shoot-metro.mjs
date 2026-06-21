@@ -5,7 +5,12 @@
 // tunnel → shrine (return door) and shrine → tunnel (the new track door).
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { makeLoaderHelpers, walkToDoor } from './lib/smoke.mjs';
+import {
+  makeLoaderHelpers,
+  roomIs as sharedRoomIs,
+  walkToDoor,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -18,19 +23,9 @@ const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 // Walk `key` until a door prompts, then E — shared, hold-and-poll with a
 // CI-generous timeout (see lib/smoke.mjs).
 const toDoor = (key, label) => walkToDoor(page, fail, key, label);
@@ -56,11 +51,17 @@ if ((await enterLoadedLevel('metro tunnel')) && (inTunnel = await roomIs('Metro 
   await page.screenshot({ path: '.shots/metro.png' });
   // tunnel → shrine via the +Z return door (spawn faces -Z, so 's' walks +Z to it).
   // The shrine is procedural — no loader on the way back up.
-  if ((await toDoor('s', 'the climb-back-up door')) && (backAtShrine = await roomIs('Wayside Shrine'))) {
+  if (
+    (await toDoor('s', 'the climb-back-up door')) &&
+    (backAtShrine = await roomIs('Wayside Shrine'))
+  ) {
     await page.waitForTimeout(500);
     // shrine → tunnel: arrived at fromTunnel (+X, facing -X), so 's' walks +X back
     // toward the new track door. Re-enters the tunnel (cached loader → quick).
-    if ((await toDoor('s', 'the tunnel track door')) && (await enterLoadedLevel('metro tunnel (return)', 15000))) {
+    if (
+      (await toDoor('s', 'the tunnel track door')) &&
+      (await enterLoadedLevel('metro tunnel (return)', 15000))
+    ) {
       inTunnelAgain = await roomIs('Metro Tunnel');
     }
   }

@@ -27,7 +27,9 @@ await page.goto(base + '/', { waitUntil: 'networkidle' });
 if (await page.$('[aria-label="Terminal"]')) bad('terminal visible before backtick');
 
 await page.keyboard.press('Backquote');
-const term = await page.waitForSelector('[aria-label="Terminal"]', { timeout: 5000 }).catch(() => null);
+const term = await page
+  .waitForSelector('[aria-label="Terminal"]', { timeout: 5000 })
+  .catch(() => null);
 if (!term) bad('backtick did not summon the terminal');
 
 const run = async (cmd) => {
@@ -44,7 +46,8 @@ if (term) {
   if (!status.includes('VISITOR RECORD')) bad('`status` did not print the visitor record');
   if (!status.includes('plug-in installed')) bad('`status` missing the persistence fields');
   if (!(await run('echo scoobert')).includes('scoobert')) bad('`echo` did not echo');
-  if (!(await run('sudo')).toLowerCase().includes('reported')) bad('forbidden `sudo` gave no response');
+  if (!(await run('sudo')).toLowerCase().includes('reported'))
+    bad('forbidden `sudo` gave no response');
 
   await page.screenshot({ path: '.shots/terminal.png' });
 
@@ -63,7 +66,8 @@ const page2 = await ctx2.newPage();
 await page2.goto(base + '/', { waitUntil: 'domcontentloaded' });
 const body = (await page2.textContent('body')) || '';
 if (!/Electronic Pizza Storefront/i.test(body)) bad('JS-off storefront did not render its heading');
-if (await page2.$('[aria-label="Terminal"]')) bad('terminal present in the JS-off / prerendered DOM');
+if (await page2.$('[aria-label="Terminal"]'))
+  bad('terminal present in the JS-off / prerendered DOM');
 await ctx2.close();
 
 await browser.close();

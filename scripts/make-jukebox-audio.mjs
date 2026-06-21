@@ -19,9 +19,9 @@ const OUT_DIR = 'public/audio/jukebox';
 // slug can't drift between what we render here and what the app asks for. Each
 // row: { slug, title, source } — `source` is the master in media/masters/, `slug`
 // is the output filename. (`title` is the app's concern; ignored here.)
-const TRACKS = JSON.parse(readFileSync(new URL('../src/data/jukebox.catalog.json', import.meta.url))).map(
-  ({ source, slug }) => ({ file: source, slug }),
-);
+const TRACKS = JSON.parse(
+  readFileSync(new URL('../src/data/jukebox.catalog.json', import.meta.url)),
+).map(({ source, slug }) => ({ file: source, slug }));
 
 // Preflight: every catalog `source` must exist before we spin up Chromium, so a
 // bad catalog edit (typo'd filename, master not dropped in yet) fails fast with
@@ -42,7 +42,9 @@ if (missing.length) {
 // track's <slug>.mp3 (the slug is the output filename).
 const dupes = [...new Set(TRACKS.map((t) => t.slug).filter((s, i, a) => a.indexOf(s) !== i))];
 if (dupes.length) {
-  console.error(`make-jukebox-audio: duplicate catalog slug(s) — would overwrite output: ${dupes.join(', ')}`);
+  console.error(
+    `make-jukebox-audio: duplicate catalog slug(s) — would overwrite output: ${dupes.join(', ')}`,
+  );
   process.exit(1);
 }
 
@@ -106,7 +108,10 @@ for (const { file, slug } of TRACKS) {
       for (let i = 0; i < warpedLen; i++) {
         const t = i / TARGET_SR;
         const rate =
-          base * (1 + wowD * Math.sin(2 * Math.PI * wowF * t) + flutD * Math.sin(2 * Math.PI * flutF * t + 1.3));
+          base *
+          (1 +
+            wowD * Math.sin(2 * Math.PI * wowF * t) +
+            flutD * Math.sin(2 * Math.PI * flutF * t + 1.3));
         const idx = Math.floor(rp);
         const frac = rp - idx;
         const a = seg[idx] || 0;
@@ -123,7 +128,9 @@ for (const { file, slug } of TRACKS) {
       for (let i = 0; i < outLen; i++) out[i] = warped[i];
       for (let i = 0; i < xf; i++) {
         const t = i / xf;
-        out[i] = warped[i] * Math.sin((t * Math.PI) / 2) + warped[outLen + i] * Math.cos((t * Math.PI) / 2);
+        out[i] =
+          warped[i] * Math.sin((t * Math.PI) / 2) +
+          warped[outLen + i] * Math.cos((t * Math.PI) / 2);
       }
 
       // a breath of tape hiss

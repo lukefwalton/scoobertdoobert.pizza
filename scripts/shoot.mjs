@@ -37,7 +37,14 @@ const shots = [
     // The whole point: real content + real anchors with JavaScript OFF.
     assert: ['Electronic Pizza Storefront', 'Sample Menu', 'open.spotify.com', 'beformer.co'],
   },
-  { name: 'storefront-mobile', path: '/', viewport: MOBILE, js: true, skipBoot: true, assert: ['Electronic Pizza Storefront'] },
+  {
+    name: 'storefront-mobile',
+    path: '/',
+    viewport: MOBILE,
+    js: true,
+    skipBoot: true,
+    assert: ['Electronic Pizza Storefront'],
+  },
   {
     name: 'textonly-desktop',
     path: '/text',
@@ -53,7 +60,11 @@ const shots = [
 const browser = await chromium.launch();
 let failures = 0;
 for (const s of shots) {
-  const ctx = await browser.newContext({ viewport: s.viewport, javaScriptEnabled: s.js, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: s.viewport,
+    javaScriptEnabled: s.js,
+    deviceScaleFactor: 1,
+  });
   if (s.skipBoot) {
     await ctx.addInitScript(() => {
       try {
@@ -65,7 +76,10 @@ for (const s of shots) {
   }
   const page = await ctx.newPage();
   try {
-    const res = await page.goto(base + s.path, { waitUntil: s.delayMs ? 'commit' : 'networkidle', timeout: 15000 });
+    const res = await page.goto(base + s.path, {
+      waitUntil: s.delayMs ? 'commit' : 'networkidle',
+      timeout: 15000,
+    });
     if (s.delayMs) await page.waitForTimeout(s.delayMs);
     const status = res?.status() ?? 0;
     await page.screenshot({ path: `${out}/${s.name}.png`, fullPage: !s.delayMs });

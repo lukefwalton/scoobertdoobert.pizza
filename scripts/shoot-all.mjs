@@ -74,7 +74,12 @@ const runOnce = (name) => {
   // "auto-discovered" claim can't silently drift from how the scripts actually run.
   const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8', timeout: 180000 });
   const timedOut = r.error?.code === 'ETIMEDOUT';
-  return { ok: !timedOut && r.status === 0, timedOut, r, secs: ((Date.now() - t0) / 1000).toFixed(0) };
+  return {
+    ok: !timedOut && r.status === 0,
+    timedOut,
+    r,
+    secs: ((Date.now() - t0) / 1000).toFixed(0),
+  };
 };
 
 const results = [];
@@ -87,7 +92,9 @@ for (const name of smokes) {
   // hiding bugs. The retry is logged so chronic flakiness stays visible.
   const flaked = !res.ok;
   if (flaked) {
-    console.log(`↻ ${name} failed (${res.secs}s)${res.timedOut ? ' [timed out]' : ''} — retrying once`);
+    console.log(
+      `↻ ${name} failed (${res.secs}s)${res.timedOut ? ' [timed out]' : ''} — retrying once`,
+    );
     res = runOnce(name);
   }
   results.push({ name, ok: res.ok, flaked: flaked && res.ok });

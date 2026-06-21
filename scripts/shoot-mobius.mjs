@@ -10,7 +10,7 @@
 // Asserts on the `.hud-room` label + the `__sdpMobius` lap hook, not on timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { makeLoaderHelpers } from './lib/smoke.mjs';
+import { makeLoaderHelpers, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const BREAK = 3; // MOBIUS_BREAK in src/data/rooms.ts
@@ -24,19 +24,9 @@ const fail = (m) => {
   errors++;
   console.log('FAIL:', m);
 };
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
-});
+watchPageErrors(page, fail);
 
-const roomIs = (name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 const toDoor = async (key, timeout = 6000) => {
   await page.keyboard.down(key);
   let ok = false;
@@ -88,7 +78,10 @@ if (!(await toDoor('w'))) {
   stayedInLoop = await roomIs('The Long Corridor', 6000);
   const ok = await page
     .waitForFunction(() => (window.__sdpMobius ?? 0) >= 1, null, { timeout: 4000 })
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
   if (!ok) fail(`lap 1 did not register (count ${await laps()})`);
   else looped = 1;
 }
@@ -115,9 +108,10 @@ if (lapsCounted) {
   // for the prompt rather than walking a fixed time — robust on a slow machine.
   await page.keyboard.down('w');
   await page.keyboard.down('a');
-  const prompted = await page
-    .waitForSelector('.hud-prompt--door', { timeout: 9000 })
-    .then(() => true, () => false);
+  const prompted = await page.waitForSelector('.hud-prompt--door', { timeout: 9000 }).then(
+    () => true,
+    () => false,
+  );
   await page.keyboard.up('w');
   await page.keyboard.up('a');
   if (!prompted) fail('the broken-loop "onward" door never prompted');
@@ -125,16 +119,18 @@ if (lapsCounted) {
     await page.keyboard.press('e');
     // The waterfall is keyed on the destination being the liminal (pendingRoom.to
     // === 'liminal'), so it firing already proves WHERE the onward door lands.
-    descended = await page
-      .waitForSelector('.hud-waterfall--on', { timeout: 2500 })
-      .then(() => true, () => false);
+    descended = await page.waitForSelector('.hud-waterfall--on', { timeout: 2500 }).then(
+      () => true,
+      () => false,
+    );
     if (!descended) fail('the onward door did not descend into the liminal (no waterfall fired)');
     // Prove the earned descent ARRIVES, not just that the wipe started: the
     // liminal is a GLB level, so wait its loader to ready, tap in, and assert the
     // room actually became Liminal Space (covers a stall/error/wrong-landing).
-    const loader = await page
-      .waitForSelector('[data-level-loader]', { timeout: 6000 })
-      .then(() => true, () => false);
+    const loader = await page.waitForSelector('[data-level-loader]', { timeout: 6000 }).then(
+      () => true,
+      () => false,
+    );
     if (!loader) fail('the onward door did not land in the liminal (its loader never mounted)');
     if (loader) {
       const entered = await enterLoadedLevel('liminal');

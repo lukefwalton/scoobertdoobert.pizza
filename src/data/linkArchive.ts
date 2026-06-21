@@ -15,7 +15,7 @@ export type ArchiveSection = {
 
 const LINK_RE = /^-\s*\[([^\]]+)\]\(([^)]+)\)\s*$/;
 
-function parse(md: string): ArchiveSection[] {
+export function parse(md: string): ArchiveSection[] {
   const sections: ArchiveSection[] = [];
   let section: ArchiveSection | undefined;
   let sub: ArchiveSubsection | undefined;
