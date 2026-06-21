@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap, makeCheckerTexture } from './ps1';
+import { audio } from '../audio/engine';
 import type { Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -50,6 +51,11 @@ function Shinkansen() {
   // Three cars at these z-centres; the nose caps the -Z front car.
   const cars = [0.5, -3.7, -7.9];
 
+  // Fire the audio "pass" cue once per lap, just before the train reaches the
+  // camera (~p 0.18, where z ≈ the spawn). Re-armed past the loop's end. The
+  // engine no-ops if audio isn't unlocked or is muted, so this never forces sound.
+  const fired = useRef(false);
+
   useFrame((state) => {
     const g = ref.current;
     if (!g) return;
@@ -59,6 +65,12 @@ function Shinkansen() {
     g.position.z = 20 - p * 64;
     // Cheap rattle so the "shitty fake" reads as moving, not gliding.
     g.position.y = 1.02 + Math.sin(state.clock.elapsedTime * 22) * 0.03;
+
+    if (p > 0.9) fired.current = false; // re-arm before the next lap
+    if (!fired.current && p > 0.12 && p < 0.2) {
+      fired.current = true;
+      audio.playTrainPass();
+    }
   });
 
   return (

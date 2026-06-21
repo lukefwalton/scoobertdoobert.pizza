@@ -19,7 +19,7 @@ unless the work is genuinely ambiguous.
 | 1 | Storefront fallback + descent gag + first 3D room | ✅ done |
 | 2 | Data-driven era-floor descent + SGI machine room | ✅ done |
 | 3 | The world grows — rooms graph, rat, the one secret, jukebox | ✅ done (mobile/README tail open) |
-| 4 | The terminal (hidden command line) | ⬜ next pick |
+| 4 | The terminal (hidden command line) | ✅ done |
 | 5 | The dread conductor (`unease` modulation layer) | ⬜ specced, not built |
 | 6+ | World-content backlog + wire up `fun/` | ⬜ backlog |
 
@@ -64,11 +64,19 @@ rooms.ts`, three-free). beach shop (`ROOMS[0]`) ⇄ **rat hallway** (3D-Maze bri
 
 ---
 
-## ⬜ Phase 4 — THE TERMINAL (next pick)
-A hidden SGI/X-Files command line (in the machine room and/or a `/` console).
-Real commands, dead-web flavor. **Some commands become Phase 5 `unease`
-triggers** (those trigger ids are already declared-dormant in `dread.ts`'s plan).
-Keep it diegetic and within the friction budget — discoverable, not a wall.
+## ✅ Phase 4 — THE TERMINAL (COMPLETE)
+A hidden SGI/X-Files command line, summoned by the **backtick (`` ` ``)** key
+anywhere (storefront, every floor, the world) — mounted on the storefront shell
+(`Terminal.tsx`), so it's a pure post-hydration enhancement that never touches the
+crawlable / JS-off page. Commands are data (`src/data/commands.ts`): `help`, a
+dead-web `ls`/`cat` fake filesystem, `about`, hidden eggs (`rat`, `1101`,
+`mobius`, `pizza`), and **forbidden** ones (`sudo`/`rm`/`unlock`/`kill`) that fire
+the `terminal-forbidden-cmd` `unease` bump — the live Phase-4→5 bridge.
+- **Persistence link (the "site remembers you", made legible):** `status` and a
+  recognising `whoami` read the durable `progressStore` snapshot (depth, rooms,
+  secrets, visits) via `CommandCtx.progress`; summoning the terminal records
+  `findSecret('terminal')`. Verified by `shoot:terminal` (incl. the JS-off
+  crawlable guarantee).
 
 ---
 
