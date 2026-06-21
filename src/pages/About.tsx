@@ -304,11 +304,11 @@ export default function About() {
 
         <h2>The philosophy of the pizza</h2>
         <p>
-          This website is the goblin-mode archive of all of it. It opens as a deliberately ugly 1996
-          “electronic pizza storefront” and, if you let it, falls backward through the web eras and
-          drops you into a low-poly world off the coast of San Diego — a long-overdue delivery on a
-          promise the early web made and never quite kept. The retro costume is a joke. Underneath,
-          this is a real musician’s home on the internet, and every link here goes somewhere real.
+          This website is the archive of all of it. It opens as a deliberately ugly 1996 “electronic
+          pizza storefront” and, if you let it, falls backward through the web eras and drops you
+          into a low-poly world off the coast of San Diego — a long-overdue delivery on a promise
+          the early web made and never quite kept. The retro costume is a joke. Underneath, this is
+          a real musician’s home on the internet, and every link here goes somewhere real.
         </p>
 
         <hr />
