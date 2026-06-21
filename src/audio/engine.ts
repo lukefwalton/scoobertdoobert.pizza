@@ -30,6 +30,12 @@ const DREAD_BED_MAX = 0.16;
 class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
+  // Brickwall limiter on the OUTPUT — the safety guard. EVERY source (the music
+  // loop, the dread sub-bass bed, the train-pass SFX) sums into `master` and is
+  // forced through this before the speakers, so no combination of sources, and no
+  // sudden onset, can spike past a safe ceiling. Protects ears + honours the WCAG
+  // 2.3.1 audio rule (no loud onset after a dropout).
+  private limiter?: DynamicsCompressorNode;
   private lowpass?: BiquadFilterNode;
   private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Best Day Ever)
   // The jukebox can temporarily take over the single loop voice with a catalog
@@ -64,6 +70,13 @@ class PizzaAudio {
   /** True once the track is fetched + decoded and the loop can actually play. */
   get ready(): boolean {
     return !!this.trackBuffer;
+  }
+
+  /** The output brickwall limiter (built by ensure()). Exposed so the dread smoke
+   *  can assert the safety guard is present on the graph; undefined until the
+   *  audio context is built on the first gesture. */
+  get outputLimiter(): DynamicsCompressorNode | undefined {
+    return this.limiter;
   }
 
   /** Subscribe to readiness (fires immediately with the current value). Returns
@@ -131,13 +144,24 @@ class PizzaAudio {
     const ctx = new AC();
     const master = ctx.createGain();
     master.gain.value = 0.0001;
+    // The output limiter (see field doc). master → limiter → destination, so it
+    // sits across EVERYTHING. Hard knee + high ratio + fast attack ≈ a brickwall:
+    // peaks above the threshold are clamped, they never reach the speakers hot.
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -4; // dB — clamp anything above ~0.63 amplitude
+    limiter.knee.value = 0; // hard knee = brickwall, not a soft compressor
+    limiter.ratio.value = 20; // ≈ limiting
+    limiter.attack.value = 0.003; // catch transients (a train onset) fast
+    limiter.release.value = 0.25;
     const lowpass = ctx.createBiquadFilter();
     lowpass.type = 'lowpass';
     lowpass.frequency.value = REST_CUTOFF;
     lowpass.connect(master);
-    master.connect(ctx.destination);
+    master.connect(limiter);
+    limiter.connect(ctx.destination);
     this.ctx = ctx;
     this.master = master;
+    this.limiter = limiter;
     this.lowpass = lowpass;
   }
 
@@ -366,10 +390,11 @@ class PizzaAudio {
     bp.frequency.linearRampToValueAtTime(900, now + dur * 0.5);
     bp.frequency.linearRampToValueAtTime(170, now + dur);
 
-    // gain envelope: swell to the pass, then away (felt, not loud)
+    // gain envelope: swell to the pass, then away (felt, not loud — kept modest
+    // so it sits UNDER the music + limiter rather than pumping them each lap)
     const g = ctx.createGain();
     g.gain.setValueAtTime(0.0001, now);
-    g.gain.linearRampToValueAtTime(0.6, now + dur * 0.5);
+    g.gain.linearRampToValueAtTime(0.42, now + dur * 0.5);
     g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
 
     // stereo pan sweep L→R as the train crosses (guarded — older Safari lacks it)
