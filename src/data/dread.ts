@@ -46,6 +46,7 @@ export const DREAD: DreadConfig = {
     shop: 0, // the safe, goofy spawn — stays sweet, always
     hallway: 0.42, // dim backrooms corridor — the first real tension
     jukebox: 0.05, // the warm payoff shrine — a relief valve, kept safe
+    practice: 0.04, // backstage music room — a "play it" relief beat, kept sweet
     classified: 0.8, // the cold X-Files file room — the bitter end
     poolrooms: 0.3, // the level below — over-lit, empty, uncanny (not dark dread)
     // ── the deeper rooms (added after ckpt1 — covered here so the bottom of the

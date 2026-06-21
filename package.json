@@ -30,7 +30,8 @@
     "shoot:metro": "node scripts/shoot-metro.mjs",
     "shoot:terminal": "node scripts/shoot-terminal.mjs",
     "shoot:dread": "node scripts/shoot-dread.mjs",
-    "shoot:terminus": "node scripts/shoot-terminus.mjs"
+    "shoot:terminus": "node scripts/shoot-terminus.mjs",
+    "shoot:practice": "node scripts/shoot-practice.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",

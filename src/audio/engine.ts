@@ -421,6 +421,36 @@ class PizzaAudio {
     };
   }
 
+  /**
+   * A short musical tone — the building block for the practice room's pad
+   * instrument and its call-and-response sequence game. A triangle osc through a
+   * soft attack/decay envelope, routed via `master` so the limiter + global mute
+   * apply. No-op until the graph is built + unlocked, and when muted. This is SFX,
+   * not "the music": synth here is fine — the no-synth-fallback rule guards Luke's
+   * tracks, not UI/instrument tones. Returns its node count for nothing; frees on end.
+   */
+  playTone(freq: number, durationMs = 360, peak = 0.26): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = durationMs / 1000;
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, peak), now + 0.012); // soft attack
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(g);
+    g.connect(this.master);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+    osc.onended = () => {
+      osc.disconnect();
+      g.disconnect();
+    };
+  }
+
   /** Pitch-bend the whole loop downward as the era "ages" (the descent). */
   pitchBendDown(durationMs = 2200, target = 0.45): void {
     if (!this.ctx || !this.source) return;
