@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ShrineRoom — the Japan level (scaffold). The one OUTDOOR, *sweet* deep room:
@@ -184,7 +184,7 @@ function Fireflies({ count = 44 }: { count?: number }) {
 export function ShrineRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   // ── materials (shared) ──
   const grassTex = useMemo(() => {

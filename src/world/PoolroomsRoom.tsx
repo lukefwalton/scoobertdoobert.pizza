@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap, flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { useDreadStore } from '../state/dreadStore';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PoolroomsRoom — Phase 6, the first level "below the shop". An ORIGINAL,
@@ -72,7 +72,7 @@ export function PoolroomsRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   // Pale wall/deck tile, nearest-filtered.
   const wallTex = useMemo(() => {

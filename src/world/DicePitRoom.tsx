@@ -11,7 +11,7 @@ import { useMusicStore } from '../state/musicStore';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // DicePitRoom — Phase 6. A dim felt-and-stone gambling nook off the poolrooms.
@@ -28,7 +28,7 @@ export function DicePitRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const last = useMonsterStore((s) => s.last);
   const losses = useMonsterStore((s) => s.losses);

@@ -3,7 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // The "suspect board": the masked-Scoobert photos (Luke's own, degraded to tiny
 // PS1 textures by scripts/make-classified-photos.mjs) pinned askew on the +X wall
@@ -146,7 +146,7 @@ export function ClassifiedRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const floorTex = useMemo(() => {
     const t = makeCheckerTexture(8, '#1a201c', '#222a25');
