@@ -60,6 +60,7 @@ const unlocked = await page.evaluate(() => {
   }
 });
 if (!unlocked) bad('rolling the jukebox d20 did not unlock the radio (not persisted)');
+await page.waitForTimeout(700); // let the engine settle on the rolled track
 
 // ── 3. UNLOCKED: the ◀/▶ now flip the catalog and the engine voice follows ──
 await page.keyboard.press('Escape');
@@ -87,12 +88,45 @@ if (flipReady) {
     .then(() => true, () => false);
   if (!flipped) bad('flipping ▶ did not swap the engine loop voice to another track');
 }
+// ── 4. FOLLOWS YOU OUT: leave the jukebox → the chosen station resumes elsewhere ──
+// The headline promise. Capture the station, close the pause menu, and leave to
+// the hall via the gated transition hook — JukeboxRoom unmounts → restorePreferred
+// hands the station back — then assert the engine is still playing it.
+let followed = false;
+if (flipped) {
+  const stationUrl = await page.evaluate(() => window.__sdpJukeboxUrl);
+  await page.keyboard.press('Escape'); // close the pause menu (goToRoom is paused-guarded)
+  await page.waitForSelector('.hud-pause', { state: 'detached', timeout: 4000 }).catch(() => {});
+  await page.evaluate(() => window.__sdpGoToRoom?.('hallway', 'fromJuke'));
+  await page
+    .waitForFunction((n) => document.querySelector('.hud-room')?.textContent?.includes(n), 'Back Hall', {
+      timeout: 8000,
+    })
+    .catch(() => bad('never left the jukebox to the hall'));
+  followed = await page
+    .waitForFunction((u) => window.__sdpJukeboxActive === true && window.__sdpJukeboxUrl === u, stationUrl, {
+      timeout: 8000,
+    })
+    .then(() => true, () => false);
+  if (!followed) bad('the chosen station did not follow out of the jukebox (restorePreferred handoff)');
+}
+
+// ── 5. DURABLE: reload → the unlock rehydrates from persisted progress (not session) ──
+await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+await page.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => bad('world never re-mounted on reload'));
+await page.keyboard.press('Escape');
+await page.waitForSelector('.hud-pause', { timeout: 6000 }).catch(() => bad('pause menu did not open (reload)'));
+const rehydrated = await page
+  .waitForFunction(() => !!document.querySelector('button[aria-label="next song"]'), null, { timeout: 8000 })
+  .then(() => true, () => false);
+if (!rehydrated) bad('the unlocked radio did not rehydrate from persisted progress after reload');
+
 if (errors.length) bad(`page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 await browser.close();
 console.log(
   `radio -> lockedHint=${lockedHint} noFlipLocked=${noFlipWhenLocked} rolled=${rolled} ` +
-    `unlocked=${unlocked} flipped=${flipped} errors=${errors.length}`,
+    `unlocked=${unlocked} flipped=${flipped} followed=${followed} rehydrated=${rehydrated} errors=${errors.length}`,
 );
 console.log(fail ? `\n${fail} radio check(s) FAILED` : '\nradio checks passed.');
 process.exit(fail ? 1 : 0);
