@@ -283,9 +283,11 @@ panel) — discovered, not on the main path.
   tying the railway motif back into the site's whole water descent. Dressing
   (`src/world/MetroTunnelFx.tsx`, procedural, layered over the GLB like
   `CeilingDrips`): a **shitty fake shinkansen** that whooshes through on a loop
-  (white body, blue livery stripe, no JR marks), a glowing **青函トンネル neon
-  sign** (WCAG-safe buzz — small, dim, sub-3 Hz, never a full-field flash), and
-  the flooded floor with drifting caustics.
+  (white body, blue livery stripe, no JR marks) — with a **Doppler audio pass**
+  each lap (filtered-noise whoosh + stereo pan sweep, `audio.playTrainPass()`,
+  routed through master so global mute kills it and it never forces sound on), a
+  glowing **青函トンネル neon sign** (WCAG-safe buzz — small, dim, sub-3 Hz, never
+  a full-field flash), and the flooded floor with drifting caustics.
 - Test entry: `?room=<id>` drops straight into any room (added for this — deep/
   hidden rooms like the shrine are otherwise gated behind the rat's secret).
 
