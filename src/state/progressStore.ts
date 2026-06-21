@@ -44,6 +44,10 @@ export type Progress = {
   clearedGames: string[];
   /** Best score in the standalone Pizza Run arcade (the mobile reward). */
   arcadeHigh: number;
+  /** Has the player rolled the jukebox d20 to UNLOCK the flip-through radio?
+   *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
+   *  the pick follows you across the site. Monotonic (only ever goes true). */
+  radioUnlocked: boolean;
 };
 
 const DEFAULTS: Progress = {
@@ -55,6 +59,7 @@ const DEFAULTS: Progress = {
   maxUnease: 0,
   clearedGames: [],
   arcadeHigh: 0,
+  radioUnlocked: false,
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -78,6 +83,7 @@ function read(): Progress {
       maxUnease: num(p.maxUnease, 0),
       clearedGames: strArr(p.clearedGames),
       arcadeHigh: num(p.arcadeHigh, 0),
+      radioUnlocked: bool(p.radioUnlocked, false),
     };
   } catch {
     return { ...DEFAULTS };
@@ -114,6 +120,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     maxUnease: Math.max(a.maxUnease, b.maxUnease),
     clearedGames: uniq(a.clearedGames, b.clearedGames),
     arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
+    radioUnlocked: a.radioUnlocked || b.radioUnlocked,
   };
 }
 
@@ -127,6 +134,8 @@ type ProgressState = Progress & {
   recordUnease: (v: number) => void;
   clearGame: (id: string) => void;
   recordArcadeScore: (n: number) => void;
+  /** Roll the jukebox d20 → unlock the flip-through radio (idempotent). */
+  unlockRadio: () => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -138,6 +147,7 @@ const snapshot = (s: ProgressState): Progress => ({
   maxUnease: s.maxUnease,
   clearedGames: s.clearedGames,
   arcadeHigh: s.arcadeHigh,
+  radioUnlocked: s.radioUnlocked,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -185,6 +195,10 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     recordArcadeScore: (n) => {
       if (n <= get().arcadeHigh) return;
       apply({ arcadeHigh: n });
+    },
+    unlockRadio: () => {
+      if (get().radioUnlocked) return;
+      apply({ radioUnlocked: true });
     },
   };
 });
