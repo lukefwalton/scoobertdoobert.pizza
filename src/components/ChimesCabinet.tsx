@@ -73,6 +73,19 @@ class BellEngine {
     void this.ctx.close();
   }
 
+  /** Mute immediately by ramping master to ~0 — so hitting ♪ OFF silences bells
+   *  that are already RINGING too, not just future strikes (matches Cultures). */
+  setMuted(m: boolean): void {
+    const now = this.ctx.currentTime;
+    this.master.gain.cancelScheduledValues(now);
+    this.master.gain.setTargetAtTime(m ? 0.0001 : 0.9, now, 0.04);
+  }
+
+  /** Current master gain — exposed so shoot:chimes can assert the mute path. */
+  get masterLevel(): number {
+    return this.master.gain.value;
+  }
+
   strike(freq: number, pan: number): void {
     if (this.active >= MAX_VOICES) return; // drop a strike rather than overload
     // The voice itself is the shared, reusable engine (src/lib/chimes.strikeBell);
@@ -113,6 +126,7 @@ export function ChimesCabinet() {
     if (!engine.current) {
       try {
         engine.current = new BellEngine();
+        engine.current.setMuted(useAudioStore.getState().muted); // honour mute from the start
         setStarted(true);
       } catch {
         engine.current = null; // no Web Audio → the toy still swings, silently
@@ -156,6 +170,7 @@ export function ChimesCabinet() {
         strikes: strikeCount.current,
         started: !!engine.current,
         muted,
+        masterGain: engine.current ? engine.current.masterLevel : null,
       });
 
       drawChimes(ctx, s, colors.current);
@@ -168,6 +183,12 @@ export function ChimesCabinet() {
     };
     // `muted` is read fresh each frame via the closure; re-subscribe when it flips
     // so the gate is exact. The sim/engine/colors live in refs across re-runs.
+  }, [muted]);
+
+  // Mute the live engine when the global mute flips — ramp master to silence so
+  // already-ringing bells stop too (not just future strikes), like Cultures.
+  useEffect(() => {
+    engine.current?.setMuted(muted);
   }, [muted]);
 
   // Keep the sim in sync with the React-controlled count/tempo.
