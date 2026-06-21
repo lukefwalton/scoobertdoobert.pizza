@@ -24,6 +24,7 @@ unless the work is genuinely ambiguous.
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
 | 7+ | `fun/` instruments → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
+| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), shrine clap, pause-menu stat | ✅ core shipped |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -191,6 +192,21 @@ descent, each covered by a `shoot:*` smoke:
   roadmap — out of scope, per Luke.)
 
 ---
+
+## ✅ Phase 8 — THE GAME LAYER (core shipped, 2026-06-21)
+The "let's make a damn game" pivot (Luke). Full spec in `docs/DESIGN.md` → "The
+game layer." DESIGN pillar #6's "no stats / no HUD" was lifted (`CLAUDE.md`
+ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
+- ✅ **Universal d20** (`src/lib/luck.ts`, unit-tested): luck-biased rolls, **nat
+  20 / crit fail as a 3× swing across the board.** Luck buys advantage; the system
+  spends it (never the player).
+- ✅ **LUCK stat** (`progressStore`, durable): earned at the **shrine clap** (二拍手),
+  **shown in the pause menu**, **announced on gain** (`toastStore` + `WorldHud`).
+- ✅ **First dice-combat:** the goblin bout (`D20`/`DicePitRoom`/`monsterStore`) is
+  crit-aware — nat 20 auto-wins + +3 luck, crit fail bloats it 3×. `shoot:luck`.
+- ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
+  a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
+  reactivity** (the shop reflects your deeds — clover at high luck, etc.).
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +

@@ -37,11 +37,16 @@ to come back and share it. It is NOT a full RPG, NOT a horror game.
    returning visitor gets a world that has quietly *changed*. (See "Persistence.")
 5. **Funny-uncanny, never traumatic.** The cheerful surface stays cheerful; the
    contrast with the wrong depths is the entire effect. Restraint is the craft.
-6. **Knowledge & keys, never stats.** Progression is *discovery*, not numbers.
-   No HP/XP/levels, no combat loop, no objective markers, no real HUD, no fail
-   state. The thing that pulls you forward is "what's behind that door," not a
-   score. (The model: Yume Nikki, Hypnospace Outlaw, Outer Wilds — you "level up"
-   by understanding.)
+6. **It's a game — discovery FIRST, but stats are welcome now.** *(AMENDED 2026-
+   06-21, Luke: "let's make a damn game here." This supersedes the old "Knowledge
+   & keys, never stats / no HUD" wording — see `CLAUDE.md` ADDENDUM 7.)* The pull
+   is still mostly *discovery* — "what's behind that door" — and the models still
+   hold (Yume Nikki, Hypnospace, Outer Wilds). But a real **RPG layer** is now in
+   scope: on-screen stats/meters, progression, rewards. **LUCK** is the first
+   (see "The game layer" below). **Combat, if any, is dice-filtered and rare**
+   (not action combat), and **"losing" is never a hard game-over** — the dice-
+   monster just bloats and unblocks you. The taste + safety guardrails (sweet
+   surface, WCAG, no real camera/mic, crawlable JS-off) are untouched by this.
 
 ---
 
@@ -175,6 +180,42 @@ rat, the music, recurrence, even the loaders all flip the same way.
   chaotic music selector — roll picks *which* demo or *how* degraded the variant
   is. Chaos = replayability = share fuel ("I rolled a 1 and got the cursed one").
   Dice are juicy *sound* too (clatter, tumble).
+
+### The game layer — LUCK & the universal d20 (SHIPPED; the RPG spine)
+The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
+- **One universal d20** (`src/lib/luck.ts`): every chance in the world rolls
+  through it. A **natural 20 = crit success**, a **natural 1 = crit fail**, each a
+  **3× swing "across the board"** (Luke). The dice-monster bout is the first
+  consumer (`D20` → `DicePitRoom`): nat 20 auto-wins + showers luck; crit fail
+  bloats the thing 3× (still never a fail state). Same engine will drive the
+  dice-selector, the trap-door drop, and any future encounter.
+- **LUCK is the first stat** (`progressStore`: `luckEarned − luckSpent`, durable).
+  Earned by small rituals — the **shrine clap** (二拍手: click the offering box,
+  *clap clap*, a coin tinkles, +1/visit). **Shown in the pause menu**, **announced
+  on gain** (the toast). **Spent by the SYSTEM, never by hand** (Luke): luck buys
+  *advantage* on a roll — the system rerolls a bad die and keeps the best, so the
+  luckier you are the likelier a nat 20 and the rarer a crit fail.
+- **Reused engine** note: the coin tinkle is `audio.playChime` (the /chimes bell
+  voice); the clap is `audio.playClap`. The shrine is a SWEET room, so its luck
+  faucet stays a relief beat.
+
+### A grass level — a rare, dumb-fun Pokémon battle (BACKLOG, Luke)
+A level with **tall GRASS**; walk through it and you may **encounter a wild
+"pokémon" that's the big-eyed dice-goblin** (`DiceMonster`). The fight is
+**dice-filtered** (the universal d20 above — nat 20 / crit fail / luck), **not**
+action combat: a goofy turn or two, "not often," never traumatic, losing just
+unblocks you (same anticlimax as the dice pit). Rides the engine already shipped;
+the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
+it stays a delight, not a grind.
+
+### The shop remembers your deeds — storefront reactivity (BACKLOG → seed shipped, Luke)
+"What you did IN the game changes how the top-level pizza shop looks." This is the
+persistence spine reaching the surface. **Already live:** the rat greeting + the
+deep-diver curdled copy change with progress. **Next:** more diegetic surface tells
+keyed to the save — e.g. a **four-leaf clover taped to the dead-plain page once
+LUCK is high**, a trophy after you beat the goblin, the menu subtly richer the
+deeper you've been. **Hard line unchanged:** all of it is post-hydration,
+`useMounted`-gated, JS-only — the crawlable / JS-off front door never changes.
 
 ### The `unease` dread conductor (Phase 5 — see PHASES.md for the build order)
 - **One value (0→1) in zustand, data-driven via `src/data/dread.ts`** (per-room

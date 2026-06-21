@@ -5,7 +5,7 @@ import { MuteToggle } from '../components/MuteToggle';
 import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
-import { useProgressStore, selectRatGreeting } from '../state/progressStore';
+import { useProgressStore, selectRatGreeting, selectLuck } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -35,6 +35,12 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   const mounted = useMounted();
   const greeting = useProgressStore(selectRatGreeting);
   const remembersYou = mounted ? greeting : null;
+  // "What you did IN the game changes the shop" (Luke) — the first surface tell
+  // keyed to the game layer: once your LUCK is high, someone's taped a clover to
+  // the door. Post-hydration only (mounted), so the crawlable / JS-off front door
+  // never shows it; sweet, never dread.
+  const luck = useProgressStore(selectLuck);
+  const lucky = mounted && luck >= 3;
 
   return (
     <div className="store" data-floor={floor.id}>
@@ -87,6 +93,12 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         {remembersYou && (
           <p className="news-returning">
             <i>&mdash; The rat says: &ldquo;{remembersYou}&rdquo;</i>
+          </p>
+        )}
+        {lucky && (
+          <p className="news-lucky" title="Fortune favors you lately">
+            <span aria-hidden="true">🍀</span>{' '}
+            <i>Someone has taped a four-leaf clover to the door. Fortune favors you lately.</i>
           </p>
         )}
       </section>

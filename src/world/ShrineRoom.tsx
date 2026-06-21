@@ -311,7 +311,6 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
   useEffect(() => {
     exposeTestGlobal('__sdpShrineClap', doClap);
     return () => exposeTestGlobal('__sdpShrineClap', undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
