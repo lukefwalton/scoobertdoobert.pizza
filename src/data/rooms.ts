@@ -597,6 +597,9 @@ export const ROOMS: Room[] = [
       // Arrive at the +Z mouth, facing -Z down the length of the tunnel.
       default: { position: [0, EYE, 8.5], yaw: Math.PI },
       fromShrine: { position: [0, EYE, 8.5], yaw: Math.PI },
+      // Climbing back UP the line from the terminus — by the -Z end door, facing
+      // +Z back up the tunnel toward the shrine.
+      fromEnd: { position: [0, EYE, -8.5], yaw: 0 },
     },
     doors: [
       {
@@ -606,6 +609,52 @@ export const ROOMS: Room[] = [
         position: [0, 0, 11.9], // +Z wall — climb back up to the surface crossing
         rotationY: 0,
         label: 'climb back up to the shrine',
+        radius: 3.2,
+      },
+      {
+        id: 'tunnel-to-end',
+        to: 'terminus',
+        toSpawn: 'fromTunnel',
+        // The far (-Z) end, where the rails run off into the fog — follow the
+        // line to where it stops. The tunnel's one way DEEPER.
+        position: [0, 0, -11.9],
+        rotationY: Math.PI, // in the -Z wall, opening faces +Z into the tunnel
+        label: 'follow the tracks to the end of the line',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'terminus',
+    kind: 'liminal',
+    title: 'End of the Line',
+    // Where the undersea metro line finally stops — it lets out into the
+    // backrooms. A real (wide-permission) GLB level, crunched (19.8 MB → 0.83 MB)
+    // + lazy-loaded behind the loader minigame, like the deep pool. Provenance in
+    // THIRD_PARTY_NOTICES.md. The bitter bottom of the train thread.
+    glb: {
+      url: '/models/backrooms-vr.glb',
+      fit: 24,
+      recoverTo: { to: 'metro-tunnel', spawn: 'fromEnd' },
+    },
+    drips: true, // the flooded undersea tunnel leaks in down here too
+    dims: { halfW: 10, halfD: 10, height: 5.5, eye: EYE },
+    // The sickly fluorescent yellow-beige of the backrooms, gone dim + damp.
+    palette: { background: '#15140a', fog: '#262212', fogNear: 5, fogFar: 26 },
+    spawns: {
+      // Step off the platform a clear stride past the return door, facing -Z into
+      // the endless rooms.
+      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      fromTunnel: { position: [0, EYE, 6.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'end-to-tunnel',
+        to: 'metro-tunnel',
+        toSpawn: 'fromEnd',
+        position: [0, 0, 9.9], // +Z wall — back up the line
+        rotationY: 0,
+        label: 'back up the tunnel',
         radius: 3.2,
       },
     ],

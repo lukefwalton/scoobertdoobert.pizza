@@ -55,6 +55,7 @@ export const DREAD: DreadConfig = {
     //              it via the 'mobius-loop' trigger — the base stays goofy-low
     liminal: 0.5, // bright empty backrooms GLB — uncanny, a notch past the pool
     deeppool: 0.78, // the drained deep end, lights long dead — near the bitter end
+    terminus: 0.82, // the backrooms at the end of the line — the new bitter bottom
     'metro-tunnel': 0.55, // abandoned undersea tunnel — uncanny, but its shitty
     //                       shinkansen + neon are a GOOFY beat, so kept moderate
     //                       (don't let dread smother the gag — dial it down)

@@ -288,6 +288,12 @@ panel) — discovered, not on the main path.
   routed through master so global mute kills it and it never forces sound on), a
   glowing **青函トンネル neon sign** (WCAG-safe buzz — small, dim, sub-3 Hz, never
   a full-field flash), and the flooded floor with drifting caustics.
+- **The line has an end (`terminus`, "End of the Line").** Follow the tracks to
+  the far -Z mouth of the tunnel and the metro lets out into the **backrooms** —
+  a crunched GLB level (`backrooms-vr.glb`, 19.8 MB → 0.83 MB), lazy-loaded behind
+  the loader. It's the bitter bottom of the train thread (dread ≈ 0.82): you rode
+  an undersea train to the most lost place there is. Still drips — the flood
+  follows the rails down.
 - Test entry: `?room=<id>` drops straight into any room (added for this — deep/
   hidden rooms like the shrine are otherwise gated behind the rat's secret).
 
