@@ -758,6 +758,14 @@ export const JUKEBOX_POS: [number, number, number] = [0, 1.2, -5.5];
 // 'hall-to-classified' door sits in the same wall (see ROOMS above).
 export const SECRET_PANEL: [number, number, number] = [-2.4, 1.4, -2];
 
+/** A room's fog as the plain { color, near, far } object the affine material
+ *  factory (makeAffineTexturedMaterial) and the <fog> primitive consume. Every
+ *  procedural room built this same literal off room.palette by hand; one helper
+ *  keeps it DRY without pulling three into this (deliberately three-free) module. */
+export function fogFor(room: Room): { color: string; near: number; far: number } {
+  return { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+}
+
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 
 /** The starting room — the beach shop. */

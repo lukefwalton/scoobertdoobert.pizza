@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { JUKEBOX_POS, type Room } from '../data/rooms';
+import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
 import { useMusicStore } from '../state/musicStore';
@@ -143,7 +143,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   // Which catalog track the jukebox is on. Clicking the cabinet advances it in
   // order; rolling the d20 jumps to whatever the dice picks (the chaos path).

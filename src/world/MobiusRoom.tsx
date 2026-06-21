@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
-import { MOBIUS_BREAK, type Room } from '../data/rooms';
+import { MOBIUS_BREAK, fogFor, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { DREAD } from '../data/dread';
@@ -42,7 +42,7 @@ export function MobiusRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const loops = useSceneStore((s) => s.mobiusLoops);
   const roomNonce = useSceneStore((s) => s.roomNonce);

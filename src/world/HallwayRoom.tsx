@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
 import { Rat } from './Rat';
-import { SECRET_PANEL, type Room } from '../data/rooms';
+import { SECRET_PANEL, fogFor, type Room } from '../data/rooms';
 
 // The back hall — a long, narrow, low red-brick corridor (the Windows 3D-Maze
 // nod, a corridor not a maze). Over-evenly lit with a few dim ceiling pools so
@@ -12,7 +12,7 @@ export function HallwayRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const brickTex = useMemo(() => {
     const t = makeBrickTexture('#7d2b22', '#241008', 6);
