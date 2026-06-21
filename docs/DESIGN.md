@@ -277,6 +277,15 @@ panel) — discovered, not on the main path.
   rural crossing is the surface end; the tunnel (a crunched GLB, lazy-loaded
   behind the loader, like the abandoned pool) is the deep end of the same line —
   the shrine breather's one way *deeper*.
+- **The tunnel is the 青函トンネル (Seikan Tunnel) — and it's how the trains
+  connect to WATER** (Luke). The real Seikan is the world's great *undersea* rail
+  tunnel, so the metro level is flooded knee-deep and tinted deep-sea teal,
+  tying the railway motif back into the site's whole water descent. Dressing
+  (`src/world/MetroTunnelFx.tsx`, procedural, layered over the GLB like
+  `CeilingDrips`): a **shitty fake shinkansen** that whooshes through on a loop
+  (white body, blue livery stripe, no JR marks), a glowing **青函トンネル neon
+  sign** (WCAG-safe buzz — small, dim, sub-3 Hz, never a full-field flash), and
+  the flooded floor with drifting caustics.
 - Test entry: `?room=<id>` drops straight into any room (added for this — deep/
   hidden rooms like the shrine are otherwise gated behind the rat's secret).
 
