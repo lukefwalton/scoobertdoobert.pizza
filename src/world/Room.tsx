@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import {
-  applyVertexSnap,
+  flatMat,
   makeAffineTexturedMaterial,
   makeCheckerTexture,
   makeSpeckTexture,
@@ -12,12 +12,6 @@ import { ROOM } from './constants';
 // window cut into the front wall that looks out to the sea. Flat-shaded,
 // nearest-filtered, vertex-snapped. The checkerboard floor is where the affine
 // texture wobble reads most clearly.
-
-function flatMat(color: string, map?: THREE.Texture): THREE.Material {
-  const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side: THREE.DoubleSide });
-  applyVertexSnap(m, 64);
-  return m;
-}
 
 export function Room() {
   const floorTex = useMemo(() => {
@@ -33,10 +27,10 @@ export function Room() {
 
   // Affine-mapped so the checkerboard visibly swims underfoot (the PS1 tell).
   const floorMat = useMemo(() => makeAffineTexturedMaterial(floorTex, 6), [floorTex]);
-  const wallMat = useMemo(() => flatMat('#ffffff', wallTex), [wallTex]);
-  const ceilMat = useMemo(() => flatMat('#3a2f2a'), []);
-  const trimMat = useMemo(() => flatMat('#7a2f25'), []);
-  const jukeMat = useMemo(() => flatMat('#b8324a'), []);
+  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const ceilMat = useMemo(() => flatMat('#3a2f2a', { side: THREE.DoubleSide }), []);
+  const trimMat = useMemo(() => flatMat('#7a2f25', { side: THREE.DoubleSide }), []);
+  const jukeMat = useMemo(() => flatMat('#b8324a', { side: THREE.DoubleSide }), []);
 
   const W = ROOM.halfW;
   const D = ROOM.halfD;
