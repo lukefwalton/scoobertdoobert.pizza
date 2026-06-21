@@ -23,6 +23,15 @@ for (const dir of SRC) {
 const step = Math.max(1, Math.floor(files.length / COUNT));
 const pick = files.filter((_, i) => i % step === 0).slice(0, COUNT);
 
+// Fail fast if the source folders ever drift below COUNT — ClassifiedRoom.tsx
+// requests exactly COUNT fixed texture URLs, so emitting fewer would 404 in-world.
+if (pick.length !== COUNT) {
+  console.error(
+    `make-classified-photos: need ${COUNT} photos but found ${pick.length} usable in ${SRC.join(', ')}`,
+  );
+  process.exit(1);
+}
+
 let n = 1;
 for (const f of pick) {
   const out = `${OUT}/photo-${n}.jpg`;
