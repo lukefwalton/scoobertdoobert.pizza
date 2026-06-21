@@ -227,8 +227,9 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     // to one value — the same accepted soft race as `visits`; a full additive log
     // would be overkill for a single-player luck stat.)
     gainLuck: (n) => {
-      if (n <= 0) return;
-      apply({ luckEarned: read().luckEarned + n });
+      const g = Math.floor(n); // integer luck only (spendLuck floors too) — no fractional dust
+      if (g <= 0) return;
+      apply({ luckEarned: read().luckEarned + g });
     },
     spendLuck: (n) => {
       const fresh = read();
