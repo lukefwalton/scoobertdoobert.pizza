@@ -55,7 +55,7 @@ scoobertdoobert.pizza/
 │   ├── sfx/               # sound effects (owned sitar takes)
 │   ├── models/            # all .glb source models by theme     → media/models/README.md
 │   ├── photos/            # full-res photo archive, grouped by shoot
-│   └── brand/             # brand-logo source (≡ public/brand/)
+│   └── brand/             # brand-logo source (full set; public/brand/ ships only the used logo)
 │
 └── fun/                   # placeholder for a separate repo, not yet wired in → fun/README.md
 ```
