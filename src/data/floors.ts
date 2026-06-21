@@ -73,7 +73,6 @@ export const FLOORS: Floor[] = [
   },
 ];
 
-export const FLOOR_COUNT = FLOORS.length;
 export const BOTTOM_FLOOR = FLOORS.length - 1;
 
 // Dev guardrail: every floor's link ids must resolve, or the nav silently

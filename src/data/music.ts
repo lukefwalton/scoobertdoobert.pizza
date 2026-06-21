@@ -40,10 +40,6 @@ export type CueName = keyof typeof CUES;
 /** The shipped MP3 url for a cue. */
 export const cueUrl = (cue: CueName): string => jukeboxTrackUrl(CUES[cue]);
 
-/** The catalog track for a slug (or undefined). */
-export const trackBySlug = (slug: string): JukeboxTrack | undefined =>
-  JUKEBOX_TRACKS.find((t) => t.slug === slug);
-
 /** The LOOP_OPTIONS index for an actually-playing url (null/boot → 0). Lets the
  *  music store mirror the engine's real loop voice. */
 export const loopIndexForUrl = (url: string | null): number => {

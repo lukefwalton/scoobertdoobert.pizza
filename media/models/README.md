@@ -40,8 +40,8 @@ Decorative motif threaded through the world to plug Luke's album *Mobius*.
 
 ## `greek-vaporwave/` — vaporwave-Greek statuary
 For the **level below the shop** (Phase 3+). Columns, sculptures, lyre, jar,
-mountains. (The "bust" for the beach-shop counter is `legacy/julius_caesar.glb`,
-left in place to keep the legacy snapshot intact.)
+mountains. (The previous hand-built site — including its Julius Caesar "bust" —
+is preserved in git history, not the working tree. See `README.md`.)
 
 | file | ← original | notes |
 |---|---|---|
