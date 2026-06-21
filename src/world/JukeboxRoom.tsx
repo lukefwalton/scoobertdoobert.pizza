@@ -217,7 +217,9 @@ export function JukeboxRoom({ room }: { room: Room }) {
       <Jukebox title={track.title} onSelect={cycle} />
       {/* The dice-music selector: roll for a random track. Off to the side of
           the cabinet, on the player's path in from the door. */}
-      <D20 position={[2.7, 1.0, -3.4]} onRoll={rollTo} lastRoll={roll} />
+      {/* the music selector is a LOW-STAKES roll — a "high" face means nothing
+          here, so it never spends luck (useLuck={false}); chaos stays the point */}
+      <D20 position={[2.7, 1.0, -3.4]} onRoll={rollTo} lastRoll={roll} useLuck={false} />
       <JukeboxAudio />
     </group>
   );

@@ -271,6 +271,7 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
   const claimed = useRef(false); // one luck grant per visit (resets on re-entry)
   const cooldown = useRef(0);
   const pulse = useRef(0);
+  const timers = useRef<number[]>([]); // pending clap/coin timeouts — cleared on unmount
 
   useFrame((_, dt) => {
     if (cooldown.current > 0) cooldown.current -= dt;
@@ -291,8 +292,12 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
     pulse.current = 1;
     audio.unlock(); // the click is the gesture
     audio.playClap();
-    window.setTimeout(() => audio.playClap(), 190); // …clap clap (二拍手)
-    window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0, 0.1), 360); // a coin tinkle
+    // Track the delayed clap + coin tinkle so leaving the shrine mid-ritual can
+    // cancel them — otherwise they'd fire into the next room's audio (shared engine).
+    timers.current.push(
+      window.setTimeout(() => audio.playClap(), 190), // …clap clap (二拍手)
+      window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0, 0.1), 360), // a coin tinkle
+    );
     if (!claimed.current) {
       claimed.current = true;
       useProgressStore.getState().gainLuck(1);
@@ -307,10 +312,16 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
   };
 
   // Test hook (?world / ?debug): let shoot:luck perform the ritual deterministically
-  // (clicking a swinging 3D target through Playwright is fragile).
+  // (clicking a swinging 3D target through Playwright is fragile). Also cancel any
+  // pending clap/coin timeouts on unmount so they can't leak into the next room.
   useEffect(() => {
     exposeTestGlobal('__sdpShrineClap', doClap);
-    return () => exposeTestGlobal('__sdpShrineClap', undefined);
+    const pending = timers.current;
+    return () => {
+      exposeTestGlobal('__sdpShrineClap', undefined);
+      pending.forEach((id) => clearTimeout(id));
+      pending.length = 0;
+    };
   }, []);
 
   return (

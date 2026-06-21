@@ -218,15 +218,24 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       if (get().radioUnlocked) return;
       apply({ radioUnlocked: true });
     },
+    // luckEarned/luckSpent are additive counters, so — like recordVisit — they
+    // increment off FRESH disk (read()), not the boot snapshot (get()). That makes
+    // the mergeProgress Math.max a correct monotonic guard rather than a clobber:
+    // a second tab that earned/spent in the meantime is read first, then this
+    // delta is added on top, so sequential multi-tab earns/spends accumulate
+    // instead of one winning. (Truly simultaneous same-tick writes can still race
+    // to one value — the same accepted soft race as `visits`; a full additive log
+    // would be overkill for a single-player luck stat.)
     gainLuck: (n) => {
       if (n <= 0) return;
-      apply({ luckEarned: get().luckEarned + n });
+      apply({ luckEarned: read().luckEarned + n });
     },
     spendLuck: (n) => {
-      const avail = Math.max(0, get().luckEarned - get().luckSpent);
-      const s = Math.min(Math.max(0, Math.floor(n)), avail);
+      const fresh = read();
+      const avail = Math.max(0, fresh.luckEarned - fresh.luckSpent);
+      const s = Math.min(Math.max(0, Math.floor(n)), avail); // never spend more than you have
       if (s <= 0) return;
-      apply({ luckSpent: get().luckSpent + s });
+      apply({ luckSpent: fresh.luckSpent + s });
     },
   };
 });
