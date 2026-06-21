@@ -57,13 +57,12 @@ await page.waitForTimeout(1500);
 // One linear tour, SHORT-CIRCUITED: each step gates the next, so the first
 // broken hop fails with its own context and we stop — no 15–25s of follow-on
 // "loader never reached ready" noise after a nav regression upstream.
-let inPool = false;
 let inLiminal = false;
 let deepReady = false;
 let inDeep = false;
 let backUp = false;
 
-inPool = await roomIs('The Poolrooms');
+const inPool = await roomIs('The Poolrooms');
 // Fail fast if the gated transition hook isn't exposed (a gating regression).
 if (inPool && !(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
   fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
