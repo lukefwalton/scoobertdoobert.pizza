@@ -13,6 +13,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "shoot:all": "node scripts/shoot-all.mjs",
     "shoot": "node scripts/shoot.mjs",
     "shoot:world": "node scripts/shoot-world.mjs",
@@ -70,6 +72,7 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.61.1",
     "vite": "^6.4.3",
-    "vite-react-ssg": "^0.9.1-beta.1"
+    "vite-react-ssg": "^0.9.1-beta.1",
+    "vitest": "^4.1.9"
   }
 }
