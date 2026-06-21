@@ -18,14 +18,14 @@ export default function Poke() {
     <main className="poke-page">
       <Head>
         <title>Poke Scoobert — The Pizza Arcade</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/poke" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/poke" />
         <meta
           name="description"
           content="Poke Scoobert — grab his face and pull. A Mario-64-style face-stretch toy that plays his music as you stretch. Best on a touchscreen."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/poke" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/poke" />
         <meta property="og:title" content="Poke Scoobert — The Pizza Arcade" />
         <meta
           property="og:description"

@@ -17,27 +17,30 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Scoobert Doobert" />
     <meta property="og:locale" content="en_US" />
-    <meta property="og:image" content="https://scoobertdoobert.pizza/press/scoobert-og.jpg" />
+    <meta property="og:image" content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="1200" />
     <meta property="og:image:alt" content="Scoobert Doobert, googly eyes stuck to his face, one hand raised to the camera." />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="https://scoobertdoobert.pizza/press/scoobert-og.jpg" />
+    <meta name="twitter:image" content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg" />
 
     <link rel="me" href="https://lukefwalton.com/" />
 
     <!-- Identity + catalog graph, carried over from the previous site so the
-         crawlable entity data survives the rebuild. -->
+         crawlable entity data survives the rebuild. The artist, person, podcast,
+         and audiobook entities are canonically homed on the lukefwalton.com hub;
+         we reuse those @ids here so the graph resolves to one creator, never a
+         forked .pizza-homed copy. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
             "@type": "WebSite",
-            "@id": "https://scoobertdoobert.pizza/#website",
+            "@id": "https://www.scoobertdoobert.pizza/#website",
             "name": "Scoobert Doobert's Electronic Pizza Storefront",
             "alternateName": "scoobertdoobert.pizza",
-            "url": "https://scoobertdoobert.pizza/",
+            "url": "https://www.scoobertdoobert.pizza/",
             "description": "A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)",
             "inLanguage": "en",
             "publisher": { "@id": "https://lukefwalton.com/#person" },
@@ -49,7 +52,7 @@
             "name": "Scoobert Doobert",
             "description": "Self-produced San Diego indie pop, chill pop, alt-pop, funk, and lofi music project: nearly 300 compositions written, played, produced, and mixed by Scoobert himself. CHAI collaborator across Sub Pop and Sony Music Japan, with placements on NHK and Fuji TV; host of the Love Music More podcast; reader of Plato's dialogues in spoken-word audiobook form.",
             "disambiguatingDescription": "Music, podcast, and audio project of Luke Francis Walton. Not Luke Walton the NBA player and coach.",
-            "image": "https://scoobertdoobert.pizza/press/scoobert-og.jpg",
+            "image": "https://www.scoobertdoobert.pizza/press/scoobert-og.jpg",
             "genre": ["indie pop", "chill pop", "alt-pop", "funk", "lo-fi", "bedroom pop"],
             "foundingDate": "2006",
             "foundingLocation": { "@type": "Place", "name": "San Diego, California" },
@@ -62,7 +65,7 @@
               "https://music.apple.com/us/artist/scoobert-doobert/1240946356",
               "https://scoobertdoobert.bandcamp.com/",
               "https://www.youtube.com/@scoobertdoobertburrito",
-              "http://soundcloud.com/mrscoobertdoobert",
+              "https://soundcloud.com/mrscoobertdoobert",
               "https://www.instagram.com/scoobertdoobert.pizza/",
               "https://www.tiktok.com/@mr.scoobert_doobert",
               "https://www.threads.net/@scoobertdoobert.pizza",
@@ -79,7 +82,7 @@
             "name": "Luke Francis Walton",
             "alternateName": ["Luke F. Walton", "Scoobert Doobert"],
             "url": "https://lukefwalton.com/",
-            "image": "https://scoobertdoobert.pizza/press/scoobert-og.jpg",
+            "image": "https://www.scoobertdoobert.pizza/press/scoobert-og.jpg",
             "identifier": [
               { "@type": "PropertyValue", "propertyID": "IPI", "name": "BMI Songwriter IPI", "value": "00579587572" },
               { "@type": "PropertyValue", "propertyID": "ISNI", "value": "0000 0005 3040 0539" },

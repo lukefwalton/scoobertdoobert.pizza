@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Head } from 'vite-react-ssg';
 import '../styles/about.css';
 import { destById } from '../data/links';
@@ -12,8 +13,19 @@ import { destById } from '../data/links';
 // #lovemusicmore-podcast, #apology-audiobook — so a crawler resolves them to one
 // creator with three outputs instead of forking a second set of .pizza-homed
 // entities. lukefwalton.com stays a subtle backlink only (rel=me + JSON-LD @id),
-// never a nav destination here.
+// never a nav destination here. Collaborator links below point at each artist's
+// own external home (verified via the hub's collaborators data), never at the hub.
 // ───────────────────────────────────────────────────────────────────────────
+
+// External-link helper: collaborator + platform homes always open in a new tab.
+function Ext({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
+  );
+}
+
 export default function About() {
   const listen = destById('listen')?.href ?? 'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn';
   const catalog = destById('catalog')?.href ?? 'https://scoobertdoobert.bandcamp.com/';
@@ -28,15 +40,34 @@ export default function About() {
   const ajaxLibrary =
     'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22';
 
+  // Verified collaborator / placement homes (harvested from the lukefwalton.com
+  // hub's collaborators data). External destinations only — never a hub nav link.
+  const ext = {
+    chai: 'https://www.subpop.com/artists/chai',
+    winkTogether: 'https://www.subpop.com/releases/chai/wink_together',
+    okame: 'https://manakana.bitfan.id/',
+    komagome: 'https://www.komagomefc.com/',
+    bed: 'https://bed2052.com/',
+    germanRadio: 'https://www.egofm.de/',
+    tamtam: 'https://www.youtube.com/channel/UCoMxi0h7K5WQIVRyxh2TZXg',
+    kerriMedders: 'https://en.wikipedia.org/wiki/Kerri_Medders',
+    ninaFrancis: 'https://ninafrancismusic.com/',
+    louRoy: 'https://www.singlouroy.com/',
+    jamieDrake: 'https://www.jamiedrakemusic.com/',
+    limonLimon: 'https://limonlimonmusic.bandcamp.com/',
+    victorMarc: 'https://victormarc.com/',
+    joshShpak: 'https://joshoo.com/',
+  };
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'AboutPage',
-        '@id': 'https://scoobertdoobert.pizza/about#page',
+        '@id': 'https://www.scoobertdoobert.pizza/about#page',
         name: 'About Scoobert Doobert',
-        url: 'https://scoobertdoobert.pizza/about',
-        isPartOf: { '@id': 'https://scoobertdoobert.pizza/#website' },
+        url: 'https://www.scoobertdoobert.pizza/about',
+        isPartOf: { '@id': 'https://www.scoobertdoobert.pizza/#website' },
         about: { '@id': 'https://lukefwalton.com/#scoobert' },
         mainEntity: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
@@ -60,7 +91,7 @@ export default function About() {
           'https://music.apple.com/us/artist/scoobert-doobert/1240946356',
           'https://scoobertdoobert.bandcamp.com/',
           'https://www.youtube.com/@scoobertdoobertburrito',
-          'http://soundcloud.com/mrscoobertdoobert',
+          'https://soundcloud.com/mrscoobertdoobert',
           'https://www.instagram.com/scoobertdoobert.pizza/',
           'https://www.tiktok.com/@mr.scoobert_doobert',
           'https://www.threads.net/@scoobertdoobert.pizza',
@@ -119,20 +150,20 @@ export default function About() {
     <main className="about">
       <Head>
         <title>About Scoobert Doobert</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/about" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
           content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project: CHAI production across Sub Pop and Sony Music Japan, the four-part MÖBIUS cycle, the top-10% Love Music More podcast, and a Plato audiobook."
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
-        <meta property="og:type" content="profile" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/about" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/about" />
         <meta property="og:title" content="About Scoobert Doobert" />
         <meta
           property="og:description"
           content="Self-produced San Diego indie pop, chill pop, funk, and lofi. CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
         />
-        <meta property="og:image" content="https://scoobertdoobert.pizza/press/scoobert-og.jpg" />
+        <meta property="og:image" content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Head>
 
@@ -176,14 +207,16 @@ export default function About() {
         <p>
           The solo project started from a bedroom and slowly became a many-room house.
           Early releases led to <em>I’m an Idiot</em>, which landed on Spotify’s New Music
-          Friday and helped connect Scoobert with the Japanese band CHAI. That became{' '}
-          <em>Miracle (Scoobert Doobert Remix)</em> on Sub Pop’s <em>WINK TOGETHER</em>,
-          followed by more production and songwriting with CHAI, including <em>WHOLE</em>,
-          the theme for the NHK drama 恋せぬふたり, and <em>MY DREAM</em>, from the film
-          さかなの子. The Japan thread runs all the way through: the collaborations kept
-          going — CHAI, then OKAME, KOMAGOME, and the Tokyo band bed, whose Fuji TV drama
-          theme Scoobert co-produced — alongside the language-learning, the live shows, and
-          the general belief that a good melody can travel farther than your passport.
+          Friday and helped connect Scoobert with the Japanese band <Ext href={ext.chai}>CHAI</Ext>.
+          That became <em>Miracle (Scoobert Doobert Remix)</em> on Sub Pop’s{' '}
+          <Ext href={ext.winkTogether}><em>WINK TOGETHER</em></Ext>, followed by more
+          production and songwriting with CHAI, including <em>WHOLE</em>, the theme for the
+          NHK drama 恋せぬふたり, and <em>MY DREAM</em>, from the film さかなの子. The Japan
+          thread runs all the way through: the collaborations kept going — CHAI, then{' '}
+          <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and
+          the Tokyo band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert
+          co-produced — alongside the language-learning, the live shows, and the general
+          belief that a good melody can travel farther than your passport.
         </p>
         <p>
           Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award
@@ -199,11 +232,16 @@ export default function About() {
           identities, and songs that may or may not exist because the burrito demanded it.
         </p>
         <p>
-          The music has circulated through official playlists, indie and German radio,
-          Japanese film and television, and international collaborations — and Scoobert has
-          worked with a wide cast of artists and players including CHAI, OKAME, bed, Tamtam,
-          Kerri Medders, Nina Francis, Lou Roy, Jamie Drake, Limón Limón, Victor Marc, and
-          Josh Shpak. The best way in is simply to{' '}
+          The music has circulated through official playlists, indie and{' '}
+          <Ext href={ext.germanRadio}>German radio</Ext>, Japanese film and television, and
+          international collaborations — and Scoobert has worked with a wide cast of artists
+          and players including CHAI, OKAME, bed, <Ext href={ext.tamtam}>Tamtam</Ext>,{' '}
+          <Ext href={ext.kerriMedders}>Kerri Medders</Ext>,{' '}
+          <Ext href={ext.ninaFrancis}>Nina Francis</Ext>, <Ext href={ext.louRoy}>Lou Roy</Ext>,{' '}
+          <Ext href={ext.jamieDrake}>Jamie Drake</Ext>,{' '}
+          <Ext href={ext.limonLimon}>Limón Limón</Ext>,{' '}
+          <Ext href={ext.victorMarc}>Victor Marc</Ext>, and{' '}
+          <Ext href={ext.joshShpak}>Josh Shpak</Ext>. The best way in is simply to{' '}
           <a href={listen} target="_blank" rel="noopener noreferrer">
             listen
           </a>

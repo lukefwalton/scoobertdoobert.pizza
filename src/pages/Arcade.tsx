@@ -26,14 +26,14 @@ export default function Arcade() {
     <main className="arcade-page">
       <Head>
         <title>The Pizza Arcade — Scoobert Doobert</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/arcade" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/arcade" />
         <meta
           name="description"
           content="Scoobert's Pizza Run — a tiny late-90s arcade game. Jump the broken web buttons. Best played on your phone."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#06060b" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/arcade" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/arcade" />
         <meta property="og:title" content="The Pizza Arcade — Scoobert Doobert" />
         <meta
           property="og:description"
