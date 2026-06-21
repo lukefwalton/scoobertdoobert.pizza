@@ -113,7 +113,7 @@ export const DESTINATIONS: Dest[] = [
   {
     id: 'soundcloud',
     label: 'SoundCloud',
-    href: 'http://soundcloud.com/mrscoobertdoobert',
+    href: 'https://soundcloud.com/mrscoobertdoobert',
     blurb: 'Scoobert on SoundCloud.',
     group: 'social',
     external: true,
