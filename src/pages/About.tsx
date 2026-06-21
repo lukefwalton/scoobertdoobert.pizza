@@ -17,10 +17,10 @@ export default function About() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    '@id': 'https://scoobertdoobert.pizza/about#page',
+    '@id': 'https://www.scoobertdoobert.pizza/about#page',
     name: 'About — Scoobert Doobert',
-    url: 'https://scoobertdoobert.pizza/about',
-    isPartOf: { '@id': 'https://scoobertdoobert.pizza/#website' },
+    url: 'https://www.scoobertdoobert.pizza/about',
+    isPartOf: { '@id': 'https://www.scoobertdoobert.pizza/#website' },
     about: { '@id': 'https://lukefwalton.com/#scoobert' },
     mainEntity: { '@id': 'https://lukefwalton.com/#person' },
   };
@@ -29,20 +29,20 @@ export default function About() {
     <main className="about">
       <Head>
         <title>About Scoobert Doobert — the solo music project of Luke Francis Walton</title>
-        <link rel="canonical" href="https://scoobertdoobert.pizza/about" />
+        <link rel="canonical" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
           content="Scoobert Doobert is the solo recording project of Luke Francis Walton — a philosopher and multi-instrumentalist making lo-fi, indie, and bedroom pop in San Diego. The story, the catalog, and Love Music More."
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="profile" />
-        <meta property="og:url" content="https://scoobertdoobert.pizza/about" />
+        <meta property="og:url" content="https://www.scoobertdoobert.pizza/about" />
         <meta property="og:title" content="About Scoobert Doobert" />
         <meta
           property="og:description"
           content="The solo recording project of philosopher and multi-instrumentalist Luke Francis Walton — lo-fi, indie, bedroom pop, made in San Diego."
         />
-        <meta property="og:image" content="https://scoobertdoobert.pizza/press/scoobert-og.jpg" />
+        <meta property="og:image" content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg" />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Head>
 
