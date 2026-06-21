@@ -45,11 +45,11 @@ const descendToLiminal = (page) =>
   page.evaluate(() => window.__sdpGoToRoom?.('liminal', 'fromPool'));
 
 // ── happy path: pool → liminal (via the loader) → pool ───────────────────────
-let inPool = false;
+let inPool;
 let loaderShown = false;
 let frozenUnderLoader = false;
-let loaderReady = false;
-let waterfallOnDescent = false;
+let loaderReady;
+let waterfallOnDescent;
 let noWaterfallOnAscent = false;
 let inLiminal = false;
 let overlayGoneOnEnter = false;

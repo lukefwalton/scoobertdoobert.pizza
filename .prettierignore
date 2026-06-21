@@ -1,0 +1,14 @@
+# Generated / vendored / not ours to format
+dist/
+node_modules/
+.shots/
+.vercel/
+package-lock.json
+
+# Shipped + source assets (binary or hand-authored period HTML)
+public/
+media/
+links.md
+
+# Markdown prose is hand-wrapped; don't let Prettier reflow it
+*.md
