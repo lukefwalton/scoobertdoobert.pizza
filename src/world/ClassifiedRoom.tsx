@@ -2,6 +2,7 @@ import { Suspense, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
+import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
 
@@ -182,26 +183,8 @@ export function ClassifiedRoom({ room }: { room: Room }) {
         color="#cfe6dc"
       />
 
-      {/* floor / ceiling */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* walls */}
-      <mesh material={wallMat} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
+      {/* the box shell */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       {/* the fluorescent fixture */}
       <mesh material={fixtureMat} rotation-x={Math.PI / 2} position={[0, H - 0.02, 0.4]}>

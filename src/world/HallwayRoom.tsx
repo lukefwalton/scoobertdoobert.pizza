@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeBrickTexture, makeCheckerTexture } from './ps1';
 import { Rat } from './Rat';
 import { SECRET_PANEL, fogFor, type Room } from '../data/rooms';
@@ -56,28 +57,8 @@ export function HallwayRoom({ room }: { room: Room }) {
       <pointLight position={[0, H - 0.4, D - 6]} intensity={0.5} distance={16} color="#ffd9a8" />
       <pointLight position={[0, H - 0.4, -D + 6]} intensity={0.45} distance={16} color="#ffcfa0" />
 
-      {/* floor */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* ceiling */}
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* side walls (the long brick runs) */}
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      {/* end walls (doors are cut visually by sitting in front of these) */}
-      <mesh material={endMat} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={endMat} rotation-y={Math.PI} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
+      {/* the red-brick corridor shell — long side walls + textured ends */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} ends={endMat} />
 
       {/* ceiling light strips — the "fluorescents" (bright flat quads) */}
       {[-D + 4, -D + 12, D - 12, D - 4].map((z) => (

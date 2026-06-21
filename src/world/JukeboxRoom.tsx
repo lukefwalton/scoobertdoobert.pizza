@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
+import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
@@ -140,9 +141,6 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 }
 
 export function JukeboxRoom({ room }: { room: Room }) {
-  const W = room.dims.halfW;
-  const D = room.dims.halfD;
-  const H = room.dims.height;
   const fog = fogFor(room);
 
   // Which catalog track the jukebox is on. Clicking the cabinet advances it in
@@ -209,27 +207,8 @@ export function JukeboxRoom({ room }: { room: Room }) {
       {/* warm low fill so the cabinet glow does most of the work */}
       <ambientLight intensity={0.34} color="#c98fb6" />
 
-      {/* floor */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* ceiling */}
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      {/* walls */}
-      <mesh material={wallMat} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
+      {/* the box shell */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       <Jukebox title={track.title} onSelect={cycle} />
       {/* The dice-music selector: roll for a random track. Off to the side of
