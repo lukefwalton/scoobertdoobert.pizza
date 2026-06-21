@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { roomById, MOBIUS_BREAK, type RoomDoor } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { flatMat } from './ps1';
@@ -16,8 +17,16 @@ import { flatMat } from './ps1';
 // A hidden door is real only once its reveal condition is met: 'mobius' doors
 // appear after the loop breaks (mobiusLoops ≥ MOBIUS_BREAK); everything else is
 // the rat's secret panel (secretRevealed). Visible doors are always real.
-function doorRevealed(door: RoomDoor, secretRevealed: boolean, mobiusLoops: number): boolean {
+function doorRevealed(
+  door: RoomDoor,
+  secretRevealed: boolean,
+  mobiusLoops: number,
+  secretsFound: string[],
+): boolean {
   if (!door.hidden) return true;
+  // A durable progress unlock (e.g. the grove path after the grass goblin) takes
+  // precedence; otherwise the scene-flag reveals (the rat's secret / the loop).
+  if (door.revealSecret) return secretsFound.includes(door.revealSecret);
   return door.revealOn === 'mobius' ? mobiusLoops >= MOBIUS_BREAK : secretRevealed;
 }
 
@@ -96,6 +105,7 @@ export function Doors() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const secretRevealed = useSceneStore((s) => s.secretRevealed);
   const mobiusLoops = useSceneStore((s) => s.mobiusLoops);
+  const secretsFound = useProgressStore((s) => s.secretsFound);
   const doors = useMemo(() => roomById(currentRoom).doors, [currentRoom]);
   const lastNear = useRef<string | null>(null);
 
@@ -121,7 +131,15 @@ export function Doors() {
     let nd = Infinity;
     for (const d of doors) {
       // Hidden doors (the rat's secret, the Möbius onward) don't exist yet.
-      if (!doorRevealed(d, st.secretRevealed, st.mobiusLoops)) continue;
+      if (
+        !doorRevealed(
+          d,
+          st.secretRevealed,
+          st.mobiusLoops,
+          useProgressStore.getState().secretsFound,
+        )
+      )
+        continue;
       // Horizontal distance only — the door's base is at y=0, the camera at eye
       // height, so the vertical gap shouldn't count against "am I standing here".
       const dx = camera.position.x - d.position[0];
@@ -151,7 +169,7 @@ export function Doors() {
   return (
     <>
       {doors
-        .filter((d) => doorRevealed(d, secretRevealed, mobiusLoops))
+        .filter((d) => doorRevealed(d, secretRevealed, mobiusLoops, secretsFound))
         .map((d) => (
           <DoorMesh key={d.id} door={d} />
         ))}
