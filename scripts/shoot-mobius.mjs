@@ -8,6 +8,7 @@
 // Asserts on the `.hud-room` label + the `__sdpMobius` lap hook, not on timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { makeLoaderHelpers } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const BREAK = 3; // MOBIUS_BREAK in src/data/rooms.ts
@@ -48,6 +49,9 @@ const toDoor = async (key, timeout = 6000) => {
   return ok;
 };
 const laps = () => page.evaluate(() => window.__sdpMobius ?? 0);
+// Shared loader helper: wait the GLB loader to ready + tap in (button → Enter
+// fallback), so we can assert the broken-loop descent actually ARRIVES.
+const { enterLoadedLevel } = makeLoaderHelpers(page, fail);
 
 // Warp straight into the corridor (?room=ID). The surface → jukebox → pool →
 // corridor walk is covered by shoot-rooms; this smoke is about the LOOP itself,
@@ -98,6 +102,7 @@ await page.screenshot({ path: '.shots/mobius-looped.png' });
 // the liminal (the level's EARNED way down). That descent rides the waterfall
 // overlay, so seeing it fire proves the onward door leads down to the liminal.
 let descended = false;
+let arrived = false;
 if (lapsCounted) {
   // Walk forward-AND-left toward the new door (it's in the -X wall, ~z=-9):
   // holding both pins us along the -X wall heading down-corridor, and we POLL
@@ -118,18 +123,25 @@ if (lapsCounted) {
       .waitForSelector('.hud-waterfall--on', { timeout: 2500 })
       .then(() => true, () => false);
     if (!descended) fail('the onward door did not descend into the liminal (no waterfall fired)');
-    // And the liminal is a GLB level → its loader mounts on arrival. Asserting it
-    // appears confirms we actually landed in the liminal, not just started a wipe.
+    // Prove the earned descent ARRIVES, not just that the wipe started: the
+    // liminal is a GLB level, so wait its loader to ready, tap in, and assert the
+    // room actually became Liminal Space (covers a stall/error/wrong-landing).
     const loader = await page
       .waitForSelector('[data-level-loader]', { timeout: 6000 })
       .then(() => true, () => false);
     if (!loader) fail('the onward door did not land in the liminal (its loader never mounted)');
+    if (loader) {
+      const entered = await enterLoadedLevel('liminal');
+      arrived = entered && (await roomIs('Liminal Space'));
+      if (!arrived) fail('the broken-loop descent never arrived in Liminal Space');
+    }
   }
 }
 
 await browser.close();
 console.log(
   `mobius: corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
-    `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} descended=${descended} | errors=${errors}`,
+    `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} ` +
+    `descended=${descended} arrived=${arrived} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
