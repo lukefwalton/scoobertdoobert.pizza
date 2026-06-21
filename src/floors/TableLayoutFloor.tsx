@@ -28,7 +28,12 @@ function PizzaImageMap({ dests }: { dests: ReturnType<typeof resolveLinks> }) {
   const r = 92;
   const rl = 60;
   return (
-    <svg className="tl-pizza" viewBox="0 0 200 200" role="group" aria-label="Pizza menu — pick a slice">
+    <svg
+      className="tl-pizza"
+      viewBox="0 0 200 200"
+      role="group"
+      aria-label="Pizza menu — pick a slice"
+    >
       <circle cx={cx} cy={cy} r={r + 4} className="tl-pizza__crust" />
       {dests.map((d, i) => {
         const a0 = (i / n) * Math.PI * 2 - Math.PI / 2;
@@ -96,7 +101,9 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
                   </button>
                 ))}
               </div>
-              <p className="tl__fine">(grown-ups get the freezer stairs &middot; kids get the ball pit)</p>
+              <p className="tl__fine">
+                (grown-ups get the freezer stairs &middot; kids get the ball pit)
+              </p>
             </td>
           </tr>
           <tr>

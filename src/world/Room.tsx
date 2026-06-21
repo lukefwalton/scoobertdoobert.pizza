@@ -1,11 +1,6 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import {
-  flatMat,
-  makeAffineTexturedMaterial,
-  makeCheckerTexture,
-  makeSpeckTexture,
-} from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeSpeckTexture } from './ps1';
 import { ROOM } from './constants';
 
 // The low-poly beach pizza shop interior: a small box you stand inside, with a
@@ -27,7 +22,10 @@ export function Room() {
 
   // Affine-mapped so the checkerboard visibly swims underfoot (the PS1 tell).
   const floorMat = useMemo(() => makeAffineTexturedMaterial(floorTex, 6), [floorTex]);
-  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const wallMat = useMemo(
+    () => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }),
+    [wallTex],
+  );
   const ceilMat = useMemo(() => flatMat('#3a2f2a', { side: THREE.DoubleSide }), []);
   const trimMat = useMemo(() => flatMat('#7a2f25', { side: THREE.DoubleSide }), []);
   const jukeMat = useMemo(() => flatMat('#b8324a', { side: THREE.DoubleSide }), []);

@@ -30,7 +30,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 // Walk `key` until a door prompts, then E — shared, hold-and-poll with a
 // CI-generous timeout (see lib/smoke.mjs). Fails with the hop's name if the
 // prompt never appears, so a spawn/door drift points at the broken hop.
@@ -83,7 +86,10 @@ if (
     await page.waitForTimeout(800);
     await page.screenshot({ path: '.shots/deeppool.png' });
     // climb back up to the liminal (deep → liminal; cached → quick).
-    if ((await toDoor('s', 'the climb-back-up door')) && (await enterLoadedLevel('liminal (return)', 15000))) {
+    if (
+      (await toDoor('s', 'the climb-back-up door')) &&
+      (await enterLoadedLevel('liminal (return)', 15000))
+    ) {
       backUp = await roomIs('Liminal Space');
     }
   }

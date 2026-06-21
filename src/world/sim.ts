@@ -93,9 +93,15 @@ export function stepBoids(boids: Boid[], p: BoidParams, b: Bounds, frameScale: n
 
   for (let i = 0; i < boids.length; i++) {
     const boid = boids[i];
-    let alX = 0, alY = 0, alZ = 0;
-    let coX = 0, coY = 0, coZ = 0;
-    let seX = 0, seY = 0, seZ = 0;
+    let alX = 0,
+      alY = 0,
+      alZ = 0;
+    let coX = 0,
+      coY = 0,
+      coZ = 0;
+    let seX = 0,
+      seY = 0,
+      seZ = 0;
     let count = 0;
 
     for (let j = 0; j < boids.length; j++) {
@@ -107,20 +113,32 @@ export function stepBoids(boids: Boid[], p: BoidParams, b: Bounds, frameScale: n
       const d2 = dx * dx + dy * dy + dz * dz;
       if (d2 === 0) continue;
       if (d2 < percSq) {
-        alX += o.vx; alY += o.vy; alZ += o.vz;
-        coX += o.x; coY += o.y; coZ += o.z;
+        alX += o.vx;
+        alY += o.vy;
+        alZ += o.vz;
+        coX += o.x;
+        coY += o.y;
+        coZ += o.z;
         count++;
       }
       if (d2 < sepSq) {
         const d = Math.sqrt(d2);
-        seX -= dx / d; seY -= dy / d; seZ -= dz / d;
+        seX -= dx / d;
+        seY -= dy / d;
+        seZ -= dz / d;
       }
     }
 
-    let ax = 0, ay = 0, az = 0;
+    let ax = 0,
+      ay = 0,
+      az = 0;
     if (count > 0) {
-      alX /= count; alY /= count; alZ /= count;
-      coX /= count; coY /= count; coZ /= count;
+      alX /= count;
+      alY /= count;
+      alZ /= count;
+      coX /= count;
+      coY /= count;
+      coZ /= count;
 
       ax += (alX - boid.vx) * p.alignmentFactor;
       ay += (alY - boid.vy) * p.alignmentFactor;
@@ -154,7 +172,9 @@ export function stepBoids(boids: Boid[], p: BoidParams, b: Bounds, frameScale: n
     const sp = Math.hypot(boid.vx, boid.vy, boid.vz) || 1e-6;
     const clamped = Math.min(Math.max(sp, p.minSpeed), p.maxSpeed);
     const k = clamped / sp;
-    boid.vx *= k; boid.vy *= k; boid.vz *= k;
+    boid.vx *= k;
+    boid.vy *= k;
+    boid.vz *= k;
 
     boid.x += boid.vx * frameScale;
     boid.y += boid.vy * frameScale;

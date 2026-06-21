@@ -36,8 +36,14 @@ export function HallwayRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [floorTex, fog.color, fog.near, fog.far],
   );
-  const wallMat = useMemo(() => flatMat('#ffffff', { map: brickTex, side: THREE.DoubleSide }), [brickTex]);
-  const endMat = useMemo(() => flatMat('#ffffff', { map: endTex, side: THREE.DoubleSide }), [endTex]);
+  const wallMat = useMemo(
+    () => flatMat('#ffffff', { map: brickTex, side: THREE.DoubleSide }),
+    [brickTex],
+  );
+  const endMat = useMemo(
+    () => flatMat('#ffffff', { map: endTex, side: THREE.DoubleSide }),
+    [endTex],
+  );
   const ceilMat = useMemo(() => flatMat('#160d0c', { side: THREE.DoubleSide }), []);
   const signMat = useMemo(() => flatMat('#caa14a', { side: THREE.DoubleSide }), []);
   const panelMat = useMemo(() => flatMat('#241410', { side: THREE.DoubleSide }), []); // flatMat is already DoubleSide

@@ -30,7 +30,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 // Walk `key` until a door prompts, then E — shared, hold-and-poll with a
 // CI-generous timeout (see lib/smoke.mjs).
 const toDoor = (key, label) => walkToDoor(page, fail, key, label);
@@ -63,7 +66,10 @@ if ((await enterLoadedLevel('end of the line')) && (inEnd = await roomIs('End of
   ) {
     await page.waitForTimeout(500);
     // tunnel(fromEnd, -Z facing +Z) → terminus: 's' walks -Z back to the end door.
-    if ((await toDoor('s', 'the end-of-the-line door')) && (await enterLoadedLevel('end of the line (return)', 15000))) {
+    if (
+      (await toDoor('s', 'the end-of-the-line door')) &&
+      (await enterLoadedLevel('end of the line (return)', 15000))
+    ) {
       inEndAgain = await roomIs('End of the Line');
     }
   }

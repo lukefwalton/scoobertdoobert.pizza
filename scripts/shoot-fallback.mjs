@@ -96,7 +96,9 @@ let fail = 0;
     fail++;
     console.log('ABOUT: <title> missing/unexpected ->', JSON.stringify(title));
   }
-  console.log(`about     -> h1=${JSON.stringify(heading)} titled=${title.includes('Scoobert Doobert')}`);
+  console.log(
+    `about     -> h1=${JSON.stringify(heading)} titled=${title.includes('Scoobert Doobert')}`,
+  );
   await ctx.close();
 }
 

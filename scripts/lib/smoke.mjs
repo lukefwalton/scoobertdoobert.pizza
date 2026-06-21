@@ -30,13 +30,20 @@ export async function tapLoaderCta(page, name = /TAP TO ENTER/i, { fail, label =
     const visible = await page
       .getByRole('button', { name })
       .waitFor({ state: 'visible', timeout: 4000 })
-      .then(() => true, () => false);
-    if (!visible) fail(`${label} reached ready but the ${name.source ?? name} control never appeared`);
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!visible)
+      fail(`${label} reached ready but the ${name.source ?? name} control never appeared`);
   }
   const clicked = await page
     .getByRole('button', { name })
     .click({ timeout: 4000 })
-    .then(() => true, () => false);
+    .then(
+      () => true,
+      () => false,
+    );
   if (!clicked) await page.keyboard.press('Enter');
   return clicked;
 }
@@ -49,9 +56,10 @@ export async function tapLoaderCta(page, name = /TAP TO ENTER/i, { fail, label =
 export async function holdUntilDoorPrompt(page, keys, { timeout = 8000 } = {}) {
   const list = Array.isArray(keys) ? keys : [keys];
   for (const k of list) await page.keyboard.down(k);
-  const shown = await page
-    .waitForSelector('.hud-prompt--door', { timeout })
-    .then(() => true, () => false);
+  const shown = await page.waitForSelector('.hud-prompt--door', { timeout }).then(
+    () => true,
+    () => false,
+  );
   for (const k of list) await page.keyboard.up(k);
   return shown;
 }
@@ -74,11 +82,16 @@ export function makeLoaderHelpers(page, fail) {
   const enterLoadedLevel = async (label, timeout = 25000) => {
     const ready = await page
       .waitForFunction(
-        () => document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+        () =>
+          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') ===
+          'ready',
         null,
         { timeout },
       )
-      .then(() => true, () => false);
+      .then(
+        () => true,
+        () => false,
+      );
     if (!ready) {
       fail(`${label} loader never reached ready`);
       return false;
@@ -90,8 +103,13 @@ export function makeLoaderHelpers(page, fail) {
       console.log(`NOTE: '${label}' entered via Enter fallback (button click failed)`);
     }
     const gone = await page
-      .waitForFunction(() => !document.querySelector('[data-level-loader]'), null, { timeout: 6000 })
-      .then(() => true, () => false);
+      .waitForFunction(() => !document.querySelector('[data-level-loader]'), null, {
+        timeout: 6000,
+      })
+      .then(
+        () => true,
+        () => false,
+      );
     if (!gone) {
       fail(`${label} loader never dismissed after entering`);
       return false;

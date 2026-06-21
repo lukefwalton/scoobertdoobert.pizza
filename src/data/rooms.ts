@@ -227,7 +227,15 @@ export const ROOMS: Room[] = [
     // Warm, dim, womb-like — the payoff room. Deep magenta dark, close fog.
     palette: { background: '#190b1d', fog: '#2a1233', fogNear: 4, fogFar: 28 },
     // An old arcade cabinet humming in the corner of the music shrine.
-    props: [{ url: '/models/arcade-cabinet.glb', position: [-3.6, 0, -4.4], fit: 2.5, rotationY: 0.7, glow: 0.3 }],
+    props: [
+      {
+        url: '/models/arcade-cabinet.glb',
+        position: [-3.6, 0, -4.4],
+        fit: 2.5,
+        rotationY: 0.7,
+        glow: 0.3,
+      },
+    ],
     spawns: {
       // Enter near the door (+Z), a step clear of its radius, facing the jukebox
       // across the room (-Z) so you walk toward it and the song swells.
@@ -309,7 +317,15 @@ export const ROOMS: Room[] = [
     dims: { halfW: 4, halfD: 4, height: 3.2, eye: EYE },
     palette: { background: '#0a1410', fog: '#0c1812', fogNear: 2, fogFar: 15 },
     // A dead CRT in the corner of the file room (the surveillance tell).
-    props: [{ url: '/models/crt-tv.glb', position: [-2.5, 0, -2.9], fit: 1.2, rotationY: 0.6, glow: 0.35 }],
+    props: [
+      {
+        url: '/models/crt-tv.glb',
+        position: [-2.5, 0, -2.9],
+        fit: 1.2,
+        rotationY: 0.6,
+        glow: 0.35,
+      },
+    ],
     spawns: {
       // Just inside the door, facing the cabinets at the back (-Z).
       default: { position: [0, EYE, 0.6], yaw: Math.PI },
@@ -337,7 +353,9 @@ export const ROOMS: Room[] = [
     palette: { background: '#bfe3ea', fog: '#cfe9ef', fogNear: 5, fogFar: 38 },
     // A broken greek statue standing in the false water — vaporwave-liminal.
     // Off-centre so it never blocks the centre door down.
-    props: [{ url: '/models/greek-statue.glb', position: [3.4, 0, -2.6], fit: 3.4, rotationY: -0.6 }],
+    props: [
+      { url: '/models/greek-statue.glb', position: [3.4, 0, -2.6], fit: 3.4, rotationY: -0.6 },
+    ],
     spawns: {
       // Arrive on the deck just past the +Z wall (clear of the return door),
       // facing -Z across the still pool toward the far wall.
@@ -493,7 +511,9 @@ export const ROOMS: Room[] = [
     palette: { background: '#3a4630', fog: '#4a573a', fogNear: 6, fogFar: 40 },
     // A real Möbius strip turning mid-corridor — the album motif made literal.
     // Glows so it reads against the dim corridor.
-    props: [{ url: '/models/mobius-strip.glb', position: [0, 2.3, -2], fit: 1.8, spin: 0.5, glow: 0.55 }],
+    props: [
+      { url: '/models/mobius-strip.glb', position: [0, 2.3, -2], fit: 1.8, spin: 0.5, glow: 0.55 },
+    ],
     spawns: {
       // Fresh arrival from the pool, AND the loop re-entry, both land at the +Z
       // start facing -Z down the corridor — so a forward lap drops you right back

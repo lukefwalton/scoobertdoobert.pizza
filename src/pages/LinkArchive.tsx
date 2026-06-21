@@ -61,9 +61,9 @@ export default function LinkArchive() {
 
       <h1>Scoobert Doobert &mdash; Link Archive</h1>
       <p className="archive__lede">
-        The whole rolodex. Every Scoobert Doobert link in the building &mdash;{' '}
-        {ARCHIVE_LINK_COUNT} of them &mdash; streaming, profiles, releases, the{' '}
-        <i>Love Music More</i> podcast, press, radio, and live shows.
+        The whole rolodex. Every Scoobert Doobert link in the building &mdash; {ARCHIVE_LINK_COUNT}{' '}
+        of them &mdash; streaming, profiles, releases, the <i>Love Music More</i> podcast, press,
+        radio, and live shows.
       </p>
       <p className="archive__nav">
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>

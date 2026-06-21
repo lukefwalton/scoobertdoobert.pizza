@@ -31,7 +31,9 @@ const bad = (msg) => {
   // crawlable HTML (the cold screen stands in instead).
   const canvas = await page.$('canvas');
   if (canvas) bad('no-JS: a <canvas> rendered into the crawlable HTML (should be JS-only)');
-  console.log(`no-JS   -> titled=${title.includes('Pizza Arcade')} back=${!!back} canvas=${!!canvas}`);
+  console.log(
+    `no-JS   -> titled=${title.includes('Pizza Arcade')} back=${!!back} canvas=${!!canvas}`,
+  );
   await ctx.close();
 }
 
@@ -69,14 +71,21 @@ const bad = (msg) => {
     const f = window.__sdpRunnerHit;
     if (typeof f !== 'function') return null;
     const o = { x: 44, w: 16, h: 24 };
-    return { grounded: f(150, 150, o), cleared: f(118, 150, o), behind: f(150, 150, { x: 120, w: 16, h: 24 }) };
+    return {
+      grounded: f(150, 150, o),
+      cleared: f(118, 150, o),
+      behind: f(150, 150, { x: 120, w: 16, h: 24 }),
+    };
   });
   if (!hit) bad('JS: __sdpRunnerHit not exposed under ?debug');
   else {
     if (!hit.grounded) bad('collision: standing in front of an obstacle should be a hit');
-    if (hit.cleared) bad('collision: a clean jump-clear still registered as a hit (lose-when-you-succeed)');
+    if (hit.cleared)
+      bad('collision: a clean jump-clear still registered as a hit (lose-when-you-succeed)');
     if (hit.behind) bad('collision: an obstacle the runner has not reached should not be a hit');
-    console.log(`hitbox  -> grounded=${hit?.grounded} cleared=${hit?.cleared} behind=${hit?.behind}`);
+    console.log(
+      `hitbox  -> grounded=${hit?.grounded} cleared=${hit?.cleared} behind=${hit?.behind}`,
+    );
   }
 
   if (canvas && jumpBtn) {
@@ -92,7 +101,8 @@ const bad = (msg) => {
     });
     await page.reload({ waitUntil: 'networkidle' });
     const hi = (await page.textContent('.arcade-hud').catch(() => '')) || '';
-    if (!hi.includes('04242')) bad(`JS: high score did not persist/display -> ${JSON.stringify(hi)}`);
+    if (!hi.includes('04242'))
+      bad(`JS: high score did not persist/display -> ${JSON.stringify(hi)}`);
     console.log(`play    -> canvas=${!!canvas} jump=${!!jumpBtn} hud=${JSON.stringify(hi.trim())}`);
     await page.screenshot({ path: '.shots/arcade.png' });
   }

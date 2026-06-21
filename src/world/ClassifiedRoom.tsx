@@ -114,13 +114,28 @@ function Desk() {
         <boxGeometry args={[0.12, 0.74, 1.0]} />
       </mesh>
       {/* a couple of folders, lying flat, labels up */}
-      <mesh material={manila} position={[-0.5, 0.82, 0.1]} rotation-x={-Math.PI / 2} rotation-z={0.15}>
+      <mesh
+        material={manila}
+        position={[-0.5, 0.82, 0.1]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={0.15}
+      >
         <planeGeometry args={[0.9, 0.62]} />
       </mesh>
-      <mesh material={folderMat} position={[-0.5, 0.83, 0.1]} rotation-x={-Math.PI / 2} rotation-z={0.15}>
+      <mesh
+        material={folderMat}
+        position={[-0.5, 0.83, 0.1]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={0.15}
+      >
         <planeGeometry args={[0.86, 0.42]} />
       </mesh>
-      <mesh material={folder2Mat} position={[0.6, 0.83, -0.05]} rotation-x={-Math.PI / 2} rotation-z={-0.2}>
+      <mesh
+        material={folder2Mat}
+        position={[0.6, 0.83, -0.05]}
+        rotation-x={-Math.PI / 2}
+        rotation-z={-0.2}
+      >
         <planeGeometry args={[0.86, 0.46]} />
       </mesh>
     </group>
@@ -159,7 +174,13 @@ export function ClassifiedRoom({ room }: { room: Room }) {
   return (
     <group>
       <ambientLight intensity={0.18} color="#9fb7ad" />
-      <pointLight ref={light} position={[0, H - 0.3, 0.4]} intensity={0.62} distance={11} color="#cfe6dc" />
+      <pointLight
+        ref={light}
+        position={[0, H - 0.3, 0.4]}
+        intensity={0.62}
+        distance={11}
+        color="#cfe6dc"
+      />
 
       {/* floor / ceiling */}
       <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>

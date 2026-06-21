@@ -57,7 +57,10 @@ let backToPool = false;
 let reReady = false;
 let reEnter = false;
 {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    deviceScaleFactor: 1,
+  });
   const page = await ctx.newPage();
   page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
   page.on('console', (m) => {
@@ -87,9 +90,10 @@ let reEnter = false;
 
   // The descent rides a WATERFALL: the rushing-water overlay fires during the
   // wipe down into liminal (brief, before the loader covers it).
-  waterfallOnDescent = await page
-    .waitForSelector('.hud-waterfall--on', { timeout: 1500 })
-    .then(() => true, () => false);
+  waterfallOnDescent = await page.waitForSelector('.hud-waterfall--on', { timeout: 1500 }).then(
+    () => true,
+    () => false,
+  );
   if (!waterfallOnDescent) fail('waterfall did not play on the descent into liminal');
 
   // The loader minigame should appear (DOM overlay over the suspended canvas).
@@ -114,12 +118,18 @@ let reEnter = false;
   // GlbRoom mounts post-load and flips ready → the loader offers TAP TO ENTER.
   loaderReady = await page
     .waitForFunction(
-      () => document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+      () =>
+        document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') ===
+        'ready',
       null,
       { timeout: 15000 },
     )
-    .then(() => true, () => false);
-  if (!loaderReady) fail('the GLB never loaded — loader never reached the ready/TAP-TO-ENTER state');
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!loaderReady)
+    fail('the GLB never loaded — loader never reached the ready/TAP-TO-ENTER state');
 
   if (loaderReady) {
     // button, else Enter — never throws uncaught (CI flake); fail keeps CTA coverage
@@ -127,8 +137,13 @@ let reEnter = false;
     inLiminal = await roomIs(page, 'Liminal Space');
     // The overlay must actually go away on enter (not just the room label flip).
     overlayGoneOnEnter = await page
-      .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, { timeout: 4000 })
-      .then(() => true, () => false);
+      .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, {
+        timeout: 4000,
+      })
+      .then(
+        () => true,
+        () => false,
+      );
     if (!overlayGoneOnEnter) fail('loader overlay did not disappear after TAP TO ENTER');
     await page.waitForTimeout(600);
     await page.screenshot({ path: '.shots/levels-liminal.png' });
@@ -138,9 +153,10 @@ let reEnter = false;
   // pool. The waterfall is descent-ONLY, so leaving liminal must NOT play it.
   if (inLiminal) {
     await page.keyboard.down('s'); // exit door behind us (+Z)
-    const exitPrompt = await page
-      .waitForSelector('.hud-prompt--door', { timeout: 3500 })
-      .then(() => true, () => false);
+    const exitPrompt = await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).then(
+      () => true,
+      () => false,
+    );
     await page.keyboard.up('s');
     if (!exitPrompt) fail('liminal exit door prompt never appeared (ascent not exercised)');
     await page.keyboard.press('e');
@@ -168,11 +184,15 @@ let reEnter = false;
     reReady = await page
       .waitForFunction(
         () =>
-          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') ===
+          'ready',
         null,
         { timeout: 10000 },
       )
-      .then(() => true, () => false);
+      .then(
+        () => true,
+        () => false,
+      );
     if (!reReady) fail('cached re-entry left the loader stranded (ready never flipped on revisit)');
     if (reReady) {
       await tapLoaderCta(page, /TAP TO ENTER/i, { fail, label: 'liminal (cached)' });
@@ -206,11 +226,15 @@ let retryRecovered = false;
     errLoader = await page
       .waitForFunction(
         () =>
-          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'error',
+          document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') ===
+          'error',
         null,
         { timeout: 12000 },
       )
-      .then(() => true, () => false);
+      .then(
+        () => true,
+        () => false,
+      );
     if (!errLoader) fail('a failed GLB load did not surface the loader error/TURN BACK state');
     await page.screenshot({ path: '.shots/levels-loader-error.png' });
 
@@ -221,8 +245,13 @@ let retryRecovered = false;
       if (!bouncedBack) fail('TURN BACK did not bounce the player out of the failed level');
       // The overlay must clear once we're back in a non-GLB room.
       overlayGoneOnAbort = await page
-        .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, { timeout: 4000 })
-        .then(() => true, () => false);
+        .waitForFunction(() => document.querySelector('[data-level-loader]') === null, null, {
+          timeout: 4000,
+        })
+        .then(
+          () => true,
+          () => false,
+        );
       if (!overlayGoneOnAbort) fail('loader overlay did not disappear after TURN BACK');
 
       // ── in-session RETRY after a TRANSIENT failure. The error path cleared the
@@ -233,11 +262,15 @@ let retryRecovered = false;
       retryRecovered = await page
         .waitForFunction(
           () =>
-            document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') === 'ready',
+            document.querySelector('[data-level-loader]')?.getAttribute('data-loader-state') ===
+            'ready',
           null,
           { timeout: 12000 },
         )
-        .then(() => true, () => false);
+        .then(
+          () => true,
+          () => false,
+        );
       if (!retryRecovered)
         fail('a transient GLB failure stayed poisoned — re-entry did not recover in-session');
     }

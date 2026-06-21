@@ -77,7 +77,10 @@ export function Controls() {
     const move = (e: PointerEvent) => {
       if (!dragging.current || inputFrozen()) return;
       yaw.current -= (e.clientX - last.current.x) * 0.005;
-      pitch.current = Math.max(-0.9, Math.min(0.9, pitch.current - (e.clientY - last.current.y) * 0.005));
+      pitch.current = Math.max(
+        -0.9,
+        Math.min(0.9, pitch.current - (e.clientY - last.current.y) * 0.005),
+      );
       last.current = { x: e.clientX, y: e.clientY };
     };
     const kd = (e: KeyboardEvent) => {

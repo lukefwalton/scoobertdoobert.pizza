@@ -77,7 +77,10 @@ export function Terminal() {
       const [name, ...args] = cmdLine.split(/\s+/);
       const cmd = lookupCommand(name);
       if (!cmd) {
-        setLines((ls) => [...ls, { text: `'${name}' is not recognized. try \`help\`.`, kind: 'out' }]);
+        setLines((ls) => [
+          ...ls,
+          { text: `'${name}' is not recognized. try \`help\`.`, kind: 'out' },
+        ]);
         return;
       }
       const res = cmd.run({ args, history, progress: getProgressSnapshot() });
@@ -91,7 +94,10 @@ export function Terminal() {
         setLines([]);
         return;
       }
-      setLines((ls) => [...ls, ...res.output.map((text) => ({ text: text || ' ', kind: 'out' as const }))]);
+      setLines((ls) => [
+        ...ls,
+        ...res.output.map((text) => ({ text: text || ' ', kind: 'out' as const })),
+      ]);
       if (res.action?.type === 'close') window.setTimeout(() => setOpen(false), 250);
       if (res.action?.type === 'navigate') {
         const href = res.action.href;
@@ -144,7 +150,10 @@ export function Terminal() {
         cursor: 'text',
       }}
     >
-      <div ref={bodyRef} style={{ flex: 1, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+      <div
+        ref={bodyRef}
+        style={{ flex: 1, overflowY: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+      >
         {lines.map((l, i) => (
           <div key={i} style={{ opacity: l.kind === 'sys' ? 0.7 : l.kind === 'cmd' ? 1 : 0.92 }}>
             {l.text}

@@ -18,7 +18,14 @@ import type { Room } from '../data/rooms';
 // Asset provenance for anything shipped here is tracked in THIRD_PARTY_NOTICES.md.
 // ───────────────────────────────────────────────────────────────────────────
 
-const TEX_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalMap', 'aoMap'] as const;
+const TEX_KEYS = [
+  'map',
+  'emissiveMap',
+  'roughnessMap',
+  'metalnessMap',
+  'normalMap',
+  'aoMap',
+] as const;
 
 // A fetch/decode failure on useGLTF (404, corrupt file, GPU OOM) re-throws
 // during render once the suspended promise rejects. Without a boundary that
@@ -33,7 +40,10 @@ const TEX_KEYS = ['map', 'emissiveMap', 'roughnessMap', 'metalnessMap', 'normalM
 // promise too), so a transient failure — CDN hiccup, a one-off decode error —
 // can be retried by re-entering the room in the same tab instead of staying
 // poisoned until a full page reload.
-class GlbErrorBoundary extends Component<{ url: string; children: ReactNode }, { failed: boolean }> {
+class GlbErrorBoundary extends Component<
+  { url: string; children: ReactNode },
+  { failed: boolean }
+> {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };

@@ -35,8 +35,10 @@ export function OrderForm() {
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const email = (document.getElementById('of-email') as HTMLInputElement | null)?.value.trim() ?? '';
-    const optin = (document.getElementById('of-optin') as HTMLInputElement | null)?.checked ?? false;
+    const email =
+      (document.getElementById('of-email') as HTMLInputElement | null)?.value.trim() ?? '';
+    const optin =
+      (document.getElementById('of-optin') as HTMLInputElement | null)?.checked ?? false;
     const cheese = (document.getElementById('of-cheese') as HTMLSelectElement | null)?.value ?? '';
     // Honeypot — humans never see or fill this; a value means a bot.
     const website = (document.getElementById('of-website') as HTMLInputElement | null)?.value ?? '';
@@ -73,8 +75,8 @@ export function OrderForm() {
   return (
     <div className="order-callout">
       <h2 className="order-callout__header">
-        <span className="order-callout__new">&#9733; NEW! &#9733;</span> Order Online &mdash;
-        Hot &amp; Fresh
+        <span className="order-callout__new">&#9733; NEW! &#9733;</span> Order Online &mdash; Hot
+        &amp; Fresh
       </h2>
       <form id="order-form" className="order-form" method="get" action="/text" onSubmit={onSubmit}>
         <p className="field">
@@ -92,7 +94,13 @@ export function OrderForm() {
         <p className="field">
           <label htmlFor="of-email">Email (optional):</label>
           <br />
-          <input id="of-email" type="email" size={28} autoComplete="email" placeholder="you@example.com" />
+          <input
+            id="of-email"
+            type="email"
+            size={28}
+            autoComplete="email"
+            placeholder="you@example.com"
+          />
         </p>
 
         <p className="field optin-field">

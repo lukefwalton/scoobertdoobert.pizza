@@ -36,7 +36,10 @@ const roomIs = (name, timeout = 8000) =>
       name,
       { timeout },
     )
-    .then(() => true, () => (fail(`room never became "${name}"`), false));
+    .then(
+      () => true,
+      () => (fail(`room never became "${name}"`), false),
+    );
 
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
 try {
@@ -82,17 +85,28 @@ if (inJuke) {
   const box = await page.locator('canvas').boundingBox();
   await page.mouse.click(box.x + box.width * 0.663, box.y + box.height * 0.62);
   rolled = await page
-    .waitForFunction(() => typeof window.__sdpDice === 'number' && window.__sdpDice >= 1 && window.__sdpDice <= 20, null, {
-      timeout: 4000,
-    })
-    .then(() => true, () => false);
-  if (!rolled) fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
+    .waitForFunction(
+      () => typeof window.__sdpDice === 'number' && window.__sdpDice >= 1 && window.__sdpDice <= 20,
+      null,
+      {
+        timeout: 4000,
+      },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!rolled)
+    fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
   if (rolled) {
     const face = await page.evaluate(() => window.__sdpDice);
     const expected = (face - 1) % TRACK_COUNT; // derived from the live catalog
     trackJumped = await page
       .waitForFunction((idx) => window.__sdpJukebox?.index === idx, expected, { timeout: 4000 })
-      .then(() => true, () => false);
+      .then(
+        () => true,
+        () => false,
+      );
     if (!trackJumped) {
       const after = await page.evaluate(() => window.__sdpJukebox?.index);
       fail(

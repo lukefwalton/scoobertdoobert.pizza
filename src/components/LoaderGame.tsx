@@ -215,7 +215,12 @@ export function LoaderGame({
         width={320}
         height={120}
         onClick={() => (canvasRef.current as unknown as { __jump?: () => void })?.__jump?.()}
-        style={{ imageRendering: 'pixelated', border: '1px solid #20303a', cursor: 'pointer', maxWidth: '90vw' }}
+        style={{
+          imageRendering: 'pixelated',
+          border: '1px solid #20303a',
+          cursor: 'pointer',
+          maxWidth: '90vw',
+        }}
       />
       <div style={{ opacity: 0.6 }}>space / tap to jump the broken buttons</div>
 

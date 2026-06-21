@@ -58,7 +58,8 @@ const DEFAULTS: Progress = {
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
-const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
+const num = (v: unknown, d: number): number =>
+  typeof v === 'number' && Number.isFinite(v) ? v : d;
 const bool = (v: unknown, d: boolean): boolean => (typeof v === 'boolean' ? v : d);
 const strArr = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];

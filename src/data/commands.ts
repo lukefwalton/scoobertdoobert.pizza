@@ -70,11 +70,7 @@ const FILES: Record<string, string[]> = {
     '01100100 01101001 01100101 01100111 01101111',
     '(hint: it is not a number. try /1101)',
   ],
-  'EMPLOYEES.TXT': [
-    'on duty: 1',
-    'on duty: 1',
-    'on duty: 1 (you keep counting the same one)',
-  ],
+  'EMPLOYEES.TXT': ['on duty: 1', 'on duty: 1', 'on duty: 1 (you keep counting the same one)'],
 };
 
 function helpListing(): string[] {
@@ -84,7 +80,7 @@ function helpListing(): string[] {
     'available commands:',
     ...visible.map((c) => `  ${c.name.padEnd(width + 2)}${c.help}`),
     '',
-    "(some commands are not listed. the building is older than it looks.)",
+    '(some commands are not listed. the building is older than it looks.)',
   ];
 }
 
@@ -119,8 +115,10 @@ export const COMMANDS: Command[] = [
       const out = ['guest@scoobertdoobert', '(the machine is not convinced you are a guest.)'];
       // The machine remembers returning deep-divers — the persistence spine, made
       // diegetic. Surface-safe phrasing; the real dread lives downstairs.
-      if (progress.maxUnease >= 0.7) out.push('(it has seen you all the way down. it has not forgotten.)');
-      else if (progress.everEnteredWorld) out.push('(you have been downstairs before. it noticed.)');
+      if (progress.maxUnease >= 0.7)
+        out.push('(it has seen you all the way down. it has not forgotten.)');
+      else if (progress.everEnteredWorld)
+        out.push('(you have been downstairs before. it noticed.)');
       return { output: out };
     },
   },
@@ -165,12 +163,16 @@ export const COMMANDS: Command[] = [
   {
     name: 'date',
     help: 'what time is it (here)',
-    run: () => ({ output: ['Fri Jun 20 1997 — 25:61:99 PST', '(the clock down here is unreliable.)'] }),
+    run: () => ({
+      output: ['Fri Jun 20 1997 — 25:61:99 PST', '(the clock down here is unreliable.)'],
+    }),
   },
   {
     name: 'history',
     help: 'what you have typed',
-    run: ({ history }) => ({ output: history.length ? history.map((h, i) => `  ${i + 1}  ${h}`) : ['(nothing yet)'] }),
+    run: ({ history }) => ({
+      output: history.length ? history.map((h, i) => `  ${i + 1}  ${h}`) : ['(nothing yet)'],
+    }),
   },
   {
     name: 'clear',
@@ -185,27 +187,54 @@ export const COMMANDS: Command[] = [
   {
     name: 'menu',
     help: 'go back to the storefront',
-    run: () => ({ output: ['returning to the storefront…'], action: { type: 'navigate', href: '/' } }),
+    run: () => ({
+      output: ['returning to the storefront…'],
+      action: { type: 'navigate', href: '/' },
+    }),
   },
 
   // ── hidden easter eggs (not in `help`) ─────────────────────────────────────
   {
     name: 'rat',
     run: () => ({
-      output: ['the rat pays rent.', 'the rat does not flee anymore.', 'the rat is looking at you.'],
+      output: [
+        'the rat pays rent.',
+        'the rat does not flee anymore.',
+        'the rat is looking at you.',
+      ],
     }),
   },
   {
     name: '1101',
-    run: () => ({ output: ['decoding…', 'SAVE SAN DIEGO', '> opening /1101'], action: { type: 'navigate', href: '/1101.html' } }),
+    run: () => ({
+      output: ['decoding…', 'SAVE SAN DIEGO', '> opening /1101'],
+      action: { type: 'navigate', href: '/1101.html' },
+    }),
   },
   {
     name: 'pizza',
-    run: () => ({ output: ['        ( )', '       (   )', '    .-"""""-.', '   /  *  *  \\   one (1) pizza.', '  |  *  *  * |  no refunds.', "   \\  *  *  /", '    `-.....-`'] }),
+    run: () => ({
+      output: [
+        '        ( )',
+        '       (   )',
+        '    .-"""""-.',
+        '   /  *  *  \\   one (1) pizza.',
+        '  |  *  *  * |  no refunds.',
+        '   \\  *  *  /',
+        '    `-.....-`',
+      ],
+    }),
   },
   {
     name: 'mobius',
-    run: () => ({ output: ['you walk forward.', 'you arrive where you started.', 'you are slightly different.', '∞'] }),
+    run: () => ({
+      output: [
+        'you walk forward.',
+        'you arrive where you started.',
+        'you are slightly different.',
+        '∞',
+      ],
+    }),
   },
 
   // ── forbidden: the machine doesn't like these (bumps unease) ────────────────
@@ -227,7 +256,9 @@ export const COMMANDS: Command[] = [
   {
     name: 'kill',
     forbidden: true,
-    run: () => ({ output: ['no such process.', 'it was never running.', 'it is just always here.'] }),
+    run: () => ({
+      output: ['no such process.', 'it was never running.', 'it is just always here.'],
+    }),
   },
 ];
 

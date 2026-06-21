@@ -56,8 +56,8 @@ export default function Poke() {
       </div>
 
       <p className="poke-foot">
-        Grab and pull — it bends his music as you stretch. Stays on this device;
-        nothing is sent anywhere.
+        Grab and pull — it bends his music as you stretch. Stays on this device; nothing is sent
+        anywhere.
       </p>
       <p className="poke-foot poke-foot--copy">
         Scoobert Doobert&rsquo;s likeness &amp; music &copy; Luke F. Walton dba Scoobert Doobert.

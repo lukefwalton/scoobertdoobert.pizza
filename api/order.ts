@@ -54,8 +54,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const email = String(body.email ?? '').trim().slice(0, 254);
-  const cheese = String(body.cheese ?? '').trim().slice(0, 40);
+  const email = String(body.email ?? '')
+    .trim()
+    .slice(0, 254);
+  const cheese = String(body.cheese ?? '')
+    .trim()
+    .slice(0, 40);
   const optin = body.optin === true || body.optin === 'on' || body.optin === 'true';
   const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
 

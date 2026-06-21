@@ -15,7 +15,9 @@ mkdirSync(OUT, { recursive: true });
 
 const files = [];
 for (const dir of SRC) {
-  for (const f of readdirSync(dir).filter((f) => /\.jpe?g$/i.test(f)).sort()) {
+  for (const f of readdirSync(dir)
+    .filter((f) => /\.jpe?g$/i.test(f))
+    .sort()) {
     files.push(`${dir}/${f}`);
   }
 }
