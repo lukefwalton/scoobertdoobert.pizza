@@ -188,6 +188,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
   };
 });
 
+/** The durable progress as a plain, store-free snapshot — for non-React readers
+ *  (e.g. the terminal's `status`/`whoami`, which take a Progress via ctx so
+ *  commands.ts stays free of stores). */
+export const getProgressSnapshot = (): Progress => snapshot(useProgressStore.getState());
+
 /**
  * Has the site got reason to "remember" you? Surface-safe (no dread): true once
  * you've been into the world, come back for a repeat visit, or found a secret.

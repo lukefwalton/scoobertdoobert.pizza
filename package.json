@@ -27,7 +27,8 @@
     "shoot:trapdoor": "node scripts/shoot-trapdoor.mjs",
     "shoot:shrine": "node scripts/shoot-shrine.mjs",
     "shoot:poke": "node scripts/shoot-poke.mjs",
-    "shoot:metro": "node scripts/shoot-metro.mjs"
+    "shoot:metro": "node scripts/shoot-metro.mjs",
+    "shoot:terminal": "node scripts/shoot-terminal.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
