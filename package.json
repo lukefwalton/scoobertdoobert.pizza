@@ -35,6 +35,7 @@
     "shoot:poke": "node scripts/shoot-poke.mjs",
     "shoot:chimes": "node scripts/shoot-chimes.mjs",
     "shoot:cultures": "node scripts/shoot-cultures.mjs",
+    "shoot:luck": "node scripts/shoot-luck.mjs",
     "shoot:metro": "node scripts/shoot-metro.mjs",
     "shoot:terminal": "node scripts/shoot-terminal.mjs",
     "shoot:dread": "node scripts/shoot-dread.mjs",
