@@ -67,6 +67,8 @@ const bad = (m) => {
   let struckEarly = 0;
   let struckLater = 0;
   let started = false;
+  let gainLive = null;
+  let gainMuted = null;
   if (canvas) {
     const read = () => page.evaluate(() => window.__sdpChimes ?? { strikes: 0, started: false });
     await page.waitForTimeout(700); // let the pendulums swing and start striking
@@ -83,10 +85,20 @@ const bad = (m) => {
     if (!started) bad('JS: tapping the glass did not start the audio engine');
     if (struckLater <= struckEarly) bad('JS: the sim stopped striking after the tap');
     await page.screenshot({ path: '.shots/chimes.png' });
+
+    // Mute path (regression): hitting ♪ OFF must ramp master to ~0 so bells that
+    // are already ringing stop too — consistency with Cultures.
+    gainLive = await page.evaluate(() => window.__sdpChimes?.masterGain ?? null);
+    await page.click('.chimes-btn[aria-pressed]'); // the ♪ ON/OFF toggle → mutes
+    await page.waitForTimeout(500);
+    gainMuted = await page.evaluate(() => window.__sdpChimes?.masterGain ?? null);
+    if (!(gainLive > 0.5)) bad(`JS: chimes master not live after start (gain ${gainLive})`);
+    if (!(gainMuted != null && gainMuted < 0.1))
+      bad(`JS: chimes did not mute — master gain ${gainMuted} (ringing bells continue)`);
   }
   if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(
-    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} errors=${errors.length}`,
+    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} gain=${gainLive}->${gainMuted} errors=${errors.length}`,
   );
   await ctx.close();
 }
