@@ -515,6 +515,45 @@ class PizzaAudio {
   }
 
   /**
+   * A soft COLONY voice — the /cultures instrument reused as in-world ambience
+   * (the glowing plankton in the poolrooms bloom a note when cells touch). A
+   * single additive-pad oscillator (sine + a whisper of 2nd/3rd harmonics) with a
+   * gentle attack + long release, panned, through `master` (limiter + mute apply).
+   * Quiet by construction; builds + frees its own nodes. No-op pre-gesture / muted.
+   */
+  playColony(freq: number, pan = 0, peak = 0.08): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const rel = 1.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, peak), now + 0.08); // soft attack
+    g.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+    let tail: AudioNode = g;
+    let panner: StereoPannerNode | undefined;
+    if (typeof ctx.createStereoPanner === 'function') {
+      panner = ctx.createStereoPanner();
+      panner.pan.value = Math.max(-1, Math.min(1, pan)) * 0.6;
+      g.connect(panner);
+      tail = panner;
+    }
+    tail.connect(this.master);
+    const osc = ctx.createOscillator();
+    const real = new Float32Array([0, 1, 0.15, 0.08]);
+    osc.setPeriodicWave(ctx.createPeriodicWave(real, new Float32Array(real.length)));
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(now);
+    osc.stop(now + rel + 0.05);
+    osc.onended = () => {
+      osc.disconnect();
+      g.disconnect();
+      panner?.disconnect();
+    };
+  }
+
+  /**
    * A hand CLAP — the shrine ritual (二拍手). A short band-passed noise burst with
    * a fast percussive decay, routed through `master` so the limiter + global mute
    * apply; builds + frees its own nodes. No-op pre-gesture / when muted, like the
