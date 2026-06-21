@@ -8,7 +8,7 @@
 // animation timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { tapLoaderCta } from './lib/smoke.mjs';
+import { roomIs as sharedRoomIs, tapLoaderCta, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
@@ -20,17 +20,7 @@ const fail = (m) => {
   console.log('FAIL:', m);
 };
 
-const roomIs = (page, name, timeout = 8000) =>
-  page
-    .waitForFunction(
-      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
-      name,
-      { timeout },
-    )
-    .then(
-      () => true,
-      () => (fail(`room never became "${name}"`), false),
-    );
+const roomIs = (page, name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 const walk = async (page, key, ms) => {
   await page.keyboard.down(key);
   await page.waitForTimeout(ms);
@@ -62,10 +52,7 @@ let reEnter = false;
     deviceScaleFactor: 1,
   });
   const page = await ctx.newPage();
-  page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-  page.on('console', (m) => {
-    if (m.type() === 'error') fail(`console: ${m.text()}`);
-  });
+  watchPageErrors(page, fail);
 
   // Warp into the pool (the underwater lobby). The surface → jukebox → pool walk
   // is covered by shoot-rooms; this smoke is about the LOADER + waterfall.

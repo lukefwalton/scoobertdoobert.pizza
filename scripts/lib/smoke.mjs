@@ -78,6 +78,36 @@ export async function walkToDoor(page, fail, key, label, { timeout = 8000 } = {}
   return true;
 }
 
+// Resolve true once the HUD's quiet room-label contains `name`; on timeout,
+// resolve false and (if a `fail` is given) record the miss. This exact poll had
+// been copy-pasted verbatim into ~9 room smokes; one home keeps them identical
+// and lets the per-script `roomIs(name)` stay a one-line adapter over it.
+export function roomIs(page, name, { fail, timeout = 8000 } = {}) {
+  return page
+    .waitForFunction(
+      (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
+      name,
+      { timeout },
+    )
+    .then(
+      () => true,
+      () => {
+        fail?.(`room never became "${name}"`);
+        return false;
+      },
+    );
+}
+
+// Route a page's uncaught errors + console.error into `onError` (the smoke's
+// fail counter). The same two listeners were pasted into most smokes; call this
+// once per page/context (multi-context smokes call it per fresh page).
+export function watchPageErrors(page, onError) {
+  page.on('pageerror', (e) => onError(`pageerror: ${e.message}`));
+  page.on('console', (m) => {
+    if (m.type() === 'error') onError(`console: ${m.text()}`);
+  });
+}
+
 export function makeLoaderHelpers(page, fail) {
   const enterLoadedLevel = async (label, timeout = 25000) => {
     const ready = await page
