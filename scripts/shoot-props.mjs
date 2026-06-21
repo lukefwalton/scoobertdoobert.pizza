@@ -50,13 +50,6 @@ const roomIs = (name, timeout = 8000) =>
       { timeout },
     )
     .then(() => true, () => (fail(`room never became "${name}"`), false));
-const toDoor = async (key) => {
-  await page.keyboard.down(key);
-  await page.waitForSelector('.hud-prompt--door', { timeout: 5000 }).catch(() => {});
-  await page.keyboard.up(key);
-  await page.keyboard.press('e');
-  await page.waitForTimeout(900);
-};
 const loaded = async (file, timeout = 6000) =>
   page
     .waitForFunction(
@@ -67,7 +60,7 @@ const loaded = async (file, timeout = 6000) =>
     )
     .then(() => true, () => false);
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -79,12 +72,17 @@ const startShop = await roomIs('Beach Pizza Shop');
 const palm = await loaded('palm-tree.glb'); // the shop's palm
 if (!palm) fail('palm-tree.glb did not load in the shop');
 
-await toDoor('d');
+// Fail fast if the gated transition hook isn't exposed (a gating regression).
+if (!(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+  fail('__sdpGoToRoom hook not exposed under ?world&debug (gating regression?)');
+// Jump room-to-room via the gated transition hook — the surface→pool→corridor
+// walk is shoot-rooms'; this smoke only cares that each room's prop GLB loads.
+await page.evaluate(() => window.__sdpGoToRoom?.('poolrooms', 'fromAbove'));
 const inPool = await roomIs('The Poolrooms');
 const statue = await loaded('greek-statue.glb');
 if (!statue) fail('greek-statue.glb did not load in the pool');
 
-await toDoor('d'); // +X corridor door
+await page.evaluate(() => window.__sdpGoToRoom?.('mobius', 'fromPool'));
 const inCorr = await roomIs('The Long Corridor');
 const mobius = await loaded('mobius-strip.glb');
 if (!mobius) fail('mobius-strip.glb did not load in the corridor');

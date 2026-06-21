@@ -147,29 +147,19 @@ export const ROOMS: Room[] = [
       // 3.2 radius) so you land IN the room, not on its prompt, and a held E
       // can't immediately bounce you back through it. Faces the sea.
       fromHall: { position: [0, EYE, ROOM.halfD - 4.5], yaw: Math.PI },
-      // Arriving back up from the pool: by the +X pool door, clear of its radius,
-      // facing the window/room.
-      fromPool: { position: [ROOM.halfW - 4.5, EYE, 3.5], yaw: Math.PI },
     },
     doors: [
       {
         id: 'shop-to-hall',
         to: 'hallway',
         toSpawn: 'fromShop',
-        // Back wall (+Z), opposite the window. "EMPLOYEES ONLY."
+        // Back wall (+Z), opposite the window. "EMPLOYEES ONLY." The shop is the
+        // TOP lobby — its only way on is INTO the building (the hall → the music),
+        // never a stairwell down right here. You FIND the way down by going
+        // deeper (past the jukebox), not from the lobby. (Luke's descent rule.)
         position: [0, 0, ROOM.halfD - 0.05],
         rotationY: 0,
         label: 'enter the back hall',
-        radius: 3.2,
-      },
-      {
-        id: 'shop-to-pool',
-        to: 'poolrooms',
-        toSpawn: 'fromShop',
-        // Right (+X) wall, toward the back — a stairwell down to the level below.
-        position: [ROOM.halfW - 0.05, 0, 3.5],
-        rotationY: -Math.PI / 2,
-        label: 'go down to the pool',
         radius: 3.2,
       },
     ],
@@ -246,6 +236,9 @@ export const ROOMS: Room[] = [
       // Stepping back out of the practice room: by the -X stage door, facing into
       // the room (+X), clear of every door radius.
       fromPractice: { position: [-2.5, EYE, 0], yaw: Math.PI / 2 },
+      // Climbing back UP from the pool: by the +X stair door, a step clear of its
+      // radius, facing into the room (-X).
+      fromPool: { position: [2.5, EYE, 0], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -265,6 +258,17 @@ export const ROOMS: Room[] = [
         position: [-5.95, 0, 0],
         rotationY: Math.PI / 2, // in the -X wall, opening faces +X into the room
         label: 'slip backstage',
+        radius: 3.0,
+      },
+      {
+        id: 'juke-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromAbove',
+        // A STAIRWELL DOWN in the +X wall — the way deeper is found PAST the music,
+        // not back in the shop lobby (Luke's descent rule). The level below.
+        position: [5.95, 0, 0],
+        rotationY: -Math.PI / 2, // in the +X wall, opening faces -X into the room
+        label: 'take the stairs down to the pool',
         radius: 3.0,
       },
     ],
@@ -338,7 +342,8 @@ export const ROOMS: Room[] = [
       // Arrive on the deck just past the +Z wall (clear of the return door),
       // facing -Z across the still pool toward the far wall.
       default: { position: [0, EYE, 5], yaw: Math.PI },
-      fromShop: { position: [0, EYE, 5], yaw: Math.PI },
+      // Arriving DOWN the stairs from the jukebox (the level above), on the deck.
+      fromAbove: { position: [0, EYE, 5], yaw: Math.PI },
       // Climbing back up out of the liminal level — you surface near the centre
       // door, a step clear of its radius, facing the room (-Z).
       fromLiminal: { position: [0, EYE, 4.5], yaw: Math.PI },
@@ -353,26 +358,18 @@ export const ROOMS: Room[] = [
     },
     doors: [
       {
-        id: 'pool-to-shop',
-        to: 'shop',
+        id: 'pool-to-juke',
+        to: 'jukebox',
         toSpawn: 'fromPool',
-        position: [0, 0, 8.95], // +Z wall
+        position: [0, 0, 8.95], // +Z wall — back UP the stairs to the music
         rotationY: 0,
-        label: 'back up to the shop',
+        label: 'back up the stairs to the music',
         radius: 3.2,
       },
-      {
-        id: 'pool-to-liminal',
-        to: 'liminal',
-        toSpawn: 'fromPool',
-        // DEAD CENTRE, standing on the false water — the only way deeper is to
-        // walk out across the pool to it (PoolroomsRoom renders the water). Faces
-        // +Z toward the entry so you walk straight into it.
-        position: [0, 0, 0],
-        rotationY: 0,
-        label: 'step through the door on the water',
-        radius: 2.8,
-      },
+      // NOTE: there is no down-door here in the lobby. The way DOWN to the liminal
+      // is FOUND by going deep into the long corridor (mobius) and breaking the
+      // loop — its 'mobius-onward' door drops you down. (Luke's rule: the lobby
+      // sends you up; you earn down by going deeper.)
       {
         id: 'pool-to-mobius',
         to: 'mobius',
@@ -527,11 +524,13 @@ export const ROOMS: Room[] = [
       },
       {
         id: 'mobius-onward',
-        to: 'shop',
+        to: 'liminal',
         toSpawn: 'fromPool',
         // A door in the -X wall near the far end that ISN'T there until the loop
-        // breaks (MOBIUS_BREAK laps) — then you step through and pop out somewhere
-        // else entirely (the shop). The "walk far enough and you're elsewhere" beat.
+        // breaks (MOBIUS_BREAK laps) — then the wall opens onto a stair DOWN to the
+        // liminal. This is the level's way down: you FIND it by going deep into the
+        // corridor and breaking the loop, not from the pool lobby (Luke's rule).
+        // The "walk far enough and the floor drops away" beat.
         position: [-2.5, 0, -9],
         rotationY: Math.PI / 2,
         label: 'step through the door that wasn’t there',

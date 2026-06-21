@@ -36,23 +36,15 @@ const walk = async (page, key, ms) => {
   await page.waitForTimeout(ms);
   await page.keyboard.up(key);
 };
-const toDoor = async (page, key) => {
-  // Walk in `key` until a door prompt shows, then E. Returns whether it prompted.
-  await page.keyboard.down(key);
-  let ok = false;
-  try {
-    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 });
-    ok = true;
-  } catch {
-    /* asserted by the caller */
-  }
-  await page.keyboard.up(key);
-  if (ok) await page.keyboard.press('e');
-  return ok;
-};
+// Drive the descent into the liminal via the gated transition hook — a real
+// pendingRoom → wipe → waterfall → loader transition, exactly like a door. The
+// in-world way down (break the Möbius corridor) is exercised by shoot-mobius;
+// this smoke is about the LOADER + waterfall, so we trigger the transition
+// directly from the pool rather than walking the deep graph each round-trip.
+const descendToLiminal = (page) =>
+  page.evaluate(() => window.__sdpGoToRoom?.('liminal', 'fromPool'));
 
-// ── happy path: shop → poolrooms → liminal (via the loader) → poolrooms ──────
-let startShop = false;
+// ── happy path: pool → liminal (via the loader) → pool ───────────────────────
 let inPool = false;
 let loaderShown = false;
 let frozenUnderLoader = false;
@@ -72,7 +64,9 @@ let reEnter = false;
     if (m.type() === 'error') fail(`console: ${m.text()}`);
   });
 
-  await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+  // Warp into the pool (the underwater lobby). The surface → jukebox → pool walk
+  // is covered by shoot-rooms; this smoke is about the LOADER + waterfall.
+  await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'commit' });
   try {
     await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
   } catch (e) {
@@ -80,26 +74,16 @@ let reEnter = false;
   }
   await page.waitForTimeout(1500);
 
-  startShop = await roomIs(page, 'Beach Pizza Shop');
-
-  // Shop spawn faces the window (-Z); the pool door is in the +X wall → strafe D.
-  const pooled = await toDoor(page, 'd');
-  if (!pooled) fail('pool door prompt never appeared (strafing +X to the stairwell)');
   inPool = await roomIs(page, 'The Poolrooms');
   await page.screenshot({ path: '.shots/levels-pool.png' });
 
-  // Pool spawn faces -Z; the way down is the door DEAD CENTRE, out across the
-  // false water → walk W to it. Its target is a GLB level, so it raises the loader.
-  await page.keyboard.down('w');
-  let deepPrompt = false;
-  try {
-    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 });
-    deepPrompt = true;
-  } catch {
-    fail('"go deeper" door prompt never appeared');
-  }
-  await page.keyboard.up('w');
-  if (deepPrompt) await page.keyboard.press('e');
+  // Fail fast if the gated transition hook isn't exposed (a gating regression),
+  // so it surfaces here instead of as a later loader/room timeout.
+  if (!(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+    fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
+
+  // Descend into the liminal (a GLB level → raises the waterfall + loader).
+  await descendToLiminal(page);
 
   // The descent rides a WATERFALL: the rushing-water overlay fires during the
   // wipe down into liminal (brief, before the loader covers it).
@@ -179,12 +163,8 @@ let reEnter = false;
   //    Regression for the ready/reset race: the loader must STILL reach the
   //    ready state (not get stranded at ready=false) and let us back in.
   if (backToPool) {
-    // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z), so the centre door
-    // is straight ahead across the water → walk W to reach it again.
-    await page.keyboard.down('w');
-    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-    await page.keyboard.up('w');
-    await page.keyboard.press('e'); // → liminal again (cached)
+    // Re-enter the liminal (cached useGLTF) via the same transition hook.
+    await descendToLiminal(page); // → liminal again (cached)
     reReady = await page
       .waitForFunction(
         () =>
@@ -215,17 +195,12 @@ let retryRecovered = false;
   await page.route('**/models/liminal-other-space.glb', (route) =>
     route.fulfill({ status: 404, body: 'not found' }),
   );
-  await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'commit' });
   try {
     await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
     await page.waitForTimeout(1500);
-    await roomIs(page, 'Beach Pizza Shop');
-    await toDoor(page, 'd'); // → poolrooms
     await roomIs(page, 'The Poolrooms');
-    await page.keyboard.down('w');
-    await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-    await page.keyboard.up('w');
-    await page.keyboard.press('e'); // → liminal (the GLB 404s)
+    await descendToLiminal(page); // → liminal (the GLB 404s)
 
     // The loader should flip to the error state and offer TURN BACK.
     errLoader = await page
@@ -254,12 +229,7 @@ let retryRecovered = false;
       //    poisoned useGLTF cache, so once the asset is reachable again, re-entering
       //    the room in the SAME tab should now load (no page reload required).
       await page.unroute('**/models/liminal-other-space.glb'); // the hiccup passes
-      // Surfaced at the 'fromLiminal' spawn (z=4.5, facing -Z) → the centre door
-      // is straight ahead across the water, so walk W to reach it again.
-      await page.keyboard.down('w');
-      await page.waitForSelector('.hud-prompt--door', { timeout: 3500 }).catch(() => {});
-      await page.keyboard.up('w');
-      await page.keyboard.press('e'); // → liminal, retry
+      await descendToLiminal(page); // → liminal, retry
       retryRecovered = await page
         .waitForFunction(
           () =>
@@ -279,7 +249,7 @@ let retryRecovered = false;
 
 await browser.close();
 console.log(
-  `levels: shop=${startShop} pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
+  `levels: pool=${inPool} loaderShown=${loaderShown} frozen=${frozenUnderLoader} ` +
     `ready=${loaderReady} waterfallDown=${waterfallOnDescent} noWaterfallUp=${noWaterfallOnAscent} ` +
     `liminal=${inLiminal} overlayGoneOnEnter=${overlayGoneOnEnter} backToPool=${backToPool} ` +
     `reReady=${reReady} reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
