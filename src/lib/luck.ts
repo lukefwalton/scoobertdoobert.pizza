@@ -58,12 +58,15 @@ export function rollLuckyD20(luckAvailable: number, rng: () => number = Math.ran
 }
 
 /**
- * Roll the universal d20 against the durable save: read current luck, roll with
- * advantage, and debit whatever luck the system spent. The one call every in-world
- * roll (the dice-monster, the dice selector, future encounters) goes through.
+ * Roll the universal d20 against the durable save. `useLuck` (default true) gates
+ * the luck economy: a STAKES roll (the dice-monster, future encounters) reads
+ * current luck, rolls with advantage, and debits what the system spent. A
+ * LOW-STAKES roll — the jukebox/dice MUSIC selector, where a "high" roll means
+ * nothing — passes `useLuck: false` so it's a plain d20 that never burns your luck
+ * (it still reports nat 20 / crit fail for flavour). Crits stay 3× either way.
  */
-export function rollD20(): Roll {
-  const luck = selectLuck(useProgressStore.getState());
+export function rollD20(useLuck = true): Roll {
+  const luck = useLuck ? selectLuck(useProgressStore.getState()) : 0;
   const r = rollLuckyD20(luck);
   if (r.luckSpent > 0) useProgressStore.getState().spendLuck(r.luckSpent);
   return r;

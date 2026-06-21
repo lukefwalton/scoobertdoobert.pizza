@@ -23,6 +23,7 @@ export function D20({
   position,
   onRoll,
   lastRoll,
+  useLuck = true,
 }: {
   position: [number, number, number];
   /** Called with the landed face (1..20) + its crit (nat20 / nat1 / null) once the
@@ -30,6 +31,9 @@ export function D20({
   onRoll: (face: number, crit: Crit) => void;
   /** The face to show on the plaque (null before the first roll). */
   lastRoll: number | null;
+  /** Whether this die spends luck for advantage (a STAKES roll). Default true; the
+   *  jukebox music selector passes false so a low-stakes roll never burns luck. */
+  useLuck?: boolean;
 }) {
   const { gl } = useThree();
   const dieRef = useRef<THREE.Group>(null);
@@ -63,9 +67,9 @@ export function D20({
 
   const settle = () => {
     rolling.current = false;
-    // The luck-biased universal roll: luck (if any) is spent here for advantage,
-    // and a nat 20 / crit fail comes back for the caller to swing 3×.
-    const { face, crit } = rollD20();
+    // The universal roll: on a stakes die, luck (if any) is spent here for
+    // advantage; a nat 20 / crit fail comes back for the caller to swing 3×.
+    const { face, crit } = rollD20(useLuck);
     onRoll(face, crit);
   };
 
