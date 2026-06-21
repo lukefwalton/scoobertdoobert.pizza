@@ -7,6 +7,7 @@ import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
 import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
 import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore } from '../state/progressStore';
 import { D20 } from './D20';
@@ -148,7 +149,10 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const [index, setIndex] = useState(0);
   const [roll, setRoll] = useState<number | null>(null);
   const track = JUKEBOX_TRACKS[index];
-  const cycle = () => setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
+  const cycle = () => {
+    audio.playChime(noteToFreq('E', 5), 0.25, 0.09, 0.5); // a little bell on track change
+    setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
+  };
   // A d20 face (1..20) maps onto the catalog by modulo, so every track is
   // reachable and the rolled number still reads as a real D&D roll. Rolling the
   // bone is also the UPGRADE: it unlocks the flip-through radio (durable) and

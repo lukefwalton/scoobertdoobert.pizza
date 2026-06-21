@@ -66,7 +66,9 @@ function PadInstrument({ room, deckMat }: { room: Room; deckMat: THREE.Material 
   // Flash a pad + sound it (the shared "hit" used by both demo playback and play).
   const flash = (i: number, durMs = 340) => {
     setLit(i);
-    audio.playTone(PADS[i].freq, durMs);
+    // Bell voices (the shared chimes engine), so the pads match the centre rig —
+    // a short pluck (decayScale 0.4) so a fast call-and-response stays legible.
+    audio.playChime(PADS[i].freq, 0, 0.22, 0.4);
     push(setTimeout(() => setLit((cur) => (cur === i ? -1 : cur)), durMs * 0.8));
   };
 
