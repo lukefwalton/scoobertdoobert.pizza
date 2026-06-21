@@ -91,6 +91,13 @@ else {
 await page.screenshot({ path: '.shots/practice.png' });
 if (errors.length) bad(`practice: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
+// Companion guard: the test hook must NOT leak onto a normal (non-debug) load —
+// it's gated to the ?world / ?debug test entrances only.
+await page.goto(base + '/?room=practice', { waitUntil: 'commit' });
+await page.waitForSelector('.hud-room', { timeout: 8000 }).catch(() => null);
+if (await page.evaluate(() => !!window.__sdpPractice))
+  bad('practice: __sdpPractice hook present on a normal (non-debug) load');
+
 console.log(
   `practice -> canvas=${!!canvas} room=${JSON.stringify(title)} cleared=${result.cleared} stored=${result.stored} errors=${errors.length}`,
 );
