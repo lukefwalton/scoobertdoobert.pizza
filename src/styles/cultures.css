@@ -1,0 +1,182 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   /cultures — the "Cultures" cabinet. PERIOD-ACCURATE, same grammar as the
+   arcade / poke / chimes cabinets: sharp corners, beveled chrome, a flat
+   palette, and a hard zero-blur RGB chroma-split marquee.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.cultures-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 12px 12px 28px;
+  background: #04040a;
+  color: #cfe9ef;
+  font:
+    13px/1.5 'Courier New',
+    monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.cultures-util {
+  width: 100%;
+  max-width: 360px;
+  margin: 0;
+}
+.cultures-util a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+
+.cultures-cabinet {
+  width: 100%;
+  max-width: 360px;
+  background: #20202c;
+  border: 4px outset #4a4a5e;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cultures-marquee {
+  text-align: center;
+  padding: 7px 6px;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
+}
+.cultures-marquee__neon {
+  font-weight: bold;
+  letter-spacing: 5px;
+  color: #8fe070;
+  text-shadow:
+    1px 0 0 #00e0ff,
+    -1px 0 0 #ff2a2a;
+}
+
+.cultures-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.cultures-canvas {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 320 / 340;
+  background: #07090f;
+  border: 3px inset #4a4a5e;
+  touch-action: none; /* we own the stir */
+  cursor: grab;
+  user-select: none;
+}
+.cultures-canvas:active {
+  cursor: grabbing;
+}
+
+.cultures-controls {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cultures-ctl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+}
+.cultures-ctl__label {
+  min-width: 42px;
+  color: #7a8290;
+}
+.cultures-ctl input {
+  flex: 1;
+  accent-color: #8fe070;
+}
+
+.cultures-btn {
+  appearance: none;
+  align-self: flex-start;
+  min-width: 64px;
+  padding: 6px 12px;
+  font:
+    bold 13px 'Courier New',
+    monospace;
+  letter-spacing: 2px;
+  color: #e8f4f1;
+  background: #2c2c3a;
+  border: 3px outset #50506a;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.cultures-btn:active {
+  border-style: inset;
+  background: #232330;
+}
+.cultures-btn[aria-pressed='true'] {
+  color: #062a10;
+  background: #39ff14;
+  border-color: #7dff66;
+}
+
+.cultures-hint {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.cultures-coinslot {
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b6b80;
+}
+
+/* No-JS / pre-hydration cold screen */
+.cultures-screen--cold {
+  width: 100%;
+  min-height: 280px;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+  background: #07090f;
+  border: 3px inset #4a4a5e;
+}
+.cultures-cold-title {
+  margin: 0 0 6px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #8fe070;
+}
+.cultures-cold-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #9fb6bd;
+}
+
+.cultures-foot {
+  max-width: 360px;
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #7a8290;
+}
+.cultures-foot a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+.cultures-foot--copy {
+  color: #4a5160;
+}
