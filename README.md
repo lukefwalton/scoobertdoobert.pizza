@@ -192,13 +192,22 @@ door at each end (and the matching arrival spawn). No other scene code.
 ## Self-verification (Playwright)
 
 ```bash
-npm run build && npm run preview &   # serve dist/ on :4173
+npm run build
+npm run shoot:all       # build once, run EVERY smoke against one preview server
+# …or a single suite (each starts/expects its own preview on :4173):
 npm run shoot           # storefront desktop/mobile/text + JS-DISABLED parity
-npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause
+npm run shoot:world     # enters the world, asserts canvas mounts, hotspot + modal pause, intro × dismiss
 npm run shoot:descent   # storefront → 1999 → 2000 → machine room → install → world → exit; + mobile→/text
 npm run shoot:rooms     # shop → hall (rat knocks the secret) → classified → jukebox; doors, wipes, audio duck
 npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text + /about route
 ```
+
+**`shoot:all` is the CI gate** (`.github/workflows/ci.yml`): it builds, starts
+one `vite preview`, and runs every `shoot:*` script — **auto-discovered from
+`package.json`**, so the rule is simply: *a `shoot` or `shoot:*` script is a smoke
+suite and runs in CI; anything else under `scripts/` (e.g. `make-*`, `lib/`) is a
+helper and isn't.* Add a new `shoot:<name>` script and it's covered automatically.
+The repeated GLB-loader entry flow lives once in `scripts/lib/smoke.mjs`.
 
 Screenshots land in `.shots/` (gitignored). The `postbuild` step
 (`scripts/check-build.mjs`) fails the build if `/` or `/text` lose their real
