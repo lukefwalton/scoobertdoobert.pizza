@@ -42,6 +42,7 @@ let toast = false;
 let pauseLuck = '';
 let luckBefore = null;
 let luckAfter = null;
+let luckRepeat = null;
 if (hasHook) {
   // Read luck straight from the durable store BEFORE the ritual so we can prove a
   // DELTA — stale saved state can't mask a broken earn (the reviewer's point).
@@ -70,6 +71,15 @@ if (hasHook) {
     bad(`luck: clap did not earn exactly +1 (before ${luckBefore}, after ${luckAfter})`);
   await page.screenshot({ path: '.shots/luck.png' });
 
+  // Per-visit gate: a SECOND clap this visit must NOT grant more luck. Wait past
+  // the ~1.2s anti-double-tap cooldown so we're testing the once-per-visit gate.
+  await page.waitForTimeout(1400);
+  await page.evaluate(() => window.__sdpShrineClap());
+  await page.waitForTimeout(300);
+  luckRepeat = await readLuck();
+  if (luckRepeat !== luckAfter)
+    bad(`luck: a 2nd clap this visit changed luck ${luckAfter}->${luckRepeat} (per-visit gate broken)`);
+
   // Open the pause menu and read the luck stat — it must match the stored value.
   await page.keyboard.press('Escape');
   const luckEl = await page
@@ -82,7 +92,7 @@ if (hasHook) {
 
 if (errors.length) bad(`luck: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} pauseLuck=${JSON.stringify(pauseLuck)} errors=${errors.length}`,
+  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} repeat=${luckRepeat} pauseLuck=${JSON.stringify(pauseLuck)} errors=${errors.length}`,
 );
 
 await ctx.close();

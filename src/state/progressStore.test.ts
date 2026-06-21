@@ -50,11 +50,28 @@ describe('progressStore luck economy', () => {
     expect(useProgressStore.getState().luckSpent).toBe(3); // only ever spent what existed
   });
 
-  it('ignores non-positive gains', async () => {
+  it('ignores non-positive gains and floors fractional luck (no dust the rolls can’t spend)', async () => {
     const { useProgressStore, selectLuck } = await freshStore();
     useProgressStore.getState().gainLuck(0);
     useProgressStore.getState().gainLuck(-5);
     expect(selectLuck(useProgressStore.getState())).toBe(0);
+    useProgressStore.getState().gainLuck(2.7); // floored to 2
+    expect(selectLuck(useProgressStore.getState())).toBe(2);
+  });
+
+  it('rollD20(useLuck=true) debits exactly the luck the system spends; useLuck=false never burns it', async () => {
+    const rnd = vi.spyOn(Math, 'random').mockReturnValue(0); // base d20 = 1 (< HELP_BELOW → spends)
+    const { useProgressStore, selectLuck } = await freshStore();
+    const { rollD20, MAX_LUCK_PER_ROLL } = await import('../lib/luck');
+    useProgressStore.getState().gainLuck(10);
+    const before = selectLuck(useProgressStore.getState());
+    const r = rollD20(true);
+    expect(r.luckSpent).toBe(MAX_LUCK_PER_ROLL); // plentiful luck → spends the per-roll cap
+    expect(selectLuck(useProgressStore.getState())).toBe(before - r.luckSpent); // debited exactly
+    const mid = selectLuck(useProgressStore.getState());
+    expect(rollD20(false).luckSpent).toBe(0); // a low-stakes roll burns nothing
+    expect(selectLuck(useProgressStore.getState())).toBe(mid);
+    rnd.mockRestore();
   });
 
   it('reads fresh disk first, so a concurrent tab’s earn is added to, not clobbered', async () => {
