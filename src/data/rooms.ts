@@ -24,7 +24,8 @@ export type RoomKind =
   | 'dicepit'
   | 'shrine'
   | 'metro'
-  | 'practice';
+  | 'practice'
+  | 'grass';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -608,6 +609,9 @@ export const ROOMS: Room[] = [
       // tracks go under, a step clear of its door radius, facing back into the
       // room (-X) toward the shrine.
       fromTunnel: { position: [6.8, EYE, 2], yaw: -Math.PI / 2 },
+      // Coming back in from the tall grass — beside the -X torii, a step clear of
+      // its door radius, facing +X back into the shrine grounds.
+      fromGrass: { position: [-6.8, EYE, 6], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -630,6 +634,49 @@ export const ROOMS: Room[] = [
         position: [10.6, 0, 2], // TRACK_Z = 2 in ShrineRoom
         rotationY: -Math.PI / 2, // in the +X wall, opening faces -X into the room
         label: 'follow the tracks into the tunnel',
+        radius: 3.2,
+      },
+      {
+        id: 'shrine-to-grass',
+        to: 'grassfield',
+        toSpawn: 'fromShrine',
+        // A little vermilion torii on the open -X side frames a path off into an
+        // overgrown field. NOT hidden — once you've found the shrine, the grass
+        // (and the wild thing in it) is an easy step away (Luke: "shouldn't be
+        // that hard to get a goblin fight").
+        position: [-10.6, 0, 6],
+        rotationY: Math.PI / 2, // in the -X edge, opening faces +X into the room
+        label: 'wander into the tall grass',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'grassfield',
+    kind: 'grass',
+    title: 'The Tall Grass',
+    // An overgrown lot off the shrine's torii (Luke: "it's off the torii gates").
+    // Knee-high grass you wade through under the same golden-hour haze as the
+    // shrine — and sometimes it rustles and a wild GOBLIN leaps out (the
+    // dice-filtered encounter; DiceMonster + the d20 roll-off, screen-to-black
+    // Pokémon-style). A SWEET surface space (taste guardrail): goofy grass, the
+    // ambush is a game, losing never hard-fails. Winning opens a new room.
+    dims: { halfW: 14, halfD: 16, height: 9, eye: EYE },
+    palette: { background: '#e6c08a', fog: '#d8b87f', fogNear: 7, fogFar: 46 },
+    spawns: {
+      // Step out from under the torii at the +Z (shrine) end, facing into the
+      // field (-Z), a step clear of the return door's radius.
+      default: { position: [0, EYE, 11.5], yaw: Math.PI },
+      fromShrine: { position: [0, EYE, 11.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grass-to-shrine',
+        to: 'shrine',
+        toSpawn: 'fromGrass',
+        position: [0, 0, 15.5], // +Z (entrance) torii — back to the shrine grounds
+        rotationY: 0,
+        label: 'step back through the torii',
         radius: 3.2,
       },
     ],
