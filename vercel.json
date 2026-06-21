@@ -1,5 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.scoobertdoobert.pizza" }],
+      "destination": "https://scoobertdoobert.pizza/:path*",
+      "permanent": true
+    }
+  ]
 }
