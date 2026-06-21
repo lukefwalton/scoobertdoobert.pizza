@@ -39,7 +39,7 @@ const toDoor = async (key) => {
 };
 const monster = () => page.evaluate(() => window.__sdpMonster ?? null);
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -48,6 +48,10 @@ try {
 await page.waitForTimeout(1500);
 
 const startShop = await roomIs('Beach Pizza Shop');
+// Fail fast if the gated transition hook isn't exposed (a gating regression), so
+// it surfaces here with a targeted message instead of a later room timeout.
+if (!(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+  fail('__sdpGoToRoom hook not exposed under ?world&debug (gating regression?)');
 // Jump straight to the back room via the gated transition hook — the
 // surface → pool → back-room walk is shoot-rooms'; this smoke is the dice monster.
 await page.evaluate(() => window.__sdpGoToRoom?.('dicepit', 'fromPool'));

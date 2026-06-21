@@ -77,6 +77,11 @@ let reEnter = false;
   inPool = await roomIs(page, 'The Poolrooms');
   await page.screenshot({ path: '.shots/levels-pool.png' });
 
+  // Fail fast if the gated transition hook isn't exposed (a gating regression),
+  // so it surfaces here instead of as a later loader/room timeout.
+  if (!(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+    fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
+
   // Descend into the liminal (a GLB level → raises the waterfall + loader).
   await descendToLiminal(page);
 

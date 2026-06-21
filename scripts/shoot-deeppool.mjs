@@ -64,6 +64,9 @@ let inDeep = false;
 let backUp = false;
 
 inPool = await roomIs('The Poolrooms');
+// Fail fast if the gated transition hook isn't exposed (a gating regression).
+if (inPool && !(await page.evaluate(() => typeof window.__sdpGoToRoom === 'function')))
+  fail('__sdpGoToRoom hook not exposed under ?room&debug (gating regression?)');
 if (inPool) await descendToLiminal();
 if (
   inPool &&

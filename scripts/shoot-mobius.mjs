@@ -82,7 +82,10 @@ if (!(await toDoor('w'))) {
   if (!ok) fail(`lap 1 did not register (count ${await laps()})`);
   else looped = 1;
 }
-// fast-forward to the break (≥ MOBIUS_BREAK total) via the gated hook.
+// fast-forward to the break (≥ MOBIUS_BREAK total) via the gated hook. Fail fast
+// if it isn't exposed (a gating regression) instead of timing out on the break.
+if (!(await page.evaluate(() => typeof window.__sdpLoopMobius === 'function')))
+  fail('__sdpLoopMobius hook not exposed under ?room&debug (gating regression?)');
 await page.evaluate((n) => {
   for (let i = 0; i < n; i++) window.__sdpLoopMobius?.();
 }, BREAK);
@@ -109,10 +112,18 @@ if (lapsCounted) {
   if (!prompted) fail('the broken-loop "onward" door never prompted');
   if (prompted) {
     await page.keyboard.press('e');
+    // The waterfall is keyed on the destination being the liminal (pendingRoom.to
+    // === 'liminal'), so it firing already proves WHERE the onward door lands.
     descended = await page
       .waitForSelector('.hud-waterfall--on', { timeout: 2500 })
       .then(() => true, () => false);
     if (!descended) fail('the onward door did not descend into the liminal (no waterfall fired)');
+    // And the liminal is a GLB level → its loader mounts on arrival. Asserting it
+    // appears confirms we actually landed in the liminal, not just started a wipe.
+    const loader = await page
+      .waitForSelector('[data-level-loader]', { timeout: 6000 })
+      .then(() => true, () => false);
+    if (!loader) fail('the onward door did not land in the liminal (its loader never mounted)');
   }
 }
 
