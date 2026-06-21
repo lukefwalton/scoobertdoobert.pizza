@@ -59,7 +59,8 @@ export default function Chimes() {
         live &mdash; nothing is recorded or sent anywhere.
       </p>
       <p className="chimes-foot">
-        &#9654; Other cabinets: <a href="/arcade">PIZZA RUN</a> &middot; <a href="/poke">POKE SCOOBERT</a>
+        &#9654; Other cabinets: <a href="/arcade">PIZZA RUN</a> &middot;{' '}
+        <a href="/poke">POKE SCOOBERT</a> &middot; <a href="/cultures">CULTURES</a>
       </p>
       <p className="chimes-foot chimes-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
