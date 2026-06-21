@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
+import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { D20 } from './D20';
@@ -11,7 +12,7 @@ import { useMusicStore } from '../state/musicStore';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
-import type { Room } from '../data/rooms';
+import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // DicePitRoom — Phase 6. A dim felt-and-stone gambling nook off the poolrooms.
@@ -28,7 +29,7 @@ export function DicePitRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
-  const fog = { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
+  const fog = fogFor(room);
 
   const last = useMonsterStore((s) => s.last);
   const losses = useMonsterStore((s) => s.losses);
@@ -51,7 +52,10 @@ export function DicePitRoom({ room }: { room: Room }) {
     t.repeat.set(Math.round(W / 1.5), 2);
     return t;
   }, [W]);
-  const wallMat = useMemo(() => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }), [wallTex]);
+  const wallMat = useMemo(
+    () => flatMat('#ffffff', { map: wallTex, side: THREE.DoubleSide }),
+    [wallTex],
+  );
   const ceilMat = useMemo(() => flatMat('#140e16', { side: THREE.DoubleSide }), []);
   const tableMat = useMemo(() => flatMat('#3a2030', { side: THREE.DoubleSide }), []);
 
@@ -112,27 +116,8 @@ export function DicePitRoom({ room }: { room: Room }) {
       <ambientLight intensity={0.4} color="#caa6c0" />
       <pointLight position={[0, H - 0.6, 1]} intensity={0.7} distance={12} color="#ffd9a8" />
 
-      {/* floor / ceiling */}
-      <mesh material={floorMat} rotation-x={-Math.PI / 2} position={[0, 0, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-      <mesh material={ceilMat} rotation-x={Math.PI / 2} position={[0, H, 0]}>
-        <planeGeometry args={[W * 2, D * 2]} />
-      </mesh>
-
-      {/* walls */}
-      <mesh material={wallMat} rotation-y={Math.PI / 2} position={[-W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={-Math.PI / 2} position={[W, H / 2, 0]}>
-        <planeGeometry args={[D * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} position={[0, H / 2, -D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
-      <mesh material={wallMat} rotation-y={Math.PI} position={[0, H / 2, D]}>
-        <planeGeometry args={[W * 2, H]} />
-      </mesh>
+      {/* the felt-lit back-room shell */}
+      <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       {/* the card table you roll on */}
       <mesh material={tableMat} position={[0, 0.75, 0.4]}>

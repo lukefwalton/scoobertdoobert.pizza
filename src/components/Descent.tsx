@@ -165,10 +165,7 @@ export function Descent() {
             <div className="title-bar-text">SCOOBERT.EXE</div>
           </div>
           <div className="window-body">
-            <p>
-              SCOOBERT.EXE has performed a beautiful illegal operation and will be
-              remembered.
-            </p>
+            <p>SCOOBERT.EXE has performed a beautiful illegal operation and will be remembered.</p>
             <div className="descent__btnrow">
               <button onClick={() => setPhase('prompt')}>OK</button>
             </div>
@@ -183,8 +180,7 @@ export function Descent() {
           </div>
           <div className="window-body">
             <p>
-              This experience requires the <b>Calzone Player&trade;</b> VRML plug-in
-              (v1.0b).
+              This experience requires the <b>Calzone Player&trade;</b> VRML plug-in (v1.0b).
             </p>
             <p className="descent__fine">Navigable 3D worlds, in your browser. Finally.</p>
             <div className="descent__btnrow">
@@ -226,9 +222,7 @@ export function Descent() {
             <p>Calzone Player&trade; could not be installed. The oven may be offline.</p>
             <p className="descent__fine">You can still browse the flat menu.</p>
             <div className="descent__btnrow">
-              <button onClick={() => window.location.assign(TEXT_ONLY_PATH)}>
-                View text menu
-              </button>
+              <button onClick={() => window.location.assign(TEXT_ONLY_PATH)}>View text menu</button>
               <button
                 onClick={() => {
                   setPhase('idle');

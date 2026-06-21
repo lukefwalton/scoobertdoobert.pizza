@@ -361,11 +361,11 @@ class PizzaAudio {
   /** Subscribe to loop-voice changes (fires once immediately). Returns unsub. */
   onLoopChange(cb: (url: string | null) => void): () => void {
     this.loopListeners.add(cb);
-    cb(this.jukeboxActive ? this.activeJukeboxUrl ?? null : null);
+    cb(this.jukeboxActive ? (this.activeJukeboxUrl ?? null) : null);
     return () => this.loopListeners.delete(cb);
   }
   private emitLoopChange(): void {
-    const url = this.jukeboxActive ? this.activeJukeboxUrl ?? null : null;
+    const url = this.jukeboxActive ? (this.activeJukeboxUrl ?? null) : null;
     for (const cb of this.loopListeners) cb(url);
   }
 

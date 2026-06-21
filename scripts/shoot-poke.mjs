@@ -27,7 +27,9 @@ const bad = (m) => {
   if (!back) bad('no-JS: missing "back to the arcade" anchor');
   const canvas = await page.$('canvas');
   if (canvas) bad('no-JS: a <canvas> rendered into crawlable HTML (should be JS-only)');
-  console.log(`no-JS    -> titled=${title.includes('Poke Scoobert')} back=${!!back} canvas=${!!canvas}`);
+  console.log(
+    `no-JS    -> titled=${title.includes('Poke Scoobert')} back=${!!back} canvas=${!!canvas}`,
+  );
   await ctx.close();
 }
 
@@ -73,7 +75,10 @@ const bad = (m) => {
     // touch. touchEnd carries no points.
     const cdp = await page.context().newCDPSession(page);
     const touch = (type, x, y) =>
-      cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+      cdp.send('Input.dispatchTouchEvent', {
+        type,
+        touchPoints: type === 'touchEnd' ? [] : [{ x, y }],
+      });
     const sx = box.x + box.width / 2;
     const sy = box.y + box.height * 0.42;
     const ex = box.x + box.width * 0.25;
@@ -95,11 +100,16 @@ const bad = (m) => {
     await page.waitForTimeout(600);
     releasedStretch = await stretch();
 
-    if (heldStretch < 15) bad(`JS: drag did not stretch the face (held displ ${heldStretch.toFixed(1)}px)`);
+    if (heldStretch < 15)
+      bad(`JS: drag did not stretch the face (held displ ${heldStretch.toFixed(1)}px)`);
     if (stayStretch < heldStretch * 0.5)
-      bad(`JS: stretch did not HOLD while pressed (held ${heldStretch.toFixed(1)} -> stayed ${stayStretch.toFixed(1)}px) — the "won't pull and stay" bug`);
+      bad(
+        `JS: stretch did not HOLD while pressed (held ${heldStretch.toFixed(1)} -> stayed ${stayStretch.toFixed(1)}px) — the "won't pull and stay" bug`,
+      );
     if (releasedStretch > stayStretch * 0.5)
-      bad(`JS: face did not spring back after release (stayed ${stayStretch.toFixed(1)} -> released ${releasedStretch.toFixed(1)}px)`);
+      bad(
+        `JS: face did not spring back after release (stayed ${stayStretch.toFixed(1)} -> released ${releasedStretch.toFixed(1)}px)`,
+      );
   }
   if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(

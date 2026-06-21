@@ -2,19 +2,63 @@
   { "slug": "information", "title": "INFORMATION", "source": "05 Information.mp3" },
   { "slug": "1101", "title": "1101", "source": "21 1101.mp3" },
   { "slug": "best-day-ever", "title": "BEST DAY EVER", "source": "bestdayeverRKmaster.mp3" },
-  { "slug": "jolly-roger-bay", "title": "JOLLY ROGER BAY", "source": "09 Jolly Roger Bay (64).mp3" },
-  { "slug": "my-friend-scoobert", "title": "MY FRIEND SCOOBERT", "source": "music/2018/finding-d/03 My Friend Scoobert_master.mp3" },
-  { "slug": "velma-what-a-night", "title": "WHAT A VELMA WHAT A NIGHT", "source": "music/2018/finding-d/01 What a Velma What a Night_master.mp3" },
-  { "slug": "mystery-machine", "title": "MYSTERY MACHINE", "source": "music/2020/masks-and-monsters/17 Mystery Machine.mp3" },
-  { "slug": "i-live-in-california", "title": "I LIVE IN CALIFORNIA", "source": "music/2021/big-hug/01 I Live in California_master.mp3" },
-  { "slug": "walking-balboa", "title": "WALKING BALBOA", "source": "music/2021/little-hug/01 Walking Balboa_master.mp3" },
+  {
+    "slug": "jolly-roger-bay",
+    "title": "JOLLY ROGER BAY",
+    "source": "09 Jolly Roger Bay (64).mp3"
+  },
+  {
+    "slug": "my-friend-scoobert",
+    "title": "MY FRIEND SCOOBERT",
+    "source": "music/2018/finding-d/03 My Friend Scoobert_master.mp3"
+  },
+  {
+    "slug": "velma-what-a-night",
+    "title": "WHAT A VELMA WHAT A NIGHT",
+    "source": "music/2018/finding-d/01 What a Velma What a Night_master.mp3"
+  },
+  {
+    "slug": "mystery-machine",
+    "title": "MYSTERY MACHINE",
+    "source": "music/2020/masks-and-monsters/17 Mystery Machine.mp3"
+  },
+  {
+    "slug": "i-live-in-california",
+    "title": "I LIVE IN CALIFORNIA",
+    "source": "music/2021/big-hug/01 I Live in California_master.mp3"
+  },
+  {
+    "slug": "walking-balboa",
+    "title": "WALKING BALBOA",
+    "source": "music/2021/little-hug/01 Walking Balboa_master.mp3"
+  },
   { "slug": "boardwalk", "title": "BOARDWALK", "source": "music/2022/koan/03 Boardwalk.mp3" },
-  { "slug": "all-my-friends-live-on-the-internet", "title": "ALL MY FRIENDS LIVE ON THE INTERNET", "source": "music/2022/koan/19 All My Friends Live on the Internet.mp3" },
+  {
+    "slug": "all-my-friends-live-on-the-internet",
+    "title": "ALL MY FRIENDS LIVE ON THE INTERNET",
+    "source": "music/2022/koan/19 All My Friends Live on the Internet.mp3"
+  },
   { "slug": "memory-lan", "title": "MEMORY LAN", "source": "music/2023/mob/02 MEMORY LAN.mp3" },
   { "slug": "underwater", "title": "UNDERWATER", "source": "music/2023/mob/07 Underwater.mp3" },
-  { "slug": "ocean-view", "title": "OCEAN VIEW", "source": "music/2023/moonlight-beach/Track 4_Ocean View_LP Ver.mp3" },
-  { "slug": "dancing-in-the-moonlight", "title": "DANCING IN THE MOONLIGHT (BEACH)", "source": "music/2023/moonlight-beach/Track 3_Dancing in the Moonlight (Beach)_LP Ver.mp3" },
-  { "slug": "gonna-go-to-japan", "title": "GONNA GO TO JAPAN", "source": "music/2023/moonlight-beach/Track 8_Gonna Go to Japan_LP Ver.mp3" },
+  {
+    "slug": "ocean-view",
+    "title": "OCEAN VIEW",
+    "source": "music/2023/moonlight-beach/Track 4_Ocean View_LP Ver.mp3"
+  },
+  {
+    "slug": "dancing-in-the-moonlight",
+    "title": "DANCING IN THE MOONLIGHT (BEACH)",
+    "source": "music/2023/moonlight-beach/Track 3_Dancing in the Moonlight (Beach)_LP Ver.mp3"
+  },
+  {
+    "slug": "gonna-go-to-japan",
+    "title": "GONNA GO TO JAPAN",
+    "source": "music/2023/moonlight-beach/Track 8_Gonna Go to Japan_LP Ver.mp3"
+  },
   { "slug": "daydreaming", "title": "DAYDREAMING", "source": "music/2024/i/01 daydreaming.mp3" },
-  { "slug": "watercolor-sky", "title": "WATERCOLOR SKY", "source": "music/2024/i/06 watercolor sky.mp3" }
+  {
+    "slug": "watercolor-sky",
+    "title": "WATERCOLOR SKY",
+    "source": "music/2024/i/06 watercolor sky.mp3"
+  }
 ]

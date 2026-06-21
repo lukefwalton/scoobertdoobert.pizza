@@ -23,7 +23,10 @@
 }
 
 .ballpit__back {
-  font: bold 1rem 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  font:
+    bold 1rem 'Comic Sans MS',
+    'Trebuchet MS',
+    sans-serif;
   padding: 8px 16px;
   color: #143b6b;
   background: linear-gradient(#ffffff, #cfe0f5);
@@ -39,7 +42,10 @@
 }
 
 .ballpit__title {
-  font: 900 1.7rem/1 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  font:
+    900 1.7rem/1 'Comic Sans MS',
+    'Trebuchet MS',
+    sans-serif;
   color: #e8312a;
   text-shadow:
     2px 2px 0 #fff,
@@ -49,7 +55,10 @@
 
 .ballpit__hint {
   margin-left: auto;
-  font: italic 0.85rem 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+  font:
+    italic 0.85rem 'Comic Sans MS',
+    'Trebuchet MS',
+    sans-serif;
   color: #143b6b;
 }
 

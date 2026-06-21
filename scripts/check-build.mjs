@@ -14,7 +14,11 @@ function hasContent(file, needle) {
 
 const cases = [
   { label: 'storefront (/)', files: ['dist/index.html'], needle: 'Electronic Pizza Storefront' },
-  { label: 'text-only (/text)', files: ['dist/text.html', 'dist/text/index.html'], needle: 'Text-Only Menu' },
+  {
+    label: 'text-only (/text)',
+    files: ['dist/text.html', 'dist/text/index.html'],
+    needle: 'Text-Only Menu',
+  },
 ];
 
 let failed = 0;

@@ -192,6 +192,17 @@
   border: 1px solid #888888;
   box-shadow: inset 1px 1px 0 #000000;
 }
+/* The locked radio: a stacked read-out + a dim hint (no flip buttons yet). */
+.hud-pause__nowplaying--locked {
+  flex-direction: column;
+  gap: 3px;
+}
+.hud-pause__radiohint {
+  font-size: 0.7em;
+  text-align: center;
+  color: #8a8a8a;
+  font-style: italic;
+}
 
 /* ── Scoobertverse welcome ──────────────────────────────────────────────────
    A staged quest intro on world entry. Non-blocking (pointer-events:none) so
@@ -230,7 +241,10 @@
   background: transparent;
   border: none;
   color: rgba(255, 243, 224, 0.6);
-  font: 1.4rem/1 'Times New Roman', Times, serif;
+  font:
+    1.4rem/1 'Times New Roman',
+    Times,
+    serif;
   padding: 4px 8px;
   cursor: url('/cursor.cur'), pointer;
 }
@@ -243,12 +257,16 @@
   font-family: 'Times New Roman', Times, serif;
   font-size: clamp(1.1rem, 3.2vmin, 1.85rem);
   line-height: 1.35;
-  text-shadow: 0 0 10px rgba(255, 120, 40, 0.55), 0 2px 5px rgba(0, 0, 0, 0.85);
+  text-shadow:
+    0 0 10px rgba(255, 120, 40, 0.55),
+    0 2px 5px rgba(0, 0, 0, 0.85);
 }
 .hud-welcome__line--spice {
   color: #ff9a52;
   font-style: italic;
-  text-shadow: 0 0 16px rgba(255, 90, 20, 0.7), 0 2px 5px rgba(0, 0, 0, 0.9);
+  text-shadow:
+    0 0 16px rgba(255, 90, 20, 0.7),
+    0 2px 5px rgba(0, 0, 0, 0.9);
 }
 /* The un-typed remainder reserves layout (so centered lines don't reflow as
    they stream) but stays invisible — transparent text, no glow. */
@@ -267,18 +285,32 @@
   animation: hud-welcome-blink 0.85s steps(1) infinite;
 }
 @keyframes hud-welcome-blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 @keyframes hud-welcome-bg-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes hud-welcome-bg-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .hud-welcome,
-  .hud-welcome--leaving { animation: none; }
-  .hud-welcome__caret { animation: none; }
+  .hud-welcome--leaving {
+    animation: none;
+  }
+  .hud-welcome__caret {
+    animation: none;
+  }
 }

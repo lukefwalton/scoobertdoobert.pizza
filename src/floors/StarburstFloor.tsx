@@ -24,8 +24,8 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
     <div className="sb" data-floor={floor.id}>
       <div className="sb__marquee" aria-hidden="true">
         <span>
-          ★ NOW SERVING SIX UNRELEASED DEMOS UNDER ONE ROOF ★ BEST VIEWED IN NETSCAPE NAVIGATOR
-          3.0 ★ Y2K READY ★ SIGN OUR GUESTBOOK ★ NOW SERVING SIX UNRELEASED DEMOS UNDER ONE ROOF ★
+          ★ NOW SERVING SIX UNRELEASED DEMOS UNDER ONE ROOF ★ BEST VIEWED IN NETSCAPE NAVIGATOR 3.0
+          ★ Y2K READY ★ SIGN OUR GUESTBOOK ★ NOW SERVING SIX UNRELEASED DEMOS UNDER ONE ROOF ★
         </span>
       </div>
 

@@ -10,6 +10,11 @@
     "postbuild": "node scripts/check-build.mjs",
     "preview": "vite preview --port 4173 --strictPort",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "shoot:all": "node scripts/shoot-all.mjs",
     "shoot": "node scripts/shoot.mjs",
     "shoot:world": "node scripts/shoot-world.mjs",
@@ -35,6 +40,9 @@
     "shoot:practice": "node scripts/shoot-practice.mjs",
     "shoot:music": "node scripts/shoot-music.mjs"
   },
+  "engines": {
+    "node": ">=20.19"
+  },
   "dependencies": {
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.18.0",
@@ -49,14 +57,22 @@
   },
   "devDependencies": {
     "@breezystack/lamejs": "^1.2.7",
+    "@eslint/js": "^10.0.1",
     "@gltf-transform/cli": "^4.4.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.6.0",
     "playwright": "^1.56.1",
+    "prettier": "^3.8.4",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.61.1",
     "vite": "^6.4.3",
-    "vite-react-ssg": "^0.9.1-beta.1"
+    "vite-react-ssg": "^0.9.1-beta.1",
+    "vitest": "^4.1.9"
   }
 }

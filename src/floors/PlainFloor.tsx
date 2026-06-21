@@ -113,13 +113,12 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             <figcaption>Your host.</figcaption>
           </figure>
           <p>
-            It&rsquo;s one thin crust piled with six unreleased demos, then sealed
-            with another thin crust, reverb, choice of toppings, and even more
-            reverb.
+            It&rsquo;s one thin crust piled with six unreleased demos, then sealed with another thin
+            crust, reverb, choice of toppings, and even more reverb.
           </p>
           <p className="slogan">
-            <b>The Best Songs Under One Roof!&trade;</b> &nbsp; Lo-Fi &bull; Hi-Fi
-            &bull; Stuffed Crust
+            <b>The Best Songs Under One Roof!&trade;</b> &nbsp; Lo-Fi &bull; Hi-Fi &bull; Stuffed
+            Crust
           </p>
           <p className="recipe">
             <a href="/about">Our Secret Recipe &raquo;</a>
@@ -135,7 +134,11 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         </span>
         <p>
           <b>COUPON:</b> Are you a musician? Distribute your music and{' '}
-          <a href="https://distrokid.com/vip/lovemusicmore" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://distrokid.com/vip/lovemusicmore"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             get a discount on DistroKid &raquo;
           </a>
         </p>
@@ -148,8 +151,8 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           <span className="arcade-callout__new">NEW!</span> THE PIZZA ARCADE
         </p>
         <p className="arcade-callout__body">
-          Stuck waiting on your pizza? Play <b>Scoobert&rsquo;s Pizza Run</b> &mdash;
-          jump the broken web buttons. Works great on your handheld telephone.
+          Stuck waiting on your pizza? Play <b>Scoobert&rsquo;s Pizza Run</b> &mdash; jump the
+          broken web buttons. Works great on your handheld telephone.
         </p>
         <p className="arcade-callout__cta">
           <a href="/arcade">&#9654; INSERT COIN &mdash; PLAY NOW</a>
@@ -159,7 +162,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       <hr />
 
       <section className="floor-down floor-down--plain" aria-label="Downstairs">
-        <p className="floor-down__sign">STAFF ONLY &mdash; the rest of the building is downstairs.</p>
+        <p className="floor-down__sign">
+          STAFF ONLY &mdash; the rest of the building is downstairs.
+        </p>
         <FloorDoor
           direction="down"
           label={floor.descendLabel}

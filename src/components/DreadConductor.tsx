@@ -23,7 +23,7 @@ import { audio } from '../audio/engine';
 // ───────────────────────────────────────────────────────────────────────────
 
 function currentZone(s: ReturnType<typeof useSceneStore.getState>): string {
-  return s.worldActive ? s.currentRoom : FLOORS[s.currentFloor]?.id ?? 'storefront';
+  return s.worldActive ? s.currentRoom : (FLOORS[s.currentFloor]?.id ?? 'storefront');
 }
 
 export function DreadConductor() {

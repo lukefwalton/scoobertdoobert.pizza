@@ -265,7 +265,14 @@ export function RunnerGame() {
         )}
       </div>
 
-      <button type="button" className="arcade-jump" onPointerDown={(e) => { e.preventDefault(); jump(); }}>
+      <button
+        type="button"
+        className="arcade-jump"
+        onPointerDown={(e) => {
+          e.preventDefault();
+          jump();
+        }}
+      >
         {phase === 'playing' ? 'JUMP' : 'START'}
       </button>
     </div>

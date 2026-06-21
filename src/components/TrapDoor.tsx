@@ -149,7 +149,10 @@ export function TrapDoor() {
               <p className="trapdoor-roll__head">
                 {phase === 'dropping' ? 'DOWN YOU GO' : 'THE FLOOR ROLLS FOR YOU'}
               </p>
-              <div className={`trapdoor-d20${phase === 'rolling' ? ' is-rolling' : ''}`} aria-hidden="true">
+              <div
+                className={`trapdoor-d20${phase === 'rolling' ? ' is-rolling' : ''}`}
+                aria-hidden="true"
+              >
                 <span className="trapdoor-d20__face">{face}</span>
               </div>
               <p className="trapdoor-roll__sub">

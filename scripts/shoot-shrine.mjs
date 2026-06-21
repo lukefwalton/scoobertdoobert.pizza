@@ -29,7 +29,8 @@ if (!canvas) bad('shrine: world canvas never mounted');
 const title =
   (await page.waitForSelector('.hud-room', { timeout: 8000 }).catch(() => null)) &&
   (await page.textContent('.hud-room').catch(() => ''))?.trim();
-if (title !== 'Wayside Shrine') bad(`shrine: HUD room is ${JSON.stringify(title)}, expected "Wayside Shrine"`);
+if (title !== 'Wayside Shrine')
+  bad(`shrine: HUD room is ${JSON.stringify(title)}, expected "Wayside Shrine"`);
 
 // Let the scene settle (fireflies drift, materials compile), then shoot.
 await page.waitForTimeout(2600);

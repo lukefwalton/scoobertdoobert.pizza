@@ -12,7 +12,7 @@ Everything sorts into five buckets:
 2. **Shipped assets** — `public/` (served as-is, URL-mapped)
 3. **Source assets (NOT shipped)** — `media/` (heavy originals; only degraded
    derivatives ever reach `public/`)
-4. **Archive / misc** — `legacy/`, `fun/`
+4. **Archive / misc** — `fun/`
 5. **Config + docs + content** — root files
 
 ```
@@ -24,7 +24,7 @@ scoobertdoobert.pizza/
 ├── docs/                  # PHASES.md (roadmap + live status) · DESIGN.md (vision + systems)
 ├── links.md               # source of truth for the /links archive (?raw-imported)
 │
-├── index.html             # Vite entry (the live site — NOT legacy/)
+├── index.html             # Vite entry (the live site; the old hand-built site is in git history)
 ├── package.json · tsconfig*.json · vite.config.ts · vercel.json · CNAME · .gitignore
 │
 ├── src/                   # ── THE APP (Vite + React + TS + three.js) ──
@@ -40,13 +40,13 @@ scoobertdoobert.pizza/
 │   └── styles/            # CSS
 │
 ├── api/                   # Vercel serverless functions (order.ts — email opt-in → Blob)
-├── scripts/               # build + verify tooling (shoot* Playwright, make-boot-audio, resize/compress, check-build, convert-music-to-mp3)
+├── scripts/               # build + verify tooling (shoot* Playwright, make-boot-audio, make-jukebox-audio, make-classified-photos, check-build)
 │
 ├── public/                # ── SHIPPED STATIC ASSETS (served at /) ──
 │   ├── audio/boot.wav     # the only audio that ships (degraded boot loop)
 │   ├── brand/             # logos used on the site
 │   ├── press/             # OG image + inline period photos (web-sized)
-│   ├── 1101.html · savesandiego.html   # ARG / Twine pages
+│   ├── 1101.html           # ARG / Twine page (/savesandiego rewrites here, see vercel.json)
 │   └── PIZZA.png · cursor.cur · logo-sd.jpg
 │
 ├── media/                 # ── SOURCE ORIGINALS (NOT shipped) ── see media/README.md
@@ -55,9 +55,8 @@ scoobertdoobert.pizza/
 │   ├── sfx/               # sound effects (owned sitar takes)
 │   ├── models/            # all .glb source models by theme     → media/models/README.md
 │   ├── photos/            # full-res photo archive, grouped by shoot
-│   └── brand/             # brand-logo source (≡ public/brand/)
+│   └── brand/             # brand-logo source (full set; public/brand/ ships only the used logo)
 │
-├── legacy/                # the previous hand-built site, preserved (NOT built). incl. julius_caesar.glb (the "bust")
 └── fun/                   # placeholder for a separate repo, not yet wired in → fun/README.md
 ```
 
@@ -85,5 +84,5 @@ scoobertdoobert.pizza/
   `public/models/`.
 - **Single sources of truth** live in `src/data/` (and `links.md` for the
   archive) — adding content is a data edit, not scene code.
-- **`legacy/` is frozen** — a snapshot of the old site, not part of the build.
-  Don't refactor it; reference assets from it (like the bust) by copy.
+- **The old hand-built site is frozen in git history**, not a `legacy/` dir in
+  the tree — reference its assets (like the bust) from history by copy if needed.
