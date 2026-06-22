@@ -15,14 +15,23 @@ import { useDreadStore } from '../state/dreadStore';
 // Scale eases toward the target so a loss reads as a visible "puff up".
 // ───────────────────────────────────────────────────────────────────────────
 
-export function DiceMonster({ position }: { position: [number, number, number] }) {
+export function DiceMonster({
+  position,
+  scale = 1,
+}: {
+  position: [number, number, number];
+  /** A flat size multiplier ON TOP of the loss-based monsterScale — lets a room
+   *  stage a hero-sized goblin (the grass encounter, where it's the star) without
+   *  touching the shared loss-growth. Default 1 (the dice pit's normal size). */
+  scale?: number;
+}) {
   const { camera } = useThree();
   const losses = useMonsterStore((s) => s.losses);
   const maxed = useMonsterStore((s) => s.maxed);
-  const target = monsterScale(losses);
+  const target = monsterScale(losses) * scale;
 
   const root = useRef<THREE.Group>(null);
-  const scaleRef = useRef(monsterScale(0));
+  const scaleRef = useRef(monsterScale(0) * scale);
 
   const bodyMat = useMemo(() => flatMat('#5e7d52'), []); // sickly green
   const bellyMat = useMemo(() => flatMat('#7fa06a'), []);

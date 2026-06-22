@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { PS1 } from './constants';
 import { roomById, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
@@ -16,11 +17,14 @@ import { PracticeRoom } from './PracticeRoom';
 import { GrassRoom } from './GrassRoom';
 import { GrassBattleRoom } from './GrassBattleRoom';
 import { GroveRoom } from './GroveRoom';
+import { FrutigerRoom } from './FrutigerRoom';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
+import { Paintings } from './CoverArt';
+import { TvSet } from './TvSet';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
 
@@ -38,6 +42,9 @@ function RoomEnvironment({ room }: { room: Room }) {
     fog.near = room.palette.fogNear;
     fog.far = room.palette.fogFar;
     scene.fog = fog;
+    // Fade the carried SONG out in MUSIC rooms (their own bells/pads own the space),
+    // and back up everywhere else — the room's instrument one-shots are unaffected.
+    audio.setSongLevel(room.musicRoom ? 0 : 1);
   }, [room, scene, gl]);
   return null;
 }
@@ -45,8 +52,8 @@ function RoomEnvironment({ room }: { room: Room }) {
 // Which room geometry to render. Each room kind owns its own scene + lights, so
 // adding a room is: a ROOMS entry + a case here (+ a geometry component).
 function RoomScene({ room }: { room: Room }) {
-  // GLB levels (lazy-loaded; suspends until decoded). The DOM LoaderGame masks
-  // the wait and offers TAP-TO-ENTER (see LevelLoader / GlbRoom). Keyed by
+  // GLB levels (lazy-loaded; suspends until decoded). The DOM LevelLoader covers
+  // a slow load and AUTO-ENTERS the instant it resolves (see LevelLoader / GlbRoom). Keyed by
   // room.id so a future GLB→GLB hop force-remounts GlbRoom (fresh useGLTF +
   // mount effect) rather than reusing the instance and inheriting a stale
   // ready/error signal — same component type, different model.
@@ -85,6 +92,8 @@ function RoomScene({ room }: { room: Room }) {
       return <GrassBattleRoom room={room} />;
     case 'grove':
       return <GroveRoom room={room} />;
+    case 'frutiger':
+      return <FrutigerRoom />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -122,6 +131,14 @@ export default function World() {
   // flash from briefly sitting inside a door radius. Controls owns it after mount.
   const spawn = room.spawns[currentSpawn] ?? room.spawns.default;
 
+  // When the WHOLE world unmounts (return to storefront / exit), un-duck the shared
+  // loop voice. RoomEnvironment fades the carried song to 0 in music rooms, but that
+  // level lives on the audio singleton and survives the world teardown — so without
+  // this, exiting from the grove or shrine would strand the storefront's boot loop
+  // silently ducked. Smoothed (fades back, never spikes); WorldMount unmounts the
+  // whole subtree on exitWorld, so this runs exactly once on the way out.
+  useEffect(() => () => audio.setSongLevel(1), []);
+
   return (
     <Canvas
       dpr={PS1.dpr}
@@ -145,11 +162,13 @@ export default function World() {
     >
       <RoomEnvironment room={room} />
       {/* Suspense for GLB levels (useGLTF). Fallback is null — the DOM
-          LoaderGame (LevelLoader) covers the wait. No-op for procedural rooms. */}
+          LevelLoader covers the wait. No-op for procedural rooms. */}
       <Suspense fallback={null}>
         <RoomScene room={room} />
       </Suspense>
       <RoomProps room={room} />
+      {room.paintings && <Paintings list={room.paintings} />}
+      {room.tv && <TvSet {...room.tv} />}
       <Doors />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +

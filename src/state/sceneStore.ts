@@ -5,6 +5,22 @@ import { BOTTOM_FLOOR } from '../data/floors';
 // without pulling three.js into the storefront bundle — verified by the
 // app-chunk check in the build.
 import { FIRST_ROOM } from '../data/rooms';
+import { type TvVideo } from '../data/videos';
+
+/** How long a painting cover ripples + swallows the view before the room wipe
+ *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
+export const DIVE_MS = 520;
+
+// The pending dive's timer handle, kept at module scope so exitWorld/enterWorld can
+// CANCEL it — a bare uncancellable setTimeout could fire goToRoom after you'd already
+// left the world. One dive is ever in flight (enterPainting guards re-entry).
+let diveTimer: number | undefined;
+const clearDiveTimer = () => {
+  if (diveTimer !== undefined) {
+    window.clearTimeout(diveTimer);
+    diveTimer = undefined;
+  }
+};
 
 // Scene/game state. Drives the floor descent (currentFloor), the world mount
 // (WorldMount), the hotspot prompts + dialogs, the room graph, and the pause menu.
@@ -38,8 +54,15 @@ type SceneState = {
   /** true for the WHOLE door wipe (fade-out + commit + fade-in), so input stays
    *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
   transitioning: boolean;
-  /** the door the camera is near, resolved to its target (or null). */
-  nearDoor: { id: string; label: string; to: string; spawn: string } | null;
+  /** the door the camera is near, resolved to its target (or null). albumSlug marks
+   *  a PAINTING portal (E dives into the cover instead of a plain door wipe). */
+  nearDoor: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null;
+  /** Mid-DIVE into a painting portal: the destination room id while the cover
+   *  ripples + swallows the view, before the room actually swaps. null otherwise. */
+  divingTo: string | null;
+  /** A CRT in an album-room was switched on: the video to play in the modal TV
+   *  overlay (the far side of a painting — the album's music videos). null = closed. */
+  tvVideo: TvVideo | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -63,6 +86,9 @@ type SceneState = {
   setNearHotspot: (id: string | null) => void;
   openHotspotDialog: (id: string) => void;
   closeHotspotDialog: () => void;
+  /** Switch a CRT in an album-room on (modal video overlay) / off. */
+  openTv: (video: TvVideo) => void;
+  closeTv: () => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -74,11 +100,16 @@ type SceneState = {
 
   /** Walk through a door: begin the wipe (pendingRoom + transitioning). */
   goToRoom: (to: string, spawn: string) => void;
+  /** Dive INTO a painting portal: ripple the cover for a beat (divingTo), then walk
+   *  through to `to`. Both click + E funnel here for painting doors. */
+  enterPainting: (to: string, spawn: string) => void;
   /** Commit the pending room swap (mid-wipe): repositions via Controls. */
   commitRoom: () => void;
   /** End the wipe once the overlay has fully lifted: unfreezes input. */
   endTransition: () => void;
-  setNearDoor: (door: { id: string; label: string; to: string; spawn: string } | null) => void;
+  setNearDoor: (
+    door: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null,
+  ) => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -102,6 +133,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   queuedRoom: null,
   transitioning: false,
   nearDoor: null,
+  divingTo: null,
+  tvVideo: null,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -115,7 +148,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   // descent. An explicit room + spawn drops you elsewhere — the trap door (a deep
   // room the d20 picks) and the ?room= test entrance both use it; the clean-slate
   // reset is the same either way.
-  enterWorld: (room = FIRST_ROOM, spawn = 'default') =>
+  enterWorld: (room = FIRST_ROOM, spawn = 'default') => {
+    clearDiveTimer();
     set({
       worldActive: true,
       currentRoom: room,
@@ -123,16 +157,22 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
+      divingTo: null,
+      tvVideo: null,
       secretRevealed: false,
       mobiusLoops: 0,
       paused: false,
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
-    }),
+    });
+  },
   // Leaving the world drops you back at the storefront (floor 0), not the
   // machine room you installed from — and resets the room graph for next time.
-  exitWorld: () =>
+  exitWorld: () => {
+    // Cancel any in-flight painting dive so its delayed goToRoom can't fire into a
+    // world we've already left.
+    clearDiveTimer();
     set({
       worldActive: false,
       paused: false,
@@ -142,15 +182,20 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
+      divingTo: null,
+      tvVideo: null,
       secretRevealed: false,
       mobiusLoops: 0,
       currentRoom: FIRST_ROOM,
       currentSpawn: 'default',
       currentFloor: 0,
-    }),
+    });
+  },
   setNearHotspot: (id) => set({ nearHotspot: id }),
   openHotspotDialog: (id) => set({ openHotspot: id }),
   closeHotspotDialog: () => set({ openHotspot: null }),
+  openTv: (video) => set({ tvVideo: video }),
+  closeTv: () => set({ tvVideo: null }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),
@@ -180,6 +225,22 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearDoor: null,
         nearHotspot: null,
       };
+    }),
+  // Dive into a painting: ripple/swallow the cover for DIVE_MS (divingTo drives the
+  // FramedCover shader), THEN funnel through goToRoom for the real wipe + swap. The
+  // album's track is started by the caller (the reward is sound) before this runs.
+  enterPainting: (to, spawn) =>
+    set((s) => {
+      // divingTo in the guard makes the dive idempotent: a second trigger during the
+      // ripple is ignored, not stacked into a second delayed goToRoom.
+      if (s.paused || s.openHotspot || s.transitioning || s.divingTo) return {};
+      clearDiveTimer();
+      diveTimer = window.setTimeout(() => {
+        diveTimer = undefined;
+        useSceneStore.getState().goToRoom(to, spawn);
+        set({ divingTo: null });
+      }, DIVE_MS);
+      return { divingTo: to, nearDoor: null, nearHotspot: null };
     }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.

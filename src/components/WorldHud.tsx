@@ -9,6 +9,8 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
+import { diveInto } from '../lib/dive';
+import { YoutubeFacade } from './YoutubeFacade';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
 // on world entry; the last line glows habanero.
@@ -43,6 +45,8 @@ export function WorldHud() {
   const queuedRoom = useSceneStore((s) => s.queuedRoom);
   const goToRoom = useSceneStore((s) => s.goToRoom);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
+  const tvVideo = useSceneStore((s) => s.tvVideo);
+  const closeTv = useSceneStore((s) => s.closeTv);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
   const muted = useAudioStore((s) => s.muted);
@@ -134,19 +138,25 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
-      // No input during the door wipe (E or Esc) — modal for the full fade.
-      if (st.transitioning) return;
+      // No input during the door wipe OR a painting dive (E or Esc) — both are modal
+      // transitions. Blocking Esc on divingTo too is what keeps pause from opening
+      // mid-dive and stranding you in the old room after the album already started.
+      if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
-        if (st.openHotspot) st.closeHotspotDialog();
+        if (st.tvVideo) st.closeTv();
+        else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot) return;
+        if (st.paused || st.openHotspot || st.tvVideo) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           audio.unlock();
-          st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+          // A painting portal dives (ripple + the album plays); a plain door wipes.
+          if (st.nearDoor.albumSlug)
+            diveInto(st.nearDoor.albumSlug, st.nearDoor.to, st.nearDoor.spawn);
+          else st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
         }
@@ -228,7 +238,11 @@ export function WorldHud() {
       )}
 
       {openDest && (
-        <div className="hud-dialog window" role="dialog" aria-label={openDest.label}>
+        <div
+          className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
+          role="dialog"
+          aria-label={openDest.label}
+        >
           <div className="title-bar">
             <div className="title-bar-text">{openDest.label}</div>
             <div className="title-bar-controls">
@@ -236,12 +250,32 @@ export function WorldHud() {
             </div>
           </div>
           <div className="window-body">
-            <p>{openDest.blurb}</p>
-            <p>
-              <a href={openDest.href} target="_blank" rel="noopener noreferrer">
-                Open &raquo;
-              </a>
-            </p>
+            {openDest.id === 'videos' ? (
+              <YoutubeFacade />
+            ) : (
+              <>
+                <p>{openDest.blurb}</p>
+                <p>
+                  <a href={openDest.href} target="_blank" rel="noopener noreferrer">
+                    Open &raquo;
+                  </a>
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {tvVideo && (
+        <div className="hud-dialog window hud-dialog--tv" role="dialog" aria-label={tvVideo.title}>
+          <div className="title-bar">
+            <div className="title-bar-text">{tvVideo.title}</div>
+            <div className="title-bar-controls">
+              <button aria-label="Close" onClick={closeTv} />
+            </div>
+          </div>
+          <div className="window-body">
+            <YoutubeFacade video={tvVideo} />
           </div>
         </div>
       )}

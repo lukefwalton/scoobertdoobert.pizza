@@ -1,21 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
 import { roomById, FIRST_ROOM } from '../data/rooms';
-import { LoaderGame } from './LoaderGame';
 
 // ───────────────────────────────────────────────────────────────────────────
-// LevelLoader — Phase 6. The DOM overlay that masks a GLB level's load behind
-// the loader minigame. When the current room is a GLB level, it shows
-// <LoaderGame/> over the (suspended) canvas; GlbRoom flips levelStore.ready true
-// once the asset has resolved, which turns on TAP-TO-ENTER. Tapping dismisses it,
-// revealing the loaded level. Re-entering a cached level just shows a quick
-// ready→tap. Mounted in WorldMount.
-//
-// Failure path: if the GLB can't load, GlbRoom's error boundary flips
-// levelStore.error and the loader offers TURN BACK instead — navigating back out
-// the room's exit door so a broken asset never traps the player. Without this the
-// loader would spin forever (ready never flips) on a 404/decode error.
+// LevelLoader — GLB levels now AUTO-ENTER (Luke: the loads are fast enough that the
+// old loader minigame just broke the flow rather than adding anything). The instant
+// the asset resolves, GlbRoom flips levelStore.ready, this overlay clears, and
+// Controls unfreezes input off that same `ready` — no minigame, no tap-to-enter, no
+// separate `entered` flag. A calm panel covers a SLOW load; a FAILED load offers
+// TURN BACK so a broken asset can never trap the player. Mounted in WorldMount.
 // ───────────────────────────────────────────────────────────────────────────
 export function LevelLoader() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
@@ -24,25 +18,23 @@ export function LevelLoader() {
   const error = useLevelStore((s) => s.error);
   const room = roomById(currentRoom);
   const isGlb = !!room.glb;
-  const [dismissed, setDismissed] = useState(false);
-  // Latches a TURN BACK so repeated clicks can't enqueue overlapping recovery
-  // polls / double-navigate. Reset when a new room is entered. `abortTimer` holds
-  // the pending recovery poll so it can be cancelled on room change / unmount —
-  // a stale poll must never fire goToRoom after we've moved on.
+  // Latches a TURN BACK so repeated clicks can't enqueue overlapping recovery polls;
+  // abortTimer holds the pending poll so a stale one can't fire after we've moved on.
   const aborting = useRef(false);
   const abortTimer = useRef<number | undefined>(undefined);
+  // Focus the recovery button when the error overlay appears, so a failed load is
+  // recoverable by KEYBOARD (Enter/Space) and a screen reader lands on the way out —
+  // the old loader had a global Enter handler; an autofocused button replaces it.
+  const errBtn = useRef<HTMLButtonElement>(null);
 
-  // New room → show the loader again (until tapped in) and clear the overlay
-  // state. Note this does NOT reset `ready` — GlbRoom owns that via mount/unmount
-  // (see levelStore), which is what makes cached re-entry safe.
+  // New room → clear the overlay state. Does NOT touch `ready` (GlbRoom owns that via
+  // mount/unmount — see levelStore — which is what makes cached re-entry safe).
   useEffect(() => {
-    setDismissed(false);
     aborting.current = false;
     if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
     useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
 
-  // Belt-and-suspenders: cancel any pending recovery poll if we unmount.
   useEffect(
     () => () => {
       if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
@@ -50,18 +42,21 @@ export function LevelLoader() {
     [],
   );
 
-  if (!isGlb || dismissed) return null;
+  // Move focus to the recovery button the moment the error overlay shows, so a broken
+  // load is escapable with the keyboard alone (Enter/Space) and screen readers land
+  // on the action — not just clickable with a mouse.
+  useEffect(() => {
+    if (error) errBtn.current?.focus();
+  }, [error]);
 
-  // Recovery: bounce out the room's EXPLICIT recover target if it has one, else
-  // its first door, else the shop. Explicit metadata so a future door reorder
-  // can't silently change where a failed load drops the player.
-  //
-  // A GLB can fail (and the loader offer TURN BACK) BEFORE the door-wipe INTO it
-  // has finished — goToRoom debounces while `transitioning`, so an instant abort
-  // would be swallowed. Wait for the entry wipe to settle, then navigate cleanly
-  // (the loader overlay is up + input frozen throughout, so the wait is unseen).
+  // Loaded (or not a GLB room) → no overlay at all.
+  if (!isGlb || (ready && !error)) return null;
+
+  // Recovery: bounce out the room's EXPLICIT recover target if it has one, else its
+  // first door, else the shop — waiting out the entry wipe so goToRoom isn't
+  // swallowed by its `transitioning` debounce.
   const onAbort = () => {
-    if (aborting.current) return; // already recovering — ignore repeat clicks
+    if (aborting.current) return;
     aborting.current = true;
     const go = () => {
       if (useSceneStore.getState().transitioning) {
@@ -76,16 +71,23 @@ export function LevelLoader() {
     go();
   };
 
+  if (error) {
+    return (
+      <div className="level-loader" data-level-loader data-loader-state="error" role="alert">
+        <div className="level-loader__panel">
+          <p className="level-loader__title">Couldn’t load {room.title}.</p>
+          <button ref={errBtn} type="button" className="level-loader__btn" onClick={onAbort}>
+            Turn back
+          </button>
+        </div>
+      </div>
+    );
+  }
   return (
-    <LoaderGame
-      ready={ready}
-      error={error}
-      label={room.title.toUpperCase()}
-      onEnter={() => {
-        useLevelStore.getState().setEntered(true);
-        setDismissed(true);
-      }}
-      onAbort={onAbort}
-    />
+    <div className="level-loader" data-level-loader data-loader-state="loading" aria-live="polite">
+      <div className="level-loader__panel">
+        <p className="level-loader__title">Loading {room.title}…</p>
+      </div>
+    </div>
   );
 }

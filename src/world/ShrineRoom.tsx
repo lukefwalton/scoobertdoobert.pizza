@@ -424,6 +424,23 @@ export function ShrineRoom({ room }: { room: Room }) {
       <Torii z={-1.5} span={2.8} height={3.9} mat={toriiMat} />
       <Torii z={-6.5} span={3.0} height={4.1} mat={toriiMat} />
 
+      {/* the grass-side gateway — a vermilion torii on the open -X edge, turned a
+          quarter-turn to frame a worn path off into the overgrown field. Mirrors
+          the grass field's own entrance torii; the 'shrine-to-grass' door in
+          rooms.ts sits right under it. */}
+      <mesh material={pathMat} rotation-x={-Math.PI / 2} position={[-6, 0.02, 6]}>
+        <planeGeometry args={[10, 2.2]} />
+      </mesh>
+      <group position={[-10.6, 0, 6]} rotation-y={Math.PI / 2}>
+        <Torii z={0} mat={toriiMat} />
+      </group>
+      {/* warm fill on the gateway's near (shrine-facing) side — the lone directional
+          light leaves it backlit and gloomy otherwise, and this is a SWEET room, so
+          it should glow vermilion like the path toriis, not read as a dark slab */}
+      <pointLight position={[-9.2, 2.6, 6]} intensity={0.6} distance={10} color="#ffd9a0" />
+      {/* a stone lantern marking the turn-off, like the ones flanking the main path */}
+      <Lantern x={-4.2} z={4.4} stone={stoneMat} glow={glowMat} />
+
       {/* stone lanterns flanking the path */}
       <Lantern x={-2.3} z={9} stone={stoneMat} glow={glowMat} />
       <Lantern x={2.3} z={9} stone={stoneMat} glow={glowMat} />

@@ -27,7 +27,8 @@ export type RoomKind =
   | 'practice'
   | 'grass'
   | 'grassbattle'
-  | 'grove';
+  | 'grove'
+  | 'frutiger';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -77,8 +78,24 @@ export type RoomDoor = {
    *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
    *  after you beat the grass goblin. Takes precedence over revealOn when set. */
   revealSecret?: string;
+  /** If set, this door is a PAINTING PORTAL: it renders as a big framed album cover
+   *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
+   *  SM64 dive). The slug resolves against src/data/albums. */
+  albumSlug?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
+};
+
+/** A decorative album cover hung on a wall (room.paintings) — showcase art, no
+ *  interaction (portals are doors with `albumSlug`). Positioned + rotated to sit
+ *  flush on a wall; references an album by slug (src/data/albums). */
+export type RoomPainting = {
+  slug: string;
+  position: [number, number, number];
+  /** Rotation about +Y so the cover faces into the room. */
+  rotationY?: number;
+  /** Edge length in world units (covers are square). Defaults to ~2.4. */
+  size?: number;
 };
 
 /** A crunched GLB placed as set-dressing in a room (GlbProp renders it). */
@@ -119,9 +136,18 @@ export type Room = {
   /** Render ambient water dripping from the ceiling (the watery descent's
    *  aftermath). Opt-in per room so it isn't coupled to a room kind. */
   drips?: boolean;
+  /** A MUSIC room: the room's own audio (a sound garden, the furin) should own the
+   *  space, so the loop-voice SONG fades out while you're here (audio.setSongLevel).
+   *  Instrument one-shots, which hit master directly, are unaffected. */
+  musicRoom?: boolean;
   /** GLB set-dressing placed in the room (GlbProp). Crunched models from the
    *  trove — provenance in THIRD_PARTY_NOTICES.md. */
   props?: RoomProp[];
+  /** Album covers hung on the walls as framed showcase paintings (CoverArt). */
+  paintings?: RoomPainting[];
+  /** A CRT television (TvSet) — the far side of an album's painting: click it to
+   *  play that record's music videos in the modal player. */
+  tv?: { position: [number, number, number]; rotationY?: number; albumSlug: string };
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -178,6 +204,16 @@ export const ROOMS: Room[] = [
     // Long, narrow, low — a corridor, not a maze (3D-Maze red brick).
     dims: { halfW: 2.6, halfD: 16, height: 4, eye: EYE },
     palette: { background: '#150c0c', fog: '#2a0f0f', fogNear: 3, fogFar: 24 },
+    // A gallery corridor — Scoobert's covers hung large down both walls (the SM64
+    // grammar; Luke: "places throughout, large on the walls with borders").
+    paintings: [
+      { slug: 'moonlight-beach', position: [2.45, 2.0, 9], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'swamis', position: [2.45, 2.0, 3.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'koan', position: [2.45, 2.0, -6.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'to-sleep', position: [2.45, 2.0, -11.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'i', position: [-2.45, 2.0, 9], rotationY: Math.PI / 2, size: 1.8 },
+      { slug: 'dragon-ball-sd', position: [-2.45, 2.0, -8.5], rotationY: Math.PI / 2, size: 1.8 },
+    ],
     spawns: {
       default: { position: [0, EYE, 12.5], yaw: Math.PI },
       // Arriving from the shop: a step into the hall (clear of the return door's
@@ -596,6 +632,7 @@ export const ROOMS: Room[] = [
   {
     id: 'shrine',
     kind: 'shrine',
+    musicRoom: true, // the furin breather owns the space — the carried song fades out here
     title: 'Wayside Shrine',
     // The one OUTDOOR, *sweet* deep room — a rural dusk: a torii path, a little
     // shrine, a country railway crossing. A breather among the bitter depths
@@ -736,6 +773,7 @@ export const ROOMS: Room[] = [
   {
     id: 'grove',
     kind: 'grove',
+    musicRoom: true, // the sound garden owns the space — the carried song fades out here
     title: 'The Hidden Grove',
     // The reward for beating the goblin (Luke: "winning gives you a new room"). A
     // hush after the bright field — dusk settling cool and blue, a single glowing
@@ -744,6 +782,9 @@ export const ROOMS: Room[] = [
     palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
     spawns: {
       default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // Stepping back out of the bright vista — past the orb at the far end,
+      // facing +Z back across the sound garden, clear of the door radius.
+      fromFrutiger: { position: [0, EYE, -5], yaw: 0 },
     },
     doors: [
       {
@@ -754,6 +795,56 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'leave the grove',
         radius: 3.0,
+      },
+      {
+        id: 'grove-to-frutiger',
+        to: 'frutiger',
+        toSpawn: 'default',
+        // Past the sound garden, at the grove's far end: an album-cover PAINTING you
+        // DIVE INTO (the SM64 portal) — the deeper reward beyond the reward (the
+        // Frutiger pocket), earned by clearing the goblin. The cover lunges at you
+        // as you step through (CoverArt.FramedCover, Doors.tsx).
+        position: [0, 0, -8.4],
+        rotationY: Math.PI,
+        label: 'dive into the painting',
+        // Moonlight Beach — its cover matches the glossy beach-paradise behind it,
+        // and diving plays its track (Ocean View) as the world's soundtrack.
+        albumSlug: 'moonlight-beach',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'frutiger',
+    kind: 'frutiger',
+    title: 'Aqua Hill',
+    // The Frutiger Aero pocket (Luke, 2026-06-22: "frutiger levels") — an
+    // impossibly optimistic glossy-2008 hillside found through a too-clean door in
+    // the beige backrooms: blue sky, puffy clouds, rolling green Bliss hills, a low
+    // sun + lens flare, floating glossy aqua bubbles, and a serene gel "media-
+    // player creature." The ONE zone where the PS1 crunch is LIFTED (Luke's call):
+    // it renders clean + glossy (FrutigerRoom bumps the pixel ratio while mounted),
+    // the sweet opposite of the wrong depths next door — the contrast is the point.
+    dims: { halfW: 14, halfD: 14, height: 16, eye: EYE },
+    palette: { background: '#86c5ef', fog: '#cfe8fb', fogNear: 18, fogFar: 95 },
+    // A CRT on the hillside plays Moonlight Beach's videos — the album whose cover
+    // is the painting you dove through to get here (its track is already playing).
+    tv: { position: [5.5, 0, 5], rotationY: 0.5, albumSlug: 'moonlight-beach' },
+    spawns: {
+      // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
+      // into the open blue vista, clear of the return door's radius.
+      default: { position: [0, EYE, 12], yaw: Math.PI },
+      fromGrove: { position: [0, EYE, 12], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'frutiger-to-grove',
+        to: 'grove',
+        toSpawn: 'fromFrutiger',
+        position: [0, 0, 13.5], // +Z wall — back through into the grove
+        rotationY: 0,
+        label: 'back through into the grove',
+        radius: 3.2,
       },
     ],
   },
