@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
+import { rollD20, type Crit } from '../lib/luck';
 
 // ───────────────────────────────────────────────────────────────────────────
 // D20 — the dice-music selector (Phase 6). A low-poly twenty-sided die on a
@@ -22,12 +23,17 @@ export function D20({
   position,
   onRoll,
   lastRoll,
+  useLuck = true,
 }: {
   position: [number, number, number];
-  /** Called with the landed face (1..20) once the tumble settles. */
-  onRoll: (face: number) => void;
+  /** Called with the landed face (1..20) + its crit (nat20 / nat1 / null) once the
+   *  tumble settles. The face is the luck-biased universal roll (src/lib/luck). */
+  onRoll: (face: number, crit: Crit) => void;
   /** The face to show on the plaque (null before the first roll). */
   lastRoll: number | null;
+  /** Whether this die spends luck for advantage (a STAKES roll). Default true; the
+   *  jukebox music selector passes false so a low-stakes roll never burns luck. */
+  useLuck?: boolean;
 }) {
   const { gl } = useThree();
   const dieRef = useRef<THREE.Group>(null);
@@ -61,8 +67,10 @@ export function D20({
 
   const settle = () => {
     rolling.current = false;
-    const face = 1 + Math.floor(Math.random() * 20);
-    onRoll(face);
+    // The universal roll: on a stakes die, luck (if any) is spent here for
+    // advantage; a nat 20 / crit fail comes back for the caller to swing 3×.
+    const { face, crit } = rollD20(useLuck);
+    onRoll(face, crit);
   };
 
   const roll = () => {

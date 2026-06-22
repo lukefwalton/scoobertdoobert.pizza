@@ -71,7 +71,9 @@ export default function Arcade() {
         device.
       </p>
       <p className="arcade-foot">
-        &#9654; Next cabinet: <a href="/poke">POKE SCOOBERT</a> &mdash; grab his face and pull.
+        &#9654; More cabinets: <a href="/poke">POKE SCOOBERT</a> &middot;{' '}
+        <a href="/chimes">PENDULUM CHIMES</a> &mdash; tap to ring the bells &middot;{' '}
+        <a href="/cultures">CULTURES</a> &mdash; stir the colony till it sings.
       </p>
       <p className="arcade-foot arcade-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
