@@ -193,8 +193,10 @@ The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
   Earned by small rituals — the **shrine clap** (二拍手: click the offering box,
   *clap clap*, a coin tinkles, +1/visit). **Shown in the pause menu**, **announced
   on gain** (the toast). **Spent by the SYSTEM, never by hand** (Luke): luck buys
-  *advantage* on a roll — the system rerolls a bad die and keeps the best, so the
-  luckier you are the likelier a nat 20 and the rarer a crit fail.
+  **D&D *advantage*** (Luke, 2026-06-22: "do it like D&D — it's advantage: 2 d20,
+  take the higher") — one luck rolls a **second d20 in the backend (never shown)
+  and keeps the higher face**, committed up front. So the luckier you are, the more
+  of your rolls have advantage: a likelier nat 20, a rarer crit fail, while it lasts.
 - **Reused engine** note: the coin tinkle is `audio.playChime` (the /chimes bell
   voice); the clap is `audio.playClap`. The shrine is a SWEET room, so its luck
   faucet stays a relief beat.

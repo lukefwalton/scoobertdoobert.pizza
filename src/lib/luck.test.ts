@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { rollLuckyD20, critLabel, CRIT_MULT, MAX_LUCK_PER_ROLL } from './luck';
+import { rollLuckyD20, critLabel, CRIT_MULT, LUCK_PER_ADVANTAGE } from './luck';
 
 // A tiny deterministic PRNG so the statistical test can't flake.
 function seeded(seed: number): () => number {
@@ -14,38 +14,47 @@ function seeded(seed: number): () => number {
 }
 
 describe('rollLuckyD20', () => {
-  it('with no luck, rolls a single die in 1..20 and spends nothing', () => {
-    expect(rollLuckyD20(0, () => 0)).toEqual({ face: 1, crit: 'nat1', luckSpent: 0 });
+  it('with no luck, rolls a single plain die and spends nothing', () => {
+    let calls = 0;
+    const r = rollLuckyD20(0, () => {
+      calls++;
+      return 0;
+    });
+    expect(r).toEqual({ face: 1, crit: 'nat1', luckSpent: 0 });
+    expect(calls).toBe(1); // exactly one die — no backend reroll without luck
     expect(rollLuckyD20(0, () => 0.999)).toEqual({ face: 20, crit: 'nat20', luckSpent: 0 });
   });
 
-  it('spends luck for advantage on a bad base roll and keeps the best die', () => {
-    // base → 1 (bad), then two advantage rerolls → 11, then 20. Keeps 20.
-    const seq = [0, 0.5, 0.95];
+  it('with luck, rolls with ADVANTAGE — two dice, keeps the higher — for one luck', () => {
+    // first die → 1 (low), second (backend) die → 20. Advantage keeps the 20.
+    const seq = [0, 0.999];
     let i = 0;
-    const r = rollLuckyD20(2, () => seq[i++]);
+    const r = rollLuckyD20(3, () => seq[i++]);
     expect(r.face).toBe(20);
     expect(r.crit).toBe('nat20');
-    expect(r.luckSpent).toBe(2);
+    expect(r.luckSpent).toBe(LUCK_PER_ADVANTAGE);
   });
 
-  it('does NOT spend luck on an already-good base roll', () => {
-    // base → 15 (>= the help threshold), so no advantage even with luck banked.
-    const r = rollLuckyD20(3, () => 0.7); // 1 + floor(0.7*20) = 15
-    expect(r.face).toBe(15);
-    expect(r.luckSpent).toBe(0);
+  it('advantage keeps the higher even when the FIRST die was already the better one', () => {
+    // first → 20, second → 2; still keeps 20 — and still pays the one luck (advantage
+    // is committed before the dice land, exactly like declaring it at the table).
+    const seq = [0.999, 0.05];
+    let i = 0;
+    const r = rollLuckyD20(1, () => seq[i++]);
+    expect(r.face).toBe(20);
+    expect(r.luckSpent).toBe(1);
   });
 
-  it('never spends more than MAX_LUCK_PER_ROLL even with a big bank', () => {
+  it('spends at most one luck per roll, however big the bank, and rolls just two dice', () => {
     let calls = 0;
     const r = rollLuckyD20(99, () => {
       calls++;
       return 0; // every die is a 1
     });
-    expect(r.luckSpent).toBe(MAX_LUCK_PER_ROLL);
-    expect(calls).toBe(1 + MAX_LUCK_PER_ROLL); // base + the advantage dice
+    expect(r.luckSpent).toBe(LUCK_PER_ADVANTAGE);
+    expect(calls).toBe(2); // advantage = exactly two dice, never more (not "super-advantage")
     expect(r.face).toBe(1);
-    expect(r.crit).toBe('nat1');
+    expect(r.crit).toBe('nat1'); // double 1s is still a crit fail
   });
 
   it('luck raises the average roll (statistically)', () => {
@@ -55,7 +64,7 @@ describe('rollLuckyD20', () => {
     let plain = 0;
     for (let i = 0; i < N; i++) lucky += rollLuckyD20(3, rng).face;
     for (let i = 0; i < N; i++) plain += rollLuckyD20(0, rng).face;
-    expect(lucky / N).toBeGreaterThan(plain / N + 1);
+    expect(lucky / N).toBeGreaterThan(plain / N + 1); // advantage ≈ 13.8 vs plain ≈ 10.5
   });
 });
 
