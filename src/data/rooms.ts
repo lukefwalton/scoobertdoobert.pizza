@@ -27,7 +27,8 @@ export type RoomKind =
   | 'practice'
   | 'grass'
   | 'grassbattle'
-  | 'grove';
+  | 'grove'
+  | 'frutiger';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -451,6 +452,9 @@ export const ROOMS: Room[] = [
       fromPool: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
       fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
+      // Back in from the too-bright Frutiger door — beside the +X door, a step
+      // clear of its radius, facing -X into the room.
+      fromFrutiger: { position: [5, EYE, 0], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -469,6 +473,18 @@ export const ROOMS: Room[] = [
         position: [0, 0, -8.45], // far (-Z) wall — deeper still (GLB → GLB)
         rotationY: Math.PI,
         label: 'go down to the deep end',
+        radius: 3.2,
+      },
+      {
+        id: 'liminal-to-frutiger',
+        to: 'frutiger',
+        toSpawn: 'fromLiminal',
+        // A clean, impossibly BRIGHT door in the beige backrooms — wrong for this
+        // place, opening onto a glossy blue-sky hillside (the Frutiger Aero
+        // pocket). Not hidden: you're meant to notice how out of place it is.
+        position: [8.45, 0, 0], // +X wall
+        rotationY: -Math.PI / 2, // opening faces -X into the room
+        label: 'a clean, too-bright door that shouldn’t be here',
         radius: 3.2,
       },
     ],
@@ -754,6 +770,37 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'leave the grove',
         radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'frutiger',
+    kind: 'frutiger',
+    title: 'Aqua Hill',
+    // The Frutiger Aero pocket (Luke, 2026-06-22: "frutiger levels") — an
+    // impossibly optimistic glossy-2008 hillside found through a too-clean door in
+    // the beige backrooms: blue sky, puffy clouds, rolling green Bliss hills, a low
+    // sun + lens flare, floating glossy aqua bubbles, and a serene gel "media-
+    // player creature." The ONE zone where the PS1 crunch is LIFTED (Luke's call):
+    // it renders clean + glossy (FrutigerRoom bumps the pixel ratio while mounted),
+    // the sweet opposite of the wrong depths next door — the contrast is the point.
+    dims: { halfW: 14, halfD: 14, height: 16, eye: EYE },
+    palette: { background: '#86c5ef', fog: '#cfe8fb', fogNear: 18, fogFar: 95 },
+    spawns: {
+      // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
+      // into the open blue vista, clear of the return door's radius.
+      default: { position: [0, EYE, 12], yaw: Math.PI },
+      fromLiminal: { position: [0, EYE, 12], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'frutiger-to-liminal',
+        to: 'liminal',
+        toSpawn: 'fromFrutiger',
+        position: [0, 0, 13.5], // +Z wall — back through the clean door
+        rotationY: 0,
+        label: 'back through the bright door',
+        radius: 3.2,
       },
     ],
   },
