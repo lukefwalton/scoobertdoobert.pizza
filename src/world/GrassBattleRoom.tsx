@@ -22,7 +22,11 @@ import { type Room } from '../data/rooms';
 // with no penalty (taste guardrail — losing never hard-fails).
 // ───────────────────────────────────────────────────────────────────────────
 
-const MONSTER_POS: [number, number, number] = [0, 0.2, -3.4];
+// The goblin is the STAR of the encounter (Luke) — forward + centred so it looms
+// over the clearing, hero-scaled below. (It used to sit far back at z−3.4, upstaged
+// by the d20.)
+const MONSTER_POS: [number, number, number] = [0, 0.2, -1.1];
+const MONSTER_HERO_SCALE = 1.8;
 
 export function GrassBattleRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
@@ -105,10 +109,13 @@ export function GrassBattleRoom({ room }: { room: Room }) {
         <circleGeometry args={[2.4, 20]} />
       </mesh>
 
-      {/* the bone — click to roll against the wild goblin */}
-      <D20 position={[0, 1.0, 2.4]} onRoll={onRoll} lastRoll={last?.you ?? null} />
-      {/* the goblin, across the clearing */}
-      <DiceMonster position={MONSTER_POS} />
+      {/* the goblin — the STAR: hero-scaled and forward, looming over the clearing */}
+      <DiceMonster position={MONSTER_POS} scale={MONSTER_HERO_SCALE} />
+      {/* your bone — demoted to a small cast off to the lower right, so it stays a
+          usable control but reads as your tool, not the centrepiece it used to be */}
+      <group position={[1.0, 0.45, 3.2]} scale={0.68}>
+        <D20 position={[0, 0.5, 0]} onRoll={onRoll} lastRoll={last?.you ?? null} />
+      </group>
       {/* the wild-encounter banner */}
       <mesh material={signMat} position={[0, 2.8, -D + 0.3]}>
         <planeGeometry args={[2.6, 1.12]} />
