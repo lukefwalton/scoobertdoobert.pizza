@@ -23,6 +23,7 @@ import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
+import { Paintings } from './CoverArt';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
 
@@ -157,6 +158,7 @@ export default function World() {
         <RoomScene room={room} />
       </Suspense>
       <RoomProps room={room} />
+      {room.paintings && <Paintings list={room.paintings} />}
       <Doors />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +

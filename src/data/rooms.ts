@@ -78,8 +78,24 @@ export type RoomDoor = {
    *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
    *  after you beat the grass goblin. Takes precedence over revealOn when set. */
   revealSecret?: string;
+  /** If set, this door is a PAINTING PORTAL: it renders as a big framed album cover
+   *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
+   *  SM64 dive). The slug resolves against src/data/albums. */
+  albumSlug?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
+};
+
+/** A decorative album cover hung on a wall (room.paintings) — showcase art, no
+ *  interaction (portals are doors with `albumSlug`). Positioned + rotated to sit
+ *  flush on a wall; references an album by slug (src/data/albums). */
+export type RoomPainting = {
+  slug: string;
+  position: [number, number, number];
+  /** Rotation about +Y so the cover faces into the room. */
+  rotationY?: number;
+  /** Edge length in world units (covers are square). Defaults to ~2.4. */
+  size?: number;
 };
 
 /** A crunched GLB placed as set-dressing in a room (GlbProp renders it). */
@@ -127,6 +143,8 @@ export type Room = {
   /** GLB set-dressing placed in the room (GlbProp). Crunched models from the
    *  trove — provenance in THIRD_PARTY_NOTICES.md. */
   props?: RoomProp[];
+  /** Album covers hung on the walls as framed showcase paintings (CoverArt). */
+  paintings?: RoomPainting[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -183,6 +201,16 @@ export const ROOMS: Room[] = [
     // Long, narrow, low — a corridor, not a maze (3D-Maze red brick).
     dims: { halfW: 2.6, halfD: 16, height: 4, eye: EYE },
     palette: { background: '#150c0c', fog: '#2a0f0f', fogNear: 3, fogFar: 24 },
+    // A gallery corridor — Scoobert's covers hung large down both walls (the SM64
+    // grammar; Luke: "places throughout, large on the walls with borders").
+    paintings: [
+      { slug: 'moonlight-beach', position: [2.45, 2.0, 9], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'swamis', position: [2.45, 2.0, 3.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'koan', position: [2.45, 2.0, -6.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'to-sleep', position: [2.45, 2.0, -11.5], rotationY: -Math.PI / 2, size: 1.8 },
+      { slug: 'i', position: [-2.45, 2.0, 9], rotationY: Math.PI / 2, size: 1.8 },
+      { slug: 'dragon-ball-sd', position: [-2.45, 2.0, -8.5], rotationY: Math.PI / 2, size: 1.8 },
+    ],
     spawns: {
       default: { position: [0, EYE, 12.5], yaw: Math.PI },
       // Arriving from the shop: a step into the hall (clear of the return door's
@@ -769,13 +797,14 @@ export const ROOMS: Room[] = [
         id: 'grove-to-frutiger',
         to: 'frutiger',
         toSpawn: 'default',
-        // Past the sound garden, at the grove's far end: a doorway of impossible
-        // blue sky — the deeper reward beyond the reward (the Frutiger pocket),
-        // earned by clearing the goblin. (To BECOME an enter-the-album-art
-        // PAINTING — the SM64 portal mechanic; see DESIGN's painting-portals.)
+        // Past the sound garden, at the grove's far end: an album-cover PAINTING you
+        // DIVE INTO (the SM64 portal) — the deeper reward beyond the reward (the
+        // Frutiger pocket), earned by clearing the goblin. The cover lunges at you
+        // as you step through (CoverArt.FramedCover, Doors.tsx).
         position: [0, 0, -8.4],
         rotationY: Math.PI,
-        label: 'step into the bright vista',
+        label: 'dive into the painting',
+        albumSlug: 'hologram',
         radius: 3.0,
       },
     ],
