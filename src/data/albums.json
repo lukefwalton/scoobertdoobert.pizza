@@ -7,12 +7,14 @@
   {
     "slug": "big-hug",
     "title": "Big Hug",
-    "art": "/brand/albums/big-hug.webp"
+    "art": "/brand/albums/big-hug.webp",
+    "track": "i-live-in-california"
   },
   {
     "slug": "dancing-in-the-moonlight-beach",
     "title": "Dancing In The Moonlight Beach",
-    "art": "/brand/albums/dancing-in-the-moonlight-beach.webp"
+    "art": "/brand/albums/dancing-in-the-moonlight-beach.webp",
+    "track": "dancing-in-the-moonlight"
   },
   {
     "slug": "dragon-ball-sd",
@@ -27,12 +29,14 @@
   {
     "slug": "finding-sd",
     "title": "Finding SD",
-    "art": "/brand/albums/finding-sd.webp"
+    "art": "/brand/albums/finding-sd.webp",
+    "track": "my-friend-scoobert"
   },
   {
     "slug": "gonna-go-to-japan",
     "title": "Gonna Go To Japan",
-    "art": "/brand/albums/gonna-go-to-japan.webp"
+    "art": "/brand/albums/gonna-go-to-japan.webp",
+    "track": "gonna-go-to-japan"
   },
   {
     "slug": "hologram",
@@ -42,17 +46,20 @@
   {
     "slug": "i",
     "title": "I",
-    "art": "/brand/albums/i.webp"
+    "art": "/brand/albums/i.webp",
+    "track": "daydreaming"
   },
   {
     "slug": "koan",
     "title": "koan",
-    "art": "/brand/albums/koan.webp"
+    "art": "/brand/albums/koan.webp",
+    "track": "boardwalk"
   },
   {
     "slug": "little-hug",
     "title": "Little Hug",
-    "art": "/brand/albums/little-hug.webp"
+    "art": "/brand/albums/little-hug.webp",
+    "track": "walking-balboa"
   },
   {
     "slug": "low-tide",
@@ -62,7 +69,8 @@
   {
     "slug": "masks-and-monsters",
     "title": "Masks and Monsters",
-    "art": "/brand/albums/masks-and-monsters.webp"
+    "art": "/brand/albums/masks-and-monsters.webp",
+    "track": "mystery-machine"
   },
   {
     "slug": "meteor-shower",
@@ -72,17 +80,20 @@
   {
     "slug": "mob",
     "title": "MÖB",
-    "art": "/brand/albums/mob.webp"
+    "art": "/brand/albums/mob.webp",
+    "track": "memory-lan"
   },
   {
     "slug": "moonlight-beach",
     "title": "Moonlight Beach",
-    "art": "/brand/albums/moonlight-beach.webp"
+    "art": "/brand/albums/moonlight-beach.webp",
+    "track": "ocean-view"
   },
   {
     "slug": "ocean-view",
     "title": "Ocean View",
-    "art": "/brand/albums/ocean-view.webp"
+    "art": "/brand/albums/ocean-view.webp",
+    "track": "ocean-view"
   },
   {
     "slug": "swamis",

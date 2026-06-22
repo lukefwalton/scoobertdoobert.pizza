@@ -6,6 +6,10 @@ import { BOTTOM_FLOOR } from '../data/floors';
 // app-chunk check in the build.
 import { FIRST_ROOM } from '../data/rooms';
 
+/** How long a painting cover ripples + swallows the view before the room wipe
+ *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
+export const DIVE_MS = 520;
+
 // Scene/game state. Drives the floor descent (currentFloor), the world mount
 // (WorldMount), the hotspot prompts + dialogs, the room graph, and the pause menu.
 type SceneState = {
@@ -38,8 +42,12 @@ type SceneState = {
   /** true for the WHOLE door wipe (fade-out + commit + fade-in), so input stays
    *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
   transitioning: boolean;
-  /** the door the camera is near, resolved to its target (or null). */
-  nearDoor: { id: string; label: string; to: string; spawn: string } | null;
+  /** the door the camera is near, resolved to its target (or null). albumSlug marks
+   *  a PAINTING portal (E dives into the cover instead of a plain door wipe). */
+  nearDoor: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null;
+  /** Mid-DIVE into a painting portal: the destination room id while the cover
+   *  ripples + swallows the view, before the room actually swaps. null otherwise. */
+  divingTo: string | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -74,11 +82,16 @@ type SceneState = {
 
   /** Walk through a door: begin the wipe (pendingRoom + transitioning). */
   goToRoom: (to: string, spawn: string) => void;
+  /** Dive INTO a painting portal: ripple the cover for a beat (divingTo), then walk
+   *  through to `to`. Both click + E funnel here for painting doors. */
+  enterPainting: (to: string, spawn: string) => void;
   /** Commit the pending room swap (mid-wipe): repositions via Controls. */
   commitRoom: () => void;
   /** End the wipe once the overlay has fully lifted: unfreezes input. */
   endTransition: () => void;
-  setNearDoor: (door: { id: string; label: string; to: string; spawn: string } | null) => void;
+  setNearDoor: (
+    door: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null,
+  ) => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -102,6 +115,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   queuedRoom: null,
   transitioning: false,
   nearDoor: null,
+  divingTo: null,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -180,6 +194,18 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearDoor: null,
         nearHotspot: null,
       };
+    }),
+  // Dive into a painting: ripple/swallow the cover for DIVE_MS (divingTo drives the
+  // FramedCover shader), THEN funnel through goToRoom for the real wipe + swap. The
+  // album's track is started by the caller (the reward is sound) before this runs.
+  enterPainting: (to, spawn) =>
+    set((s) => {
+      if (s.paused || s.openHotspot || s.transitioning) return {};
+      window.setTimeout(() => {
+        useSceneStore.getState().goToRoom(to, spawn);
+        set({ divingTo: null });
+      }, DIVE_MS);
+      return { divingTo: to, nearDoor: null, nearHotspot: null };
     }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.

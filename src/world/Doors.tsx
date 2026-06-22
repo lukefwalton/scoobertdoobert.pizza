@@ -8,6 +8,7 @@ import { audio } from '../audio/engine';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { FramedCover } from './CoverArt';
+import { diveInto } from '../lib/dive';
 import { albumBySlug } from '../data/albums';
 
 // The 3D doors — the room exits. Same metaphor as the flat era-floor doors:
@@ -49,7 +50,10 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     // travel to it (Myst-style line of sight), no walking up required. (E still
     // wants proximity.) goToRoom guards paused / dialog-open / mid-transition.
     audio.unlock();
-    useSceneStore.getState().goToRoom(door.to, door.toSpawn ?? 'default');
+    const spawn = door.toSpawn ?? 'default';
+    // A painting portal dives (ripple + the album plays); a plain door just wipes.
+    if (door.albumSlug) diveInto(door.albumSlug, door.to, spawn);
+    else useSceneStore.getState().goToRoom(door.to, spawn);
   };
 
   // The cursor must go on the CANVAS element, not document.body — the Canvas
@@ -176,6 +180,7 @@ export function Doors() {
               label: nearest.label,
               to: nearest.to,
               spawn: nearest.toSpawn ?? 'default',
+              albumSlug: nearest.albumSlug,
             }
           : null,
       );

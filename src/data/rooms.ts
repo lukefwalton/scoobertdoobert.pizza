@@ -804,7 +804,9 @@ export const ROOMS: Room[] = [
         position: [0, 0, -8.4],
         rotationY: Math.PI,
         label: 'dive into the painting',
-        albumSlug: 'hologram',
+        // Moonlight Beach — its cover matches the glossy beach-paradise behind it,
+        // and diving plays its track (Ocean View) as the world's soundtrack.
+        albumSlug: 'moonlight-beach',
         radius: 3.0,
       },
     ],

@@ -54,6 +54,23 @@ for (const f of readdirSync(MOON)
   sources.push({ path: `${MOON}/${f}`, title: titleFromMoon(f) });
 }
 
+// Curated album → a representative jukebox track (slug in jukebox.catalog.json),
+// from the source album folders. Diving into a cover plays this (the reward is
+// sound). Albums without a public track just won't auto-play.
+const ALBUM_TRACKS = {
+  'finding-sd': 'my-friend-scoobert',
+  'masks-and-monsters': 'mystery-machine',
+  'big-hug': 'i-live-in-california',
+  'little-hug': 'walking-balboa',
+  koan: 'boardwalk',
+  mob: 'memory-lan',
+  i: 'daydreaming',
+  'moonlight-beach': 'ocean-view',
+  'ocean-view': 'ocean-view',
+  'gonna-go-to-japan': 'gonna-go-to-japan',
+  'dancing-in-the-moonlight-beach': 'dancing-in-the-moonlight',
+};
+
 const catalog = [];
 const seen = new Set();
 for (const { path, title } of sources) {
@@ -62,7 +79,8 @@ for (const { path, title } of sources) {
   seen.add(slug);
   const out = `${OUT}/${slug}.webp`;
   await sharp(path).resize(512, 512, { fit: 'cover' }).webp({ quality: 82 }).toFile(out);
-  catalog.push({ slug, title, art: `/brand/albums/${slug}.webp` });
+  const track = ALBUM_TRACKS[slug];
+  catalog.push({ slug, title, art: `/brand/albums/${slug}.webp`, ...(track ? { track } : {}) });
   console.log('wrote', out, `← ${path.split('/').pop()}`);
 }
 

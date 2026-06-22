@@ -14,6 +14,9 @@ export type Album = {
   title: string;
   /** The degraded cover URL under public/. */
   art: string;
+  /** A representative jukebox-catalog slug (jukebox.catalog.json) — what plays when
+   *  you dive into this cover (the reward is sound). Absent if there's no public track. */
+  track?: string;
 };
 
 export const ALBUMS: Album[] = catalog as Album[];
