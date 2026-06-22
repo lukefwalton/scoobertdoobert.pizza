@@ -7,6 +7,9 @@ import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { flatMat } from './ps1';
+import { FramedCover } from './CoverArt';
+import { diveInto } from '../lib/dive';
+import { albumBySlug } from '../data/albums';
 
 // The 3D doors — the room exits. Same metaphor as the flat era-floor doors:
 // doors all the way down. Each is a real object you walk up to; proximity
@@ -47,7 +50,10 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     // travel to it (Myst-style line of sight), no walking up required. (E still
     // wants proximity.) goToRoom guards paused / dialog-open / mid-transition.
     audio.unlock();
-    useSceneStore.getState().goToRoom(door.to, door.toSpawn ?? 'default');
+    const spawn = door.toSpawn ?? 'default';
+    // A painting portal dives (ripple + the album plays); a plain door just wipes.
+    if (door.albumSlug) diveInto(door.albumSlug, door.to, spawn);
+    else useSceneStore.getState().goToRoom(door.to, spawn);
   };
 
   // The cursor must go on the CANVAS element, not document.body — the Canvas
@@ -59,6 +65,9 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     },
     [gl],
   );
+
+  // A door with an album slug renders as a painting portal instead of a doorway.
+  const album = door.albumSlug ? albumBySlug(door.albumSlug) : undefined;
 
   return (
     <group
@@ -77,25 +86,36 @@ function DoorMesh({ door }: { door: RoomDoor }) {
         gl.domElement.style.cursor = 'grab';
       }}
     >
-      {/* dark recess (the room beyond, before you step through) */}
-      <mesh material={voidMat} position={[0, h / 2, -0.12]}>
-        <planeGeometry args={[w, h]} />
-      </mesh>
-      {/* jambs */}
-      <mesh material={frameMat} position={[-(w / 2 + t / 2), h / 2, 0]}>
-        <boxGeometry args={[t, h + t, 0.4]} />
-      </mesh>
-      <mesh material={frameMat} position={[w / 2 + t / 2, h / 2, 0]}>
-        <boxGeometry args={[t, h + t, 0.4]} />
-      </mesh>
-      {/* lintel */}
-      <mesh material={frameMat} position={[0, h + t / 2, 0]}>
-        <boxGeometry args={[w + t * 2, t, 0.4]} />
-      </mesh>
-      {/* sign bar above the lintel */}
-      <mesh material={signMat} position={[0, h + t + 0.28, 0.05]}>
-        <boxGeometry args={[w * 0.8, 0.34, 0.1]} />
-      </mesh>
+      {album ? (
+        // A PAINTING PORTAL — a big framed cover hung in the doorway that lunges at
+        // you as you dive through. Raised to gallery height; turned a half-turn so the
+        // cover FACE meets the room (doors put the room on the frame's -Z side).
+        <group position={[0, 1.7, 0]} rotation-y={Math.PI}>
+          <FramedCover art={album.art} album={album.title} size={2.6} diveTo={door.to} />
+        </group>
+      ) : (
+        <>
+          {/* dark recess (the room beyond, before you step through) */}
+          <mesh material={voidMat} position={[0, h / 2, -0.12]}>
+            <planeGeometry args={[w, h]} />
+          </mesh>
+          {/* jambs */}
+          <mesh material={frameMat} position={[-(w / 2 + t / 2), h / 2, 0]}>
+            <boxGeometry args={[t, h + t, 0.4]} />
+          </mesh>
+          <mesh material={frameMat} position={[w / 2 + t / 2, h / 2, 0]}>
+            <boxGeometry args={[t, h + t, 0.4]} />
+          </mesh>
+          {/* lintel */}
+          <mesh material={frameMat} position={[0, h + t / 2, 0]}>
+            <boxGeometry args={[w + t * 2, t, 0.4]} />
+          </mesh>
+          {/* sign bar above the lintel */}
+          <mesh material={signMat} position={[0, h + t + 0.28, 0.05]}>
+            <boxGeometry args={[w * 0.8, 0.34, 0.1]} />
+          </mesh>
+        </>
+      )}
     </group>
   );
 }
@@ -160,6 +180,7 @@ export function Doors() {
               label: nearest.label,
               to: nearest.to,
               spawn: nearest.toSpawn ?? 'default',
+              albumSlug: nearest.albumSlug,
             }
           : null,
       );
