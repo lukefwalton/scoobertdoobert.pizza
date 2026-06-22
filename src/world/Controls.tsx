@@ -12,14 +12,18 @@ const EXPOSE_CAM = isTestEntrance();
 
 // True when a modal overlay (pause / hotspot dialog), a room transition, or a
 // GLB level loader should freeze input. `transitioning` covers the WHOLE door
-// wipe (fade-out + commit + fade-in). The level-loader gate freezes input while
-// the loading panel is up for a GLB room — until it AUTO-ENTERS once decoded
-// (entered) — so WASD/look can't drift the camera behind the loader.
+// wipe (fade-out + commit + fade-in). For a GLB room we freeze until the level is
+// `ready` (GlbRoom has mounted + is rendering) — which is exactly when the loading
+// panel clears and the level auto-enters — so WASD/look can't drift the camera
+// behind the loader. Gating on `ready` (owned race-free by GlbRoom's mount/unmount)
+// rather than a separate `entered` flag avoids a GLB→GLB reset race that could
+// strand input frozen forever. A failed load keeps `ready` false, so a broken room
+// stays frozen under its TURN BACK overlay.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
   if (st.paused || st.openHotspot !== null || st.transitioning || st.tvVideo !== null) return true;
   const room = roomById(st.currentRoom);
-  if (room.glb && !useLevelStore.getState().entered) return true;
+  if (room.glb && !useLevelStore.getState().ready) return true;
   return false;
 }
 

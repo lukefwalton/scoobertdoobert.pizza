@@ -41,8 +41,11 @@ const descendToLiminal = (page) =>
 let inPool;
 let waterfallOnDescent;
 let noWaterfallOnAscent = false;
-let inLiminal = false;
-let autoEntered = false;
+// No `= false` init: both are assigned UNCONDITIONALLY below before any read, so
+// an initializer would be a dead store (eslint no-useless-assignment). The vars
+// above/below that keep `= false` are only reassigned inside `if` blocks.
+let inLiminal;
+let autoEntered;
 let backToPool = false;
 let reEnter = false;
 {
