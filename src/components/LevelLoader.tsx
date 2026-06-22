@@ -6,8 +6,9 @@ import { roomById, FIRST_ROOM } from '../data/rooms';
 // ───────────────────────────────────────────────────────────────────────────
 // LevelLoader — GLB levels now AUTO-ENTER (Luke: the loads are fast enough that the
 // old loader minigame just broke the flow rather than adding anything). The instant
-// the asset resolves, GlbRoom flips levelStore.ready and we mark `entered` — no
-// minigame, no tap-to-enter. A calm panel covers a SLOW load; a FAILED load offers
+// the asset resolves, GlbRoom flips levelStore.ready, this overlay clears, and
+// Controls unfreezes input off that same `ready` — no minigame, no tap-to-enter, no
+// separate `entered` flag. A calm panel covers a SLOW load; a FAILED load offers
 // TURN BACK so a broken asset can never trap the player. Mounted in WorldMount.
 // ───────────────────────────────────────────────────────────────────────────
 export function LevelLoader() {
@@ -29,11 +30,6 @@ export function LevelLoader() {
     if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
     useLevelStore.getState().prepareForRoom();
   }, [currentRoom]);
-
-  // AUTO-ENTER the instant the level resolves — Controls reads `entered` to unfreeze.
-  useEffect(() => {
-    if (isGlb && ready && !error) useLevelStore.getState().setEntered(true);
-  }, [isGlb, ready, error]);
 
   useEffect(
     () => () => {
