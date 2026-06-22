@@ -22,6 +22,10 @@ export function LevelLoader() {
   // abortTimer holds the pending poll so a stale one can't fire after we've moved on.
   const aborting = useRef(false);
   const abortTimer = useRef<number | undefined>(undefined);
+  // Focus the recovery button when the error overlay appears, so a failed load is
+  // recoverable by KEYBOARD (Enter/Space) and a screen reader lands on the way out —
+  // the old loader had a global Enter handler; an autofocused button replaces it.
+  const errBtn = useRef<HTMLButtonElement>(null);
 
   // New room → clear the overlay state. Does NOT touch `ready` (GlbRoom owns that via
   // mount/unmount — see levelStore — which is what makes cached re-entry safe).
@@ -37,6 +41,13 @@ export function LevelLoader() {
     },
     [],
   );
+
+  // Move focus to the recovery button the moment the error overlay shows, so a broken
+  // load is escapable with the keyboard alone (Enter/Space) and screen readers land
+  // on the action — not just clickable with a mouse.
+  useEffect(() => {
+    if (error) errBtn.current?.focus();
+  }, [error]);
 
   // Loaded (or not a GLB room) → no overlay at all.
   if (!isGlb || (ready && !error)) return null;
@@ -65,7 +76,7 @@ export function LevelLoader() {
       <div className="level-loader" data-level-loader data-loader-state="error" role="alert">
         <div className="level-loader__panel">
           <p className="level-loader__title">Couldn’t load {room.title}.</p>
-          <button type="button" className="level-loader__btn" onClick={onAbort}>
+          <button ref={errBtn} type="button" className="level-loader__btn" onClick={onAbort}>
             Turn back
           </button>
         </div>
