@@ -155,8 +155,9 @@ descent, each covered by a `shoot:*` smoke:
   poolrooms → liminal space → the deep **abandoned pool** (`shoot:levels`,
   `shoot:deeppool`), the **backrooms-vr** terminus. Each shipped model has a
   `THIRD_PARTY_NOTICES.md` entry (enforced by `scripts/check-build.mjs`).
-- ✅ **The minigame / loader layer** — `LoaderGame` masks each GLB load
-  (tap-to-enter / Enter, a Domino's-grammar tracker skin), with a graceful
+- ✅ **The loader layer** — `LevelLoader` covers each GLB load with a calm panel
+  and AUTO-ENTERS the instant it resolves (the old tap-to-enter tracker minigame
+  was removed — loads are fast enough that it broke the flow), with a graceful
   TURN BACK on load failure. The shared smoke flow lives in `scripts/lib/smoke.mjs`.
 - ✅ **Recurrence / the Möbius loop** (`MobiusRoom`, `shoot:mobius`): one corridor,
   comic at low unease → oppressive deep; breaks open after N laps. Not a fail-maze.

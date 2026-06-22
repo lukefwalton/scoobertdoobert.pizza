@@ -13,7 +13,7 @@ const EXPOSE_CAM = isTestEntrance();
 // True when a modal overlay (pause / hotspot dialog), a room transition, or a
 // GLB level loader should freeze input. `transitioning` covers the WHOLE door
 // wipe (fade-out + commit + fade-in). The level-loader gate freezes input while
-// the LoaderGame overlay is up for a GLB room — until the player taps in
+// the loading panel is up for a GLB room — until it AUTO-ENTERS once decoded
 // (entered) — so WASD/look can't drift the camera behind the loader.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();

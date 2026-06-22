@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 // Tiny bridge between a GLB level finishing its load (inside the Canvas) and the
-// DOM loader overlay (LevelLoader / LoaderGame).
+// DOM loader overlay (LevelLoader).
 //
 // `ready` is owned EXCLUSIVELY by GlbRoom's lifecycle: it sets ready=true on
 // mount (it only mounts once the asset has resolved) and ready=false on unmount.
@@ -15,9 +15,10 @@ import { create } from 'zustand';
 // `error` is the failure path: if the GLB 404s or fails to decode, the in-canvas
 // error boundary (GlbRoom) flips it so the loader can offer a graceful way back
 // out instead of trapping the player on a loader that never turns ready.
-// `entered` is false while the loader overlay is up and true once the player taps
-// in — Controls reads it to FREEZE first-person input under the overlay, so
-// WASD/look can't drift the camera behind the loader.
+// `entered` is false while the loading panel is up and true once the level
+// resolves — it AUTO-ENTERS now (no tap-to-enter minigame). Controls reads it to
+// FREEZE first-person input under the overlay, so WASD/look can't drift the
+// camera behind the loader.
 type LevelState = {
   ready: boolean;
   error: boolean;
