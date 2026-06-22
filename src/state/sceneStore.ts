@@ -5,6 +5,7 @@ import { BOTTOM_FLOOR } from '../data/floors';
 // without pulling three.js into the storefront bundle — verified by the
 // app-chunk check in the build.
 import { FIRST_ROOM } from '../data/rooms';
+import { type TvVideo } from '../data/videos';
 
 /** How long a painting cover ripples + swallows the view before the room wipe
  *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
@@ -48,6 +49,9 @@ type SceneState = {
   /** Mid-DIVE into a painting portal: the destination room id while the cover
    *  ripples + swallows the view, before the room actually swaps. null otherwise. */
   divingTo: string | null;
+  /** A CRT in an album-room was switched on: the video to play in the modal TV
+   *  overlay (the far side of a painting — the album's music videos). null = closed. */
+  tvVideo: TvVideo | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -71,6 +75,9 @@ type SceneState = {
   setNearHotspot: (id: string | null) => void;
   openHotspotDialog: (id: string) => void;
   closeHotspotDialog: () => void;
+  /** Switch a CRT in an album-room on (modal video overlay) / off. */
+  openTv: (video: TvVideo) => void;
+  closeTv: () => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -116,6 +123,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   transitioning: false,
   nearDoor: null,
   divingTo: null,
+  tvVideo: null,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -165,6 +173,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearHotspot: (id) => set({ nearHotspot: id }),
   openHotspotDialog: (id) => set({ openHotspot: id }),
   closeHotspotDialog: () => set({ openHotspot: null }),
+  openTv: (video) => set({ tvVideo: video }),
+  closeTv: () => set({ tvVideo: null }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),

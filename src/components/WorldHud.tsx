@@ -45,6 +45,8 @@ export function WorldHud() {
   const queuedRoom = useSceneStore((s) => s.queuedRoom);
   const goToRoom = useSceneStore((s) => s.goToRoom);
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
+  const tvVideo = useSceneStore((s) => s.tvVideo);
+  const closeTv = useSceneStore((s) => s.closeTv);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
   const muted = useAudioStore((s) => s.muted);
@@ -139,12 +141,13 @@ export function WorldHud() {
       // No input during the door wipe (E or Esc) — modal for the full fade.
       if (st.transitioning) return;
       if (e.key === 'Escape') {
-        if (st.openHotspot) st.closeHotspotDialog();
+        if (st.tvVideo) st.closeTv();
+        else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot) return;
+        if (st.paused || st.openHotspot || st.tvVideo) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           audio.unlock();
@@ -257,6 +260,20 @@ export function WorldHud() {
                 </p>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {tvVideo && (
+        <div className="hud-dialog window hud-dialog--tv" role="dialog" aria-label={tvVideo.title}>
+          <div className="title-bar">
+            <div className="title-bar-text">{tvVideo.title}</div>
+            <div className="title-bar-controls">
+              <button aria-label="Close" onClick={closeTv} />
+            </div>
+          </div>
+          <div className="window-body">
+            <YoutubeFacade video={tvVideo} />
           </div>
         </div>
       )}

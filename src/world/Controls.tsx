@@ -17,7 +17,7 @@ const EXPOSE_CAM = isTestEntrance();
 // (entered) — so WASD/look can't drift the camera behind the loader.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
-  if (st.paused || st.openHotspot !== null || st.transitioning) return true;
+  if (st.paused || st.openHotspot !== null || st.transitioning || st.tvVideo !== null) return true;
   const room = roomById(st.currentRoom);
   if (room.glb && !useLevelStore.getState().entered) return true;
   return false;

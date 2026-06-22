@@ -17,6 +17,9 @@ export type Album = {
   /** A representative jukebox-catalog slug (jukebox.catalog.json) — what plays when
    *  you dive into this cover (the reward is sound). Absent if there's no public track. */
   track?: string;
+  /** This album's own YouTube PLAYLIST id — what the CRT on the far side of its
+   *  painting plays. Absent → the general TV-spots playlist (see videos.albumVideo). */
+  video?: string;
 };
 
 export const ALBUMS: Album[] = catalog as Album[];
