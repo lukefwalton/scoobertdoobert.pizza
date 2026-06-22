@@ -21,7 +21,16 @@ const EXPOSE_CAM = isTestEntrance();
 // stays frozen under its TURN BACK overlay.
 function inputFrozen(): boolean {
   const st = useSceneStore.getState();
-  if (st.paused || st.openHotspot !== null || st.transitioning || st.tvVideo !== null) return true;
+  // `divingTo` is the painting-dive ripple window (DIVE_MS before the room wipe) —
+  // freeze it like a transition so WASD/look can't drift the camera mid-swallow.
+  if (
+    st.paused ||
+    st.openHotspot !== null ||
+    st.transitioning ||
+    st.tvVideo !== null ||
+    st.divingTo !== null
+  )
+    return true;
   const room = roomById(st.currentRoom);
   if (room.glb && !useLevelStore.getState().ready) return true;
   return false;
