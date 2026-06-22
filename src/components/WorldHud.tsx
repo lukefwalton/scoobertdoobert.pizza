@@ -10,6 +10,7 @@ import { useProgressStore, selectLuck } from '../state/progressStore';
 import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { diveInto } from '../lib/dive';
+import { YoutubeFacade } from './YoutubeFacade';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
 // on world entry; the last line glows habanero.
@@ -232,7 +233,11 @@ export function WorldHud() {
       )}
 
       {openDest && (
-        <div className="hud-dialog window" role="dialog" aria-label={openDest.label}>
+        <div
+          className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
+          role="dialog"
+          aria-label={openDest.label}
+        >
           <div className="title-bar">
             <div className="title-bar-text">{openDest.label}</div>
             <div className="title-bar-controls">
@@ -240,12 +245,18 @@ export function WorldHud() {
             </div>
           </div>
           <div className="window-body">
-            <p>{openDest.blurb}</p>
-            <p>
-              <a href={openDest.href} target="_blank" rel="noopener noreferrer">
-                Open &raquo;
-              </a>
-            </p>
+            {openDest.id === 'videos' ? (
+              <YoutubeFacade />
+            ) : (
+              <>
+                <p>{openDest.blurb}</p>
+                <p>
+                  <a href={openDest.href} target="_blank" rel="noopener noreferrer">
+                    Open &raquo;
+                  </a>
+                </p>
+              </>
+            )}
           </div>
         </div>
       )}
