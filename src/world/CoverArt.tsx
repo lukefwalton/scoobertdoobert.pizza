@@ -142,13 +142,18 @@ export function FramedCover({
   }, [tex]);
   const frameMat = useMemo(() => flatMat('#caa14a'), []); // gilt frame
   const matMat = useMemo(() => flatMat('#1a1410', { side: THREE.DoubleSide }), []); // dark inner mat
+  // coverMat is recreated when the real art replaces the placeholder (keyed on tex),
+  // so its disposal must be SEPARATE: dispose only the OLD coverMat on that swap. The
+  // frame/mat materials are stable (useMemo []), so their disposal is a one-time
+  // unmount cleanup — folding them into coverMat's effect would dispose materials
+  // still attached to live meshes every time the art loads in.
+  useEffect(() => () => coverMat.dispose(), [coverMat]);
   useEffect(
     () => () => {
-      coverMat.dispose();
       frameMat.dispose();
       matMat.dispose();
     },
-    [coverMat, frameMat, matMat],
+    [frameMat, matMat],
   );
 
   const inner = useRef<THREE.Group>(null);
