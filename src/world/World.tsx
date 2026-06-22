@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { PS1 } from './constants';
 import { roomById, type Room } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
@@ -39,6 +40,9 @@ function RoomEnvironment({ room }: { room: Room }) {
     fog.near = room.palette.fogNear;
     fog.far = room.palette.fogFar;
     scene.fog = fog;
+    // Fade the carried SONG out in MUSIC rooms (their own bells/pads own the space),
+    // and back up everywhere else — the room's instrument one-shots are unaffected.
+    audio.setSongLevel(room.musicRoom ? 0 : 1);
   }, [room, scene, gl]);
   return null;
 }

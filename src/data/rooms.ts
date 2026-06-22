@@ -120,6 +120,10 @@ export type Room = {
   /** Render ambient water dripping from the ceiling (the watery descent's
    *  aftermath). Opt-in per room so it isn't coupled to a room kind. */
   drips?: boolean;
+  /** A MUSIC room: the room's own audio (a sound garden, the furin) should own the
+   *  space, so the loop-voice SONG fades out while you're here (audio.setSongLevel).
+   *  Instrument one-shots, which hit master directly, are unaffected. */
+  musicRoom?: boolean;
   /** GLB set-dressing placed in the room (GlbProp). Crunched models from the
    *  trove — provenance in THIRD_PARTY_NOTICES.md. */
   props?: RoomProp[];
@@ -597,6 +601,7 @@ export const ROOMS: Room[] = [
   {
     id: 'shrine',
     kind: 'shrine',
+    musicRoom: true, // the furin breather owns the space — the carried song fades out here
     title: 'Wayside Shrine',
     // The one OUTDOOR, *sweet* deep room — a rural dusk: a torii path, a little
     // shrine, a country railway crossing. A breather among the bitter depths
@@ -737,6 +742,7 @@ export const ROOMS: Room[] = [
   {
     id: 'grove',
     kind: 'grove',
+    musicRoom: true, // the sound garden owns the space — the carried song fades out here
     title: 'The Hidden Grove',
     // The reward for beating the goblin (Luke: "winning gives you a new room"). A
     // hush after the bright field — dusk settling cool and blue, a single glowing

@@ -39,6 +39,12 @@ class PizzaAudio {
   // 2.3.1 audio rule (no loud onset after a dropout).
   private limiter?: DynamicsCompressorNode;
   private lowpass?: BiquadFilterNode;
+  // A gain on the LOOP path ONLY (source → songGain → lowpass → master), so the
+  // "song" (boot loop / jukebox track) can be ducked independently of the
+  // instrument one-shots that hit master directly — e.g. faded out in music rooms,
+  // where the room's own bells/pads should own the space.
+  private songGain?: GainNode;
+  private songLevel = 1; // 0..1 current song-duck target (survives graph (re)builds)
   private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Best Day Ever)
   // The jukebox can temporarily take over the single loop voice with a catalog
   // track. When set, it overrides trackBuffer; cleared (restoreBoot) on leaving.
@@ -159,12 +165,18 @@ class PizzaAudio {
     lowpass.type = 'lowpass';
     lowpass.frequency.value = REST_CUTOFF;
     lowpass.connect(master);
+    // The loop's own gain, ahead of the lowpass — lets a music room duck the song
+    // without touching the instrument one-shots (they connect straight to master).
+    const songGain = ctx.createGain();
+    songGain.gain.value = this.songLevel; // honor a duck set before the graph existed
+    songGain.connect(lowpass);
     master.connect(limiter);
     limiter.connect(ctx.destination);
     this.ctx = ctx;
     this.master = master;
     this.limiter = limiter;
     this.lowpass = lowpass;
+    this.songGain = songGain;
   }
 
   /** Resume the context. Must be called from a user gesture. Also remembers that
@@ -217,7 +229,7 @@ class PizzaAudio {
     const { start, end } = this.loopPoints(buf);
     src.loopStart = start;
     src.loopEnd = end;
-    src.connect(this.lowpass);
+    src.connect(this.songGain ?? this.lowpass); // through the song duck, then the lowpass
     src.start(0, start);
     this.source = src;
   }
@@ -400,6 +412,24 @@ class PizzaAudio {
     const now = this.ctx.currentTime;
     this.master.gain.cancelScheduledValues(now);
     this.master.gain.setTargetAtTime(this.targetGain(), now, 0.1);
+  }
+
+  /**
+   * Fade the SONG (the loop voice) to `level` (0..1) over `ms` — independent of the
+   * instrument one-shots. A MUSIC room (the grove's sound garden, the shrine furin)
+   * calls setSongLevel(0) on entry so its own bells/pads own the space, and the
+   * world calls setSongLevel(1) everywhere else to bring the song back. Smoothed; a
+   * no-op (but state-tracked) until the graph exists. Composes with mute + proximity.
+   */
+  setSongLevel(level: number, ms = 700): void {
+    this.songLevel = Math.max(0, Math.min(1, level));
+    exposeTestGlobal('__sdpSongLevel', this.songLevel); // for the music-duck smoke
+    if (!this.ctx || !this.songGain) return;
+    const now = this.ctx.currentTime;
+    const g = this.songGain.gain;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(Math.max(0.0001, g.value), now);
+    g.linearRampToValueAtTime(Math.max(0.0001, this.songLevel), now + Math.max(0.05, ms / 1000));
   }
 
   setMuted(m: boolean): void {
