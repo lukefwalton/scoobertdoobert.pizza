@@ -69,11 +69,20 @@ function useCoverTexture(art: string | undefined, placeholder: THREE.Texture): T
     setTex(placeholder);
     if (!art) return;
     let alive = true;
+    // The URL texture is a NEW GPU allocation that replaces the placeholder; the
+    // placeholder is disposed by its own owner, but this one must be disposed here or
+    // it leaks on every unmount (a real cost as the gallery + portals grow). Keep the
+    // handle so cleanup frees it — and if the load resolves after unmount, free it too.
+    let loaded: THREE.Texture | undefined;
     new THREE.TextureLoader().load(
       art,
       (t) => {
-        if (!alive) return;
+        if (!alive) {
+          t.dispose();
+          return;
+        }
         t.colorSpace = THREE.SRGBColorSpace;
+        loaded = t;
         setTex(t);
       },
       undefined,
@@ -83,6 +92,7 @@ function useCoverTexture(art: string | undefined, placeholder: THREE.Texture): T
     );
     return () => {
       alive = false;
+      loaded?.dispose();
     };
   }, [art, placeholder]);
   return tex;

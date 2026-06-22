@@ -131,6 +131,14 @@ export default function World() {
   // flash from briefly sitting inside a door radius. Controls owns it after mount.
   const spawn = room.spawns[currentSpawn] ?? room.spawns.default;
 
+  // When the WHOLE world unmounts (return to storefront / exit), un-duck the shared
+  // loop voice. RoomEnvironment fades the carried song to 0 in music rooms, but that
+  // level lives on the audio singleton and survives the world teardown — so without
+  // this, exiting from the grove or shrine would strand the storefront's boot loop
+  // silently ducked. Smoothed (fades back, never spikes); WorldMount unmounts the
+  // whole subtree on exitWorld, so this runs exactly once on the way out.
+  useEffect(() => () => audio.setSongLevel(1), []);
+
   return (
     <Canvas
       dpr={PS1.dpr}

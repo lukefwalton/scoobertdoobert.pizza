@@ -11,6 +11,17 @@ import { type TvVideo } from '../data/videos';
  *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
 export const DIVE_MS = 520;
 
+// The pending dive's timer handle, kept at module scope so exitWorld/enterWorld can
+// CANCEL it — a bare uncancellable setTimeout could fire goToRoom after you'd already
+// left the world. One dive is ever in flight (enterPainting guards re-entry).
+let diveTimer: number | undefined;
+const clearDiveTimer = () => {
+  if (diveTimer !== undefined) {
+    window.clearTimeout(diveTimer);
+    diveTimer = undefined;
+  }
+};
+
 // Scene/game state. Drives the floor descent (currentFloor), the world mount
 // (WorldMount), the hotspot prompts + dialogs, the room graph, and the pause menu.
 type SceneState = {
@@ -137,7 +148,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   // descent. An explicit room + spawn drops you elsewhere — the trap door (a deep
   // room the d20 picks) and the ?room= test entrance both use it; the clean-slate
   // reset is the same either way.
-  enterWorld: (room = FIRST_ROOM, spawn = 'default') =>
+  enterWorld: (room = FIRST_ROOM, spawn = 'default') => {
+    clearDiveTimer();
     set({
       worldActive: true,
       currentRoom: room,
@@ -145,16 +157,21 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
+      divingTo: null,
       secretRevealed: false,
       mobiusLoops: 0,
       paused: false,
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
-    }),
+    });
+  },
   // Leaving the world drops you back at the storefront (floor 0), not the
   // machine room you installed from — and resets the room graph for next time.
-  exitWorld: () =>
+  exitWorld: () => {
+    // Cancel any in-flight painting dive so its delayed goToRoom can't fire into a
+    // world we've already left.
+    clearDiveTimer();
     set({
       worldActive: false,
       paused: false,
@@ -164,12 +181,14 @@ export const useSceneStore = create<SceneState>((set) => ({
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
+      divingTo: null,
       secretRevealed: false,
       mobiusLoops: 0,
       currentRoom: FIRST_ROOM,
       currentSpawn: 'default',
       currentFloor: 0,
-    }),
+    });
+  },
   setNearHotspot: (id) => set({ nearHotspot: id }),
   openHotspotDialog: (id) => set({ openHotspot: id }),
   closeHotspotDialog: () => set({ openHotspot: null }),
@@ -210,8 +229,12 @@ export const useSceneStore = create<SceneState>((set) => ({
   // album's track is started by the caller (the reward is sound) before this runs.
   enterPainting: (to, spawn) =>
     set((s) => {
-      if (s.paused || s.openHotspot || s.transitioning) return {};
-      window.setTimeout(() => {
+      // divingTo in the guard makes the dive idempotent: a second trigger during the
+      // ripple is ignored, not stacked into a second delayed goToRoom.
+      if (s.paused || s.openHotspot || s.transitioning || s.divingTo) return {};
+      clearDiveTimer();
+      diveTimer = window.setTimeout(() => {
+        diveTimer = undefined;
         useSceneStore.getState().goToRoom(to, spawn);
         set({ divingTo: null });
       }, DIVE_MS);
