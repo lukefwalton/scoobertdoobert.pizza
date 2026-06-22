@@ -15,3 +15,24 @@ export const TV_SPOTS = {
   /** Real, crawlable watch link — the in-dialog a11y / JS-off fallback. */
   watch: 'https://www.youtube.com/playlist?list=PLyFhmc3NqYe5rwvctk4OOb7emnuGVDFc-',
 } as const;
+
+import { albumBySlug } from './albums';
+
+/** What a CRT plays: an embed (loaded on click) + a real watch link + a title. */
+export type TvVideo = { embed: string; watch: string; title: string };
+
+/** The TV content for an album: its OWN playlist if mapped (album.video, a YouTube
+ *  playlist id), else Scoobert's general TV-spots playlist. Title is album-branded.
+ *  So the CRT on the far side of each painting shows that record's videos. */
+export function albumVideo(slug: string): TvVideo {
+  const a = albumBySlug(slug);
+  const title = a ? `${a.title.toUpperCase()} — VIDEO` : TV_SPOTS.title;
+  if (a?.video) {
+    return {
+      embed: `https://www.youtube-nocookie.com/embed/videoseries?list=${a.video}&rel=0&modestbranding=1&playsinline=1`,
+      watch: `https://www.youtube.com/playlist?list=${a.video}`,
+      title,
+    };
+  }
+  return { embed: TV_SPOTS.embed, watch: TV_SPOTS.watch, title };
+}

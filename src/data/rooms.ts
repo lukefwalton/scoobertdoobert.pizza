@@ -145,6 +145,9 @@ export type Room = {
   props?: RoomProp[];
   /** Album covers hung on the walls as framed showcase paintings (CoverArt). */
   paintings?: RoomPainting[];
+  /** A CRT television (TvSet) — the far side of an album's painting: click it to
+   *  play that record's music videos in the modal player. */
+  tv?: { position: [number, number, number]; rotationY?: number; albumSlug: string };
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -824,6 +827,9 @@ export const ROOMS: Room[] = [
     // the sweet opposite of the wrong depths next door — the contrast is the point.
     dims: { halfW: 14, halfD: 14, height: 16, eye: EYE },
     palette: { background: '#86c5ef', fog: '#cfe8fb', fogNear: 18, fogFar: 95 },
+    // A CRT on the hillside plays Moonlight Beach's videos — the album whose cover
+    // is the painting you dove through to get here (its track is already playing).
+    tv: { position: [5.5, 0, 5], rotationY: 0.5, albumSlug: 'moonlight-beach' },
     spawns: {
       // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
       // into the open blue vista, clear of the return door's radius.
