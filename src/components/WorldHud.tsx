@@ -138,8 +138,10 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
-      // No input during the door wipe (E or Esc) — modal for the full fade.
-      if (st.transitioning) return;
+      // No input during the door wipe OR a painting dive (E or Esc) — both are modal
+      // transitions. Blocking Esc on divingTo too is what keeps pause from opening
+      // mid-dive and stranding you in the old room after the album already started.
+      if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
         if (st.tvVideo) st.closeTv();
         else if (st.openHotspot) st.closeHotspotDialog();

@@ -126,6 +126,7 @@ let reEnter = false;
 
 // ── failure path: GLB 404 → error boundary → TURN BACK → bounce out ──────────
 let errLoader = false;
+let errBtnFocused = false;
 let bouncedBack = false;
 let overlayGoneOnAbort = false;
 let retryRecovered = false;
@@ -161,6 +162,16 @@ let retryRecovered = false;
     await page.screenshot({ path: '.shots/levels-loader-error.png' });
 
     if (errLoader) {
+      // a11y: the recovery button must TAKE FOCUS when the error overlay shows, so a
+      // broken load is escapable by keyboard alone (a focused native button activates
+      // on Enter/Space) and a screen reader lands on the way out — not mouse-only.
+      errBtnFocused = await page.evaluate(
+        () => document.activeElement?.textContent?.includes('Turn back') ?? false,
+      );
+      if (!errBtnFocused)
+        fail(
+          'TURN BACK never took focus — keyboard-only recovery from a failed load would regress',
+        );
       await tapLoaderCta(page, /TURN BACK/i, { fail, label: 'liminal (error)' });
       bouncedBack = await roomIs(page, 'The Poolrooms');
       if (!bouncedBack) fail('TURN BACK did not bounce the player out of the failed level');
@@ -185,7 +196,7 @@ await browser.close();
 console.log(
   `levels: pool=${inPool} waterfallDown=${waterfallOnDescent} autoEntered=${autoEntered} ` +
     `liminal=${inLiminal} noWaterfallUp=${noWaterfallOnAscent} backToPool=${backToPool} ` +
-    `reEnter=${reEnter} errLoader=${errLoader} bouncedBack=${bouncedBack} ` +
+    `reEnter=${reEnter} errLoader=${errLoader} errBtnFocused=${errBtnFocused} bouncedBack=${bouncedBack} ` +
     `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
