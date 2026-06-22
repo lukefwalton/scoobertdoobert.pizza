@@ -5,6 +5,8 @@ import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
 import Arcade from './pages/Arcade';
 import Poke from './pages/Poke';
+import Chimes from './pages/Chimes';
+import Cultures from './pages/Cultures';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
 //   /       -> the dead-plain Electronic Pizza Storefront (the fallback layer)
@@ -24,4 +26,10 @@ export const routes: RouteRecord[] = [
   { path: '/arcade', element: <Arcade /> },
   // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
   { path: '/poke', element: <Poke /> },
+  // /chimes -> "Pendulum Chimes," a tap-to-play bell instrument (a third cabinet,
+  // synthesised — ported from the `fun` playground, re-homed as our own files).
+  { path: '/chimes', element: <Chimes /> },
+  // /cultures -> "Cultures," a stir-to-play living-colony drone (a fourth cabinet,
+  // the DNA instrument from `fun`, re-homed and synthesised — nothing ships).
+  { path: '/cultures', element: <Cultures /> },
 ];

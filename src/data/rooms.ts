@@ -24,7 +24,10 @@ export type RoomKind =
   | 'dicepit'
   | 'shrine'
   | 'metro'
-  | 'practice';
+  | 'practice'
+  | 'grass'
+  | 'grassbattle'
+  | 'grove';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -70,6 +73,10 @@ export type RoomDoor = {
    *  (secretRevealed); 'mobius' = the loop broke (mobiusLoops ≥ MOBIUS_BREAK).
    *  Defaults to 'secret'. */
   revealOn?: 'secret' | 'mobius';
+  /** Or reveal — for good — once a durable progress secret is earned
+   *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
+   *  after you beat the grass goblin. Takes precedence over revealOn when set. */
+  revealSecret?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };
@@ -608,6 +615,9 @@ export const ROOMS: Room[] = [
       // tracks go under, a step clear of its door radius, facing back into the
       // room (-X) toward the shrine.
       fromTunnel: { position: [6.8, EYE, 2], yaw: -Math.PI / 2 },
+      // Coming back in from the tall grass — beside the -X torii, a step clear of
+      // its door radius, facing +X back into the shrine grounds.
+      fromGrass: { position: [-6.8, EYE, 6], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -631,6 +641,119 @@ export const ROOMS: Room[] = [
         rotationY: -Math.PI / 2, // in the +X wall, opening faces -X into the room
         label: 'follow the tracks into the tunnel',
         radius: 3.2,
+      },
+      {
+        id: 'shrine-to-grass',
+        to: 'grassfield',
+        toSpawn: 'fromShrine',
+        // A little vermilion torii on the open -X side frames a path off into an
+        // overgrown field. NOT hidden — once you've found the shrine, the grass
+        // (and the wild thing in it) is an easy step away (Luke: "shouldn't be
+        // that hard to get a goblin fight").
+        position: [-10.6, 0, 6],
+        rotationY: Math.PI / 2, // in the -X edge, opening faces +X into the room
+        label: 'wander into the tall grass',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'grassfield',
+    kind: 'grass',
+    title: 'The Tall Grass',
+    // An overgrown lot off the shrine's torii (Luke: "it's off the torii gates").
+    // Knee-high grass you wade through under the same golden-hour haze as the
+    // shrine — and sometimes it rustles and a wild GOBLIN leaps out (the
+    // dice-filtered encounter; DiceMonster + the d20 roll-off, screen-to-black
+    // Pokémon-style). A SWEET surface space (taste guardrail): goofy grass, the
+    // ambush is a game, losing never hard-fails. Winning opens a new room.
+    dims: { halfW: 14, halfD: 16, height: 9, eye: EYE },
+    palette: { background: '#e6c08a', fog: '#d8b87f', fogNear: 7, fogFar: 46 },
+    spawns: {
+      // Step out from under the torii at the +Z (shrine) end, facing into the
+      // field (-Z), a step clear of the return door's radius.
+      default: { position: [0, EYE, 11.5], yaw: Math.PI },
+      fromShrine: { position: [0, EYE, 11.5], yaw: Math.PI },
+      // Back in the field's heart after a lost/fled battle — a beat to breathe
+      // before the grass can rustle again.
+      fromBattle: { position: [0, EYE, 2], yaw: Math.PI },
+      // Stepping back out of the hidden grove.
+      fromGrove: { position: [0, EYE, 5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grass-to-shrine',
+        to: 'shrine',
+        toSpawn: 'fromGrass',
+        position: [0, 0, 15.5], // +Z (entrance) torii — back to the shrine grounds
+        rotationY: 0,
+        label: 'step back through the torii',
+        radius: 3.2,
+      },
+      {
+        id: 'grass-to-grove',
+        to: 'grove',
+        toSpawn: 'default',
+        // Opens FOR GOOD once you've beaten the grass goblin (the 'grass-cleared'
+        // unlock) — a trodden path at the field's far edge, so the new room is
+        // durably yours, not a one-shot you can only reach by re-fighting.
+        position: [0, 0, -15.5], // -Z far edge of the field
+        rotationY: Math.PI, // faces +Z back into the field
+        label: 'take the opened path to the grove',
+        hidden: true,
+        revealSecret: 'grass-cleared',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'grassbattle',
+    kind: 'grassbattle',
+    title: 'A Wild Goblin!',
+    // The Pokémon beat: the grass rustled and a wild GOBLIN leapt out. You're
+    // dropped here (via the screen-to-black room fade) to roll the d20 against it —
+    // the SAME dice-monster as the pit (shared monsterStore; it's the one goblin,
+    // bigger every time it wins). Win → a path opens (the grove). Lose/flee → back
+    // to the field, no penalty (taste guardrail: losing never hard-fails).
+    dims: { halfW: 9, halfD: 10, height: 8, eye: EYE },
+    palette: { background: '#c9a765', fog: '#b08f51', fogNear: 6, fogFar: 30 },
+    spawns: {
+      // Facing the goblin across the trampled grass.
+      default: { position: [0, EYE, 5.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'battle-flee',
+        to: 'grassfield',
+        toSpawn: 'fromBattle',
+        position: [0, 0, 9.4], // behind you — turn tail and bolt back into the field
+        rotationY: 0,
+        label: 'flee back into the grass',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'grove',
+    kind: 'grove',
+    title: 'The Hidden Grove',
+    // The reward for beating the goblin (Luke: "winning gives you a new room"). A
+    // hush after the bright field — dusk settling cool and blue, a single glowing
+    // thing at the centre, and the reward-is-sound spine: a soft chord on arrival.
+    dims: { halfW: 8, halfD: 9, height: 8, eye: EYE },
+    palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
+    spawns: {
+      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grove-to-grass',
+        to: 'grassfield',
+        toSpawn: 'fromGrove',
+        position: [0, 0, 8.4],
+        rotationY: 0,
+        label: 'leave the grove',
+        radius: 3.0,
       },
     ],
   },

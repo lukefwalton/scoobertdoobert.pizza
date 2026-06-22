@@ -48,6 +48,11 @@ export type Progress = {
    *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
    *  the pick follows you across the site. Monotonic (only ever goes true). */
   radioUnlocked: boolean;
+  /** Total LUCK ever earned (rituals — the shrine clap). The game layer's stat. */
+  luckEarned: number;
+  /** Total luck ever SPENT by the system biasing d20 rolls. Current luck =
+   *  luckEarned − luckSpent; both monotonic, so the multi-tab max-merge holds. */
+  luckSpent: number;
 };
 
 const DEFAULTS: Progress = {
@@ -60,6 +65,8 @@ const DEFAULTS: Progress = {
   clearedGames: [],
   arcadeHigh: 0,
   radioUnlocked: false,
+  luckEarned: 0,
+  luckSpent: 0,
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -84,6 +91,8 @@ function read(): Progress {
       clearedGames: strArr(p.clearedGames),
       arcadeHigh: num(p.arcadeHigh, 0),
       radioUnlocked: bool(p.radioUnlocked, false),
+      luckEarned: num(p.luckEarned, 0),
+      luckSpent: num(p.luckSpent, 0),
     };
   } catch {
     return { ...DEFAULTS };
@@ -121,6 +130,8 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     clearedGames: uniq(a.clearedGames, b.clearedGames),
     arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
     radioUnlocked: a.radioUnlocked || b.radioUnlocked,
+    luckEarned: Math.max(a.luckEarned, b.luckEarned),
+    luckSpent: Math.max(a.luckSpent, b.luckSpent),
   };
 }
 
@@ -136,6 +147,11 @@ type ProgressState = Progress & {
   recordArcadeScore: (n: number) => void;
   /** Roll the jukebox d20 → unlock the flip-through radio (idempotent). */
   unlockRadio: () => void;
+  /** Earn luck (a ritual paid off — the shrine clap). Announced by the caller. */
+  gainLuck: (n: number) => void;
+  /** Spend luck (the SYSTEM does this to bias a d20 roll — never the player).
+   *  Capped at the luck actually available, so it can't go negative. */
+  spendLuck: (n: number) => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -148,6 +164,8 @@ const snapshot = (s: ProgressState): Progress => ({
   clearedGames: s.clearedGames,
   arcadeHigh: s.arcadeHigh,
   radioUnlocked: s.radioUnlocked,
+  luckEarned: s.luckEarned,
+  luckSpent: s.luckSpent,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -200,8 +218,32 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       if (get().radioUnlocked) return;
       apply({ radioUnlocked: true });
     },
+    // luckEarned/luckSpent are additive counters, so — like recordVisit — they
+    // increment off FRESH disk (read()), not the boot snapshot (get()). That makes
+    // the mergeProgress Math.max a correct monotonic guard rather than a clobber:
+    // a second tab that earned/spent in the meantime is read first, then this
+    // delta is added on top, so sequential multi-tab earns/spends accumulate
+    // instead of one winning. (Truly simultaneous same-tick writes can still race
+    // to one value — the same accepted soft race as `visits`; a full additive log
+    // would be overkill for a single-player luck stat.)
+    gainLuck: (n) => {
+      const g = Math.floor(n); // integer luck only (spendLuck floors too) — no fractional dust
+      if (g <= 0) return;
+      apply({ luckEarned: read().luckEarned + g });
+    },
+    spendLuck: (n) => {
+      const fresh = read();
+      const avail = Math.max(0, fresh.luckEarned - fresh.luckSpent);
+      const s = Math.min(Math.max(0, Math.floor(n)), avail); // never spend more than you have
+      if (s <= 0) return;
+      apply({ luckSpent: fresh.luckSpent + s });
+    },
   };
 });
+
+/** Current spendable luck (earned minus what the system has spent), never < 0. */
+export const selectLuck = (s: Pick<Progress, 'luckEarned' | 'luckSpent'>): number =>
+  Math.max(0, s.luckEarned - s.luckSpent);
 
 /** The durable progress as a plain, store-free snapshot — for non-React readers
  *  (e.g. the terminal's `status`/`whoami`, which take a Progress via ctx so

@@ -2,6 +2,12 @@ import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useDreadStore } from '../state/dreadStore';
+import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
+
+// High, glassy water-drop notes (a pentatonic subset of the site's D6/9 world),
+// so the drips agree with the music near the surface — and CURDLE with depth.
+const DROP_NOTES = ['D', 'E', 'A', 'B'];
 
 // ───────────────────────────────────────────────────────────────────────────
 // CeilingDrips — Phase 6. You rode the waterfall down, and it followed you: thin
@@ -39,6 +45,8 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
   );
 
   const refs = useRef<(THREE.Mesh | null)[]>([]);
+  // Throttle the drip-chime so it stays a sparse "plip… plip", not a machine-gun.
+  const pingCd = useRef(0);
   const mat = useMemo(
     () => new THREE.MeshBasicMaterial({ color: '#cdeef6', transparent: true, opacity: 0.72 }),
     [],
@@ -48,12 +56,25 @@ export function CeilingDrips({ bounds }: { bounds: Bounds }) {
     const dt = Math.min(delta, 0.05);
     const unease = useDreadStore.getState().unease;
     const boost = 1 + unease * 1.4; // falls faster + more insistent as it curdles
+    pingCd.current -= dt;
     for (let i = 0; i < drips.length; i++) {
       const d = drips[i];
       d.y -= d.speed * boost * dt;
       // Recycle once the drip's BOTTOM (y - len/2) reaches the floor — y is the
       // box centre, so a fixed epsilon would let long streaks dip below first.
       if (d.y - d.len / 2 < 0) {
+        // A drip HIT THE FLOOR — ping a bell through the shared chimes engine
+        // (audio.playChime), CURDLED by the dread conductor: near the surface a
+        // short, clean plip; deep down it drifts flat and rings longer — the same
+        // mechanic sweet up top, wrong below. Throttled + quiet (mute-aware, under
+        // the music, limiter-safe); never a spike (WCAG 2.3.1).
+        if (pingCd.current <= 0 && Math.random() < 0.6) {
+          const note = DROP_NOTES[Math.floor(Math.random() * DROP_NOTES.length)];
+          const freq = noteToFreq(note, 6) * (1 - unease * 0.06); // drifts flat with depth
+          const pan = Math.max(-1, Math.min(1, d.x / Math.max(0.001, halfW)));
+          audio.playChime(freq, pan, 0.05 + unease * 0.045, 0.4 + unease * 0.95);
+          pingCd.current = 0.16 + Math.random() * 0.22;
+        }
         // Recycle to JUST under the ceiling: y is the box centre, so start at
         // height - len/2 (top flush with the ceiling, never poking through).
         d.y = height - d.len / 2 - 0.02;

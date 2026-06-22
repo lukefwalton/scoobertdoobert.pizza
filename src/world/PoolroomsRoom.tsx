@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { applyVertexSnap, flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { useDreadStore } from '../state/dreadStore';
 import { fogFor, type Room } from '../data/rooms';
+import { CultureMotes } from './CultureMotes';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PoolroomsRoom — Phase 6, the first level "below the shop". An ORIGINAL,
@@ -209,6 +210,10 @@ export function PoolroomsRoom({ room }: { room: Room }) {
           <boxGeometry args={[0.7, H, 0.7]} />
         </mesh>
       ))}
+
+      {/* glowing "cultures" plankton drifting on the false water — the /cultures
+          instrument as living, player-stirred ambience (CultureMotes) */}
+      <CultureMotes bounds={room.dims} />
     </group>
   );
 }

@@ -59,6 +59,9 @@ export default function Poke() {
         Grab and pull — it bends his music as you stretch. Stays on this device; nothing is sent
         anywhere.
       </p>
+      <p className="poke-foot">
+        &#9654; Next cabinet: <a href="/chimes">PENDULUM CHIMES</a> &mdash; tap to ring the bells.
+      </p>
       <p className="poke-foot poke-foot--copy">
         Scoobert Doobert&rsquo;s likeness &amp; music &copy; Luke F. Walton dba Scoobert Doobert.
       </p>

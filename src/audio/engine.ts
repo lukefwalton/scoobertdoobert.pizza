@@ -17,6 +17,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import { mapUnease } from '../data/dread';
+import { strikeBell } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
@@ -495,6 +496,116 @@ class PizzaAudio {
     osc.stop(now + dur + 0.02);
     osc.onended = () => {
       osc.disconnect();
+      g.disconnect();
+    };
+  }
+
+  // Cap concurrent ambient one-shots (playChime/playColony) so a busy room can't
+  // stack unbounded voices that muddy the mix or burn CPU on weak devices — the
+  // output limiter guards LOUDNESS, this guards voice COUNT. Timer-based release,
+  // so it's approximate on purpose (a ceiling, not exact accounting).
+  private worldVoices = 0;
+  private claimVoice(seconds: number): boolean {
+    if (this.worldVoices >= 16) return false; // drop the new voice rather than pile on
+    this.worldVoices++;
+    window.setTimeout(
+      () => {
+        this.worldVoices = Math.max(0, this.worldVoices - 1);
+      },
+      Math.max(150, seconds * 1000),
+    );
+    return true;
+  }
+
+  /**
+   * Strike a bell into the WORLD mix — the /chimes cabinet's synthesis engine
+   * (src/lib/chimes.strikeBell) reused to power in-room effects (the shrine's
+   * furin wind-chimes). Routed through `master`, so the output limiter + the
+   * global mute apply and it sits under the music; it builds + frees its own
+   * voice. No-op until a gesture has built the ctx, and when muted — so, like the
+   * other one-shots here, it degrades to silence and never forces audio on.
+   * `peak` is kept low by callers: in-world bells are ambient, not foreground.
+   */
+  playChime(freq: number, pan = 0, peak = 0.16, decayScale = 1): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    if (!this.claimVoice(1.6 * decayScale + 0.4)) return; // drop past the voice cap
+    strikeBell(this.ctx, this.master, freq, { pan, peak, decayScale });
+  }
+
+  /**
+   * A soft COLONY voice — the /cultures instrument reused as in-world ambience
+   * (the glowing plankton in the poolrooms bloom a note when cells touch). A
+   * single additive-pad oscillator (sine + a whisper of 2nd/3rd harmonics) with a
+   * gentle attack + long release, panned, through `master` (limiter + mute apply).
+   * Quiet by construction; builds + frees its own nodes. No-op pre-gesture / muted.
+   */
+  playColony(freq: number, pan = 0, peak = 0.08): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    if (!this.claimVoice(1.7)) return; // drop past the voice cap (release ≈ rel)
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const rel = 1.6;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(Math.max(0.0001, peak), now + 0.08); // soft attack
+    g.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+    let tail: AudioNode = g;
+    let panner: StereoPannerNode | undefined;
+    if (typeof ctx.createStereoPanner === 'function') {
+      panner = ctx.createStereoPanner();
+      panner.pan.value = Math.max(-1, Math.min(1, pan)) * 0.6;
+      g.connect(panner);
+      tail = panner;
+    }
+    tail.connect(this.master);
+    const osc = ctx.createOscillator();
+    const real = new Float32Array([0, 1, 0.15, 0.08]);
+    osc.setPeriodicWave(ctx.createPeriodicWave(real, new Float32Array(real.length)));
+    osc.frequency.value = freq;
+    osc.connect(g);
+    osc.start(now);
+    osc.stop(now + rel + 0.05);
+    osc.onended = () => {
+      osc.disconnect();
+      g.disconnect();
+      panner?.disconnect();
+    };
+  }
+
+  /**
+   * A hand CLAP — the shrine ritual (二拍手). A short band-passed noise burst with
+   * a fast percussive decay, routed through `master` so the limiter + global mute
+   * apply; builds + frees its own nodes. No-op pre-gesture / when muted, like the
+   * other one-shots, so it never forces audio on.
+   */
+  playClap(peak = 0.5): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = 0.13;
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const t = i / frames;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3); // sharp attack, fast decay
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 1700; // the "smack" band of a clap
+    bp.Q.value = 0.6;
+    const g = ctx.createGain();
+    g.gain.value = Math.max(0.0001, peak);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.master);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+    src.onended = () => {
+      src.disconnect();
+      bp.disconnect();
       g.disconnect();
     };
   }

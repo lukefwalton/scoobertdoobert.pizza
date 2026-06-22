@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { CRIT_MULT, type Crit } from '../lib/luck';
 
 // ───────────────────────────────────────────────────────────────────────────
 // monsterStore — the dice-MONSTER (Phase 6). You gamble against it with a d20:
@@ -19,7 +20,7 @@ export function monsterScale(losses: number): number {
   return 1 + (Math.min(losses, MONSTER_LOSS_CAP) / MONSTER_LOSS_CAP) * 2.8;
 }
 
-export type Bout = { you: number; it: number; won: boolean };
+export type Bout = { you: number; it: number; won: boolean; crit: Crit };
 
 type MonsterState = {
   losses: number;
@@ -28,9 +29,12 @@ type MonsterState = {
   last: Bout | null;
   /** True once it's bloated to the cap — too big to move, pure scenery now. */
   maxed: boolean;
-  /** Resolve a player roll (1..20) against a fresh monster roll; updates tallies
-   *  and returns the bout. Ties go to the monster (the house edge). */
-  resolve: (you: number) => Bout;
+  /** Resolve a player roll (1..20, + its crit) against a fresh monster roll;
+   *  updates tallies and returns the bout. Ties go to the monster (the house
+   *  edge). A NAT 20 auto-wins; a CRIT FAIL auto-loses AND bloats it 3× (the
+   *  "3× across the board" swing) — but losing is never a fail state, it just
+   *  gets more absurd. */
+  resolve: (you: number, crit?: Crit) => Bout;
   reset: () => void;
 };
 
@@ -39,12 +43,14 @@ export const useMonsterStore = create<MonsterState>((set, get) => ({
   wins: 0,
   last: null,
   maxed: false,
-  resolve: (you) => {
+  resolve: (you, crit = null) => {
     const it = 1 + Math.floor(Math.random() * 20);
-    const won = you > it; // strictly higher — ties feed the monster
-    const losses = won ? get().losses : get().losses + 1;
+    // Crit overrides the compare; otherwise strictly-higher wins (ties feed it).
+    const won = crit === 'nat20' ? true : crit === 'nat1' ? false : you > it;
+    const grow = crit === 'nat1' ? CRIT_MULT : won ? 0 : 1; // crit fail = 3× bloat
+    const losses = Math.min(MONSTER_LOSS_CAP, get().losses + grow);
     const wins = won ? get().wins + 1 : get().wins;
-    const bout: Bout = { you, it, won };
+    const bout: Bout = { you, it, won, crit };
     set({ losses, wins, last: bout, maxed: losses >= MONSTER_LOSS_CAP });
     return bout;
   },

@@ -183,6 +183,23 @@ dread.** (The one camera exception is a consensual, fully-local, never-transmitt
 6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** Footer `rel=me` +
    JSON-LD `sameAs`, never a navigation destination. This is Scoobert's site,
    not Luke's.
+7. **IT'S A GAME NOW — DESIGN pillar #6's "no stats / no HUD" is LIFTED (Luke,
+   2026-06-21): "let's make a damn game here."** The site embraces a real,
+   visible RPG layer — on-screen stats, meters, progression, rewards are now
+   in-bounds (this SUPERSEDES "Knowledge & keys, never stats / no real HUD").
+   - **LUCK is the first system.** Earned by small, easy rituals (the shrine
+     clap — 二拍手); **shown in the pause menu and announced on gain**; and **spent
+     by the SYSTEM automatically, never by a manual choice** (Luke: "the system
+     spends it") to tip the site's randomness your way — the d20s, drops, which
+     demo/variant you get. "Be lucky," with no fiddly spend menu.
+   - **STILL HARD-HELD (game-ness changes nothing here):** the TASTE guardrail
+     (funny-uncanny, never traumatic; the surface stays sweet) and EVERY safety /
+     access line — **WCAG 2.3.1**, **no real camera/mic for dread**, the crawlable
+     **JS-off fallback**, semantic a11y. A HUD is fine now; a seizure or a dead
+     screen-reader page is not.
+   - **Combat is NOT required (Luke: "maybe not combat").** Favor luck / chance /
+     exploration over fights; any future fight stays optional + non-traumatic, and
+     "lose" never means a hard game-over (cf. the dice-monster: losing unblocks you).
 
 ## WORKING AGREEMENT
 

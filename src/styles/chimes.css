@@ -1,0 +1,191 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   /chimes — the "Pendulum Chimes" cabinet. PERIOD-ACCURATE, same grammar as the
+   arcade / poke cabinets: sharp corners, beveled chrome (outset/inset borders),
+   a flat palette, and a hard zero-blur RGB chroma-split marquee — no rounded,
+   neon-gradient, soft-shadow modern UI.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.chimes-page {
+  min-height: 100vh;
+  margin: 0;
+  padding: 12px 12px 28px;
+  background: #04040a;
+  color: #cfe9ef;
+  font:
+    13px/1.5 'Courier New',
+    monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.chimes-util {
+  width: 100%;
+  max-width: 360px;
+  margin: 0;
+}
+.chimes-util a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+
+.chimes-cabinet {
+  width: 100%;
+  max-width: 360px;
+  background: #20202c;
+  border: 4px outset #4a4a5e;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chimes-marquee {
+  text-align: center;
+  padding: 7px 6px;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
+}
+.chimes-marquee__neon {
+  font-weight: bold;
+  letter-spacing: 4px;
+  color: #7ad9ce;
+  text-shadow:
+    1px 0 0 #00e0ff,
+    -1px 0 0 #ff2a2a;
+}
+
+.chimes-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.chimes-canvas {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 320 / 360;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
+  touch-action: none; /* we own the tap */
+  cursor: pointer;
+  user-select: none;
+}
+
+/* The control strip — chunky beveled controls, not flat modern pills. */
+.chimes-controls {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chimes-ctl {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+}
+.chimes-ctl__label {
+  min-width: 48px;
+  color: #7a8290;
+}
+.chimes-ctl__val {
+  min-width: 22px;
+  text-align: center;
+  color: #39ff14; /* flat phosphor-green readout */
+}
+.chimes-ctl--slider input {
+  flex: 1;
+  accent-color: #7ad9ce;
+}
+.chimes-ctl--actions {
+  gap: 8px;
+}
+
+.chimes-btn {
+  appearance: none;
+  min-width: 30px;
+  padding: 5px 9px;
+  font:
+    bold 13px 'Courier New',
+    monospace;
+  color: #e8f4f1;
+  background: #2c2c3a;
+  border: 3px outset #50506a;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.chimes-btn:active {
+  border-style: inset;
+  background: #232330;
+}
+.chimes-btn--wide {
+  flex: 1;
+  letter-spacing: 2px;
+}
+.chimes-btn[aria-pressed='true'] {
+  color: #062a10;
+  background: #39ff14;
+  border-color: #7dff66;
+}
+
+.chimes-hint {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.chimes-coinslot {
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b6b80;
+}
+
+/* No-JS / pre-hydration cold screen */
+.chimes-screen--cold {
+  width: 100%;
+  min-height: 280px;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
+}
+.chimes-cold-title {
+  margin: 0 0 6px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #7ad9ce;
+}
+.chimes-cold-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #9fb6bd;
+}
+
+.chimes-foot {
+  max-width: 360px;
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #7a8290;
+}
+.chimes-foot a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+.chimes-foot--copy {
+  color: #4a5160;
+}

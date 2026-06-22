@@ -9,6 +9,8 @@ import { useMonsterStore, monsterScale } from '../state/monsterStore';
 import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
 import { useMusicStore } from '../state/musicStore';
+import { announce } from '../state/toastStore';
+import { CRIT_MULT, type Crit } from '../lib/luck';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
@@ -65,7 +67,15 @@ export function DicePitRoom({ room }: { room: Room }) {
   const signText = maxed
     ? 'IT IS TOO BIG\nTO MOVE NOW'
     : last
-      ? `YOU ${last.you} — IT ${last.it}\n${last.won ? 'A HIT! — LISTEN…' : 'IT GROWS…'}`
+      ? `YOU ${last.you} — IT ${last.it}\n${
+          last.crit === 'nat20'
+            ? 'NAT 20! — LISTEN…'
+            : last.crit === 'nat1'
+              ? 'CRIT FAIL — IT SWELLS'
+              : last.won
+                ? 'A HIT! — LISTEN…'
+                : 'IT GROWS…'
+        }`
       : 'ROLL THE BONE\nvs THE THING';
   const signTex = useMemo(
     () =>
@@ -97,16 +107,28 @@ export function DicePitRoom({ room }: { room: Room }) {
     exposeTestGlobal('__sdpMonster', { losses, wins, scale: monsterScale(losses), maxed });
   }, [losses, wins, maxed]);
 
-  // A roll: resolve the bout, then reward sound on a win / unease poke on a loss.
-  const onRoll = (face: number) => {
-    const bout = useMonsterStore.getState().resolve(face);
+  // A roll: resolve the bout (crit-aware), reward sound on a win / unease poke on
+  // a loss, and announce the swing. NAT 20 showers luck (3×); CRIT FAIL pokes
+  // harder and bloats the thing 3× — never a fail state, just more absurd.
+  const onRoll = (face: number, crit: Crit) => {
+    const bout = useMonsterStore.getState().resolve(face, crit);
     if (bout.won) {
       void audio.playJukeboxTrack(cueUrl('diceReward'));
       useProgressStore.getState().findSecret('dice-monster'); // the rat clocks it
+      if (crit === 'nat20') {
+        useProgressStore.getState().gainLuck(CRIT_MULT); // the dice love you → +3 luck
+        announce('NAT 20! ✦ the dice adore you · +3 luck', 'crit-good');
+      } else {
+        announce('A hit — the thing relents…', 'info');
+      }
     } else {
       const d = DREAD.triggers['mobius-loop'] ?? 0.12; // reuse a gentle poke
       const ds = useDreadStore.getState();
-      ds.setUnease(Math.min(1, ds.unease + d * 0.6));
+      ds.setUnease(Math.min(1, ds.unease + d * (crit === 'nat1' ? 1.6 : 0.6)));
+      announce(
+        crit === 'nat1' ? 'CRIT FAIL ☠ it swells…' : 'it grows…',
+        crit === 'nat1' ? 'crit-bad' : 'info',
+      );
     }
   };
 
