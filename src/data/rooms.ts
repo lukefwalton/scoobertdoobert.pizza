@@ -452,9 +452,6 @@ export const ROOMS: Room[] = [
       fromPool: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
       fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
-      // Back in from the too-bright Frutiger door — beside the +X door, a step
-      // clear of its radius, facing -X into the room.
-      fromFrutiger: { position: [5, EYE, 0], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -473,18 +470,6 @@ export const ROOMS: Room[] = [
         position: [0, 0, -8.45], // far (-Z) wall — deeper still (GLB → GLB)
         rotationY: Math.PI,
         label: 'go down to the deep end',
-        radius: 3.2,
-      },
-      {
-        id: 'liminal-to-frutiger',
-        to: 'frutiger',
-        toSpawn: 'fromLiminal',
-        // A clean, impossibly BRIGHT door in the beige backrooms — wrong for this
-        // place, opening onto a glossy blue-sky hillside (the Frutiger Aero
-        // pocket). Not hidden: you're meant to notice how out of place it is.
-        position: [8.45, 0, 0], // +X wall
-        rotationY: -Math.PI / 2, // opening faces -X into the room
-        label: 'a clean, too-bright door that shouldn’t be here',
         radius: 3.2,
       },
     ],
@@ -760,6 +745,9 @@ export const ROOMS: Room[] = [
     palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
     spawns: {
       default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // Stepping back out of the bright vista — past the orb at the far end,
+      // facing +Z back across the sound garden, clear of the door radius.
+      fromFrutiger: { position: [0, EYE, -5], yaw: 0 },
     },
     doors: [
       {
@@ -769,6 +757,19 @@ export const ROOMS: Room[] = [
         position: [0, 0, 8.4],
         rotationY: 0,
         label: 'leave the grove',
+        radius: 3.0,
+      },
+      {
+        id: 'grove-to-frutiger',
+        to: 'frutiger',
+        toSpawn: 'default',
+        // Past the sound garden, at the grove's far end: a doorway of impossible
+        // blue sky — the deeper reward beyond the reward (the Frutiger pocket),
+        // earned by clearing the goblin. (To BECOME an enter-the-album-art
+        // PAINTING — the SM64 portal mechanic; see DESIGN's painting-portals.)
+        position: [0, 0, -8.4],
+        rotationY: Math.PI,
+        label: 'step into the bright vista',
         radius: 3.0,
       },
     ],
@@ -790,16 +791,16 @@ export const ROOMS: Room[] = [
       // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
       // into the open blue vista, clear of the return door's radius.
       default: { position: [0, EYE, 12], yaw: Math.PI },
-      fromLiminal: { position: [0, EYE, 12], yaw: Math.PI },
+      fromGrove: { position: [0, EYE, 12], yaw: Math.PI },
     },
     doors: [
       {
-        id: 'frutiger-to-liminal',
-        to: 'liminal',
+        id: 'frutiger-to-grove',
+        to: 'grove',
         toSpawn: 'fromFrutiger',
-        position: [0, 0, 13.5], // +Z wall — back through the clean door
+        position: [0, 0, 13.5], // +Z wall — back through into the grove
         rotationY: 0,
-        label: 'back through the bright door',
+        label: 'back through into the grove',
         radius: 3.2,
       },
     ],
