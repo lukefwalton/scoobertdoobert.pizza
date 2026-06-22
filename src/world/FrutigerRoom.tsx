@@ -223,7 +223,9 @@ export function FrutigerRoom() {
     el.style.imageRendering = 'auto';
     return () => {
       setDpr(prevRatio);
-      el.style.imageRendering = prevIR;
+      // Restore the crunch. Fall back to 'pixelated' (the whole rest of the world's
+      // value) so leaving here can never strand the world in clean mode.
+      el.style.imageRendering = prevIR || 'pixelated';
     };
   }, [gl, setDpr]);
 
