@@ -16,6 +16,7 @@ import { PracticeRoom } from './PracticeRoom';
 import { GrassRoom } from './GrassRoom';
 import { GrassBattleRoom } from './GrassBattleRoom';
 import { GroveRoom } from './GroveRoom';
+import { FrutigerRoom } from './FrutigerRoom';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
@@ -85,6 +86,8 @@ function RoomScene({ room }: { room: Room }) {
       return <GrassBattleRoom room={room} />;
     case 'grove':
       return <GroveRoom room={room} />;
+    case 'frutiger':
+      return <FrutigerRoom />;
     case 'shop':
     default:
       return <ShopRoom />;
