@@ -24,11 +24,12 @@ export function runnerHitsObstacle(
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// RunnerGame — Phase 6. The standalone, touch-first version of the loader
-// runner (src/components/LoaderGame.tsx), promoted to a real playable. On
-// desktop the reward is the descent into the 3D world; on mobile the world is
-// gated off (see CLAUDE.md mobile policy), so the MINIGAMES are the whole
-// reward beyond the dead-plain site. This is that reward: Scoobert's Pizza Run.
+// RunnerGame — Phase 6. The standalone, touch-first runner, promoted to a real
+// playable (it began life as the GLB-loader minigame, since removed — the loads
+// were too fast to need a masking game). On desktop the reward is the descent
+// into the 3D world; on mobile the world is gated off (see CLAUDE.md mobile
+// policy), so the MINIGAMES are the whole reward beyond the dead-plain site.
+// This is that reward: Scoobert's Pizza Run.
 //
 // Same grammar as the loader (a pizza wedge runs the dead-web wasteland, jump
 // the broken buttons) but with the parts a real game needs and the loader
