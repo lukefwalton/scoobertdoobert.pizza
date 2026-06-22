@@ -9,6 +9,7 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
+import { diveInto } from '../lib/dive';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
 // on world entry; the last line glows habanero.
@@ -146,7 +147,10 @@ export function WorldHud() {
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           audio.unlock();
-          st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+          // A painting portal dives (ripple + the album plays); a plain door wipes.
+          if (st.nearDoor.albumSlug)
+            diveInto(st.nearDoor.albumSlug, st.nearDoor.to, st.nearDoor.spawn);
+          else st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
         }

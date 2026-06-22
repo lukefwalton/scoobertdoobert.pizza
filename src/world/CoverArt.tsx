@@ -110,12 +110,26 @@ export function FramedCover({
   useEffect(() => () => placeholder.dispose(), [placeholder]);
   const tex = useCoverTexture(art, placeholder);
 
+  // A water-RIPPLE shader rides on the cover for the dive (driven by uDive). The
+  // uniforms persist in a ref so a recompile (when the real art loads in) re-links
+  // the same objects rather than resetting the animation.
+  const uni = useRef({ uDive: { value: 0 }, uTime: { value: 0 } });
   // DoubleSide so a portal cover (hung in a door, whichever way it's turned) is
   // never invisible from the approach side.
-  const coverMat = useMemo(
-    () => new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }),
-    [tex],
-  );
+  const coverMat = useMemo(() => {
+    const m = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uDive = uni.current.uDive;
+      shader.uniforms.uTime = uni.current.uTime;
+      shader.vertexShader =
+        'uniform float uDive;\nuniform float uTime;\n' +
+        shader.vertexShader.replace(
+          '#include <begin_vertex>',
+          '#include <begin_vertex>\n  float rd = length(position.xy);\n  transformed.z += (sin(rd * 12.0 - uTime * 9.0) * 0.5 + 0.5) * 0.4 * uDive;',
+        );
+    };
+    return m;
+  }, [tex]);
   const frameMat = useMemo(() => flatMat('#caa14a'), []); // gilt frame
   const matMat = useMemo(() => flatMat('#1a1410', { side: THREE.DoubleSide }), []); // dark inner mat
   useEffect(
@@ -130,12 +144,14 @@ export function FramedCover({
   const inner = useRef<THREE.Group>(null);
   const dive = useRef(0);
   useFrame((state, delta) => {
+    uni.current.uTime.value = state.clock.elapsedTime;
     const g = inner.current;
     if (!g) return;
     if (diveTo) {
-      const st = useSceneStore.getState();
-      const target = st.transitioning && st.pendingRoom?.to === diveTo ? 1 : 0;
-      dive.current += (target - dive.current) * Math.min(1, delta * 14);
+      // Ripple + swell while the store says we're diving into this cover's room.
+      const target = useSceneStore.getState().divingTo === diveTo ? 1 : 0;
+      dive.current += (target - dive.current) * Math.min(1, delta * 9);
+      uni.current.uDive.value = dive.current;
       const s = 1 + dive.current * 6; // swell to swallow the view (orientation-safe)
       g.scale.set(s, s, 1);
     }
@@ -169,9 +185,9 @@ export function FramedCover({
       <mesh material={matMat} position={[0, 0, -0.02]}>
         <planeGeometry args={[size + 0.08, size + 0.08]} />
       </mesh>
-      {/* the cover itself */}
+      {/* the cover itself (subdivided so the dive ripple has vertices to bend) */}
       <mesh material={coverMat} position={[0, 0, 0.01]}>
-        <planeGeometry args={[size, size]} />
+        <planeGeometry args={[size, size, 24, 24]} />
       </mesh>
     </group>
   );
