@@ -21,9 +21,7 @@ export type DoorTravel = {
 
 /** True when the player is missing the key this door needs. */
 export function doorLocked(door: Pick<DoorTravel, 'requiresKey'>): boolean {
-  return (
-    !!door.requiresKey && !useProgressStore.getState().itemsHeld.includes(door.requiresKey)
-  );
+  return !!door.requiresKey && !useProgressStore.getState().itemsHeld.includes(door.requiresKey);
 }
 
 /** Step through `door`. If it's locked and you lack the key, announce it (with a

@@ -75,7 +75,9 @@ if (hasHook) {
 
   // Pause menu "Pockets" shows it.
   await page.keyboard.press('Escape');
-  const inv = await page.waitForSelector('.hud-pause__invlist li', { timeout: 4000 }).catch(() => null);
+  const inv = await page
+    .waitForSelector('.hud-pause__invlist li', { timeout: 4000 })
+    .catch(() => null);
   const invText = inv ? ((await inv.textContent()) ?? '').trim() : '';
   inPocketsList = /Locker Key/i.test(invText);
   if (!inPocketsList) bad(`keys: pause "Pockets" missing the key (saw ${JSON.stringify(invText)})`);
