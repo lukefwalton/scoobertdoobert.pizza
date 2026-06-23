@@ -40,6 +40,7 @@
     "shoot:terminal": "node scripts/shoot-terminal.mjs",
     "shoot:dread": "node scripts/shoot-dread.mjs",
     "shoot:terminus": "node scripts/shoot-terminus.mjs",
+    "shoot:tv": "node scripts/shoot-tv.mjs",
     "shoot:practice": "node scripts/shoot-practice.mjs",
     "shoot:music": "node scripts/shoot-music.mjs",
     "shoot:grass": "node scripts/shoot-grass.mjs"

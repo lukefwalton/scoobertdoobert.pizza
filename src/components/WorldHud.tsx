@@ -10,6 +10,7 @@ import { useProgressStore, selectLuck } from '../state/progressStore';
 import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { diveInto } from '../lib/dive';
+import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
@@ -37,6 +38,7 @@ export function WorldHud() {
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
+  const nearTv = useSceneStore((s) => s.nearTv);
   const pendingRoom = useSceneStore((s) => s.pendingRoom);
   const transitioning = useSceneStore((s) => s.transitioning);
   const currentRoom = useSceneStore((s) => s.currentRoom);
@@ -157,6 +159,9 @@ export function WorldHud() {
           if (st.nearDoor.albumSlug)
             diveInto(st.nearDoor.albumSlug, st.nearDoor.to, st.nearDoor.spawn);
           else st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+        } else if (st.nearTv) {
+          // Switch on the CRT — the same modal the TV's click opens (keyboard parity).
+          st.openTv(albumVideo(st.nearTv));
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
         }
@@ -233,7 +238,11 @@ export function WorldHud() {
         <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
       )}
 
-      {nearHs && !nearDoor && !open && !paused && !pendingRoom && (
+      {nearTv && !nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
+      )}
+
+      {nearHs && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
         <div className="hud-prompt">{nearHs.prompt}</div>
       )}
 

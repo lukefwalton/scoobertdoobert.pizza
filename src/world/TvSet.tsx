@@ -12,6 +12,10 @@ import { albumBySlug } from '../data/albums';
 // album's WORLD (the room), its SOUND (the track, already playing), and now its
 // VIDEO (this set). A retro CRT on a glossy beach is a fun anachronism, on purpose.
 // ───────────────────────────────────────────────────────────────────────────
+
+// How close the camera must be (horizontal) for the "switch on the TV" E-prompt.
+const TV_PROMPT_RADIUS = 3.6;
+
 export function TvSet({
   position,
   rotationY = 0,
@@ -21,7 +25,7 @@ export function TvSet({
   rotationY?: number;
   albumSlug: string;
 }) {
-  const { gl } = useThree();
+  const { gl, camera } = useThree();
   const album = albumBySlug(albumSlug);
 
   const bodyMat = useMemo(
@@ -41,6 +45,9 @@ export function TvSet({
     [screenTex],
   );
   const glow = useRef<THREE.PointLight>(null);
+  // Tracks whether the camera is in the TV's E-prompt range, so we only write the
+  // store on a CHANGE (enter/leave), not every frame — like the door proximity loop.
+  const inRange = useRef(false);
   useEffect(
     () => () => {
       bodyMat.dispose();
@@ -52,13 +59,34 @@ export function TvSet({
     [bodyMat, darkMat, triMat, screenMat, screenTex],
   );
 
-  // a soft CRT flicker on the glow (gentle — never a flash; WCAG 2.3.1)
+  // a soft CRT flicker on the glow (gentle — never a flash; WCAG 2.3.1), plus the
+  // E-prompt proximity (mirrors Doors): publish nearTv when the camera stands in
+  // front of the set, so it's keyboard-openable, not just clickable. Horizontal
+  // distance only (the cabinet's base is at y=0, the camera at eye height).
   useFrame((state) => {
     if (glow.current) {
       const t = state.clock.elapsedTime;
       glow.current.intensity = 0.42 + Math.sin(t * 9) * 0.05 + Math.sin(t * 23) * 0.03;
     }
+    const st = useSceneStore.getState();
+    // No prompt under a modal / mid-transition / while the TV itself is already on.
+    const frozen =
+      st.paused ||
+      st.openHotspot !== null ||
+      st.transitioning ||
+      st.tvVideo !== null ||
+      st.divingTo;
+    const dx = camera.position.x - position[0];
+    const dz = camera.position.z - position[2];
+    const near = !frozen && Math.hypot(dx, dz) < TV_PROMPT_RADIUS;
+    if (near !== inRange.current) {
+      inRange.current = near;
+      st.setNearTv(near ? albumSlug : null);
+    }
   });
+
+  // Leaving the room (TvSet unmounts) must clear any lingering prompt.
+  useEffect(() => () => useSceneStore.getState().setNearTv(null), []);
 
   return (
     <group
