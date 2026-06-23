@@ -52,25 +52,53 @@ const hasHook = await page
   );
 if (!hasHook) bad('keys: __sdpPickup hook never appeared (pickup not mounted?)');
 
+// Hold movement keys until a selector appears (then release). The poolrooms
+// spawn faces -Z; A strafes -X and W walks -Z, so A+W heads toward the locked
+// STAFF door in the far -X corner. Generous timeout for a slow CI runner.
+const holdUntil = async (selector, keys = ['a', 'w'], timeout = 12000) => {
+  for (const k of keys) await page.keyboard.down(k);
+  const ok = await page.waitForSelector(selector, { timeout }).then(
+    () => true,
+    () => false,
+  );
+  for (const k of keys) await page.keyboard.up(k);
+  return ok;
+};
+const roomLabel = async () => {
+  const el = await page.$('.hud-room');
+  return el ? ((await el.textContent()) ?? '').trim() : '';
+};
+
+let lockedBlocked = false;
 let pocketed = false;
-let persisted = false;
 let inPocketsList = false;
+let unlockedViaDoor = false;
 let lockerOk = false;
 let rewardToast = false;
+let persisted = false;
 
 if (hasHook) {
   const before = await held();
   if (before.includes(KEY)) bad('keys: started already holding the key (state not fresh)');
 
-  // Pocket it.
+  // 1) The REAL locked door blocks: walk up to it (no key yet), confirm the locked
+  //    prompt, press E, and confirm we did NOT travel — exercising the full
+  //    proximity → prompt → E → enterDoor wiring, not a teleport.
+  if (!(await holdUntil('.hud-prompt--locked'))) bad('keys: never reached the locked STAFF door');
+  await page.keyboard.press('e');
+  await page.waitForTimeout(700);
+  lockedBlocked = /Poolrooms/i.test(await roomLabel());
+  if (!lockedBlocked) bad('keys: pressing E on the LOCKED door still navigated away');
+
+  // 2) Pocket the key (deterministic via the hook — collecting a bobbing target
+  //    through Playwright is flaky), confirm the announce + durable inventory.
   await page.evaluate((k) => window[`__sdpPickup:${k}`](), KEY);
   const toast = await page.waitForSelector('.hud-toast--luck', { timeout: 4000 }).then(
     () => true,
     () => false,
   );
   if (!toast) bad('keys: pocketing the key raised no announce toast');
-  const after = await held();
-  pocketed = after.includes(KEY);
+  pocketed = (await held()).includes(KEY);
   if (!pocketed) bad('keys: itemsHeld did not gain the key after pickup');
 
   // Pause menu "Pockets" shows it.
@@ -84,30 +112,46 @@ if (hasHook) {
   await page.screenshot({ path: '.shots/keys.png' });
   await page.keyboard.press('Escape');
 
-  // Persists across a reload.
-  await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'networkidle' });
-  persisted = (await held()).includes(KEY);
-  if (!persisted) bad('keys: key did not persist across reload');
-
-  // The reward room behind the lock renders + pays out (first entry → luck toast).
-  await page
-    .waitForFunction(() => typeof window.__sdpGoToRoom === 'function', null, { timeout: 8000 })
-    .catch(() => {});
-  await page.evaluate(() => window.__sdpGoToRoom('lockerroom', 'fromPool'));
-  rewardToast = await page.waitForSelector('.hud-toast--luck', { timeout: 5000 }).then(
+  // 3) Still standing at the door, now holding the key: the prompt flips from
+  //    locked → "open the STAFF ONLY door". Press E and travel through the REAL
+  //    door into the reward room, which pays out on first entry.
+  unlockedViaDoor = await page
+    .waitForFunction(
+      () => {
+        const el = document.querySelector('.hud-prompt--door');
+        return (
+          !!el &&
+          /STAFF ONLY/i.test(el.textContent || '') &&
+          !el.classList.contains('hud-prompt--locked')
+        );
+      },
+      null,
+      { timeout: 6000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!unlockedViaDoor) bad('keys: locked prompt did not flip to "open" after pocketing the key');
+  await page.keyboard.press('e');
+  rewardToast = await page.waitForSelector('.hud-toast--luck', { timeout: 6000 }).then(
     () => true,
     () => false,
   );
-  const label = await page.waitForSelector('.hud-room', { timeout: 5000 }).catch(() => null);
-  const labelText = label ? ((await label.textContent()) ?? '').trim() : '';
-  lockerOk = /Staff Locker Room/i.test(labelText);
-  if (!lockerOk) bad(`keys: locker room did not render (label ${JSON.stringify(labelText)})`);
+  await page.waitForTimeout(400);
+  lockerOk = /Staff Locker Room/i.test(await roomLabel());
+  if (!lockerOk) bad('keys: real locked door did not open into the Staff Locker Room');
   if (!rewardToast) bad('keys: first entry to the locker room paid no reward toast');
+
+  // 4) The key persists across a reload (durable inventory).
+  await page.goto(base + '/?room=poolrooms&debug=1', { waitUntil: 'networkidle' });
+  persisted = (await held()).includes(KEY);
+  if (!persisted) bad('keys: key did not persist across reload');
 }
 
 if (errors.length) bad(`keys: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `keys     -> canvas=${!!canvas} hook=${hasHook} pocketed=${pocketed} pockets=${inPocketsList} persisted=${persisted} lockerRoom=${lockerOk} reward=${rewardToast} errors=${errors.length}`,
+  `keys     -> canvas=${!!canvas} hook=${hasHook} lockedBlocked=${lockedBlocked} pocketed=${pocketed} pockets=${inPocketsList} unlockedViaDoor=${unlockedViaDoor} lockerRoom=${lockerOk} reward=${rewardToast} persisted=${persisted} errors=${errors.length}`,
 );
 
 await ctx.close();
