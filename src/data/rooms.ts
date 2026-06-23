@@ -781,7 +781,9 @@ export const ROOMS: Room[] = [
     dims: { halfW: 8, halfD: 9, height: 8, eye: EYE },
     palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
     spawns: {
-      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // A clear stride past the +Z door you arrive through (radius 3.0), facing
+      // -Z into the sound garden toward the painting — never standing ON the exit.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Stepping back out of the bright vista — past the orb at the far end,
       // facing +Z back across the sound garden, clear of the door radius.
       fromFrutiger: { position: [0, EYE, -5], yaw: 0 },
@@ -831,10 +833,11 @@ export const ROOMS: Room[] = [
     // is the painting you dove through to get here (its track is already playing).
     tv: { position: [5.5, 0, 5], rotationY: 0.5, albumSlug: 'moonlight-beach' },
     spawns: {
-      // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
-      // into the open blue vista, clear of the return door's radius.
-      default: { position: [0, EYE, 12], yaw: Math.PI },
-      fromGrove: { position: [0, EYE, 12], yaw: Math.PI },
+      // Step out onto the hillside a clear stride past the +Z (door) end (radius
+      // 3.2), facing -Z down the slope into the open blue vista — not standing in
+      // the return door's prompt the instant you dive through.
+      default: { position: [0, EYE, 9.5], yaw: Math.PI },
+      fromGrove: { position: [0, EYE, 9.5], yaw: Math.PI },
     },
     doors: [
       {
@@ -980,6 +983,40 @@ export function fogFor(room: Room): { color: string; near: number; far: number }
   return { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
 }
 
+/** Derive an arrival spawn that stands `back` units IN FRONT of a door and faces
+ *  the room INTERIOR (the inward normal of the wall the door sits on) — i.e. the
+ *  door is behind you and walking forward takes you into the room, never back
+ *  through it. The single source for "arrive facing in", so a hand-authored yaw
+ *  can't silently contradict the door it pairs with.
+ *
+ *  Which wall the door is on is read from geometry (its nearest extent), NOT from
+ *  `rotationY` — `rotationY` orients the visible frame and its relationship to
+ *  "inward" differs between X- and Z-walls, so it can't be trusted for facing.
+ *
+ *  CAVEAT: correct for WIDE rooms / the big GLB levels, where facing straight in
+ *  is what you want. NOT for a narrow corridor or a side-wall door, where you
+ *  want to face ALONG the room rather than at the near wall a step away — author
+ *  those by hand (and the dev guard below leaves them alone). */
+export function spawnFacingInward(
+  door: Pick<RoomDoor, 'position'>,
+  dims: { halfW: number; halfD: number; eye: number },
+  back = 4.5,
+): Spawn {
+  // The door sits on whichever wall it's nearest (largest fraction of that
+  // half-extent); inward is that wall's interior-pointing normal.
+  const fracX = Math.abs(door.position[0]) / dims.halfW;
+  const fracZ = Math.abs(door.position[2]) / dims.halfD;
+  let inX = 0;
+  let inZ = 0;
+  if (fracX >= fracZ) inX = door.position[0] > 0 ? -1 : 1; // ±X wall → face the other way
+  else inZ = door.position[2] > 0 ? -1 : 1; // ±Z wall
+  return {
+    position: [door.position[0] + inX * back, dims.eye, door.position[2] + inZ * back],
+    // fwd = (sin yaw, cos yaw) in Controls, so yaw = atan2(inX, inZ) faces inward.
+    yaw: Math.atan2(inX, inZ),
+  };
+}
+
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 
 /** The starting room — the beach shop. */
@@ -1027,14 +1064,30 @@ if (import.meta.env?.DEV) {
     // Every spawn should land OUTSIDE every door's radius in its room — else you
     // arrive standing in a prompt and a held E could bounce you back. A lot of
     // the anti-bounce behavior rides on these offsets, so guard them as data.
+    // SECOND guard (the missing half): a spawn must not FACE a nearby door, or
+    // walking straight forward walks you right back through it — the exact "wrong
+    // side / bounce back" bug. We only flag a door that's both CLOSE (<8u) and
+    // squarely AHEAD (forward·toward-door > 0.8, ~within 37°), so facing along a
+    // corridor past a far side-wall door (e.g. the hall's classified panel) or
+    // angling across a hub toward a non-return door is left alone.
     for (const [spawnId, spawn] of Object.entries(room.spawns)) {
+      const fwdX = Math.sin(spawn.yaw);
+      const fwdZ = Math.cos(spawn.yaw);
       for (const door of room.doors) {
         const dx = spawn.position[0] - door.position[0];
         const dz = spawn.position[2] - door.position[2];
-        if (Math.hypot(dx, dz) < (door.radius ?? 3.2)) {
+        const dist = Math.hypot(dx, dz);
+        if (dist < (door.radius ?? 3.2)) {
           console.warn(
             `[rooms] spawn "${room.id}.${spawnId}" sits inside door "${door.id}" radius — arrival will prompt/bounce`,
           );
+        } else if (dist < 8) {
+          const dot = (fwdX * -dx + fwdZ * -dz) / dist; // forward · (spawn→door)
+          if (dot > 0.8) {
+            console.warn(
+              `[rooms] spawn "${room.id}.${spawnId}" faces door "${door.id}" (dot ${dot.toFixed(2)}) — walking forward bounces back through it`,
+            );
+          }
         }
       }
     }
