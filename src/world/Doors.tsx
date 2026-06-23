@@ -4,12 +4,11 @@ import * as THREE from 'three';
 import { roomById, MOBIUS_BREAK, type RoomDoor } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
-import { audio } from '../audio/engine';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { FramedCover } from './CoverArt';
-import { diveInto } from '../lib/dive';
 import { albumBySlug } from '../data/albums';
+import { enterDoor } from '../lib/doorTravel';
 
 // The 3D doors — the room exits. Same metaphor as the flat era-floor doors:
 // doors all the way down. Each is a real object you walk up to; proximity
@@ -48,12 +47,14 @@ function DoorMesh({ door }: { door: RoomDoor }) {
   const activate = () => {
     // Click goes through whatever door you clicked — if you can see it you can
     // travel to it (Myst-style line of sight), no walking up required. (E still
-    // wants proximity.) goToRoom guards paused / dialog-open / mid-transition.
-    audio.unlock();
-    const spawn = door.toSpawn ?? 'default';
-    // A painting portal dives (ripple + the album plays); a plain door just wipes.
-    if (door.albumSlug) diveInto(door.albumSlug, door.to, spawn);
-    else useSceneStore.getState().goToRoom(door.to, spawn);
+    // wants proximity.) enterDoor honors a key lock (shared with the E path so
+    // the lock can't be bypassed) and goToRoom guards paused / dialog / wipe.
+    enterDoor({
+      to: door.to,
+      spawn: door.toSpawn ?? 'default',
+      albumSlug: door.albumSlug,
+      requiresKey: door.requiresKey,
+    });
   };
 
   // The cursor must go on the CANVAS element, not document.body — the Canvas
@@ -181,6 +182,7 @@ export function Doors() {
               to: nearest.to,
               spawn: nearest.toSpawn ?? 'default',
               albumSlug: nearest.albumSlug,
+              requiresKey: nearest.requiresKey,
             }
           : null,
       );

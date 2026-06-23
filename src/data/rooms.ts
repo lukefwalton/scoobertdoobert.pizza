@@ -28,7 +28,8 @@ export type RoomKind =
   | 'grass'
   | 'grassbattle'
   | 'grove'
-  | 'frutiger';
+  | 'frutiger'
+  | 'lockerroom';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -82,6 +83,12 @@ export type RoomDoor = {
    *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
    *  SM64 dive). The slug resolves against src/data/albums. */
   albumSlug?: string;
+  /** LOCKED until the player holds this items.ts key id. The door still renders +
+   *  prompts (you can SEE it's there); E / click just announces "locked" until you
+   *  have the key. SECRET / SIDE TIER ONLY — never a main-descent door (friction
+   *  budget); the dev guard below rejects a requiresKey door that targets a
+   *  descent room. */
+  requiresKey?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };
@@ -148,6 +155,9 @@ export type Room = {
   /** A CRT television (TvSet) — the far side of an album's painting: click it to
    *  play that record's music videos in the modal player. */
   tv?: { position: [number, number, number]; rotationY?: number; albumSlug: string };
+  /** Collectible items lying in the room (ItemPickup). Durable: each disappears
+   *  for good once taken (progressStore.itemsHeld). */
+  pickups?: { itemId: string; position: [number, number, number] }[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -416,7 +426,14 @@ export const ROOMS: Room[] = [
       // Surfacing back from the wayside shrine: by the -Z torii door, a step
       // clear of its radius, facing into the room (+Z).
       fromJapan: { position: [0, EYE, -4.5], yaw: 0 },
+      // Stepping back out of the staff locker room: by the -X locker door (far
+      // end), facing +X into the room, clear of its radius.
+      fromLocker: { position: [-4.45, EYE, -5], yaw: Math.PI / 2 },
     },
+    // The rusted locker key rests on the deck — pocket it to open the STAFF ONLY
+    // door in the far -X wall. Off the main descent (a side reward), so it never
+    // gates the way deeper (friction budget).
+    pickups: [{ itemId: 'pool-locker-key', position: [-3, 0.5, 2] }],
     doors: [
       {
         id: 'pool-to-juke',
@@ -448,6 +465,20 @@ export const ROOMS: Room[] = [
         rotationY: Math.PI / 2,
         label: 'duck into the back room',
         radius: 3.2,
+      },
+      {
+        id: 'pool-to-locker',
+        to: 'lockerroom',
+        toSpawn: 'fromPool',
+        // The "DEEP END · STAFF ONLY" door in the far end of the -X wall (the
+        // dicepit door is the near end). LOCKED until you pick up the rusted key
+        // off the deck — a self-contained side puzzle (key + lock one room apart),
+        // never on the way down.
+        position: [-8.95, 0, -5],
+        rotationY: Math.PI / 2, // in the -X wall, opening faces +X into the room
+        label: 'open the STAFF ONLY door',
+        requiresKey: 'pool-locker-key',
+        radius: 3.0,
       },
       {
         id: 'pool-to-japan',
@@ -626,6 +657,35 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'back out to the pool',
         radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'lockerroom',
+    kind: 'lockerroom',
+    title: 'Staff Locker Room',
+    // The little reward behind the poolrooms' locked STAFF ONLY door: a damp,
+    // tiled changing room, lights half-dead. A SAFE side nook (off the descent),
+    // so it stays sweet — the payoff for noticing the key, not a dread beat. On
+    // first entry the room hums you a soft chord and tips a little luck (the
+    // reward IS sound; the clap-ritual luck faucet's quiet cousin).
+    dims: { halfW: 5, halfD: 5, height: 3.2, eye: EYE },
+    // Pale poolside teal gone dim + enclosed — a sibling of the bright poolrooms.
+    palette: { background: '#16302f', fog: '#1b3a38', fogNear: 3, fogFar: 18 },
+    spawns: {
+      // A clear stride in from the +Z door (radius 2.6), facing -Z at the lockers.
+      default: { position: [0, EYE, 1.4], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 1.4], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'locker-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromLocker',
+        position: [0, 0, 4.95], // +Z wall — back out to the pool deck
+        rotationY: 0,
+        label: 'back out to the pool',
+        radius: 2.6,
       },
     ],
   },
@@ -1040,6 +1100,23 @@ export function roomById(id: string): Room {
   return r;
 }
 
+// The MAIN DESCENT — the rooms on the way down (the jaunt). Keys may never gate
+// these (friction budget: the descent has zero hard gates); a requiresKey door
+// must target SIDE/SECRET content only. Enforced by the dev guard below + the
+// unit test, so the rule is code, not discipline.
+export const MAIN_DESCENT: ReadonlySet<string> = new Set([
+  'shop',
+  'hallway',
+  'jukebox',
+  'poolrooms',
+  'mobius',
+  'liminal',
+  'deeppool',
+  'shrine',
+  'metro-tunnel',
+  'terminus',
+]);
+
 // Dev guardrail: every door must point at a real room + an existing spawn, and
 // room/door ids must be unique (a duplicate would silently win in BY_ID or
 // confuse the nearest-door tracking). Surface graph typos at the source.
@@ -1058,6 +1135,12 @@ if (import.meta.env?.DEV) {
       } else if (door.toSpawn && !target.spawns[door.toSpawn]) {
         console.warn(
           `[rooms] door "${door.id}" → "${door.to}" wants spawn "${door.toSpawn}" which doesn't exist`,
+        );
+      }
+      // A key must never gate the way DOWN (friction budget) — only side/secret doors.
+      if (door.requiresKey && MAIN_DESCENT.has(door.to)) {
+        console.warn(
+          `[rooms] door "${door.id}" locks a MAIN-DESCENT room ("${door.to}") behind key "${door.requiresKey}" — keys may only gate side/secret content`,
         );
       }
     }
