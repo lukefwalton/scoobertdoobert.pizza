@@ -201,6 +201,11 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         <p className="directory">
           Looking for something specific? <a href="/links">Complete link archive &raquo;</a>
         </p>
+        <p className="directory">
+          <a href="/about/jp" hrefLang="ja" lang="ja">
+            日本語版のご案内 (About, in Japanese) &raquo;
+          </a>
+        </p>
         <p className="lmm">
           <a href="https://lovemusicmore.substack.com/" target="_blank" rel="noopener noreferrer">
             <img

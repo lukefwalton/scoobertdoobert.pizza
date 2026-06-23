@@ -33,6 +33,13 @@ export default function TextOnly() {
         New here? Read <a href="/about">the story (Our Secret Recipe)</a>.
       </p>
       <p>
+        日本語：
+        <a href="/about/jp" hrefLang="ja" lang="ja">
+          スクーバートについて (About, in Japanese)
+        </a>
+        .
+      </p>
+      <p>
         On a phone? Play <a href="/arcade">the Pizza Arcade</a> &mdash; jump the broken web buttons.
       </p>
       <p>
