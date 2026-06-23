@@ -55,8 +55,16 @@ type SceneState = {
    *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
   transitioning: boolean;
   /** the door the camera is near, resolved to its target (or null). albumSlug marks
-   *  a PAINTING portal (E dives into the cover instead of a plain door wipe). */
-  nearDoor: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null;
+   *  a PAINTING portal (E dives into the cover instead of a plain door wipe);
+   *  requiresKey marks a LOCKED door (WorldHud shows the lock + E announces it). */
+  nearDoor: {
+    id: string;
+    label: string;
+    to: string;
+    spawn: string;
+    albumSlug?: string;
+    requiresKey?: string;
+  } | null;
   /** the album-room TV the camera is standing in front of (its albumSlug), or null —
    *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
    *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
@@ -112,7 +120,14 @@ type SceneState = {
   /** End the wipe once the overlay has fully lifted: unfreezes input. */
   endTransition: () => void;
   setNearDoor: (
-    door: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null,
+    door: {
+      id: string;
+      label: string;
+      to: string;
+      spawn: string;
+      albumSlug?: string;
+      requiresKey?: string;
+    } | null,
   ) => void;
   setNearTv: (albumSlug: string | null) => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */

@@ -18,6 +18,8 @@ import { GrassRoom } from './GrassRoom';
 import { GrassBattleRoom } from './GrassBattleRoom';
 import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
+import { LockerRoom } from './LockerRoom';
+import { ItemPickup } from './ItemPickup';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
@@ -94,6 +96,8 @@ function RoomScene({ room }: { room: Room }) {
       return <GroveRoom room={room} />;
     case 'frutiger':
       return <FrutigerRoom />;
+    case 'lockerroom':
+      return <LockerRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -113,6 +117,20 @@ function RoomProps({ room }: { room: Room }) {
         <Suspense key={`${spec.url}#${i}`} fallback={null}>
           <GlbProp spec={spec} />
         </Suspense>
+      ))}
+    </>
+  );
+}
+
+// Collectible items lying in the current room (room.pickups). Each ItemPickup
+// renders nothing once held, so taken items just vanish. Works for procedural +
+// GLB rooms alike (a sibling of RoomScene, like RoomProps).
+function RoomPickups({ room }: { room: Room }) {
+  if (!room.pickups?.length) return null;
+  return (
+    <>
+      {room.pickups.map((p) => (
+        <ItemPickup key={p.itemId} itemId={p.itemId} position={p.position} />
       ))}
     </>
   );
@@ -167,6 +185,7 @@ export default function World() {
         <RoomScene room={room} />
       </Suspense>
       <RoomProps room={room} />
+      <RoomPickups room={room} />
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
       <Doors />
