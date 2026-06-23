@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ROOMS, roomById, trapDropForRoll, fogFor, FIRST_ROOM } from './rooms';
+import { ROOMS, roomById, trapDropForRoll, fogFor, FIRST_ROOM, spawnFacingInward } from './rooms';
 
 describe('rooms graph', () => {
   it('roomById returns the match, and soft-falls-back to the shop on an unknown id', () => {
@@ -42,5 +42,74 @@ describe('rooms graph', () => {
       near: shop.palette.fogNear,
       far: shop.palette.fogFar,
     });
+  });
+});
+
+// The ARRIVAL-SPAWN CONTRACT (the "control feels true" pillar): when a door drops
+// you somewhere, you must land facing INTO the room with the door you came through
+// behind you — never staring at it, or walking straight forward would bounce you
+// right back the way you came ("wrong side of the map"). These are the machine-
+// checked halves of the dev-time guard in rooms.ts, run in CI so a future
+// spawn/door edit can't silently reintroduce the bounce.
+describe('room arrival-spawn contract', () => {
+  for (const room of ROOMS) {
+    for (const [spawnId, spawn] of Object.entries(room.spawns)) {
+      it(`${room.id}.${spawnId} lands outside every door radius`, () => {
+        for (const door of room.doors) {
+          const dx = spawn.position[0] - door.position[0];
+          const dz = spawn.position[2] - door.position[2];
+          const dist = Math.hypot(dx, dz);
+          expect(
+            dist,
+            `spawn sits inside door "${door.id}" radius — arrival prompts/bounces`,
+          ).toBeGreaterThanOrEqual(door.radius ?? 3.2);
+        }
+      });
+
+      it(`${room.id}.${spawnId} does not face a nearby door`, () => {
+        const fwdX = Math.sin(spawn.yaw);
+        const fwdZ = Math.cos(spawn.yaw);
+        for (const door of room.doors) {
+          const dx = door.position[0] - spawn.position[0];
+          const dz = door.position[2] - spawn.position[2];
+          const dist = Math.hypot(dx, dz);
+          if (dist >= 8 || dist < 1e-6) continue; // only a close door you'd walk into
+          const dot = (fwdX * dx + fwdZ * dz) / dist; // forward · (spawn→door)
+          expect(
+            dot,
+            `spawn faces door "${door.id}" (dot ${dot.toFixed(2)}) — forward walks back through it`,
+          ).toBeLessThanOrEqual(0.8);
+        }
+      });
+    }
+  }
+});
+
+describe('spawnFacingInward', () => {
+  const dims = { halfW: 8, halfD: 8, eye: 2.4 };
+
+  it('faces -Z (yaw π) for a +Z-wall door and steps inward', () => {
+    const s = spawnFacingInward({ position: [0, 0, 7.9] }, dims, 4.5);
+    expect(s.yaw).toBeCloseTo(Math.PI);
+    expect(s.position[2]).toBeCloseTo(7.9 - 4.5);
+    expect(s.position[0]).toBeCloseTo(0);
+    expect(s.position[1]).toBe(2.4);
+  });
+
+  it('faces +X (yaw π/2) for a -X-wall door', () => {
+    const s = spawnFacingInward({ position: [-7.9, 0, 0] }, dims, 4.5);
+    expect(s.yaw).toBeCloseTo(Math.PI / 2);
+    expect(s.position[0]).toBeCloseTo(-7.9 + 4.5);
+  });
+
+  it('the derived spawn faces away from its own door (door ends up behind you)', () => {
+    const door = { position: [0, 0, -7.9] as [number, number, number] };
+    const s = spawnFacingInward(door, dims, 4.5);
+    const fwdX = Math.sin(s.yaw);
+    const fwdZ = Math.cos(s.yaw);
+    const dx = door.position[0] - s.position[0];
+    const dz = door.position[2] - s.position[2];
+    const dot = (fwdX * dx + fwdZ * dz) / Math.hypot(dx, dz);
+    expect(dot).toBeLessThan(0);
   });
 });
