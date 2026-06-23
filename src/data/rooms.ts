@@ -56,6 +56,20 @@ export type RoomGlb = {
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
 
+/** A wandering, dancing entity (Wanderer) placed in a (GLB) level. */
+export type RoomEntity = {
+  /** Stable id (the dance test hook keys on it + React keying). */
+  id: string;
+  /** Which low-poly body to render. */
+  body: 'blob' | 'lurker' | 'mop';
+  /** Start position on the floor [x, z] (y is the floor). */
+  spawn: [number, number];
+  /** Get this close → it stops to dance (default 3). */
+  danceRadius?: number;
+  /** Roam speed (default 2.2). */
+  speed?: number;
+};
+
 export type RoomDoor = {
   /** Stable id, unique within the world. */
   id: string;
@@ -158,6 +172,12 @@ export type Room = {
   /** Collectible items lying in the room (ItemPickup). Durable: each disappears
    *  for good once taken (progressStore.itemsHeld). */
   pickups?: { itemId: string; position: [number, number, number] }[];
+  /** Wandering entities (Wanderer) — roam the room and DANCE (never attack) when
+   *  you get close. GLB liminal levels ONLY: a funny-uncanny relief beat against
+   *  the dread down there (the contrast is the point); the sweet procedural rooms
+   *  don't need them. Desktop + motion-OK is automatic (the world only mounts
+   *  there). The dev guard warns if this is set on a non-GLB room. */
+  entities?: RoomEntity[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -519,6 +539,12 @@ export const ROOMS: Room[] = [
       // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
       fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
     },
+    // A couple of wanderers drift the beige nothing — they emerge from the fog and
+    // dance when you reach them (the relief beat).
+    entities: [
+      { id: 'liminal-blob', body: 'blob', spawn: [-3.5, -2] },
+      { id: 'liminal-mop', body: 'mop', spawn: [3.5, -4] },
+    ],
     doors: [
       {
         id: 'liminal-to-pool',
@@ -560,6 +586,8 @@ export const ROOMS: Room[] = [
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
     },
+    // One lurker haunts the drained deep end — slower, a single big eye.
+    entities: [{ id: 'deep-lurker', body: 'lurker', spawn: [-2, -3], speed: 1.6 }],
     doors: [
       {
         id: 'deep-to-liminal',
@@ -939,6 +967,8 @@ export const ROOMS: Room[] = [
       // +Z back up the tunnel toward the shrine.
       fromEnd: { position: [0, EYE, -8.5], yaw: 0 },
     },
+    // Something shuffles along the flooded platform.
+    entities: [{ id: 'tunnel-mop', body: 'mop', spawn: [-3, -1], speed: 1.8 }],
     doors: [
       {
         id: 'tunnel-to-shrine',
@@ -985,6 +1015,11 @@ export const ROOMS: Room[] = [
       default: { position: [0, EYE, 6.5], yaw: Math.PI },
       fromTunnel: { position: [0, EYE, 6.5], yaw: Math.PI },
     },
+    // The backrooms are not as empty as they look — two dancers in the yellow.
+    entities: [
+      { id: 'terminus-blob', body: 'blob', spawn: [-4, -3] },
+      { id: 'terminus-lurker', body: 'lurker', spawn: [4, -5], speed: 1.8 },
+    ],
     doors: [
       {
         id: 'end-to-tunnel',
@@ -1126,6 +1161,13 @@ if (import.meta.env?.DEV) {
   }
   const doorIds = new Set<string>();
   for (const room of ROOMS) {
+    // Dancing entities belong only in the GLB liminal levels (taste: a relief beat
+    // against their dread; the sweet procedural rooms don't get them).
+    if (room.entities?.length && !room.glb) {
+      console.warn(
+        `[rooms] room "${room.id}" has entities but is not a GLB level — wanderers are for the deep liminal levels only`,
+      );
+    }
     for (const door of room.doors) {
       if (doorIds.has(door.id)) console.warn(`[rooms] duplicate door id "${door.id}"`);
       doorIds.add(door.id);
