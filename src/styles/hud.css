@@ -364,6 +364,59 @@
   color: #2a2a2a;
 }
 
+/* the Progress readout — a compact row of "what you've turned up" counts. */
+.hud-pause__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 10px;
+  padding: 4px 9px;
+  font-size: 0.82em;
+  color: #2a2a2a;
+  background: #eef2f7;
+  border: 1px solid #99a;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-pause__progress strong {
+  color: #243;
+}
+
+/* the To-Do list — derived objectives; done lines tick + dim, open lines tooltip
+   their hint. Styled like the Pockets panel for one consistent game-layer look. */
+.hud-pause__todo {
+  margin: 0 0 10px;
+  padding: 5px 9px 7px;
+  background: #f3f3ea;
+  border: 1px solid #999;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-pause__todocount {
+  color: #777;
+  letter-spacing: 0;
+}
+.hud-pause__todolist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hud-pause__todolist li {
+  margin: 3px 0;
+  font-size: 0.9em;
+  color: #2a2a2a;
+}
+.hud-pause__todolist li.is-done {
+  color: #6a8a6a;
+  text-decoration: line-through;
+}
+.hud-pause__todolist li span {
+  display: inline-block;
+  width: 1.1em;
+  font-weight: bold;
+}
+.hud-pause__todolist li.is-done span {
+  color: #3a7a3a;
+}
+
 /* a locked door reads COOL (you can't pass), distinct from the warm "step through"
    door prompt — so "need a key" is legible at a glance. */
 .hud-prompt--locked {
