@@ -205,6 +205,20 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   **shown in the pause menu**, **announced on gain** (`toastStore` + `WorldHud`).
 - ✅ **First dice-combat:** the goblin bout (`D20`/`DicePitRoom`/`monsterStore`) is
   crit-aware — nat 20 auto-wins + +3 luck, crit fail bloats it 3×. `shoot:luck`.
+- ✅ **Inventory + keys (engagement pass):** durable `itemsHeld` (`progressStore`),
+  a pause-menu **"Pockets"** list, `ItemPickup` collectibles (`Room.pickups`), and
+  **locked doors** (`RoomDoor.requiresKey`) via the shared lock-aware `enterDoor`
+  (`src/lib/doorTravel.ts`). First loop: the rusted key on the poolrooms deck opens
+  a **Staff Locker Room** (a safe side nook, +2 luck on first entry). Keys may only
+  gate **side/secret** doors — a dev guard + `MAIN_DESCENT` set reject any
+  `requiresKey` on the descent (friction budget). `shoot:keys`, `doorTravel.test`.
+- ✅ **Dancing entities (engagement pass):** `Wanderer` roams the GLB liminal
+  levels (liminal / deeppool / metro-tunnel / terminus, `Room.entities`) and
+  **dances** when you get close — never attacks (taste/WCAG: gentle, capped under
+  reduced-motion, GLB-only). `shoot:entities`.
+- ✅ **Arrival-spawn contract guard:** fixed grove/frutiger spawning ON their exit
+  prompt; `spawnFacingInward` + a dev guard + `rooms.test` assert every spawn lands
+  clear of, and facing away from, its doors (the "wrong side of the map" fix).
 - ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
   a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
   reactivity** (the shop reflects your deeds — clover at high luck, etc.).

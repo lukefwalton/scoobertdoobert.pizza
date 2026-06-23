@@ -20,6 +20,7 @@ import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
 import { LockerRoom } from './LockerRoom';
 import { ItemPickup } from './ItemPickup';
+import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
@@ -136,6 +137,29 @@ function RoomPickups({ room }: { room: Room }) {
   );
 }
 
+// Wandering, dancing entities for the current room (room.entities) — GLB levels
+// only, by data. A sibling of RoomScene (like RoomProps), so they overlay GLB
+// geometry. Gated to desktop + motion-OK for free: the whole World only mounts
+// there (mobile/reduced-motion gets /text instead).
+function Entities({ room }: { room: Room }) {
+  if (!room.entities?.length) return null;
+  return (
+    <>
+      {room.entities.map((e) => (
+        <Wanderer
+          key={e.id}
+          id={e.id}
+          body={e.body}
+          bounds={room.dims}
+          spawn={e.spawn}
+          danceRadius={e.danceRadius}
+          speed={e.speed}
+        />
+      ))}
+    </>
+  );
+}
+
 // The 3D world. Default export so it can be code-split behind a dynamic import —
 // three.js never enters the initial bundle. Low dpr + pixelated CSS gives the
 // low-res render crunch; `flat` disables tone mapping for flat PS1 color. The
@@ -186,6 +210,7 @@ export default function World() {
       </Suspense>
       <RoomProps room={room} />
       <RoomPickups room={room} />
+      <Entities room={room} />
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
       <Doors />
