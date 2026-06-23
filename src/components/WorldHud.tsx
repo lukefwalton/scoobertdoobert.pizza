@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
-import { roomById, ROOM_FADE_MS } from '../data/rooms';
+import { roomById, ROOM_FADE_MS, ROOMS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
-import { useToastStore } from '../state/toastStore';
+import { questStatus, questsDone, QUESTS } from '../data/quests';
+import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
 import { itemById } from '../data/items';
@@ -57,14 +59,32 @@ export function WorldHud() {
   const toggleMute = useAudioStore((s) => s.toggleMute);
   const nowPlaying = useMusicStore((s) => s.title);
   const shiftSong = useMusicStore((s) => s.shift);
-  // The flip-through radio is an UPGRADE: locked until you roll the jukebox d20.
-  const radioUnlocked = useProgressStore((s) => s.radioUnlocked);
-  // The game layer's LUCK stat — shown in the pause menu (allowed since the
-  // "no-HUD" rule was lifted), earned by rituals, spent by the system on d20s.
-  const luck = useProgressStore(selectLuck);
-  // The durable inventory — drives the pause-menu "Pockets" list and the locked-
-  // door prompt (so picking the key up flips the prompt from 🔒 to "open").
-  const itemsHeld = useProgressStore((s) => s.itemsHeld);
+  // One shallow-compared snapshot of the durable progress drives the whole
+  // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
+  // door prompt). useShallow so re-rendering only happens when a field actually
+  // changes — and never the getSnapshot-not-cached loop a fresh-object selector
+  // would cause. Quest predicates take a whole Progress, which this is.
+  const progress = useProgressStore(
+    useShallow((s) => ({
+      visits: s.visits,
+      everEnteredWorld: s.everEnteredWorld,
+      visitedRooms: s.visitedRooms,
+      secretsFound: s.secretsFound,
+      maxFloor: s.maxFloor,
+      maxUnease: s.maxUnease,
+      clearedGames: s.clearedGames,
+      arcadeHigh: s.arcadeHigh,
+      radioUnlocked: s.radioUnlocked,
+      luckEarned: s.luckEarned,
+      luckSpent: s.luckSpent,
+      itemsHeld: s.itemsHeld,
+    })),
+  );
+  // Derived locals (used throughout the pause menu below).
+  const radioUnlocked = progress.radioUnlocked;
+  const luck = selectLuck(progress);
+  const itemsHeld = progress.itemsHeld;
+  const visitedRooms = progress.visitedRooms;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
@@ -185,6 +205,25 @@ export function WorldHud() {
     const t = window.setTimeout(() => clearToast(), 2800);
     return () => window.clearTimeout(t);
   }, [toast, clearToast]);
+
+  // Announce an objective the moment it ticks done (the Feedback pillar). Seed the
+  // "already done" set on first run so re-entering the world doesn't replay old
+  // completions, and fire on a short delay so the action's own toast (e.g. the
+  // pickup/luck one that COMPLETED the quest) shows first, then the ✓ confirmation.
+  const prevDone = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const doneNow = new Set(QUESTS.filter((q) => q.done(progress)).map((q) => q.id));
+    if (prevDone.current === null) {
+      prevDone.current = doneNow;
+      return;
+    }
+    const fresh = [...doneNow].filter((id) => !prevDone.current!.has(id));
+    prevDone.current = doneNow;
+    if (!fresh.length) return;
+    const label = QUESTS.find((q) => q.id === fresh[0])?.label ?? 'an objective';
+    const t = window.setTimeout(() => announce(`✓ ${label}`, 'luck'), 1500);
+    return () => window.clearTimeout(t);
+  }, [progress]);
 
   const nearHs = near ? HOTSPOTS.find((h) => h.id === near) : undefined;
   const openHs = open ? HOTSPOTS.find((h) => h.id === open) : undefined;
@@ -331,6 +370,33 @@ export function WorldHud() {
                   </ul>
                 </div>
               )}
+              <div className="hud-pause__progress" title="What you've turned up so far">
+                <span>
+                  Rooms <strong>{visitedRooms.length}</strong>/{ROOMS.length}
+                </span>
+                <span>
+                  Secrets <strong>{progress.secretsFound.length}</strong>
+                </span>
+                <span>
+                  Games <strong>{progress.clearedGames.length}</strong>
+                </span>
+              </div>
+              <div className="hud-pause__todo">
+                <p className="hud-pause__invtitle">
+                  To-Do <span className="hud-pause__todocount">{questsDone(progress)}/{QUESTS.length}</span>
+                </p>
+                <ul className="hud-pause__todolist">
+                  {questStatus(progress).map(({ quest, done }) => (
+                    <li
+                      key={quest.id}
+                      className={done ? 'is-done' : ''}
+                      title={done ? 'Done' : quest.hint}
+                    >
+                      <span aria-hidden="true">{done ? '✓' : '○'}</span> {quest.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <ul className="hud-pause__list">
                 {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>
