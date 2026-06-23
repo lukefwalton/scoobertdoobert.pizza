@@ -12,6 +12,7 @@
 // graph is fully described here and Controls/World just render the current node.
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
+import { itemById } from './items';
 
 export type RoomKind =
   | 'shop'
@@ -1103,7 +1104,8 @@ export function spawnFacingInward(
   const fracZ = Math.abs(door.position[2]) / dims.halfD;
   let inX = 0;
   let inZ = 0;
-  if (fracX >= fracZ) inX = door.position[0] > 0 ? -1 : 1; // ±X wall → face the other way
+  if (fracX >= fracZ)
+    inX = door.position[0] > 0 ? -1 : 1; // ±X wall → face the other way
   else inZ = door.position[2] > 0 ? -1 : 1; // ±Z wall
   return {
     position: [door.position[0] + inX * back, dims.eye, door.position[2] + inZ * back],
@@ -1168,6 +1170,15 @@ if (import.meta.env?.DEV) {
         `[rooms] room "${room.id}" has entities but is not a GLB level — wanderers are for the deep liminal levels only`,
       );
     }
+    // Every pickup item id must resolve in items.ts, or it can never be displayed
+    // or used — surface a typo loudly in dev rather than ship a dead collectible.
+    for (const pickup of room.pickups ?? []) {
+      if (!itemById(pickup.itemId)) {
+        console.warn(
+          `[rooms] room "${room.id}" pickup "${pickup.itemId}" has no items.ts entry — it can't be shown or used`,
+        );
+      }
+    }
     for (const door of room.doors) {
       if (doorIds.has(door.id)) console.warn(`[rooms] duplicate door id "${door.id}"`);
       doorIds.add(door.id);
@@ -1183,6 +1194,13 @@ if (import.meta.env?.DEV) {
       if (door.requiresKey && MAIN_DESCENT.has(door.to)) {
         console.warn(
           `[rooms] door "${door.id}" locks a MAIN-DESCENT room ("${door.to}") behind key "${door.requiresKey}" — keys may only gate side/secret content`,
+        );
+      }
+      // …and the key it wants must be a real items.ts id, or the door is an
+      // unwinnable lock (no pickup could ever satisfy it).
+      if (door.requiresKey && !itemById(door.requiresKey)) {
+        console.warn(
+          `[rooms] door "${door.id}" requires key "${door.requiresKey}" which has no items.ts entry — it could never be opened`,
         );
       }
     }

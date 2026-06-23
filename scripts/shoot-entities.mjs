@@ -26,7 +26,9 @@ page.on('console', (m) => {
 // ?room=liminal drops into the GLB liminal level (lighter fog than the deeper
 // levels); &debug=1 exposes the per-entity phase hook.
 await page.goto(base + '/?room=liminal&debug=1', { waitUntil: 'commit' });
-await page.waitForSelector('.hud-menu-btn', { timeout: 15000 }).catch(() => bad('entities: world never mounted'));
+await page
+  .waitForSelector('.hud-menu-btn', { timeout: 15000 })
+  .catch(() => bad('entities: world never mounted'));
 
 // Wait out the GLB loader (tap Enter until the camera hook + entities exist).
 for (let i = 0; i < 30; i++) {

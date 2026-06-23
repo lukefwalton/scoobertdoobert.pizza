@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, applyVertexSnap } from './ps1';
@@ -24,8 +24,7 @@ const _target = new THREE.Vector3();
 const _desired = new THREE.Vector3();
 
 const REDUCED =
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const EXPOSE_PHASE = isTestEntrance();
 
@@ -124,6 +123,16 @@ export function Wanderer({
   // A per-entity phase offset so a group of them don't dance in lockstep.
   const seed = useRef(Math.random() * 100);
 
+  // Clear the per-frame phase debug global on unmount (room change), mirroring
+  // ItemPickup — so a smoke/debug session can't see a stale phase for an entity
+  // that's no longer in the room.
+  useEffect(() => {
+    if (!EXPOSE_PHASE) return;
+    return () => {
+      delete (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`];
+    };
+  }, [id]);
+
   const pickWaypoint = () => {
     waypoint.current.set((Math.random() * 2 - 1) * inW, 0, (Math.random() * 2 - 1) * inD);
   };
@@ -160,7 +169,8 @@ export function Wanderer({
       g.rotation.y = Math.atan2(dx, dz) + Math.sin(t * 4) * 0.5 * amp; // bobble-turn toward you
       const squash = 1 + Math.sin(t * 12) * 0.08 * amp;
       g.scale.set(1 / Math.sqrt(squash), squash, 1 / Math.sqrt(squash));
-      if (EXPOSE_PHASE) (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`] = 'dance';
+      if (EXPOSE_PHASE)
+        (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`] = 'dance';
       return;
     }
 

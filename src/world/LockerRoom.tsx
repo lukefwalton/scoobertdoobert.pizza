@@ -50,18 +50,19 @@ export function LockerRoom({ room }: { room: Room }) {
   useEffect(() => {
     if (claimed.current) return;
     claimed.current = true;
-    const already = useProgressStore.getState().secretsFound.includes('locker-room');
+    // One-time reward: the FIRST time you open the locker it hums a soft chord and
+    // tips a little luck. Re-entry is silent (the secret gate makes it once-only) —
+    // the chord is part of the reward, not ambient room tone.
+    if (useProgressStore.getState().secretsFound.includes('locker-room')) return;
+    useProgressStore.getState().findSecret('locker-room');
+    useProgressStore.getState().gainLuck(2);
+    announce('🍀 The locker hums — fortune kept here · +2 luck', 'luck');
     const tid = window.setTimeout(() => {
       // a quiet major-ish triad — the reward is sound
       audio.playChime(noteToFreq('C', 5), -0.2, 0.1, 1.2);
       audio.playChime(noteToFreq('E', 5), 0, 0.1, 1.2);
       audio.playChime(noteToFreq('G', 5), 0.2, 0.1, 1.4);
     }, 250);
-    if (!already) {
-      useProgressStore.getState().findSecret('locker-room');
-      useProgressStore.getState().gainLuck(2);
-      announce('🍀 The locker hums — fortune kept here · +2 luck', 'luck');
-    }
     return () => window.clearTimeout(tid);
   }, []);
 
