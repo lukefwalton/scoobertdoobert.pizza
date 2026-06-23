@@ -3,6 +3,7 @@ import Storefront from './pages/Storefront';
 import TextOnly from './pages/TextOnly';
 import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
+import AboutJp from './pages/AboutJp';
 import Arcade from './pages/Arcade';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
@@ -21,6 +22,9 @@ export const routes: RouteRecord[] = [
   { path: '/text', element: <TextOnly /> },
   { path: '/links', element: <LinkArchive /> },
   { path: '/about', element: <About /> },
+  // /about/jp -> the Japanese-language twin of /about (the one translated page),
+  // reciprocally hreflang-linked with /about. Stresses the Japan credits.
+  { path: '/about/jp', element: <AboutJp /> },
   // /arcade -> the touch-first Pizza Run minigame (the mobile reward). A real,
   // crawlable route; the live canvas game is a post-hydration enhancement.
   { path: '/arcade', element: <Arcade /> },
