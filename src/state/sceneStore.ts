@@ -57,6 +57,10 @@ type SceneState = {
   /** the door the camera is near, resolved to its target (or null). albumSlug marks
    *  a PAINTING portal (E dives into the cover instead of a plain door wipe). */
   nearDoor: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null;
+  /** the album-room TV the camera is standing in front of (its albumSlug), or null —
+   *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
+   *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
+  nearTv: string | null;
   /** Mid-DIVE into a painting portal: the destination room id while the cover
    *  ripples + swallows the view, before the room actually swaps. null otherwise. */
   divingTo: string | null;
@@ -110,6 +114,7 @@ type SceneState = {
   setNearDoor: (
     door: { id: string; label: string; to: string; spawn: string; albumSlug?: string } | null,
   ) => void;
+  setNearTv: (albumSlug: string | null) => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -133,6 +138,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   queuedRoom: null,
   transitioning: false,
   nearDoor: null,
+  nearTv: null,
   divingTo: null,
   tvVideo: null,
   secretRevealed: false,
@@ -165,6 +171,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
+      nearTv: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -179,6 +186,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
+      nearTv: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -224,6 +232,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         queuedRoom: null,
         nearDoor: null,
         nearHotspot: null,
+        nearTv: null,
       };
     }),
   // Dive into a painting: ripple/swallow the cover for DIVE_MS (divingTo drives the
@@ -240,7 +249,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         useSceneStore.getState().goToRoom(to, spawn);
         set({ divingTo: null });
       }, DIVE_MS);
-      return { divingTo: to, nearDoor: null, nearHotspot: null };
+      return { divingTo: to, nearDoor: null, nearHotspot: null, nearTv: null };
     }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.
@@ -257,6 +266,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
+  setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),
