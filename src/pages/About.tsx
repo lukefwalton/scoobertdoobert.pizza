@@ -152,6 +152,11 @@ export default function About() {
       <Head>
         <title>About Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/about" />
+        <link rel="alternate" hrefLang="en" href="https://www.scoobertdoobert.pizza/about" />
+        <link rel="alternate" hrefLang="ja" href="https://www.scoobertdoobert.pizza/about/jp" />
+        <link rel="alternate" hrefLang="x-default" href="https://www.scoobertdoobert.pizza/about" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:locale:alternate" content="ja_JP" />
         <meta
           name="description"
           content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project: CHAI production across Sub Pop and Sony Music Japan, the four-part MÖBIUS cycle, the top-10% Love Music More podcast, and a Plato audiobook."
@@ -174,6 +179,12 @@ export default function About() {
       <article className="about__article">
         <p className="about__eyebrow">Our Secret Recipe</p>
         <h1>About Scoobert Doobert</h1>
+
+        <p className="about__langswitch">
+          <a href="/about/jp" hrefLang="ja" lang="ja">
+            日本語版 »
+          </a>
+        </p>
 
         <figure className="about__portrait">
           <img

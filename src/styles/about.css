@@ -34,6 +34,15 @@
   letter-spacing: -0.01em;
 }
 
+.about__langswitch {
+  margin: 0 0 22px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 0.95rem;
+}
+.about__langswitch a {
+  font-weight: 600;
+}
+
 .about__portrait {
   margin: 0 0 24px;
   text-align: center;
