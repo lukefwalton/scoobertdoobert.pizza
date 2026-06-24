@@ -12,6 +12,7 @@
 // graph is fully described here and Controls/World just render the current node.
 // ───────────────────────────────────────────────────────────────────────────
 import { ROOM } from '../world/dims';
+import { itemById } from './items';
 
 export type RoomKind =
   | 'shop'
@@ -28,7 +29,8 @@ export type RoomKind =
   | 'grass'
   | 'grassbattle'
   | 'grove'
-  | 'frutiger';
+  | 'frutiger'
+  | 'lockerroom';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -54,6 +56,20 @@ export type RoomGlb = {
 
 /** Where the camera stands when it arrives. yaw is radians about +Y (π faces -Z). */
 export type Spawn = { position: [number, number, number]; yaw: number };
+
+/** A wandering, dancing entity (Wanderer) placed in a (GLB) level. */
+export type RoomEntity = {
+  /** Stable id (the dance test hook keys on it + React keying). */
+  id: string;
+  /** Which low-poly body to render. */
+  body: 'blob' | 'lurker' | 'mop';
+  /** Start position on the floor [x, z] (y is the floor). */
+  spawn: [number, number];
+  /** Get this close → it stops to dance (default 3). */
+  danceRadius?: number;
+  /** Roam speed (default 2.2). */
+  speed?: number;
+};
 
 export type RoomDoor = {
   /** Stable id, unique within the world. */
@@ -82,6 +98,12 @@ export type RoomDoor = {
    *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
    *  SM64 dive). The slug resolves against src/data/albums. */
   albumSlug?: string;
+  /** LOCKED until the player holds this items.ts key id. The door still renders +
+   *  prompts (you can SEE it's there); E / click just announces "locked" until you
+   *  have the key. SECRET / SIDE TIER ONLY — never a main-descent door (friction
+   *  budget); the dev guard below rejects a requiresKey door that targets a
+   *  descent room. */
+  requiresKey?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };
@@ -148,6 +170,15 @@ export type Room = {
   /** A CRT television (TvSet) — the far side of an album's painting: click it to
    *  play that record's music videos in the modal player. */
   tv?: { position: [number, number, number]; rotationY?: number; albumSlug: string };
+  /** Collectible items lying in the room (ItemPickup). Durable: each disappears
+   *  for good once taken (progressStore.itemsHeld). */
+  pickups?: { itemId: string; position: [number, number, number] }[];
+  /** Wandering entities (Wanderer) — roam the room and DANCE (never attack) when
+   *  you get close. GLB liminal levels ONLY: a funny-uncanny relief beat against
+   *  the dread down there (the contrast is the point); the sweet procedural rooms
+   *  don't need them. Desktop + motion-OK is automatic (the world only mounts
+   *  there). The dev guard warns if this is set on a non-GLB room. */
+  entities?: RoomEntity[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];
@@ -416,7 +447,14 @@ export const ROOMS: Room[] = [
       // Surfacing back from the wayside shrine: by the -Z torii door, a step
       // clear of its radius, facing into the room (+Z).
       fromJapan: { position: [0, EYE, -4.5], yaw: 0 },
+      // Stepping back out of the staff locker room: by the -X locker door (far
+      // end), facing +X into the room, clear of its radius.
+      fromLocker: { position: [-4.45, EYE, -5], yaw: Math.PI / 2 },
     },
+    // The rusted locker key rests on the deck — pocket it to open the STAFF ONLY
+    // door in the far -X wall. Off the main descent (a side reward), so it never
+    // gates the way deeper (friction budget).
+    pickups: [{ itemId: 'pool-locker-key', position: [-3, 0.5, 2] }],
     doors: [
       {
         id: 'pool-to-juke',
@@ -448,6 +486,20 @@ export const ROOMS: Room[] = [
         rotationY: Math.PI / 2,
         label: 'duck into the back room',
         radius: 3.2,
+      },
+      {
+        id: 'pool-to-locker',
+        to: 'lockerroom',
+        toSpawn: 'fromPool',
+        // The "DEEP END · STAFF ONLY" door in the far end of the -X wall (the
+        // dicepit door is the near end). LOCKED until you pick up the rusted key
+        // off the deck — a self-contained side puzzle (key + lock one room apart),
+        // never on the way down.
+        position: [-8.95, 0, -5],
+        rotationY: Math.PI / 2, // in the -X wall, opening faces +X into the room
+        label: 'open the STAFF ONLY door',
+        requiresKey: 'pool-locker-key',
+        radius: 3.0,
       },
       {
         id: 'pool-to-japan',
@@ -488,6 +540,12 @@ export const ROOMS: Room[] = [
       // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
       fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
     },
+    // A couple of wanderers drift the beige nothing — they emerge from the fog and
+    // dance when you reach them (the relief beat).
+    entities: [
+      { id: 'liminal-blob', body: 'blob', spawn: [-3.5, -2] },
+      { id: 'liminal-mop', body: 'mop', spawn: [3.5, -4] },
+    ],
     doors: [
       {
         id: 'liminal-to-pool',
@@ -529,6 +587,8 @@ export const ROOMS: Room[] = [
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
     },
+    // One lurker haunts the drained deep end — slower, a single big eye.
+    entities: [{ id: 'deep-lurker', body: 'lurker', spawn: [-2, -3], speed: 1.6 }],
     doors: [
       {
         id: 'deep-to-liminal',
@@ -626,6 +686,35 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'back out to the pool',
         radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'lockerroom',
+    kind: 'lockerroom',
+    title: 'Staff Locker Room',
+    // The little reward behind the poolrooms' locked STAFF ONLY door: a damp,
+    // tiled changing room, lights half-dead. A SAFE side nook (off the descent),
+    // so it stays sweet — the payoff for noticing the key, not a dread beat. On
+    // first entry the room hums you a soft chord and tips a little luck (the
+    // reward IS sound; the clap-ritual luck faucet's quiet cousin).
+    dims: { halfW: 5, halfD: 5, height: 3.2, eye: EYE },
+    // Pale poolside teal gone dim + enclosed — a sibling of the bright poolrooms.
+    palette: { background: '#16302f', fog: '#1b3a38', fogNear: 3, fogFar: 18 },
+    spawns: {
+      // A clear stride in from the +Z door (radius 2.6), facing -Z at the lockers.
+      default: { position: [0, EYE, 1.4], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 1.4], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'locker-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromLocker',
+        position: [0, 0, 4.95], // +Z wall — back out to the pool deck
+        rotationY: 0,
+        label: 'back out to the pool',
+        radius: 2.6,
       },
     ],
   },
@@ -781,7 +870,9 @@ export const ROOMS: Room[] = [
     dims: { halfW: 8, halfD: 9, height: 8, eye: EYE },
     palette: { background: '#33514c', fog: '#27433f', fogNear: 5, fogFar: 30 },
     spawns: {
-      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // A clear stride past the +Z door you arrive through (radius 3.0), facing
+      // -Z into the sound garden toward the painting — never standing ON the exit.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Stepping back out of the bright vista — past the orb at the far end,
       // facing +Z back across the sound garden, clear of the door radius.
       fromFrutiger: { position: [0, EYE, -5], yaw: 0 },
@@ -831,10 +922,11 @@ export const ROOMS: Room[] = [
     // is the painting you dove through to get here (its track is already playing).
     tv: { position: [5.5, 0, 5], rotationY: 0.5, albumSlug: 'moonlight-beach' },
     spawns: {
-      // Step out onto the hillside at the +Z (door) end, facing -Z down the slope
-      // into the open blue vista, clear of the return door's radius.
-      default: { position: [0, EYE, 12], yaw: Math.PI },
-      fromGrove: { position: [0, EYE, 12], yaw: Math.PI },
+      // Step out onto the hillside a clear stride past the +Z (door) end (radius
+      // 3.2), facing -Z down the slope into the open blue vista — not standing in
+      // the return door's prompt the instant you dive through.
+      default: { position: [0, EYE, 9.5], yaw: Math.PI },
+      fromGrove: { position: [0, EYE, 9.5], yaw: Math.PI },
     },
     doors: [
       {
@@ -876,6 +968,8 @@ export const ROOMS: Room[] = [
       // +Z back up the tunnel toward the shrine.
       fromEnd: { position: [0, EYE, -8.5], yaw: 0 },
     },
+    // Something shuffles along the flooded platform.
+    entities: [{ id: 'tunnel-mop', body: 'mop', spawn: [-3, -1], speed: 1.8 }],
     doors: [
       {
         id: 'tunnel-to-shrine',
@@ -922,6 +1016,11 @@ export const ROOMS: Room[] = [
       default: { position: [0, EYE, 6.5], yaw: Math.PI },
       fromTunnel: { position: [0, EYE, 6.5], yaw: Math.PI },
     },
+    // The backrooms are not as empty as they look — two dancers in the yellow.
+    entities: [
+      { id: 'terminus-blob', body: 'blob', spawn: [-4, -3] },
+      { id: 'terminus-lurker', body: 'lurker', spawn: [4, -5], speed: 1.8 },
+    ],
     doors: [
       {
         id: 'end-to-tunnel',
@@ -980,6 +1079,41 @@ export function fogFor(room: Room): { color: string; near: number; far: number }
   return { color: room.palette.fog, near: room.palette.fogNear, far: room.palette.fogFar };
 }
 
+/** Derive an arrival spawn that stands `back` units IN FRONT of a door and faces
+ *  the room INTERIOR (the inward normal of the wall the door sits on) — i.e. the
+ *  door is behind you and walking forward takes you into the room, never back
+ *  through it. The single source for "arrive facing in", so a hand-authored yaw
+ *  can't silently contradict the door it pairs with.
+ *
+ *  Which wall the door is on is read from geometry (its nearest extent), NOT from
+ *  `rotationY` — `rotationY` orients the visible frame and its relationship to
+ *  "inward" differs between X- and Z-walls, so it can't be trusted for facing.
+ *
+ *  CAVEAT: correct for WIDE rooms / the big GLB levels, where facing straight in
+ *  is what you want. NOT for a narrow corridor or a side-wall door, where you
+ *  want to face ALONG the room rather than at the near wall a step away — author
+ *  those by hand (and the dev guard below leaves them alone). */
+export function spawnFacingInward(
+  door: Pick<RoomDoor, 'position'>,
+  dims: { halfW: number; halfD: number; eye: number },
+  back = 4.5,
+): Spawn {
+  // The door sits on whichever wall it's nearest (largest fraction of that
+  // half-extent); inward is that wall's interior-pointing normal.
+  const fracX = Math.abs(door.position[0]) / dims.halfW;
+  const fracZ = Math.abs(door.position[2]) / dims.halfD;
+  let inX = 0;
+  let inZ = 0;
+  if (fracX >= fracZ)
+    inX = door.position[0] > 0 ? -1 : 1; // ±X wall → face the other way
+  else inZ = door.position[2] > 0 ? -1 : 1; // ±Z wall
+  return {
+    position: [door.position[0] + inX * back, dims.eye, door.position[2] + inZ * back],
+    // fwd = (sin yaw, cos yaw) in Controls, so yaw = atan2(inX, inZ) faces inward.
+    yaw: Math.atan2(inX, inZ),
+  };
+}
+
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 
 /** The starting room — the beach shop. */
@@ -1003,6 +1137,23 @@ export function roomById(id: string): Room {
   return r;
 }
 
+// The MAIN DESCENT — the rooms on the way down (the jaunt). Keys may never gate
+// these (friction budget: the descent has zero hard gates); a requiresKey door
+// must target SIDE/SECRET content only. Enforced by the dev guard below + the
+// unit test, so the rule is code, not discipline.
+export const MAIN_DESCENT: ReadonlySet<string> = new Set([
+  'shop',
+  'hallway',
+  'jukebox',
+  'poolrooms',
+  'mobius',
+  'liminal',
+  'deeppool',
+  'shrine',
+  'metro-tunnel',
+  'terminus',
+]);
+
 // Dev guardrail: every door must point at a real room + an existing spawn, and
 // room/door ids must be unique (a duplicate would silently win in BY_ID or
 // confuse the nearest-door tracking). Surface graph typos at the source.
@@ -1012,6 +1163,22 @@ if (import.meta.env?.DEV) {
   }
   const doorIds = new Set<string>();
   for (const room of ROOMS) {
+    // Dancing entities belong only in the GLB liminal levels (taste: a relief beat
+    // against their dread; the sweet procedural rooms don't get them).
+    if (room.entities?.length && !room.glb) {
+      console.warn(
+        `[rooms] room "${room.id}" has entities but is not a GLB level — wanderers are for the deep liminal levels only`,
+      );
+    }
+    // Every pickup item id must resolve in items.ts, or it can never be displayed
+    // or used — surface a typo loudly in dev rather than ship a dead collectible.
+    for (const pickup of room.pickups ?? []) {
+      if (!itemById(pickup.itemId)) {
+        console.warn(
+          `[rooms] room "${room.id}" pickup "${pickup.itemId}" has no items.ts entry — it can't be shown or used`,
+        );
+      }
+    }
     for (const door of room.doors) {
       if (doorIds.has(door.id)) console.warn(`[rooms] duplicate door id "${door.id}"`);
       doorIds.add(door.id);
@@ -1023,18 +1190,47 @@ if (import.meta.env?.DEV) {
           `[rooms] door "${door.id}" → "${door.to}" wants spawn "${door.toSpawn}" which doesn't exist`,
         );
       }
+      // A key must never gate the way DOWN (friction budget) — only side/secret doors.
+      if (door.requiresKey && MAIN_DESCENT.has(door.to)) {
+        console.warn(
+          `[rooms] door "${door.id}" locks a MAIN-DESCENT room ("${door.to}") behind key "${door.requiresKey}" — keys may only gate side/secret content`,
+        );
+      }
+      // …and the key it wants must be a real items.ts id, or the door is an
+      // unwinnable lock (no pickup could ever satisfy it).
+      if (door.requiresKey && !itemById(door.requiresKey)) {
+        console.warn(
+          `[rooms] door "${door.id}" requires key "${door.requiresKey}" which has no items.ts entry — it could never be opened`,
+        );
+      }
     }
     // Every spawn should land OUTSIDE every door's radius in its room — else you
     // arrive standing in a prompt and a held E could bounce you back. A lot of
     // the anti-bounce behavior rides on these offsets, so guard them as data.
+    // SECOND guard (the missing half): a spawn must not FACE a nearby door, or
+    // walking straight forward walks you right back through it — the exact "wrong
+    // side / bounce back" bug. We only flag a door that's both CLOSE (<8u) and
+    // squarely AHEAD (forward·toward-door > 0.8, ~within 37°), so facing along a
+    // corridor past a far side-wall door (e.g. the hall's classified panel) or
+    // angling across a hub toward a non-return door is left alone.
     for (const [spawnId, spawn] of Object.entries(room.spawns)) {
+      const fwdX = Math.sin(spawn.yaw);
+      const fwdZ = Math.cos(spawn.yaw);
       for (const door of room.doors) {
         const dx = spawn.position[0] - door.position[0];
         const dz = spawn.position[2] - door.position[2];
-        if (Math.hypot(dx, dz) < (door.radius ?? 3.2)) {
+        const dist = Math.hypot(dx, dz);
+        if (dist < (door.radius ?? 3.2)) {
           console.warn(
             `[rooms] spawn "${room.id}.${spawnId}" sits inside door "${door.id}" radius — arrival will prompt/bounce`,
           );
+        } else if (dist < 8) {
+          const dot = (fwdX * -dx + fwdZ * -dz) / dist; // forward · (spawn→door)
+          if (dot > 0.8) {
+            console.warn(
+              `[rooms] spawn "${room.id}.${spawnId}" faces door "${door.id}" (dot ${dot.toFixed(2)}) — walking forward bounces back through it`,
+            );
+          }
         }
       }
     }

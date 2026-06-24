@@ -9,7 +9,8 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { useToastStore } from '../state/toastStore';
 import { audio } from '../audio/engine';
-import { diveInto } from '../lib/dive';
+import { enterDoor } from '../lib/doorTravel';
+import { itemById } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
 
@@ -61,6 +62,9 @@ export function WorldHud() {
   // The game layer's LUCK stat — shown in the pause menu (allowed since the
   // "no-HUD" rule was lifted), earned by rituals, spent by the system on d20s.
   const luck = useProgressStore(selectLuck);
+  // The durable inventory — drives the pause-menu "Pockets" list and the locked-
+  // door prompt (so picking the key up flips the prompt from 🔒 to "open").
+  const itemsHeld = useProgressStore((s) => s.itemsHeld);
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
@@ -154,11 +158,14 @@ export function WorldHud() {
         if (st.paused || st.openHotspot || st.tvVideo) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
-          audio.unlock();
-          // A painting portal dives (ripple + the album plays); a plain door wipes.
-          if (st.nearDoor.albumSlug)
-            diveInto(st.nearDoor.albumSlug, st.nearDoor.to, st.nearDoor.spawn);
-          else st.goToRoom(st.nearDoor.to, st.nearDoor.spawn);
+          // enterDoor honors a key lock (shared with the click path), then dives
+          // into a painting portal or wipes through a plain door.
+          enterDoor({
+            to: st.nearDoor.to,
+            spawn: st.nearDoor.spawn,
+            albumSlug: st.nearDoor.albumSlug,
+            requiresKey: st.nearDoor.requiresKey,
+          });
         } else if (st.nearTv) {
           // Switch on the CRT — the same modal the TV's click opens (keyboard parity).
           st.openTv(albumVideo(st.nearTv));
@@ -234,9 +241,17 @@ export function WorldHud() {
         </div>
       )}
 
-      {nearDoor && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
-      )}
+      {nearDoor &&
+        !open &&
+        !paused &&
+        !pendingRoom &&
+        (nearDoor.requiresKey && !itemsHeld.includes(nearDoor.requiresKey) ? (
+          <div className="hud-prompt hud-prompt--door hud-prompt--locked">
+            🔒 Locked — need the {itemById(nearDoor.requiresKey)?.label ?? 'right key'}
+          </div>
+        ) : (
+          <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
+        ))}
 
       {nearTv && !nearDoor && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
@@ -300,6 +315,22 @@ export function WorldHud() {
               <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
                 <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
               </p>
+              {itemsHeld.length > 0 && (
+                <div className="hud-pause__inventory">
+                  <p className="hud-pause__invtitle">Pockets</p>
+                  <ul className="hud-pause__invlist">
+                    {itemsHeld.map((id) => {
+                      const item = itemById(id);
+                      if (!item) return null;
+                      return (
+                        <li key={id} title={item.blurb}>
+                          <span aria-hidden="true">{item.glyph}</span> {item.label}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
               <ul className="hud-pause__list">
                 {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>

@@ -43,7 +43,9 @@
     "shoot:tv": "node scripts/shoot-tv.mjs",
     "shoot:practice": "node scripts/shoot-practice.mjs",
     "shoot:music": "node scripts/shoot-music.mjs",
-    "shoot:grass": "node scripts/shoot-grass.mjs"
+    "shoot:grass": "node scripts/shoot-grass.mjs",
+    "shoot:keys": "node scripts/shoot-keys.mjs",
+    "shoot:entities": "node scripts/shoot-entities.mjs"
   },
   "engines": {
     "node": ">=20.19"
