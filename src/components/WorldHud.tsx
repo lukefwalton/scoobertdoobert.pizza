@@ -8,11 +8,12 @@ import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
-import { questStatus, questsDone, QUESTS } from '../data/quests';
+import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
 import { WorldMap } from './WorldMap';
 import { ObjectiveHud } from './ObjectiveHud';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
 import { dancedCount } from '../lib/danceAlong';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
@@ -270,6 +271,41 @@ export function WorldHud() {
     return () => window.clearTimeout(t);
   }, [progress]);
 
+  // THE FINALE (the win arc): the moment EVERY objective is done, fire it once —
+  // a fanfare + a sweet toast, a luck bonus, and every wanderer in the room breaks
+  // into a group dance (triggerFinale). Durable 'finale' secret gates it to once
+  // ever; prevWasComplete seeds on mount so re-entering already-complete is silent.
+  const prevComplete = useRef<boolean | null>(null);
+  const firedFinale = useRef(false);
+  useEffect(() => {
+    const complete = allQuestsDone(progress);
+    if (prevComplete.current === null) {
+      // Seed on mount: re-entering already-finished never re-fires.
+      prevComplete.current = complete;
+      firedFinale.current = complete && progress.secretsFound.includes('finale');
+      return;
+    }
+    const justNow = complete && !prevComplete.current;
+    prevComplete.current = complete;
+    if (!justNow || firedFinale.current || progress.secretsFound.includes('finale')) return;
+    // firedFinale + the durable secret guard against the re-run our OWN gainLuck(5)
+    // triggers; the announce is fire-and-forget (no cleanup) so that re-run can't
+    // cancel it. Delayed past the per-objective ✓ toast so the ★ lands last.
+    firedFinale.current = true;
+    useProgressStore.getState().findSecret('finale');
+    useProgressStore.getState().gainLuck(5);
+    useSceneStore.getState().triggerFinale();
+    audio.unlock();
+    audio.playChime(noteToFreq('C', 5), -0.2, 0.14, 1.6);
+    audio.playChime(noteToFreq('E', 5), 0, 0.14, 1.6);
+    audio.playChime(noteToFreq('G', 5), 0.1, 0.14, 1.8);
+    audio.playChime(noteToFreq('C', 6), 0.2, 0.12, 2);
+    window.setTimeout(
+      () => announce('★ You’ve seen it all — for now. The rat’s proud. · +5 luck', 'crit-good'),
+      1800,
+    );
+  }, [progress]);
+
   const nearHs = near ? HOTSPOTS.find((h) => h.id === near) : undefined;
   const openHs = open ? HOTSPOTS.find((h) => h.id === open) : undefined;
   const openDest = openHs ? destById(openHs.destId) : undefined;
@@ -488,7 +524,9 @@ export function WorldHud() {
                 <p className="hud-pause__invtitle">
                   To-Do{' '}
                   <span className="hud-pause__todocount">
-                    {questsDone(progress)}/{QUESTS.length}
+                    {allQuestsDone(progress)
+                      ? `★ ${completionPct(progress)}% — seen it all`
+                      : `${completionPct(progress)}%`}
                   </span>
                 </p>
                 <ul className="hud-pause__todolist">

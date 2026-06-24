@@ -47,7 +47,8 @@
     "shoot:keys": "node scripts/shoot-keys.mjs",
     "shoot:entities": "node scripts/shoot-entities.mjs",
     "shoot:objective": "node scripts/shoot-objective.mjs",
-    "shoot:rat": "node scripts/shoot-rat.mjs"
+    "shoot:rat": "node scripts/shoot-rat.mjs",
+    "shoot:finale": "node scripts/shoot-finale.mjs"
   },
   "engines": {
     "node": ">=20.19"
