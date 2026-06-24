@@ -205,6 +205,8 @@ export const ROOMS: Room[] = [
     palette: { background: '#1f8fb5', fog: '#1f8fb5', fogNear: 6, fogFar: 64 },
     // A potted palm by the window — it IS a beach pizza shop.
     props: [{ url: '/models/palm-tree.glb', position: [5.6, 0, -5.4], fit: 4.4, rotationY: 0.5 }],
+    // A lost cassette sits on the counter — the first rung of the music ladder.
+    pickups: [{ itemId: 'tape-mystery-machine', position: [-4, 0.7, 0] }],
     spawns: {
       // The establishing shot: facing the window/sea (-Z), the boids out the
       // glass. Kept clear of the back-hall door's 3.2 radius so the door is
@@ -265,8 +267,12 @@ export const ROOMS: Room[] = [
     },
     // The brass closet key sits on the corridor floor by the +X wall — pocket it
     // to open the SUPPLY door a few steps down. A side reward off the hall, never
-    // on the way deeper (friction budget; key + lock in the same room).
-    pickups: [{ itemId: 'hall-closet-key', position: [1.6, 0.5, 9] }],
+    // on the way deeper (friction budget; key + lock in the same room). A cassette
+    // rests against the other wall, further down the gallery.
+    pickups: [
+      { itemId: 'hall-closet-key', position: [1.6, 0.5, 9] },
+      { itemId: 'tape-internet', position: [-1.6, 0.7, -3] },
+    ],
     doors: [
       {
         id: 'hall-to-shop',
@@ -333,6 +339,8 @@ export const ROOMS: Room[] = [
         glow: 0.3,
       },
     ],
+    // A cassette left on the jukebox's side — fitting that the music room hides one.
+    pickups: [{ itemId: 'tape-moonlight', position: [3.6, 0.7, -3] }],
     spawns: {
       // Enter near the door (+Z), a step clear of its radius, facing the jukebox
       // across the room (-Z) so you walk toward it and the song swells.
@@ -476,8 +484,11 @@ export const ROOMS: Room[] = [
     },
     // The rusted locker key rests on the deck — pocket it to open the STAFF ONLY
     // door in the far -X wall. Off the main descent (a side reward), so it never
-    // gates the way deeper (friction budget).
-    pickups: [{ itemId: 'pool-locker-key', position: [-3, 0.5, 2] }],
+    // gates the way deeper (friction budget). A cassette sits further along the deck.
+    pickups: [
+      { itemId: 'pool-locker-key', position: [-3, 0.5, 2] },
+      { itemId: 'tape-japan', position: [3.5, 0.7, -2] },
+    ],
     doors: [
       {
         id: 'pool-to-juke',
