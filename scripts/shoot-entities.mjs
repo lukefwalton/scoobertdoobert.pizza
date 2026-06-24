@@ -62,6 +62,7 @@ const danced = () =>
 let sawDance = false;
 let sawApproach = false;
 let dancePrompt = false;
+let rhythmStarted = false;
 let danceReward = false;
 let danceRecorded = false;
 if (hasEntity) {
@@ -84,8 +85,9 @@ if (hasEntity) {
   // the brief "approach" phase can fall between samples, so it's logged, not gated.
   if (!sawDance) bad('entities: no wanderer ever DANCED when reached');
 
-  // Dance ALONG: a dancing wanderer is the prompt's target, so the "dance along"
-  // cue shows; pressing E rewards once (luck toast + a durable danced:<id> secret).
+  // Dance ALONG: a dancing wanderer is the prompt's target → "dance along" cue.
+  // Pressing E starts the rhythm minigame; copying the demoed sequence (read off
+  // the test global) wins → the reward (luck toast + durable danced:<id> secret).
   if (sawDance) {
     dancePrompt = await page.waitForSelector('.hud-prompt--dance', { timeout: 6000 }).then(
       () => true,
@@ -94,22 +96,41 @@ if (hasEntity) {
     if (!dancePrompt) bad('entities: a wanderer danced but no "dance along" prompt appeared');
     else {
       await page.keyboard.press('e');
-      danceReward = await page
-        .waitForFunction(
-          () => {
-            const el = document.querySelector('.hud-toast--luck');
-            return !!el && /dance with|delighted/i.test(el.textContent || '');
-          },
+      // The minigame overlay comes up in DEMO; wait for it to hand over to input.
+      rhythmStarted = await page.waitForSelector('.hud-rhythm', { timeout: 5000 }).then(
+        () => true,
+        () => false,
+      );
+      if (!rhythmStarted) bad('entities: pressing E did not start the dance rhythm minigame');
+      else {
+        await page.waitForFunction(
+          () => /your turn/i.test(document.querySelector('.hud-rhythm__cue')?.textContent || ''),
           null,
           { timeout: 6000 },
-        )
-        .then(
-          () => true,
-          () => false,
         );
-      danceRecorded = (await danced()).some((s) => s.startsWith('danced:'));
-      if (!danceReward) bad('entities: dancing along raised no reward toast');
-      if (!danceRecorded) bad('entities: dancing along did not record a danced:<id> secret');
+        const seq = await page.evaluate(() => window.__sdpRhythmSeq);
+        const KEY = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' };
+        for (const d of seq || []) {
+          await page.keyboard.press(KEY[d]);
+          await page.waitForTimeout(120);
+        }
+        danceReward = await page
+          .waitForFunction(
+            () => {
+              const el = document.querySelector('.hud-toast--luck');
+              return !!el && /dance with|delighted/i.test(el.textContent || '');
+            },
+            null,
+            { timeout: 6000 },
+          )
+          .then(
+            () => true,
+            () => false,
+          );
+        danceRecorded = (await danced()).some((s) => s.startsWith('danced:'));
+        if (!danceReward) bad('entities: winning the rhythm raised no reward toast');
+        if (!danceRecorded) bad('entities: winning the rhythm did not record a danced:<id> secret');
+      }
     }
   }
 }
@@ -117,7 +138,7 @@ if (hasEntity) {
 if (errors.length)
   bad(`entities: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} prompt=${dancePrompt} reward=${danceReward} recorded=${danceRecorded} errors=${errors.length}`,
+  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} prompt=${dancePrompt} rhythm=${rhythmStarted} reward=${danceReward} recorded=${danceRecorded} errors=${errors.length}`,
 );
 
 await ctx.close();
