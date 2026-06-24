@@ -153,6 +153,7 @@ function Entities({ room }: { room: Room }) {
           key={e.id}
           id={e.id}
           body={e.body}
+          label={e.label}
           bounds={room.dims}
           spawn={e.spawn}
           danceRadius={e.danceRadius}

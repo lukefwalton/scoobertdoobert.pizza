@@ -68,6 +68,12 @@ export const QUESTS: Quest[] = [
     done: (p) => p.secretsFound.includes('grass-cleared'),
   },
   {
+    id: 'dance-with-entity',
+    label: 'Dance with a wanderer',
+    hint: 'Down in the deep levels, get close to a wandering thing and press E.',
+    done: (p) => p.secretsFound.some((s) => s.startsWith('danced:')),
+  },
+  {
     id: 'reach-terminus',
     label: 'Ride to the end of the line',
     hint: 'Follow the shrine’s tracks down, then to where they finally stop.',

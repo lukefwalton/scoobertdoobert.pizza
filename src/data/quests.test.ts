@@ -47,6 +47,7 @@ describe('quests', () => {
       'find-closet-key': { itemsHeld: ['hall-closet-key'] },
       'beat-dice': { secretsFound: ['dice-monster'] },
       'clear-goblin': { secretsFound: ['grass-cleared'] },
+      'dance-with-entity': { secretsFound: ['danced:deep-lurker'] },
       'reach-terminus': { visitedRooms: ['terminus'] },
     };
     for (const q of QUESTS) {
