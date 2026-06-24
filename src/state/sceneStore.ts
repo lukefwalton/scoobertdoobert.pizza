@@ -85,6 +85,9 @@ type SceneState = {
    *  and cheerNonce bumps, so that Wanderer can flourish for a beat. */
   cheerId: string | null;
   cheerNonce: number;
+  /** The finale pulse: bumps when you complete every objective, so EVERY wanderer
+   *  in the room breaks into a celebratory group dance for a few seconds. */
+  finaleNonce: number;
   /** Mid-DIVE into a painting portal: the destination room id while the cover
    *  ripples + swallows the view, before the room actually swaps. null otherwise. */
   divingTo: string | null;
@@ -149,6 +152,8 @@ type SceneState = {
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
+  /** Fire the finale: every wanderer breaks into a group dance for a few seconds. */
+  triggerFinale: () => void;
   toggleObjectiveHud: () => void;
   setNearNpc: (npc: { id: string; label: string } | null) => void;
   openNpcDialog: (id: string) => void;
@@ -183,6 +188,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   openNpc: null,
   cheerId: null,
   cheerNonce: 0,
+  finaleNonce: 0,
   divingTo: null,
   tvVideo: null,
   secretRevealed: false,
@@ -330,6 +336,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
+  triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),
   toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),
   setNearNpc: (npc) => set({ nearNpc: npc }),
   openNpcDialog: (id) => set({ openNpc: id }),

@@ -103,3 +103,13 @@ export function questStatus(p: Progress): QuestStatus[] {
 export function questsDone(p: Progress): number {
   return QUESTS.reduce((n, q) => n + (q.done(p) ? 1 : 0), 0);
 }
+
+/** Completion percent across all objectives (0..100) — the pause-menu badge. */
+export function completionPct(p: Progress): number {
+  return Math.round((questsDone(p) / QUESTS.length) * 100);
+}
+
+/** Has the player finished every objective? Triggers the finale (the win arc). */
+export function allQuestsDone(p: Progress): boolean {
+  return questsDone(p) === QUESTS.length;
+}

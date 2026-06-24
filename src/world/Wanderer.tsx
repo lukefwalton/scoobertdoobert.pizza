@@ -137,6 +137,10 @@ export function Wanderer({
   const danceT = useRef(0);
   // A per-entity phase offset so a group of them don't dance in lockstep.
   const seed = useRef(Math.random() * 100);
+  // Finale: when finaleNonce bumps (all objectives done), every wanderer breaks
+  // into a group dance for a few seconds, wherever it is.
+  const finaleSeen = useRef(useSceneStore.getState().finaleNonce);
+  const finaleUntil = useRef(0);
 
   // Clear the per-frame phase debug global on unmount (room change), mirroring
   // ItemPickup — so a smoke/debug session can't see a stale phase for an entity
@@ -166,17 +170,28 @@ export function Wanderer({
     const distToPlayer = Math.hypot(dx, dz);
     const notice = danceRadius * 2;
 
+    // Finale pulse → everyone dances for ~4.5s, near the player or not.
+    const fn = useSceneStore.getState().finaleNonce;
+    if (fn !== finaleSeen.current) {
+      finaleSeen.current = fn;
+      finaleUntil.current = t + 4.5;
+    }
+    const inFinale = t < finaleUntil.current;
+
     // Phase: dance when close, approach when noticed, else wander. Hysteresis on
-    // the way out of the dance so it doesn't flicker at the boundary.
+    // the way out of the dance so it doesn't flicker at the boundary. The finale
+    // forces a dance regardless of proximity (the group celebration).
     if (distToPlayer < danceRadius) phase.current = 'dance';
     else if (phase.current === 'dance' && distToPlayer < danceRadius + 1.5) {
       /* keep dancing through the hysteresis band */
     } else if (distToPlayer < notice) phase.current = 'approach';
     else phase.current = 'wander';
+    if (inFinale) phase.current = 'dance';
 
     if (phase.current === 'dance') {
-      // On ENTERING the dance, become the "dance along" prompt's target.
-      if (!dancing.current) {
+      // On ENTERING the dance NEAR the player, become the "dance along" prompt's
+      // target. (A finale-forced dance from across the room doesn't grab the prompt.)
+      if (!dancing.current && distToPlayer < danceRadius + 1.5) {
         dancing.current = true;
         useSceneStore.getState().setNearEntity({ id, label: name });
       }
@@ -190,7 +205,7 @@ export function Wanderer({
       // under reduced motion. Face the player so the googly eyes meet yours. A
       // flourish boosts the amplitude a touch — still capped under reduced motion.
       vel.current.multiplyScalar(Math.pow(0.0001, dt)); // damp to a stop
-      const flourishing = t < flourishUntil.current;
+      const flourishing = t < flourishUntil.current || inFinale;
       const amp = (REDUCED ? 0.25 : 1) * (flourishing ? 1.6 : 1);
       danceT.current += dt;
       const hop = Math.abs(Math.sin(t * 6)) * 0.22 * amp;
