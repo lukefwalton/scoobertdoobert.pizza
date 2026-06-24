@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { ratDialogue } from './dialogue';
 import { QUESTS } from './quests';
+import { CASSETTE_IDS } from './items';
 import type { Progress } from '../state/progressStore';
 
 const COLD: Progress = {
@@ -38,7 +39,7 @@ describe('ratDialogue', () => {
       ...COLD,
       luckEarned: 5,
       radioUnlocked: true,
-      itemsHeld: ['pool-locker-key', 'hall-closet-key'],
+      itemsHeld: ['pool-locker-key', 'hall-closet-key', ...CASSETTE_IDS],
       secretsFound: ['dice-monster', 'grass-cleared', 'danced:x'],
       visitedRooms: ['shop', 'terminus'],
     };
