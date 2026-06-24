@@ -30,7 +30,8 @@ export type RoomKind =
   | 'grassbattle'
   | 'grove'
   | 'frutiger'
-  | 'lockerroom';
+  | 'lockerroom'
+  | 'closet';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -255,7 +256,15 @@ export const ROOMS: Room[] = [
       // Stepping back out of the classified room: in the hall by the panel,
       // facing on toward the music (clear of the hidden door's radius).
       fromClassified: { position: [0, EYE, -5.5], yaw: Math.PI },
+      // Stepping back out of the supply closet: mid-corridor, facing on down toward
+      // the music (clear of the +X closet door's radius — narrow hall, so face
+      // ALONG it, not at the near wall).
+      fromCloset: { position: [0, EYE, 6], yaw: Math.PI },
     },
+    // The brass closet key sits on the corridor floor by the +X wall — pocket it
+    // to open the SUPPLY door a few steps down. A side reward off the hall, never
+    // on the way deeper (friction budget; key + lock in the same room).
+    pickups: [{ itemId: 'hall-closet-key', position: [1.6, 0.5, 9] }],
     doors: [
       {
         id: 'hall-to-shop',
@@ -288,6 +297,18 @@ export const ROOMS: Room[] = [
         label: 'slip through the gap',
         hidden: true,
         radius: 2.8,
+      },
+      {
+        id: 'hall-to-closet',
+        to: 'closet',
+        toSpawn: 'fromHall',
+        // A "SUPPLY" door in the +X wall, mid-hall. LOCKED until you pocket the
+        // brass key off the corridor floor. Faces -X into the corridor.
+        position: [2.5, 0, 4],
+        rotationY: -Math.PI / 2,
+        label: 'open the SUPPLY closet',
+        requiresKey: 'hall-closet-key',
+        radius: 2.4,
       },
     ],
   },
@@ -719,6 +740,33 @@ export const ROOMS: Room[] = [
     ],
   },
   {
+    id: 'closet',
+    kind: 'closet',
+    title: 'Supply Closet',
+    // The little reward behind the hallway's locked SUPPLY door: a cramped utility
+    // cupboard — shelves, a mop bucket, a forgotten tip jar. Safe side nook (off
+    // the descent); first entry hums a chord + tips luck (ClosetRoom).
+    dims: { halfW: 3.5, halfD: 3.5, height: 3, eye: EYE },
+    // Dim dusty amber — a back-of-house cupboard.
+    palette: { background: '#1c160e', fog: '#241d12', fogNear: 3, fogFar: 16 },
+    spawns: {
+      // A clear stride in from the +Z door (radius 2.4), facing -Z at the shelves.
+      default: { position: [0, EYE, 0.6], yaw: Math.PI },
+      fromHall: { position: [0, EYE, 0.6], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'closet-to-hall',
+        to: 'hallway',
+        toSpawn: 'fromCloset',
+        position: [0, 0, 3.4], // +Z wall — back out to the corridor
+        rotationY: 0,
+        label: 'back out to the hall',
+        radius: 2.4,
+      },
+    ],
+  },
+  {
     id: 'shrine',
     kind: 'shrine',
     musicRoom: true, // the furin breather owns the space — the carried song fades out here
@@ -1145,6 +1193,7 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
   hallway: { x: 5, y: 1.2 },
+  closet: { x: 6.6, y: 1.5 },
   classified: { x: 3, y: 1.6 },
   jukebox: { x: 5, y: 2.4 },
   practice: { x: 3, y: 2.8 },

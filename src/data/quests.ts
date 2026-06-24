@@ -50,6 +50,12 @@ export const QUESTS: Quest[] = [
     done: (p) => p.itemsHeld.includes('pool-locker-key'),
   },
   {
+    id: 'find-closet-key',
+    label: 'Pocket the brass key',
+    hint: 'It’s on the back-hall floor — it opens the SUPPLY closet nearby.',
+    done: (p) => p.itemsHeld.includes('hall-closet-key'),
+  },
+  {
     id: 'beat-dice',
     label: 'Beat the thing at dice',
     hint: 'Duck into the back room off the pool and roll the bone against it.',

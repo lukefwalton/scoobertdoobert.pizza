@@ -44,6 +44,7 @@ describe('quests', () => {
       'earn-luck': { luckEarned: 1 },
       'unlock-radio': { radioUnlocked: true },
       'find-locker-key': { itemsHeld: ['pool-locker-key'] },
+      'find-closet-key': { itemsHeld: ['hall-closet-key'] },
       'beat-dice': { secretsFound: ['dice-monster'] },
       'clear-goblin': { secretsFound: ['grass-cleared'] },
       'reach-terminus': { visitedRooms: ['terminus'] },
