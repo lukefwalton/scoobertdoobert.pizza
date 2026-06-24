@@ -15,6 +15,7 @@ import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
 import { danceAlong, dancedCount } from '../lib/danceAlong';
+import { ratDialogue } from '../data/dialogue';
 import { itemById } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
@@ -46,6 +47,9 @@ export function WorldHud() {
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearEntity = useSceneStore((s) => s.nearEntity);
+  const nearNpc = useSceneStore((s) => s.nearNpc);
+  const openNpc = useSceneStore((s) => s.openNpc);
+  const closeNpc = useSceneStore((s) => s.closeNpcDialog);
   const pendingRoom = useSceneStore((s) => s.pendingRoom);
   const transitioning = useSceneStore((s) => s.transitioning);
   const currentRoom = useSceneStore((s) => s.currentRoom);
@@ -176,12 +180,13 @@ export function WorldHud() {
       if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
         if (st.tvVideo) st.closeTv();
+        else if (st.openNpc) st.closeNpcDialog();
         else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot || st.tvVideo) return;
+        if (st.paused || st.openHotspot || st.tvVideo || st.openNpc) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           // enterDoor honors a key lock (shared with the click path), then dives
@@ -197,6 +202,9 @@ export function WorldHud() {
           st.openTv(albumVideo(st.nearTv));
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
+        } else if (st.nearNpc) {
+          // Talk to the settled rat — the guide opens its dialogue box.
+          st.openNpcDialog(st.nearNpc.id);
         } else if (st.nearEntity) {
           // Dance back with the entity you're near (non-traumatic reward).
           danceAlong(st.nearEntity.id, st.nearEntity.label);
@@ -314,11 +322,29 @@ export function WorldHud() {
         <div className="hud-prompt">{nearHs.prompt}</div>
       )}
 
-      {nearEntity && !nearDoor && !nearTv && !nearHs && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt hud-prompt--dance">
-          Press E to dance along with {nearEntity.label}
-        </div>
-      )}
+      {nearNpc &&
+        !nearDoor &&
+        !nearTv &&
+        !nearHs &&
+        !open &&
+        !openNpc &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--npc">Press E to talk to {nearNpc.label}</div>
+        )}
+
+      {nearEntity &&
+        !nearDoor &&
+        !nearTv &&
+        !nearHs &&
+        !nearNpc &&
+        !open &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--dance">
+            Press E to dance along with {nearEntity.label}
+          </div>
+        )}
 
       {openDest && (
         <div
@@ -348,6 +374,28 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {openNpc === 'rat' &&
+        (() => {
+          const lines = ratDialogue(progress);
+          return (
+            <div className="hud-dialog window" role="dialog" aria-label="the rat">
+              <div className="title-bar">
+                <div className="title-bar-text">🐀 the rat</div>
+                <div className="title-bar-controls">
+                  <button aria-label="Close" onClick={closeNpc} />
+                </div>
+              </div>
+              <div className="window-body">
+                <p>{lines.greeting}</p>
+                <p className="hud-dialog__nudge">{lines.nudge}</p>
+                <p>
+                  <button onClick={closeNpc}>…thanks, rat</button>
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
       {tvVideo && (
         <div className="hud-dialog window hud-dialog--tv" role="dialog" aria-label={tvVideo.title}>
