@@ -18,8 +18,9 @@ export function dancedCount(secretsFound: string[]): number {
   return secretsFound.filter((s) => s.startsWith('danced:')).length;
 }
 
-/** Dance along with the entity you're near. Idempotent reward; always cheers. */
-export function danceAlong(id: string, label: string): void {
+/** Pay out a completed dance (called on a rhythm-minigame WIN). Idempotent
+ *  reward; always cheers the entity into a flourish. */
+export function rewardDance(id: string, label: string): void {
   const p = useProgressStore.getState();
   audio.unlock();
   audio.playChime(noteToFreq('A', 5), 0, 0.12, 0.7); // a light, friendly boop

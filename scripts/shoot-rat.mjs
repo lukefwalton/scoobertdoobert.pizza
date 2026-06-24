@@ -49,10 +49,17 @@ let talkPrompt = false;
 let dialogOpen = false;
 let nudgeShown = false;
 
-// 1) Trigger the rat: step down past TRIGGER_Z so it darts to the panel, knocks,
-//    reveals the secret, and bolts to settle at the dark end.
+// 1) Trigger the rat: walk down the hall UNTIL it breaks off to knock (its phase
+//    leaves 'lead'). Polling — not a fixed-duration walk — so it's robust on a
+//    slow CI runner, where a fixed press covers less ground (clamped per-frame
+//    delta) and might never reach the trigger zone. Then it knocks → reveals →
+//    bolts → settles to 'done' on its own.
 await page.keyboard.down('w');
-await page.waitForTimeout(1600);
+await page
+  .waitForFunction(() => window.__sdpRatPhase && window.__sdpRatPhase !== 'lead', null, {
+    timeout: 16000,
+  })
+  .catch(() => {});
 await page.keyboard.up('w');
 const settled = await page
   .waitForFunction(() => window.__sdpRatPhase === 'done', null, { timeout: 12000 })

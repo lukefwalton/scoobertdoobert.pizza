@@ -198,6 +198,79 @@
   padding-left: 8px;
   color: #3a3a3a;
 }
+
+/* the dance rhythm minigame — a centered panel; arrow beats light in sequence. */
+.hud-rhythm {
+  position: fixed;
+  inset: 0;
+  z-index: 78;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.hud-rhythm__card {
+  width: min(360px, 90vw);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.hud-rhythm__cue {
+  margin: 4px 0 10px;
+  font-size: 0.95em;
+  color: #2a2a2a;
+}
+.hud-rhythm__seq {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 0 0 10px;
+}
+.hud-rhythm__beat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 1.6rem;
+  color: #8a8a8a;
+  background: #d8d8d8;
+  border: 2px solid #b0b0b0;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-rhythm__beat.is-lit {
+  color: #2a2a2a;
+  background: #ffe9a8;
+  border-color: #caa14a;
+}
+.hud-rhythm__beat.is-cur {
+  border-color: #d86a2a;
+  color: #b8431a;
+}
+/* a brief horizontal nudge on a wrong key (keyed re-mount) — no flash. */
+.hud-rhythm__seq.is-miss {
+  animation: hud-rhythm-miss 0.22s ease;
+}
+@keyframes hud-rhythm-miss {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(-5px);
+  }
+  66% {
+    transform: translateX(5px);
+  }
+}
+.hud-rhythm__hint {
+  margin: 0;
+  font-size: 0.72em;
+  color: #777;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-rhythm__seq.is-miss {
+    animation: none;
+  }
+}
 .hud-dialog .window-body p {
   margin: 8px 0;
 }

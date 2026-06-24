@@ -14,7 +14,9 @@ import { ObjectiveHud } from './ObjectiveHud';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
-import { danceAlong, dancedCount } from '../lib/danceAlong';
+import { dancedCount } from '../lib/danceAlong';
+import { useRhythmStore, type Dir } from '../state/rhythmStore';
+import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
 import { itemById } from '../data/items';
 import { albumVideo } from '../data/videos';
@@ -47,6 +49,7 @@ export function WorldHud() {
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearEntity = useSceneStore((s) => s.nearEntity);
+  const rhythmActive = useRhythmStore((s) => s.active);
   const nearNpc = useSceneStore((s) => s.nearNpc);
   const openNpc = useSceneStore((s) => s.openNpc);
   const closeNpc = useSceneStore((s) => s.closeNpcDialog);
@@ -174,6 +177,31 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
+      // The dance rhythm minigame owns input while it's up: arrow keys feed the
+      // copy (not movement, which is frozen), Esc steps away. Handled first so it
+      // can't fall through to door/pause logic.
+      const rhythm = useRhythmStore.getState();
+      if (rhythm.active) {
+        if (e.key === 'Escape') {
+          rhythm.close();
+          return;
+        }
+        const dir: Dir | null =
+          e.key === 'ArrowUp'
+            ? 'up'
+            : e.key === 'ArrowDown'
+              ? 'down'
+              : e.key === 'ArrowLeft'
+                ? 'left'
+                : e.key === 'ArrowRight'
+                  ? 'right'
+                  : null;
+        if (dir) {
+          e.preventDefault();
+          rhythm.press(dir);
+        }
+        return;
+      }
       // No input during the door wipe OR a painting dive (E or Esc) — both are modal
       // transitions. Blocking Esc on divingTo too is what keeps pause from opening
       // mid-dive and stranding you in the old room after the album already started.
@@ -206,8 +234,8 @@ export function WorldHud() {
           // Talk to the settled rat — the guide opens its dialogue box.
           st.openNpcDialog(st.nearNpc.id);
         } else if (st.nearEntity) {
-          // Dance back with the entity you're near (non-traumatic reward).
-          danceAlong(st.nearEntity.id, st.nearEntity.label);
+          // Start the dance rhythm minigame with the entity you're near.
+          useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
     };
@@ -253,6 +281,7 @@ export function WorldHud() {
         currentRoom={currentRoom}
         hidden={paused || !!pendingRoom || !!open || !!tvVideo}
       />
+      <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
           {toast.msg}
@@ -340,7 +369,8 @@ export function WorldHud() {
         !nearNpc &&
         !open &&
         !paused &&
-        !pendingRoom && (
+        !pendingRoom &&
+        !rhythmActive && (
           <div className="hud-prompt hud-prompt--dance">
             Press E to dance along with {nearEntity.label}
           </div>

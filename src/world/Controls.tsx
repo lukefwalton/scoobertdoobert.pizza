@@ -5,6 +5,7 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
 import { useHeadingStore } from '../state/headingStore';
+import { useRhythmStore } from '../state/rhythmStore';
 import { isTestEntrance } from '../lib/testHooks';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
@@ -27,9 +28,11 @@ function inputFrozen(): boolean {
   if (
     st.paused ||
     st.openHotspot !== null ||
+    st.openNpc !== null ||
     st.transitioning ||
     st.tvVideo !== null ||
-    st.divingTo !== null
+    st.divingTo !== null ||
+    useRhythmStore.getState().active
   )
     return true;
   const room = roomById(st.currentRoom);
