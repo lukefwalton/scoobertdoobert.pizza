@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
+import { useHeadingStore } from '../state/headingStore';
 import { isTestEntrance } from '../lib/testHooks';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
@@ -53,6 +54,8 @@ export function Controls() {
   const keys = useRef<Record<string, boolean>>({});
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  // Throttle accumulator for publishing the camera pose to the heading store.
+  const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
   const dims = useRef(roomById(currentRoom).dims);
 
@@ -158,6 +161,15 @@ export function Controls() {
       Math.cos(yaw.current) * Math.cos(pitch.current),
     );
     camera.lookAt(camera.position.x + dir.x, camera.position.y + dir.y, camera.position.z + dir.z);
+
+    // Publish the camera pose (room-local x/z + yaw) for the DOM objective compass,
+    // throttled to ~15 Hz so a per-frame store write doesn't churn React. Only here
+    // (past the inputFrozen guard), so it's never written during pause/transition.
+    headAccum.current += dt;
+    if (headAccum.current >= 0.066) {
+      headAccum.current = 0;
+      useHeadingStore.getState().set(camera.position.x, camera.position.z, yaw.current);
+    }
   });
 
   return null;

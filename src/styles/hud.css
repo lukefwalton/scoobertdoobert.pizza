@@ -27,6 +27,59 @@
   color: #ffd8f4;
 }
 
+/* the always-on objective chip + compass — top-center, subtle, never in the way. */
+.hud-objective {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 64;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(440px, 86vw);
+  padding: 6px 12px;
+  background: rgba(8, 14, 22, 0.66);
+  border: 1px solid rgba(150, 200, 230, 0.5);
+  color: #dfeaf3;
+  font-family: 'Courier New', Courier, monospace;
+  pointer-events: none;
+}
+.hud-objective__arrow {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #ffd17a;
+  /* the rotation is set inline (transform: rotate(deg)); display so it pivots. */
+  display: inline-block;
+  flex: 0 0 auto;
+  text-shadow: 0 0 4px rgba(255, 209, 122, 0.5);
+}
+.hud-objective__mark {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #9fc4dc;
+  flex: 0 0 auto;
+}
+.hud-objective__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.hud-objective__label {
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-objective__hint {
+  font-size: 0.7rem;
+  color: rgba(223, 234, 243, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* quiet room name, lower-left — orientation flavor, never in the way. */
 .hud-room {
   position: fixed;

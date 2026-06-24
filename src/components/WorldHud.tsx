@@ -10,6 +10,7 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { questStatus, questsDone, QUESTS } from '../data/quests';
 import { WorldMap } from './WorldMap';
+import { ObjectiveHud } from './ObjectiveHud';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
@@ -57,6 +58,8 @@ export function WorldHud() {
   const closeTv = useSceneStore((s) => s.closeTv);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
+  const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
+  const toggleObjectiveHud = useSceneStore((s) => s.toggleObjectiveHud);
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
@@ -237,6 +240,11 @@ export function WorldHud() {
 
   return (
     <>
+      <ObjectiveHud
+        progress={progress}
+        currentRoom={currentRoom}
+        hidden={paused || !!pendingRoom || !!open || !!tvVideo}
+      />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
           {toast.msg}
@@ -466,6 +474,9 @@ export function WorldHud() {
                 </div>
               )}
               <div className="hud-pause__actions">
+                <button onClick={() => toggleObjectiveHud()}>
+                  ◎ objective: {objectiveHudOn ? 'on' : 'off'}
+                </button>
                 <button
                   disabled={!audioReady}
                   onClick={() => {

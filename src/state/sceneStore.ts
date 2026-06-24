@@ -73,6 +73,9 @@ type SceneState = {
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
   nearEntity: { id: string; label: string } | null;
+  /** Whether the on-screen objective chip + compass is shown (pause-menu toggle).
+   *  Ephemeral UI pref; defaults on. */
+  objectiveHudOn: boolean;
   /** A "dance back" pulse: when you dance along with an entity, cheerId names it
    *  and cheerNonce bumps, so that Wanderer can flourish for a beat. */
   cheerId: string | null;
@@ -141,6 +144,7 @@ type SceneState = {
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
+  toggleObjectiveHud: () => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -166,6 +170,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearDoor: null,
   nearTv: null,
   nearEntity: null,
+  objectiveHudOn: true,
   cheerId: null,
   cheerNonce: 0,
   divingTo: null,
@@ -301,6 +306,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
+  toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),
