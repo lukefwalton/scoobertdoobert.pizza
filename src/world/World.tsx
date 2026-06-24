@@ -25,6 +25,8 @@ import { ClosetRoom } from './ClosetRoom';
 import { BoardwalkRoom } from './BoardwalkRoom';
 import { OceanviewRoom } from './OceanviewRoom';
 import { BalboaRoom } from './BalboaRoom';
+import { GalleryRoom } from './GalleryRoom';
+import { DaydreamRoom } from './DaydreamRoom';
 import { ItemPickup } from './ItemPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
@@ -132,6 +134,10 @@ function RoomScene({ room }: { room: Room }) {
       return <OceanviewRoom room={room} />;
     case 'balboa':
       return <BalboaRoom room={room} />;
+    case 'gallery':
+      return <GalleryRoom room={room} />;
+    case 'daydream':
+      return <DaydreamRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
