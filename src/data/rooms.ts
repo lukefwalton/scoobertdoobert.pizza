@@ -31,7 +31,13 @@ export type RoomKind =
   | 'grove'
   | 'frutiger'
   | 'lockerroom'
-  | 'closet';
+  | 'closet'
+  // The Boardwalk wing — a sweet SoCal surface branch off the shop (NOT the
+  // descent): a golden-hour pier, a moonlit beach, a park path. Each plays its
+  // own Scoobert song (Room.song) — the reward for wandering out is the music.
+  | 'boardwalk'
+  | 'oceanview'
+  | 'balboa';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -165,6 +171,14 @@ export type Room = {
    *  space, so the loop-voice SONG fades out while you're here (audio.setSongLevel).
    *  Instrument one-shots, which hit master directly, are unaffected. */
   musicRoom?: boolean;
+  /** The loop-voice SONG this room plays while you're inside it (a jukebox.catalog
+   *  slug). On enter, the room becomes that track; on exit, your preferred pick
+   *  returns (musicStore.restorePreferred) — a TEMPORARY override, never a new
+   *  collectible or a permanent switch. "Exploration's reward is sound": finding the
+   *  place gives you its song. Mutually exclusive with `musicRoom` (which FADES the
+   *  carried song out for rooms that own the space with their own bells). Typos +
+   *  the song/musicRoom conflict are guarded in music.test.ts. */
+  song?: string;
   /** GLB set-dressing placed in the room (GlbProp). Crunched models from the
    *  trove — provenance in THIRD_PARTY_NOTICES.md. */
   props?: RoomProp[];
@@ -216,6 +230,10 @@ export const ROOMS: Room[] = [
       // 3.2 radius) so you land IN the room, not on its prompt, and a held E
       // can't immediately bounce you back through it. Faces the sea.
       fromHall: { position: [0, EYE, ROOM.halfD - 4.5], yaw: Math.PI },
+      // Stepping back IN off the boardwalk: by the +X side door, a step clear of
+      // its radius, facing into the shop (-X). The wing is a LATERAL surface exit
+      // (out to the beach), not a way down — the descent rule is untouched.
+      fromBoardwalk: { position: [ROOM.halfW - 4.5, EYE, 3], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -230,6 +248,18 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'enter the back hall',
         radius: 3.2,
+      },
+      {
+        id: 'shop-to-boardwalk',
+        to: 'boardwalk',
+        toSpawn: 'fromShop',
+        // A screen door in the +X wall — OUT back onto the boardwalk. A sweet
+        // surface side-trip (the literal "pizza shop off the coast"), never the
+        // way down. The visitor finds it by turning from the sea-window.
+        position: [ROOM.halfW - 0.05, 0, 3],
+        rotationY: -Math.PI / 2, // +X wall, opening faces -X into the shop
+        label: 'step out onto the boardwalk',
+        radius: 3,
       },
     ],
   },
@@ -1094,6 +1124,127 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  // ── The Boardwalk wing ──────────────────────────────────────────────────────
+  // A sweet SoCal SURFACE branch off the shop (the literal "pizza shop off the
+  // coast of San Diego"): step out back onto a golden-hour boardwalk, then wander
+  // down to a moonlit beach or up a park path. Off the descent, kept goofy + safe
+  // (taste guardrail — the surface stays sweet). Each room plays its own Scoobert
+  // song while you're in it (Room.song) — the reward for wandering is the music.
+  {
+    id: 'boardwalk',
+    kind: 'boardwalk',
+    title: 'The Boardwalk',
+    // Open + airy, room to stroll the pier. No closed walls (an outdoor room, like
+    // the shrine): the sea is out past the -Z edge, the town up the +X path.
+    dims: { halfW: 9, halfD: 9, height: 6, eye: EYE },
+    // Golden hour: warm peach sky, soft far fog so the sea fades into the dusk.
+    palette: { background: '#e7b27a', fog: '#f0cb98', fogNear: 12, fogFar: 80 },
+    // A potted palm by the rail + an old boardwalk arcade cabinet humming away.
+    props: [
+      { url: '/models/palm-tree.glb', position: [-6.2, 0, -4], fit: 4.6, rotationY: 0.4 },
+      { url: '/models/palm-tree.glb', position: [6.4, 0, -3], fit: 4.2, rotationY: -0.7 },
+      { url: '/models/arcade-cabinet.glb', position: [6, 0, 5.2], fit: 2.4, rotationY: -2.3 },
+    ],
+    // The boardwalk plays its namesake track.
+    song: 'boardwalk',
+    spawns: {
+      // Step out of the shop onto the pier, facing the sea (-Z) — the establishing
+      // view down the boardwalk toward the water. Clear of the +Z shop door. Coming
+      // back up off the beach lands here too: you're back on the pier facing the sea.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromShop: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromOcean: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Back from the park path: by the -X gate (mid-pier), facing +X into the
+      // boardwalk, clear of every door radius.
+      fromBalboa: { position: [-4.45, EYE, 4.5], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'boardwalk-to-shop',
+        to: 'shop',
+        toSpawn: 'fromBoardwalk',
+        position: [0, 0, 8.95], // +Z — back inside the shop
+        rotationY: 0,
+        label: 'back inside the shop',
+        radius: 3.2,
+      },
+      {
+        id: 'boardwalk-to-ocean',
+        to: 'oceanview',
+        toSpawn: 'fromBoardwalk',
+        position: [0, 0, -8.95], // -Z — straight down the pier to the tide line
+        rotationY: Math.PI,
+        label: 'walk down to the tide',
+        radius: 3.2,
+      },
+      {
+        id: 'boardwalk-to-balboa',
+        to: 'balboa',
+        toSpawn: 'fromBoardwalk',
+        position: [-8.95, 0, 4.5], // -X gate, level with the spawn — up to the park
+        rotationY: Math.PI / 2,
+        label: 'follow the path to the park',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'oceanview',
+    kind: 'oceanview',
+    title: 'Moonlight Beach',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Nocturnal contrast to the golden boardwalk: deep moonlit blue, the tide
+    // line out past the -Z edge. Sweet, still — a sit-and-watch breather.
+    palette: { background: '#123150', fog: '#173a5e', fogNear: 10, fogFar: 70 },
+    song: 'ocean-view',
+    spawns: {
+      // Arrive at the top of the beach, facing the moonlit water (-Z). Clear of the
+      // +Z steps back up.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromBoardwalk: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'ocean-to-boardwalk',
+        to: 'boardwalk',
+        toSpawn: 'fromOcean',
+        position: [0, 0, 8.95], // +Z — back up the steps to the boardwalk
+        rotationY: 0,
+        label: 'back up to the boardwalk',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'balboa',
+    kind: 'balboa',
+    title: 'Park Path',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // A bright SoCal park midday — sky blue, palms, a little fountain. Sweet + open.
+    palette: { background: '#86b6d6', fog: '#a6cce0', fogNear: 11, fogFar: 80 },
+    // Palms line the path.
+    props: [
+      { url: '/models/palm-tree.glb', position: [-5.6, 0, -3.5], fit: 5, rotationY: 0.3 },
+      { url: '/models/palm-tree.glb', position: [5.8, 0, -5], fit: 4.6, rotationY: -0.5 },
+    ],
+    song: 'walking-balboa',
+    spawns: {
+      // Arrive on the path, facing up into the park (-Z). Clear of the +Z gate back.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromBoardwalk: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'balboa-to-boardwalk',
+        to: 'boardwalk',
+        toSpawn: 'fromBalboa',
+        position: [0, 0, 8.95], // +Z — back down to the boardwalk
+        rotationY: 0,
+        label: 'back to the boardwalk',
+        radius: 3.2,
+      },
+    ],
+  },
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -1203,6 +1354,11 @@ export function roomById(id: string): Room {
 // the shrine/grass thread branches right off the poolrooms hub. Every room id
 // must have an entry (asserted in rooms.test) so the map can never miss a node.
 export const ROOM_MAP: Record<string, { x: number; y: number }> = {
+  // boardwalk wing — a sweet SURFACE branch out the side of the shop (left, up
+  // top: it's not a descent, it's a stroll out to the beach + park).
+  boardwalk: { x: 3, y: 0.3 },
+  balboa: { x: 1.4, y: 0 },
+  oceanview: { x: 2.4, y: 1.1 },
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
   hallway: { x: 5, y: 1.2 },

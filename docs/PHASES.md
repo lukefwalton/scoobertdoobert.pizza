@@ -219,9 +219,19 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
 - ✅ **Arrival-spawn contract guard:** fixed grove/frutiger spawning ON their exit
   prompt; `spawnFacingInward` + a dev guard + `rooms.test` assert every spawn lands
   clear of, and facing away from, its doors (the "wrong side of the map" fix).
+- ✅ **The Boardwalk wing (world-content):** a sweet SoCal **surface** branch off
+  the shop (a +X screen door, NOT the descent) — **The Boardwalk** (golden-hour
+  pier over the crunchy sea), **Moonlight Beach** (a moonlit sit-and-watch
+  breather), and a **Park Path** (the Balboa fountain). Introduces **`Room.song`**:
+  a room owns the loop voice while you're in it (a `jukebox.catalog` slug) and
+  hands it back on exit (`musicStore.restorePreferred`) — "exploration's reward is
+  sound," no new collectible. Reuses the shipped `Water` (now tint/placement-
+  configurable), `palm-tree`/`arcade-cabinet` props. `shoot:boardwalk`,
+  `music.test` Room.song guard. Surface stays sweet (taste guardrail).
 - ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
   a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
-  reactivity** (the shop reflects your deeds — clover at high luck, etc.).
+  reactivity** (the shop reflects your deeds — clover at high luck, etc.); more
+  album-themed wings (greek-vaporwave gallery, memory-lane) reusing the GLB trove.
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
