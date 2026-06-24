@@ -3,6 +3,14 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, applyVertexSnap } from './ps1';
 import { isTestEntrance } from '../lib/testHooks';
+import { useSceneStore } from '../state/sceneStore';
+
+// A friendly name for the "dance along" prompt + reward, defaulted from the body.
+const BODY_LABEL: Record<EntityBodyKind, string> = {
+  blob: 'the blob',
+  lurker: 'the lurker',
+  mop: 'the mop-thing',
+};
 
 // ───────────────────────────────────────────────────────────────────────────
 // Wanderer — a roaming entity for the big GLB levels (the generalized cousin of
@@ -92,6 +100,7 @@ function EntityBody({ kind }: { kind: EntityBodyKind }) {
 export function Wanderer({
   id,
   body,
+  label,
   bounds,
   spawn,
   danceRadius = 4.2,
@@ -99,6 +108,7 @@ export function Wanderer({
 }: {
   id: string;
   body: EntityBodyKind;
+  label?: string;
   bounds: { halfW: number; halfD: number };
   spawn: [number, number];
   /** Get this close → it stops a readable few steps off and dances; ~2× that is
@@ -109,6 +119,11 @@ export function Wanderer({
 }) {
   const ref = useRef<THREE.Group>(null);
   const { camera } = useThree();
+  const name = label ?? BODY_LABEL[body];
+  // Track our own dance/cheer state across frames (no re-render needed).
+  const dancing = useRef(false);
+  const cheerSeen = useRef(0);
+  const flourishUntil = useRef(0);
 
   // Keep entities off the walls/doors: roam the inner 80% of the room.
   const inW = bounds.halfW * 0.8;
@@ -122,14 +137,20 @@ export function Wanderer({
   const danceT = useRef(0);
   // A per-entity phase offset so a group of them don't dance in lockstep.
   const seed = useRef(Math.random() * 100);
+  // Finale: when finaleNonce bumps (all objectives done), every wanderer breaks
+  // into a group dance for a few seconds, wherever it is.
+  const finaleSeen = useRef(useSceneStore.getState().finaleNonce);
+  const finaleUntil = useRef(0);
 
   // Clear the per-frame phase debug global on unmount (room change), mirroring
   // ItemPickup — so a smoke/debug session can't see a stale phase for an entity
   // that's no longer in the room.
   useEffect(() => {
-    if (!EXPOSE_PHASE) return;
     return () => {
-      delete (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`];
+      if (EXPOSE_PHASE) delete (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`];
+      // If we were the prompt's target when the room unmounts, clear it.
+      const st = useSceneStore.getState();
+      if (st.nearEntity?.id === id) st.setNearEntity(null);
     };
   }, [id]);
 
@@ -149,19 +170,43 @@ export function Wanderer({
     const distToPlayer = Math.hypot(dx, dz);
     const notice = danceRadius * 2;
 
+    // Finale pulse → everyone dances for ~4.5s, near the player or not.
+    const fn = useSceneStore.getState().finaleNonce;
+    if (fn !== finaleSeen.current) {
+      finaleSeen.current = fn;
+      finaleUntil.current = t + 4.5;
+    }
+    const inFinale = t < finaleUntil.current;
+
     // Phase: dance when close, approach when noticed, else wander. Hysteresis on
-    // the way out of the dance so it doesn't flicker at the boundary.
+    // the way out of the dance so it doesn't flicker at the boundary. The finale
+    // forces a dance regardless of proximity (the group celebration).
     if (distToPlayer < danceRadius) phase.current = 'dance';
     else if (phase.current === 'dance' && distToPlayer < danceRadius + 1.5) {
       /* keep dancing through the hysteresis band */
     } else if (distToPlayer < notice) phase.current = 'approach';
     else phase.current = 'wander';
+    if (inFinale) phase.current = 'dance';
 
     if (phase.current === 'dance') {
+      // On ENTERING the dance NEAR the player, become the "dance along" prompt's
+      // target. (A finale-forced dance from across the room doesn't grab the prompt.)
+      if (!dancing.current && distToPlayer < danceRadius + 1.5) {
+        dancing.current = true;
+        useSceneStore.getState().setNearEntity({ id, label: name });
+      }
+      // A "dance back" cheer (you pressed E): flourish bigger for a couple seconds.
+      const sc = useSceneStore.getState();
+      if (sc.cheerId === id && sc.cheerNonce !== cheerSeen.current) {
+        cheerSeen.current = sc.cheerNonce;
+        flourishUntil.current = t + 2.2;
+      }
       // Stop translating; the dance is procedural. Gentle (taste/WCAG), and tiny
-      // under reduced motion. Face the player so the googly eyes meet yours.
+      // under reduced motion. Face the player so the googly eyes meet yours. A
+      // flourish boosts the amplitude a touch — still capped under reduced motion.
       vel.current.multiplyScalar(Math.pow(0.0001, dt)); // damp to a stop
-      const amp = REDUCED ? 0.25 : 1;
+      const flourishing = t < flourishUntil.current || inFinale;
+      const amp = (REDUCED ? 0.25 : 1) * (flourishing ? 1.6 : 1);
       danceT.current += dt;
       const hop = Math.abs(Math.sin(t * 6)) * 0.22 * amp;
       const sway = Math.sin(t * 3) * 0.12 * amp;
@@ -172,6 +217,13 @@ export function Wanderer({
       if (EXPOSE_PHASE)
         (window as unknown as Record<string, unknown>)[`__sdpEntity:${id}`] = 'dance';
       return;
+    }
+
+    // Left the dance: if we were the prompt target, release it.
+    if (dancing.current) {
+      dancing.current = false;
+      const st = useSceneStore.getState();
+      if (st.nearEntity?.id === id) st.setNearEntity(null);
     }
 
     // Wander / approach: steer toward a target.

@@ -1,15 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { MENU_DESTINATIONS, destById } from '../data/links';
-import { roomById, ROOM_FADE_MS } from '../data/rooms';
+import { roomById, ROOM_FADE_MS, ROOMS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
-import { useToastStore } from '../state/toastStore';
+import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
+import { WorldMap } from './WorldMap';
+import { ObjectiveHud } from './ObjectiveHud';
+import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
+import { dancedCount } from '../lib/danceAlong';
+import { useRhythmStore, type Dir } from '../state/rhythmStore';
+import { RhythmGame } from './RhythmGame';
+import { ratDialogue } from '../data/dialogue';
 import { itemById } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
@@ -40,6 +49,11 @@ export function WorldHud() {
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearTv = useSceneStore((s) => s.nearTv);
+  const nearEntity = useSceneStore((s) => s.nearEntity);
+  const rhythmActive = useRhythmStore((s) => s.active);
+  const nearNpc = useSceneStore((s) => s.nearNpc);
+  const openNpc = useSceneStore((s) => s.openNpc);
+  const closeNpc = useSceneStore((s) => s.closeNpcDialog);
   const pendingRoom = useSceneStore((s) => s.pendingRoom);
   const transitioning = useSceneStore((s) => s.transitioning);
   const currentRoom = useSceneStore((s) => s.currentRoom);
@@ -52,19 +66,39 @@ export function WorldHud() {
   const closeTv = useSceneStore((s) => s.closeTv);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
+  const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
+  const toggleObjectiveHud = useSceneStore((s) => s.toggleObjectiveHud);
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
   const nowPlaying = useMusicStore((s) => s.title);
   const shiftSong = useMusicStore((s) => s.shift);
-  // The flip-through radio is an UPGRADE: locked until you roll the jukebox d20.
-  const radioUnlocked = useProgressStore((s) => s.radioUnlocked);
-  // The game layer's LUCK stat — shown in the pause menu (allowed since the
-  // "no-HUD" rule was lifted), earned by rituals, spent by the system on d20s.
-  const luck = useProgressStore(selectLuck);
-  // The durable inventory — drives the pause-menu "Pockets" list and the locked-
-  // door prompt (so picking the key up flips the prompt from 🔒 to "open").
-  const itemsHeld = useProgressStore((s) => s.itemsHeld);
+  // One shallow-compared snapshot of the durable progress drives the whole
+  // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
+  // door prompt). useShallow so re-rendering only happens when a field actually
+  // changes — and never the getSnapshot-not-cached loop a fresh-object selector
+  // would cause. Quest predicates take a whole Progress, which this is.
+  const progress = useProgressStore(
+    useShallow((s) => ({
+      visits: s.visits,
+      everEnteredWorld: s.everEnteredWorld,
+      visitedRooms: s.visitedRooms,
+      secretsFound: s.secretsFound,
+      maxFloor: s.maxFloor,
+      maxUnease: s.maxUnease,
+      clearedGames: s.clearedGames,
+      arcadeHigh: s.arcadeHigh,
+      radioUnlocked: s.radioUnlocked,
+      luckEarned: s.luckEarned,
+      luckSpent: s.luckSpent,
+      itemsHeld: s.itemsHeld,
+    })),
+  );
+  // Derived locals (used throughout the pause menu below).
+  const radioUnlocked = progress.radioUnlocked;
+  const luck = selectLuck(progress);
+  const itemsHeld = progress.itemsHeld;
+  const visitedRooms = progress.visitedRooms;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
@@ -144,18 +178,44 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
+      // The dance rhythm minigame owns input while it's up: arrow keys feed the
+      // copy (not movement, which is frozen), Esc steps away. Handled first so it
+      // can't fall through to door/pause logic.
+      const rhythm = useRhythmStore.getState();
+      if (rhythm.active) {
+        if (e.key === 'Escape') {
+          rhythm.close();
+          return;
+        }
+        const dir: Dir | null =
+          e.key === 'ArrowUp'
+            ? 'up'
+            : e.key === 'ArrowDown'
+              ? 'down'
+              : e.key === 'ArrowLeft'
+                ? 'left'
+                : e.key === 'ArrowRight'
+                  ? 'right'
+                  : null;
+        if (dir) {
+          e.preventDefault();
+          rhythm.press(dir);
+        }
+        return;
+      }
       // No input during the door wipe OR a painting dive (E or Esc) — both are modal
       // transitions. Blocking Esc on divingTo too is what keeps pause from opening
       // mid-dive and stranding you in the old room after the album already started.
       if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
         if (st.tvVideo) st.closeTv();
+        else if (st.openNpc) st.closeNpcDialog();
         else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot || st.tvVideo) return;
+        if (st.paused || st.openHotspot || st.tvVideo || st.openNpc) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           // enterDoor honors a key lock (shared with the click path), then dives
@@ -171,6 +231,12 @@ export function WorldHud() {
           st.openTv(albumVideo(st.nearTv));
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
+        } else if (st.nearNpc) {
+          // Talk to the settled rat — the guide opens its dialogue box.
+          st.openNpcDialog(st.nearNpc.id);
+        } else if (st.nearEntity) {
+          // Start the dance rhythm minigame with the entity you're near.
+          useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
     };
@@ -186,12 +252,72 @@ export function WorldHud() {
     return () => window.clearTimeout(t);
   }, [toast, clearToast]);
 
+  // Announce an objective the moment it ticks done (the Feedback pillar). Seed the
+  // "already done" set on first run so re-entering the world doesn't replay old
+  // completions, and fire on a short delay so the action's own toast (e.g. the
+  // pickup/luck one that COMPLETED the quest) shows first, then the ✓ confirmation.
+  const prevDone = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const doneNow = new Set(QUESTS.filter((q) => q.done(progress)).map((q) => q.id));
+    if (prevDone.current === null) {
+      prevDone.current = doneNow;
+      return;
+    }
+    const fresh = [...doneNow].filter((id) => !prevDone.current!.has(id));
+    prevDone.current = doneNow;
+    if (!fresh.length) return;
+    const label = QUESTS.find((q) => q.id === fresh[0])?.label ?? 'an objective';
+    const t = window.setTimeout(() => announce(`✓ ${label}`, 'luck'), 1500);
+    return () => window.clearTimeout(t);
+  }, [progress]);
+
+  // THE FINALE (the win arc): the moment EVERY objective is done, fire it once —
+  // a fanfare + a sweet toast, a luck bonus, and every wanderer in the room breaks
+  // into a group dance (triggerFinale). Durable 'finale' secret gates it to once
+  // ever; prevWasComplete seeds on mount so re-entering already-complete is silent.
+  const prevComplete = useRef<boolean | null>(null);
+  const firedFinale = useRef(false);
+  useEffect(() => {
+    const complete = allQuestsDone(progress);
+    if (prevComplete.current === null) {
+      // Seed on mount: re-entering already-finished never re-fires.
+      prevComplete.current = complete;
+      firedFinale.current = complete && progress.secretsFound.includes('finale');
+      return;
+    }
+    const justNow = complete && !prevComplete.current;
+    prevComplete.current = complete;
+    if (!justNow || firedFinale.current || progress.secretsFound.includes('finale')) return;
+    // firedFinale + the durable secret guard against the re-run our OWN gainLuck(5)
+    // triggers; the announce is fire-and-forget (no cleanup) so that re-run can't
+    // cancel it. Delayed past the per-objective ✓ toast so the ★ lands last.
+    firedFinale.current = true;
+    useProgressStore.getState().findSecret('finale');
+    useProgressStore.getState().gainLuck(5);
+    useSceneStore.getState().triggerFinale();
+    audio.unlock();
+    audio.playChime(noteToFreq('C', 5), -0.2, 0.14, 1.6);
+    audio.playChime(noteToFreq('E', 5), 0, 0.14, 1.6);
+    audio.playChime(noteToFreq('G', 5), 0.1, 0.14, 1.8);
+    audio.playChime(noteToFreq('C', 6), 0.2, 0.12, 2);
+    window.setTimeout(
+      () => announce('★ You’ve seen it all — for now. The rat’s proud. · +5 luck', 'crit-good'),
+      1800,
+    );
+  }, [progress]);
+
   const nearHs = near ? HOTSPOTS.find((h) => h.id === near) : undefined;
   const openHs = open ? HOTSPOTS.find((h) => h.id === open) : undefined;
   const openDest = openHs ? destById(openHs.destId) : undefined;
 
   return (
     <>
+      <ObjectiveHud
+        progress={progress}
+        currentRoom={currentRoom}
+        hidden={paused || !!pendingRoom || !!open || !!tvVideo}
+      />
+      <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
           {toast.msg}
@@ -261,6 +387,31 @@ export function WorldHud() {
         <div className="hud-prompt">{nearHs.prompt}</div>
       )}
 
+      {nearNpc &&
+        !nearDoor &&
+        !nearTv &&
+        !nearHs &&
+        !open &&
+        !openNpc &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--npc">Press E to talk to {nearNpc.label}</div>
+        )}
+
+      {nearEntity &&
+        !nearDoor &&
+        !nearTv &&
+        !nearHs &&
+        !nearNpc &&
+        !open &&
+        !paused &&
+        !pendingRoom &&
+        !rhythmActive && (
+          <div className="hud-prompt hud-prompt--dance">
+            Press E to dance along with {nearEntity.label}
+          </div>
+        )}
+
       {openDest && (
         <div
           className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
@@ -289,6 +440,28 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {openNpc === 'rat' &&
+        (() => {
+          const lines = ratDialogue(progress);
+          return (
+            <div className="hud-dialog window" role="dialog" aria-label="the rat">
+              <div className="title-bar">
+                <div className="title-bar-text">🐀 the rat</div>
+                <div className="title-bar-controls">
+                  <button aria-label="Close" onClick={closeNpc} />
+                </div>
+              </div>
+              <div className="window-body">
+                <p>{lines.greeting}</p>
+                <p className="hud-dialog__nudge">{lines.nudge}</p>
+                <p>
+                  <button onClick={closeNpc}>…thanks, rat</button>
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
       {tvVideo && (
         <div className="hud-dialog window hud-dialog--tv" role="dialog" aria-label={tvVideo.title}>
@@ -331,6 +504,44 @@ export function WorldHud() {
                   </ul>
                 </div>
               )}
+              <div className="hud-pause__progress" title="What you've turned up so far">
+                <span>
+                  Rooms <strong>{visitedRooms.length}</strong>/{ROOMS.length}
+                </span>
+                <span>
+                  Secrets <strong>{progress.secretsFound.length}</strong>
+                </span>
+                <span>
+                  Games <strong>{progress.clearedGames.length}</strong>
+                </span>
+                {dancedCount(progress.secretsFound) > 0 && (
+                  <span>
+                    Danced <strong>{dancedCount(progress.secretsFound)}</strong>
+                  </span>
+                )}
+              </div>
+              <div className="hud-pause__todo">
+                <p className="hud-pause__invtitle">
+                  To-Do{' '}
+                  <span className="hud-pause__todocount">
+                    {allQuestsDone(progress)
+                      ? `★ ${completionPct(progress)}% — seen it all`
+                      : `${completionPct(progress)}%`}
+                  </span>
+                </p>
+                <ul className="hud-pause__todolist">
+                  {questStatus(progress).map(({ quest, done }) => (
+                    <li
+                      key={quest.id}
+                      className={done ? 'is-done' : ''}
+                      title={done ? 'Done' : quest.hint}
+                    >
+                      <span aria-hidden="true">{done ? '✓' : '○'}</span> {quest.label}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <WorldMap visited={visitedRooms} current={currentRoom} />
               <ul className="hud-pause__list">
                 {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>
@@ -379,6 +590,9 @@ export function WorldHud() {
                 </div>
               )}
               <div className="hud-pause__actions">
+                <button onClick={() => toggleObjectiveHud()}>
+                  ◎ objective: {objectiveHudOn ? 'on' : 'off'}
+                </button>
                 <button
                   disabled={!audioReady}
                   onClick={() => {
