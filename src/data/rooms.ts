@@ -1137,6 +1137,33 @@ export function roomById(id: string): Room {
   return r;
 }
 
+// 2D layout for the pause-menu map (WorldMap): x = spread, y = DEPTH (down). Not
+// geographic — a readable node graph. The water thread runs down the centre-left,
+// the shrine/grass thread branches right off the poolrooms hub. Every room id
+// must have an entry (asserted in rooms.test) so the map can never miss a node.
+export const ROOM_MAP: Record<string, { x: number; y: number }> = {
+  // water / main descent (centre)
+  shop: { x: 5, y: 0 },
+  hallway: { x: 5, y: 1.2 },
+  classified: { x: 3, y: 1.6 },
+  jukebox: { x: 5, y: 2.4 },
+  practice: { x: 3, y: 2.8 },
+  poolrooms: { x: 5, y: 3.6 },
+  dicepit: { x: 3.2, y: 4.0 },
+  lockerroom: { x: 2.2, y: 4.6 },
+  mobius: { x: 5, y: 4.8 },
+  liminal: { x: 5, y: 6.0 },
+  deeppool: { x: 5, y: 7.2 },
+  // shrine / grass thread (right branch off the pool)
+  shrine: { x: 7, y: 4.4 },
+  'metro-tunnel': { x: 7, y: 5.6 },
+  terminus: { x: 7, y: 6.8 },
+  grassfield: { x: 8.6, y: 4.9 },
+  grassbattle: { x: 9.8, y: 5.4 },
+  grove: { x: 8.6, y: 5.9 },
+  frutiger: { x: 9.8, y: 6.4 },
+};
+
 // The MAIN DESCENT — the rooms on the way down (the jaunt). Keys may never gate
 // these (friction budget: the descent has zero hard gates); a requiresKey door
 // must target SIDE/SECRET content only. Enforced by the dev guard below + the

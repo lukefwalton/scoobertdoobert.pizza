@@ -1,5 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ROOMS, roomById, trapDropForRoll, fogFor, FIRST_ROOM, spawnFacingInward } from './rooms';
+import {
+  ROOMS,
+  ROOM_MAP,
+  roomById,
+  trapDropForRoll,
+  fogFor,
+  FIRST_ROOM,
+  spawnFacingInward,
+} from './rooms';
 
 describe('rooms graph', () => {
   it('roomById returns the match, and soft-falls-back to the shop on an unknown id', () => {
@@ -32,6 +40,16 @@ describe('rooms graph', () => {
       const drop = trapDropForRoll(face);
       expect(roomById(drop.room).id).toBe(drop.room);
       expect(roomById(drop.room).spawns[drop.spawn]).toBeDefined();
+    }
+  });
+
+  it('every room has pause-menu map coords (and no stray ids in ROOM_MAP)', () => {
+    for (const room of ROOMS) {
+      expect(ROOM_MAP[room.id], `room "${room.id}" missing a ROOM_MAP entry`).toBeDefined();
+    }
+    const ids = new Set(ROOMS.map((r) => r.id));
+    for (const id of Object.keys(ROOM_MAP)) {
+      expect(ids.has(id), `ROOM_MAP has "${id}" which is not a real room`).toBe(true);
     }
   });
 
