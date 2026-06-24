@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useControls } from 'leva';
 import * as THREE from 'three';
@@ -50,7 +50,26 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-export function Water() {
+// The shop's sea is the default; the boardwalk wing reuses the SAME crunchy water
+// with a different tint/placement (a golden-hour sea, a moonlit tide). All props
+// are optional with the shop's values as defaults, so `<Water />` is unchanged.
+export function Water({
+  base = '#1aa3c8',
+  crest = '#bfeef6',
+  fog,
+  fogNear = FOG_NEAR,
+  fogFar = FOG_FAR,
+  y = SEA.waterY,
+  z = SEA.z,
+}: {
+  base?: THREE.ColorRepresentation;
+  crest?: THREE.ColorRepresentation;
+  fog?: THREE.ColorRepresentation;
+  fogNear?: number;
+  fogFar?: number;
+  y?: number;
+  z?: number;
+} = {}) {
   const { amp, freq, snap } = useControls('water', {
     amp: { value: 1.2, min: 0, max: 3, step: 0.1 },
     freq: { value: 0.18, min: 0.02, max: 0.6, step: 0.01 },
@@ -68,15 +87,18 @@ export function Water() {
           uSnap: { value: 56 },
           uAmp: { value: 1.2 },
           uFreq: { value: 0.18 },
-          uBase: { value: new THREE.Color('#1aa3c8') },
-          uCrest: { value: new THREE.Color('#bfeef6') },
-          uFog: { value: OCEAN },
-          uFogNear: { value: FOG_NEAR },
-          uFogFar: { value: FOG_FAR },
+          uBase: { value: new THREE.Color(base) },
+          uCrest: { value: new THREE.Color(crest) },
+          // Default the water's own fog to the shop OCEAN cyan (back-compat); a
+          // room passes its palette fog so the sea dissolves into the right dusk.
+          uFog: { value: fog ? new THREE.Color(fog) : OCEAN.clone() },
+          uFogNear: { value: fogNear },
+          uFogFar: { value: fogFar },
         },
       }),
-    [],
+    [base, crest, fog, fogNear, fogFar],
   );
+  useEffect(() => () => material.dispose(), [material]);
 
   useFrame((state) => {
     material.uniforms.uTime.value = state.clock.elapsedTime;
@@ -86,11 +108,6 @@ export function Water() {
   });
 
   return (
-    <mesh
-      geometry={geometry}
-      material={material}
-      rotation-x={-Math.PI / 2}
-      position={[0, SEA.waterY, SEA.z]}
-    />
+    <mesh geometry={geometry} material={material} rotation-x={-Math.PI / 2} position={[0, y, z]} />
   );
 }
