@@ -37,6 +37,13 @@ export const ITEMS: Item[] = [
     blurb: 'Stamped “DEEP END · STAFF ONLY.” Still smells faintly of chlorine.',
     glyph: '🔑',
   },
+  {
+    id: 'hall-closet-key',
+    kind: 'key',
+    label: 'Brass Closet Key',
+    blurb: 'A stubby brass key on a bottle-cap fob. Tagged “SUPPLY” in marker.',
+    glyph: '🗝️',
+  },
 ];
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));

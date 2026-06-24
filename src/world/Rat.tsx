@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { applyVertexSnap } from './ps1';
@@ -131,8 +131,9 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
       if (knockT.current > 0.45) store.revealSecret();
       if (knockT.current > 1.7) phase.current = 'done';
     } else {
-      // Done: bolt for the dark far (-Z) end and skitter there.
-      _target.set(-bounds.halfW + 0.7, RAT_Y, -bounds.halfD + 1.2 + Math.sin(t * 4) * 0.4);
+      // Done: skitter to the dark end and settle — a stride clear of the jukebox
+      // door (so "Press E to talk" wins over the door prompt when you come over).
+      _target.set(-bounds.halfW + 0.7, RAT_Y, -bounds.halfD + 4 + Math.sin(t * 4) * 0.4);
       speed = 5.5;
     }
 
@@ -179,10 +180,26 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
       g.lookAt(pos.current.x + vel.current.x, pos.current.y, pos.current.z + vel.current.z);
     }
 
+    // Talkable once SETTLED ('done') and not menacing: register as the near NPC
+    // when you come close, so "Press E to talk" shows. While leading/knocking it's
+    // busy; when dread has TURNED it, it only stares — no friendly chat.
+    const canTalk = phase.current === 'done' && !turned;
+    const near = canTalk && Math.hypot(player.x - pos.current.x, player.z - pos.current.z) < 3.0;
+    if (near && store.nearNpc?.id !== 'rat') store.setNearNpc({ id: 'rat', label: 'the rat' });
+    else if (!near && store.nearNpc?.id === 'rat') store.setNearNpc(null);
+
     if (EXPOSE_PHASE) {
       (window as Window & { __sdpRatPhase?: string }).__sdpRatPhase = phase.current;
     }
   });
+
+  // Clear the talk prompt if the hallway unmounts while we're the near NPC.
+  useEffect(() => {
+    return () => {
+      const st = useSceneStore.getState();
+      if (st.nearNpc?.id === 'rat') st.setNearNpc(null);
+    };
+  }, []);
 
   return (
     <group ref={ref}>

@@ -69,6 +69,25 @@ type SceneState = {
    *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
    *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
   nearTv: string | null;
+  /** A dancing Wanderer the camera is close to (its id + a friendly label), or
+   *  null — drives the "Press E to dance along" prompt + the E action. Set by the
+   *  nearest dancing entity each frame, like nearDoor/nearTv. */
+  nearEntity: { id: string; label: string } | null;
+  /** Whether the on-screen objective chip + compass is shown (pause-menu toggle).
+   *  Ephemeral UI pref; defaults on. */
+  objectiveHudOn: boolean;
+  /** An NPC the camera is near + can talk to (the rat once settled), or null —
+   *  drives the "Press E to talk" prompt. */
+  nearNpc: { id: string; label: string } | null;
+  /** The NPC whose dialogue box is open (its id), or null. */
+  openNpc: string | null;
+  /** A "dance back" pulse: when you dance along with an entity, cheerId names it
+   *  and cheerNonce bumps, so that Wanderer can flourish for a beat. */
+  cheerId: string | null;
+  cheerNonce: number;
+  /** The finale pulse: bumps when you complete every objective, so EVERY wanderer
+   *  in the room breaks into a celebratory group dance for a few seconds. */
+  finaleNonce: number;
   /** Mid-DIVE into a painting portal: the destination room id while the cover
    *  ripples + swallows the view, before the room actually swaps. null otherwise. */
   divingTo: string | null;
@@ -130,6 +149,15 @@ type SceneState = {
     } | null,
   ) => void;
   setNearTv: (albumSlug: string | null) => void;
+  setNearEntity: (entity: { id: string; label: string } | null) => void;
+  /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
+  cheerEntity: (id: string) => void;
+  /** Fire the finale: every wanderer breaks into a group dance for a few seconds. */
+  triggerFinale: () => void;
+  toggleObjectiveHud: () => void;
+  setNearNpc: (npc: { id: string; label: string } | null) => void;
+  openNpcDialog: (id: string) => void;
+  closeNpcDialog: () => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -154,6 +182,13 @@ export const useSceneStore = create<SceneState>((set) => ({
   transitioning: false,
   nearDoor: null,
   nearTv: null,
+  nearEntity: null,
+  objectiveHudOn: true,
+  nearNpc: null,
+  openNpc: null,
+  cheerId: null,
+  cheerNonce: 0,
+  finaleNonce: 0,
   divingTo: null,
   tvVideo: null,
   secretRevealed: false,
@@ -187,6 +222,9 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearHotspot: null,
       nearDoor: null,
       nearTv: null,
+      nearEntity: null,
+      nearNpc: null,
+      openNpc: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -202,6 +240,9 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearHotspot: null,
       nearDoor: null,
       nearTv: null,
+      nearEntity: null,
+      nearNpc: null,
+      openNpc: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -248,6 +289,9 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearDoor: null,
         nearHotspot: null,
         nearTv: null,
+        nearEntity: null,
+        nearNpc: null,
+        openNpc: null,
       };
     }),
   // Dive into a painting: ripple/swallow the cover for DIVE_MS (divingTo drives the
@@ -264,7 +308,15 @@ export const useSceneStore = create<SceneState>((set) => ({
         useSceneStore.getState().goToRoom(to, spawn);
         set({ divingTo: null });
       }, DIVE_MS);
-      return { divingTo: to, nearDoor: null, nearHotspot: null, nearTv: null };
+      return {
+        divingTo: to,
+        nearDoor: null,
+        nearHotspot: null,
+        nearTv: null,
+        nearEntity: null,
+        nearNpc: null,
+        openNpc: null,
+      };
     }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.
@@ -282,6 +334,13 @@ export const useSceneStore = create<SceneState>((set) => ({
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
   setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
+  setNearEntity: (entity) => set({ nearEntity: entity }),
+  cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
+  triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),
+  toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),
+  setNearNpc: (npc) => set({ nearNpc: npc }),
+  openNpcDialog: (id) => set({ openNpc: id }),
+  closeNpcDialog: () => set({ openNpc: null }),
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),

@@ -277,7 +277,7 @@ export const getProgressSnapshot = (): Progress => snapshot(useProgressStore.get
  * you've been into the world, come back for a repeat visit, or found a secret.
  * The storefront's returning-visitor wink reads this.
  */
-export const selectReturning = (s: ProgressState): boolean =>
+export const selectReturning = (s: Progress): boolean =>
   s.everEnteredWorld || s.visits >= 2 || s.secretsFound.length > 0;
 
 /**
@@ -297,7 +297,7 @@ export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7
  * deep-diver line is goofy-with-a-hair-of-wrong, then deflects — never dread.
  * Order matters: deepest/most specific first.
  */
-export function selectRatGreeting(s: ProgressState): string | null {
+export function selectRatGreeting(s: Progress): string | null {
   if (!selectReturning(s)) return null; // a cold/first-time visitor gets no wink
   if (s.secretsFound.includes('dice-monster'))
     return 'You beat the thing at dice. Nobody beats the thing at dice. …The usual?';

@@ -1,8 +1,9 @@
-// Verifies the inventory + keys loop end-to-end: pick the rusted locker key up in
-// the poolrooms (it lands in the durable inventory + announces), see it in the
-// pause-menu "Pockets", confirm it PERSISTS across a reload, and confirm the
-// locked STAFF ONLY door's reward room renders. (The lock-blocks/opens logic
-// itself is unit-tested in src/lib/doorTravel.test.ts.)
+// Verifies the inventory + keys loop end-to-end across BOTH slices, using the
+// real in-world doors (not teleports): in the poolrooms — pickup → Pockets →
+// locked STAFF door blocks → unlock → reward room → persists across reload; and
+// in the back hall — the brass key → locked SUPPLY closet → unlock → reward —
+// proving the mechanic generalizes. (Lock-blocks/opens logic is also unit-tested
+// in src/lib/doorTravel.test.ts.)
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -95,6 +96,8 @@ let unlockedViaDoor = false;
 let lockerOk = false;
 let rewardToast = false;
 let persisted = false;
+let closetPocketed = false;
+let closetOk = false;
 
 if (hasHook) {
   const before = await held();
@@ -175,11 +178,59 @@ if (hasHook) {
     if (!/Staff Locker Room/i.test(await roomLabel()))
       bad('keys: persisted-unlock did not transition through the real door after reload');
   }
+
+  // 5) The SECOND slice — the hallway's brass key → locked SUPPLY closet — proves
+  //    the key/lock mechanic generalizes (not a one-off). The hall spawn faces -Z,
+  //    so D+W heads to the +X SUPPLY door. Same contract: locked blocks, pocket
+  //    the key, the real door opens into the reward nook.
+  await page.goto(base + '/?room=hallway&debug=1', { waitUntil: 'networkidle' });
+  await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => {});
+  const supplyUnlocked = () => {
+    const el = document.querySelector('.hud-prompt--door');
+    return (
+      !!el && /SUPPLY/i.test(el.textContent || '') && !el.classList.contains('hud-prompt--locked')
+    );
+  };
+  if (!(await holdUntil('.hud-prompt--locked', ['d', 'w']))) {
+    bad('keys: never reached the locked SUPPLY door');
+  } else {
+    await page.keyboard.press('e');
+    await page.waitForTimeout(600);
+    if (!/Back Hall/i.test(await roomLabel()))
+      bad('keys: E on the locked SUPPLY door navigated away');
+    await page.evaluate(() => window['__sdpPickup:hall-closet-key']());
+    closetPocketed = (await held()).includes('hall-closet-key');
+    if (!closetPocketed) bad('keys: itemsHeld did not gain the brass key after pickup');
+    if (
+      await page.waitForFunction(supplyUnlocked, null, { timeout: 6000 }).then(
+        () => true,
+        () => false,
+      )
+    ) {
+      await page.keyboard.press('e');
+      const r = await page
+        .waitForFunction(
+          () => {
+            const el = document.querySelector('.hud-toast--luck');
+            return !!el && /tip jar|finders keepers/i.test(el.textContent || '');
+          },
+          null,
+          { timeout: 6000 },
+        )
+        .then(
+          () => true,
+          () => false,
+        );
+      await page.waitForTimeout(400);
+      closetOk = /Supply Closet/i.test(await roomLabel()) && r;
+    }
+    if (!closetOk) bad('keys: brass key did not open the SUPPLY closet with its reward');
+  }
 }
 
 if (errors.length) bad(`keys: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `keys     -> canvas=${!!canvas} hook=${hasHook} lockedBlocked=${lockedBlocked} pocketed=${pocketed} pockets=${inPocketsList} unlockedViaDoor=${unlockedViaDoor} lockerRoom=${lockerOk} reward=${rewardToast} persisted=${persisted} errors=${errors.length}`,
+  `keys     -> canvas=${!!canvas} hook=${hasHook} lockedBlocked=${lockedBlocked} pocketed=${pocketed} pockets=${inPocketsList} unlockedViaDoor=${unlockedViaDoor} lockerRoom=${lockerOk} reward=${rewardToast} persisted=${persisted} closetPocketed=${closetPocketed} closet=${closetOk} errors=${errors.length}`,
 );
 
 await ctx.close();

@@ -19,6 +19,7 @@ import { GrassBattleRoom } from './GrassBattleRoom';
 import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
 import { LockerRoom } from './LockerRoom';
+import { ClosetRoom } from './ClosetRoom';
 import { ItemPickup } from './ItemPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
@@ -99,6 +100,8 @@ function RoomScene({ room }: { room: Room }) {
       return <FrutigerRoom />;
     case 'lockerroom':
       return <LockerRoom room={room} />;
+    case 'closet':
+      return <ClosetRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -150,6 +153,7 @@ function Entities({ room }: { room: Room }) {
           key={e.id}
           id={e.id}
           body={e.body}
+          label={e.label}
           bounds={room.dims}
           spawn={e.spawn}
           danceRadius={e.danceRadius}

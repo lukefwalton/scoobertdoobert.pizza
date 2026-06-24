@@ -21,6 +21,69 @@
   border-color: rgba(255, 209, 122, 0.85);
   color: #ffe9c2;
 }
+/* a dance-along cue — warm magenta, distinct from "step through" / "read this". */
+.hud-prompt--dance {
+  border-color: rgba(236, 156, 222, 0.85);
+  color: #ffd8f4;
+}
+/* talk-to-NPC cue — soft warm grey, like a spoken aside. */
+.hud-prompt--npc {
+  border-color: rgba(210, 190, 160, 0.85);
+  color: #f0e6d2;
+}
+
+/* the always-on objective chip + compass — top-center, subtle, never in the way. */
+.hud-objective {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 64;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(440px, 86vw);
+  padding: 6px 12px;
+  background: rgba(8, 14, 22, 0.66);
+  border: 1px solid rgba(150, 200, 230, 0.5);
+  color: #dfeaf3;
+  font-family: 'Courier New', Courier, monospace;
+  pointer-events: none;
+}
+.hud-objective__arrow {
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #ffd17a;
+  /* the rotation is set inline (transform: rotate(deg)); display so it pivots. */
+  display: inline-block;
+  flex: 0 0 auto;
+  text-shadow: 0 0 4px rgba(255, 209, 122, 0.5);
+}
+.hud-objective__mark {
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #9fc4dc;
+  flex: 0 0 auto;
+}
+.hud-objective__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.hud-objective__label {
+  font-size: 0.86rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-objective__hint {
+  font-size: 0.7rem;
+  color: rgba(223, 234, 243, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 /* quiet room name, lower-left — orientation flavor, never in the way. */
 .hud-room {
@@ -129,6 +192,85 @@
   width: min(380px, 92vw);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
 }
+/* the rat's nudge toward your next objective — set off from the greeting. */
+.hud-dialog__nudge {
+  border-left: 3px solid #caa14a;
+  padding-left: 8px;
+  color: #3a3a3a;
+}
+
+/* the dance rhythm minigame — a centered panel; arrow beats light in sequence. */
+.hud-rhythm {
+  position: fixed;
+  inset: 0;
+  z-index: 78;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.hud-rhythm__card {
+  width: min(360px, 90vw);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.hud-rhythm__cue {
+  margin: 4px 0 10px;
+  font-size: 0.95em;
+  color: #2a2a2a;
+}
+.hud-rhythm__seq {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 0 0 10px;
+}
+.hud-rhythm__beat {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  font-size: 1.6rem;
+  color: #8a8a8a;
+  background: #d8d8d8;
+  border: 2px solid #b0b0b0;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-rhythm__beat.is-lit {
+  color: #2a2a2a;
+  background: #ffe9a8;
+  border-color: #caa14a;
+}
+.hud-rhythm__beat.is-cur {
+  border-color: #d86a2a;
+  color: #b8431a;
+}
+/* a brief horizontal nudge on a wrong key (keyed re-mount) — no flash. */
+.hud-rhythm__seq.is-miss {
+  animation: hud-rhythm-miss 0.22s ease;
+}
+@keyframes hud-rhythm-miss {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(-5px);
+  }
+  66% {
+    transform: translateX(5px);
+  }
+}
+.hud-rhythm__hint {
+  margin: 0;
+  font-size: 0.72em;
+  color: #777;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-rhythm__seq.is-miss {
+    animation: none;
+  }
+}
 .hud-dialog .window-body p {
   margin: 8px 0;
 }
@@ -146,6 +288,14 @@
 }
 .hud-pause__panel {
   width: min(420px, 92vw);
+  /* the game layer (Pockets / Progress / To-Do / Map / links) can outgrow the
+     viewport — let the window body scroll instead of overflowing off-screen. */
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.hud-pause__panel .window-body {
+  overflow-y: auto;
 }
 .hud-pause__hint {
   font-size: 0.85em;
@@ -362,6 +512,136 @@
   margin: 3px 0;
   font-size: 0.92em;
   color: #2a2a2a;
+}
+
+/* the Progress readout — a compact row of "what you've turned up" counts. */
+.hud-pause__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0 0 10px;
+  padding: 4px 9px;
+  font-size: 0.82em;
+  color: #2a2a2a;
+  background: #eef2f7;
+  border: 1px solid #99a;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-pause__progress strong {
+  color: #243;
+}
+
+/* the To-Do list — derived objectives; done lines tick + dim, open lines tooltip
+   their hint. Styled like the Pockets panel for one consistent game-layer look. */
+.hud-pause__todo {
+  margin: 0 0 10px;
+  padding: 5px 9px 7px;
+  background: #f3f3ea;
+  border: 1px solid #999;
+  box-shadow: inset 1px 1px 0 #ffffff;
+}
+.hud-pause__todocount {
+  color: #777;
+  letter-spacing: 0;
+}
+.hud-pause__todolist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.hud-pause__todolist li {
+  margin: 3px 0;
+  font-size: 0.9em;
+  color: #2a2a2a;
+}
+.hud-pause__todolist li.is-done {
+  color: #6a8a6a;
+  text-decoration: line-through;
+}
+.hud-pause__todolist li span {
+  display: inline-block;
+  width: 1.1em;
+  font-weight: bold;
+}
+.hud-pause__todolist li.is-done span {
+  color: #3a7a3a;
+}
+
+/* the pause-menu map — a fog-of-war node graph of the room world. */
+.hud-pause__map {
+  margin: 0 0 10px;
+  padding: 5px 9px 6px;
+  background: #0c1620;
+  border: 1px solid #2a4256;
+  box-shadow: inset 1px 1px 0 #1c2c3a;
+}
+.hud-pause__map .hud-pause__invtitle {
+  color: #7fa8c8;
+}
+.hud-pause__mapsvg {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  margin: 2px 0;
+}
+.hud-map__edge {
+  stroke: #4f7490;
+  stroke-width: 0.05;
+}
+.hud-map__edge.is-locked {
+  stroke: #b88a4a;
+  stroke-dasharray: 0.18 0.14;
+}
+.hud-map__node {
+  stroke: #0c1620;
+  stroke-width: 0.04;
+}
+.hud-map__node.is-visited {
+  fill: #6fb0d6;
+}
+.hud-map__node.is-current {
+  fill: #ffd17a;
+  stroke: #ffffff;
+  stroke-width: 0.06;
+}
+.hud-map__node.is-frontier {
+  fill: none;
+  stroke: #4a6b82;
+  stroke-width: 0.05;
+}
+.hud-map__q {
+  fill: #6f8ea8;
+  font-size: 0.36px;
+  text-anchor: middle;
+  font-family: 'Courier New', monospace;
+}
+.hud-map__lock {
+  font-size: 0.34px;
+  text-anchor: middle;
+}
+.hud-pause__maplegend {
+  margin: 4px 0 0;
+  font-size: 0.72em;
+  color: #7fa8c8;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.hud-map__dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #4a6b82;
+  vertical-align: middle;
+}
+.hud-map__dot.is-visited {
+  background: #6fb0d6;
+  border-color: #6fb0d6;
+}
+.hud-map__dot.is-current {
+  background: #ffd17a;
+  border-color: #ffffff;
 }
 
 /* a locked door reads COOL (you can't pass), distinct from the warm "step through"
