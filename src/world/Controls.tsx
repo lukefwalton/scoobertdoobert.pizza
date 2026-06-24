@@ -12,6 +12,11 @@ import { isTestEntrance } from '../lib/testHooks';
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
 const EXPOSE_CAM = isTestEntrance();
 
+// The Canvas camera's resting fov (World.tsx); sprint kicks it a touch wider.
+const BASE_FOV = 72;
+const REDUCED =
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
 // True when a modal overlay (pause / hotspot dialog), a room transition, or a
 // GLB level loader should freeze input. `transitioning` covers the WHOLE door
 // wipe (fade-out + commit + fade-in). For a GLB room we freeze until the level is
@@ -135,12 +140,21 @@ export function Controls() {
     }
     if (inputFrozen()) return;
     const dt = Math.min(delta, 0.05);
-    const speed = 6 * dt;
     const k = keys.current;
-    // W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT arrows = TURN
-    // (so you can spin around from the keyboard, not just by dragging).
+    // SPRINT: hold Shift to move faster, with a little FOV kick for speed-feel
+    // (the kick is dropped under reduced motion). Pure feel — the world clamps
+    // still hold. W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT = TURN.
     const fwd = (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0);
     const strafe = (k['d'] ? 1 : 0) - (k['a'] ? 1 : 0);
+    const moving = fwd !== 0 || strafe !== 0;
+    const sprinting = !!k['shift'] && moving;
+    const speed = 6 * (sprinting ? 1.7 : 1) * dt;
+    const pcam = camera as THREE.PerspectiveCamera;
+    const targetFov = BASE_FOV + (REDUCED ? 0 : sprinting ? 7 : 0);
+    if (Math.abs(pcam.fov - targetFov) > 0.05) {
+      pcam.fov += (targetFov - pcam.fov) * Math.min(1, dt * 8);
+      pcam.updateProjectionMatrix();
+    }
     const turn = (k['arrowleft'] ? 1 : 0) - (k['arrowright'] ? 1 : 0);
     yaw.current += turn * 2.0 * dt; // left arrow turns left, right turns right
 
