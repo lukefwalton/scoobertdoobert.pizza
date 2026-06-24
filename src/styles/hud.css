@@ -21,6 +21,11 @@
   border-color: rgba(255, 209, 122, 0.85);
   color: #ffe9c2;
 }
+/* a dance-along cue — warm magenta, distinct from "step through" / "read this". */
+.hud-prompt--dance {
+  border-color: rgba(236, 156, 222, 0.85);
+  color: #ffd8f4;
+}
 
 /* quiet room name, lower-left — orientation flavor, never in the way. */
 .hud-room {

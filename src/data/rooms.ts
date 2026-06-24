@@ -64,6 +64,8 @@ export type RoomEntity = {
   id: string;
   /** Which low-poly body to render. */
   body: 'blob' | 'lurker' | 'mop';
+  /** Friendly name for the "dance along" prompt + reward (defaults from body). */
+  label?: string;
   /** Start position on the floor [x, z] (y is the floor). */
   spawn: [number, number];
   /** Get this close → it stops to dance (default 3). */

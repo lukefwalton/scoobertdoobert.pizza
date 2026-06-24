@@ -50,8 +50,20 @@ const hasEntity = await page
   );
 if (!hasEntity) bad('entities: liminal-blob phase hook never appeared');
 
+const danced = () =>
+  page.evaluate(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || [];
+    } catch {
+      return [];
+    }
+  });
+
 let sawDance = false;
 let sawApproach = false;
+let dancePrompt = false;
+let danceReward = false;
+let danceRecorded = false;
 if (hasEntity) {
   // Walk into the middle where they roam, then stand still — a wanderer drifts in
   // (approach) and stops to dance when it reaches you.
@@ -71,12 +83,41 @@ if (hasEntity) {
   // DANCE is the contract (a wanderer can't dance without first noticing you);
   // the brief "approach" phase can fall between samples, so it's logged, not gated.
   if (!sawDance) bad('entities: no wanderer ever DANCED when reached');
+
+  // Dance ALONG: a dancing wanderer is the prompt's target, so the "dance along"
+  // cue shows; pressing E rewards once (luck toast + a durable danced:<id> secret).
+  if (sawDance) {
+    dancePrompt = await page.waitForSelector('.hud-prompt--dance', { timeout: 6000 }).then(
+      () => true,
+      () => false,
+    );
+    if (!dancePrompt) bad('entities: a wanderer danced but no "dance along" prompt appeared');
+    else {
+      await page.keyboard.press('e');
+      danceReward = await page
+        .waitForFunction(
+          () => {
+            const el = document.querySelector('.hud-toast--luck');
+            return !!el && /dance with|delighted/i.test(el.textContent || '');
+          },
+          null,
+          { timeout: 6000 },
+        )
+        .then(
+          () => true,
+          () => false,
+        );
+      danceRecorded = (await danced()).some((s) => s.startsWith('danced:'));
+      if (!danceReward) bad('entities: dancing along raised no reward toast');
+      if (!danceRecorded) bad('entities: dancing along did not record a danced:<id> secret');
+    }
+  }
 }
 
 if (errors.length)
   bad(`entities: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} errors=${errors.length}`,
+  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} prompt=${dancePrompt} reward=${danceReward} recorded=${danceRecorded} errors=${errors.length}`,
 );
 
 await ctx.close();

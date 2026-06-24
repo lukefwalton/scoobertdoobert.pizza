@@ -13,6 +13,7 @@ import { WorldMap } from './WorldMap';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
+import { danceAlong, dancedCount } from '../lib/danceAlong';
 import { itemById } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
@@ -43,6 +44,7 @@ export function WorldHud() {
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearTv = useSceneStore((s) => s.nearTv);
+  const nearEntity = useSceneStore((s) => s.nearEntity);
   const pendingRoom = useSceneStore((s) => s.pendingRoom);
   const transitioning = useSceneStore((s) => s.transitioning);
   const currentRoom = useSceneStore((s) => s.currentRoom);
@@ -192,6 +194,9 @@ export function WorldHud() {
           st.openTv(albumVideo(st.nearTv));
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
+        } else if (st.nearEntity) {
+          // Dance back with the entity you're near (non-traumatic reward).
+          danceAlong(st.nearEntity.id, st.nearEntity.label);
         }
       }
     };
@@ -301,6 +306,10 @@ export function WorldHud() {
         <div className="hud-prompt">{nearHs.prompt}</div>
       )}
 
+      {nearEntity && !nearDoor && !nearTv && !nearHs && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--dance">Press E to dance along with {nearEntity.label}</div>
+      )}
+
       {openDest && (
         <div
           className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
@@ -381,6 +390,11 @@ export function WorldHud() {
                 <span>
                   Games <strong>{progress.clearedGames.length}</strong>
                 </span>
+                {dancedCount(progress.secretsFound) > 0 && (
+                  <span>
+                    Danced <strong>{dancedCount(progress.secretsFound)}</strong>
+                  </span>
+                )}
               </div>
               <div className="hud-pause__todo">
                 <p className="hud-pause__invtitle">
