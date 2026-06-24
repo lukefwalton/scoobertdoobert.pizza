@@ -3,7 +3,9 @@ import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PS1 } from './constants';
 import { roomById, type Room } from '../data/rooms';
+import { jukeboxTrackUrl } from '../data/music';
 import { useSceneStore } from '../state/sceneStore';
+import { useMusicStore } from '../state/musicStore';
 import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
@@ -20,6 +22,9 @@ import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
 import { LockerRoom } from './LockerRoom';
 import { ClosetRoom } from './ClosetRoom';
+import { BoardwalkRoom } from './BoardwalkRoom';
+import { OceanviewRoom } from './OceanviewRoom';
+import { BalboaRoom } from './BalboaRoom';
 import { ItemPickup } from './ItemPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
@@ -50,6 +55,25 @@ function RoomEnvironment({ room }: { room: Room }) {
     // and back up everywhere else — the room's instrument one-shots are unaffected.
     audio.setSongLevel(room.musicRoom ? 0 : 1);
   }, [room, scene, gl]);
+  return null;
+}
+
+// A SONG-ROOM owns the loop voice while you're in it: entering plays the room's
+// track (room.song, a jukebox slug); leaving hands the voice back to the user's
+// preferred pick (musicStore.restorePreferred) — the exact override contract the
+// jukebox cabinet uses on exit. The reward for finding the room is its song; a
+// TEMPORARY override, never a permanent switch. Rooms with `musicRoom` instead
+// FADE the carried song out for their own bells, so the two are mutually
+// exclusive (guarded in music.test.ts). No R3F hooks, so it lives beside
+// RoomEnvironment inside the Canvas and draws nothing.
+function RoomMusic({ room }: { room: Room }) {
+  useEffect(() => {
+    if (!room.song) return;
+    void audio.playJukeboxTrack(jukeboxTrackUrl(room.song));
+    return () => {
+      useMusicStore.getState().restorePreferred();
+    };
+  }, [room.song]);
   return null;
 }
 
@@ -102,6 +126,12 @@ function RoomScene({ room }: { room: Room }) {
       return <LockerRoom room={room} />;
     case 'closet':
       return <ClosetRoom room={room} />;
+    case 'boardwalk':
+      return <BoardwalkRoom room={room} />;
+    case 'oceanview':
+      return <OceanviewRoom room={room} />;
+    case 'balboa':
+      return <BalboaRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -207,6 +237,7 @@ export default function World() {
       }}
     >
       <RoomEnvironment room={room} />
+      <RoomMusic room={room} />
       {/* Suspense for GLB levels (useGLTF). Fallback is null — the DOM
           LevelLoader covers the wait. No-op for procedural rooms. */}
       <Suspense fallback={null}>
