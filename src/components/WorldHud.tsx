@@ -307,7 +307,9 @@ export function WorldHud() {
       )}
 
       {nearEntity && !nearDoor && !nearTv && !nearHs && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt hud-prompt--dance">Press E to dance along with {nearEntity.label}</div>
+        <div className="hud-prompt hud-prompt--dance">
+          Press E to dance along with {nearEntity.label}
+        </div>
       )}
 
       {openDest && (
@@ -398,7 +400,10 @@ export function WorldHud() {
               </div>
               <div className="hud-pause__todo">
                 <p className="hud-pause__invtitle">
-                  To-Do <span className="hud-pause__todocount">{questsDone(progress)}/{QUESTS.length}</span>
+                  To-Do{' '}
+                  <span className="hud-pause__todocount">
+                    {questsDone(progress)}/{QUESTS.length}
+                  </span>
                 </p>
                 <ul className="hud-pause__todolist">
                   {questStatus(progress).map(({ quest, done }) => (
