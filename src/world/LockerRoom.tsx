@@ -1,11 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
-import { useProgressStore } from '../state/progressStore';
-import { announce } from '../state/toastStore';
-import { audio } from '../audio/engine';
-import { noteToFreq } from '../lib/chimes';
+import { FirstEntryReward } from './FirstEntryReward';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -44,28 +41,6 @@ export function LockerRoom({ room }: { room: Room }) {
   const lockerMat = useMemo(() => flatMat('#3a6f5e', { side: THREE.DoubleSide }), []);
   const lockerDark = useMemo(() => flatMat('#1c3a33', { side: THREE.DoubleSide }), []);
 
-  // First entry pays out: a soft chord + a little luck. Durable secret so it's a
-  // one-time reward, not a luck farm on re-entry (mirrors the dice-monster secret).
-  const claimed = useRef(false);
-  useEffect(() => {
-    if (claimed.current) return;
-    claimed.current = true;
-    // One-time reward: the FIRST time you open the locker it hums a soft chord and
-    // tips a little luck. Re-entry is silent (the secret gate makes it once-only) —
-    // the chord is part of the reward, not ambient room tone.
-    if (useProgressStore.getState().secretsFound.includes('locker-room')) return;
-    useProgressStore.getState().findSecret('locker-room');
-    useProgressStore.getState().gainLuck(2);
-    announce('🍀 The locker hums — fortune kept here · +2 luck', 'luck');
-    const tid = window.setTimeout(() => {
-      // a quiet major-ish triad — the reward is sound
-      audio.playChime(noteToFreq('C', 5), -0.2, 0.1, 1.2);
-      audio.playChime(noteToFreq('E', 5), 0, 0.1, 1.2);
-      audio.playChime(noteToFreq('G', 5), 0.2, 0.1, 1.4);
-    }, 250);
-    return () => window.clearTimeout(tid);
-  }, []);
-
   // A row of lockers along the back (-Z) wall — flat boxes, faces alternating.
   const lockers = useMemo(() => {
     const out: { x: number; mat: THREE.Material }[] = [];
@@ -79,6 +54,10 @@ export function LockerRoom({ room }: { room: Room }) {
 
   return (
     <group>
+      <FirstEntryReward
+        secret="locker-room"
+        message="🍀 The locker hums — fortune kept here · +2 luck"
+      />
       <ambientLight intensity={0.45} color="#bfeae2" />
       <pointLight position={[0, H - 0.5, 0]} intensity={0.55} distance={12} color="#cfeee8" />
 
