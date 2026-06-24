@@ -27,6 +27,10 @@ export type Item = {
   blurb: string;
   /** A single emoji/glyph for the pause-menu row (no art asset needed). */
   glyph: string;
+  /** CASSETTE TAPES (trinkets): the jukebox catalog slug this tape carries. When
+   *  you pocket it, that track plays (the musical reward — "exploration's reward
+   *  is sound") and the radio unlocks. Undefined for non-tape items. */
+  track?: string;
 };
 
 export const ITEMS: Item[] = [
@@ -44,7 +48,44 @@ export const ITEMS: Item[] = [
     blurb: 'A stubby brass key on a bottle-cap fob. Tagged “SUPPLY” in marker.',
     glyph: '🗝️',
   },
+  // ── Cassette tapes — the music ladder. Hidden in the sweeter rooms; pocket one
+  // and its track plays. Collect all four to finish the "lost cassettes" quest.
+  {
+    id: 'tape-mystery-machine',
+    kind: 'trinket',
+    label: 'Tape: “Mystery Machine”',
+    blurb: 'A scuffed cassette, “MYSTERY MACHINE” in ballpoint. Side A only.',
+    glyph: '📼',
+    track: 'mystery-machine',
+  },
+  {
+    id: 'tape-moonlight',
+    kind: 'trinket',
+    label: 'Tape: “Dancing in the Moonlight”',
+    blurb: 'Hand-labeled, the ink half worn off. Smells like a glovebox.',
+    glyph: '📼',
+    track: 'dancing-in-the-moonlight',
+  },
+  {
+    id: 'tape-japan',
+    kind: 'trinket',
+    label: 'Tape: “Gonna Go To Japan”',
+    blurb: 'A clear-shell cassette with a doodle of a bullet train on it.',
+    glyph: '📼',
+    track: 'gonna-go-to-japan',
+  },
+  {
+    id: 'tape-internet',
+    kind: 'trinket',
+    label: 'Tape: “All My Friends Live On The Internet”',
+    blurb: 'Dubbed twice over; you can almost hear the tape hiss already.',
+    glyph: '📼',
+    track: 'all-my-friends-live-on-the-internet',
+  },
 ];
+
+/** The cassette-tape item ids, in find order — the "lost cassettes" collectathon. */
+export const CASSETTE_IDS = ITEMS.filter((i) => i.track).map((i) => i.id);
 
 const BY_ID = new Map(ITEMS.map((i) => [i.id, i]));
 

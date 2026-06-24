@@ -12,6 +12,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import type { Progress } from '../state/progressStore';
+import { CASSETTE_IDS } from './items';
 
 export type Quest = {
   /** Stable id (for keys + the announce-on-complete diff). */
@@ -61,6 +62,12 @@ export const QUESTS: Quest[] = [
     hint: 'It’s on the back-hall floor — it opens the SUPPLY closet nearby.',
     room: 'hallway',
     done: (p) => p.itemsHeld.includes('hall-closet-key'),
+  },
+  {
+    id: 'collect-tapes',
+    label: 'Find the lost cassettes',
+    hint: 'Four tapes hide around the place — pocket each to hear it and tune the radio.',
+    done: (p) => CASSETTE_IDS.every((id) => p.itemsHeld.includes(id)),
   },
   {
     id: 'beat-dice',

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { QUESTS, questStatus, questsDone, type Quest } from './quests';
+import { CASSETTE_IDS } from './items';
 import type { Progress } from '../state/progressStore';
 
 // A cold/zero Progress — nothing done yet.
@@ -45,6 +46,7 @@ describe('quests', () => {
       'unlock-radio': { radioUnlocked: true },
       'find-locker-key': { itemsHeld: ['pool-locker-key'] },
       'find-closet-key': { itemsHeld: ['hall-closet-key'] },
+      'collect-tapes': { itemsHeld: [...CASSETTE_IDS] },
       'beat-dice': { secretsFound: ['dice-monster'] },
       'clear-goblin': { secretsFound: ['grass-cleared'] },
       'dance-with-entity': { secretsFound: ['danced:deep-lurker'] },

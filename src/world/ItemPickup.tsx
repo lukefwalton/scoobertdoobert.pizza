@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useProgressStore } from '../state/progressStore';
+import { useMusicStore } from '../state/musicStore';
 import { announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { itemById } from '../data/items';
+import { jukeboxTrackUrl, loopIndexForUrl } from '../data/music';
 
 // A collectible lying in a room (Room.pickups). Click it to pocket it: a bright
 // coin chime, a toast, and it goes into the durable inventory (progressStore).
@@ -50,11 +52,24 @@ export function ItemPickup({
   );
 
   const doPickup = () => {
-    if (useProgressStore.getState().itemsHeld.includes(itemId)) return;
+    const prog = useProgressStore.getState();
+    if (prog.itemsHeld.includes(itemId)) return;
     audio.unlock();
     audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.6); // a bright little pickup ring
-    useProgressStore.getState().collectItem(itemId);
-    announce(`${item?.glyph ?? '🎒'} You pocket the ${item?.label ?? 'item'}`, 'luck');
+    prog.collectItem(itemId);
+    // Trinkets (the cassettes) tip a little luck; keys' reward is the door.
+    if (item?.kind === 'trinket') prog.gainLuck(1);
+    // A CASSETTE: play its track now (the reward IS sound), make it your station,
+    // and unlock the radio — an exploration path to the upgrade beside the d20.
+    if (item?.track) {
+      const url = jukeboxTrackUrl(item.track);
+      void audio.playJukeboxTrack(url);
+      useMusicStore.getState().setPreferred(loopIndexForUrl(url));
+      prog.unlockRadio();
+      announce(`${item.glyph} ${item.label} — give it a spin · +1 luck`, 'luck');
+    } else {
+      announce(`${item?.glyph ?? '🎒'} You pocket the ${item?.label ?? 'item'}`, 'luck');
+    }
     gl.domElement.style.cursor = 'grab';
   };
 

@@ -19,7 +19,7 @@ import { dancedCount } from '../lib/danceAlong';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
-import { itemById } from '../data/items';
+import { itemById, CASSETTE_IDS } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
 
@@ -99,6 +99,7 @@ export function WorldHud() {
   const luck = selectLuck(progress);
   const itemsHeld = progress.itemsHeld;
   const visitedRooms = progress.visitedRooms;
+  const tapesHeld = CASSETTE_IDS.filter((id) => itemsHeld.includes(id)).length;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
@@ -517,6 +518,14 @@ export function WorldHud() {
                 {dancedCount(progress.secretsFound) > 0 && (
                   <span>
                     Danced <strong>{dancedCount(progress.secretsFound)}</strong>
+                  </span>
+                )}
+                {tapesHeld > 0 && (
+                  <span>
+                    Tapes{' '}
+                    <strong>
+                      {tapesHeld}/{CASSETTE_IDS.length}
+                    </strong>
                   </span>
                 )}
               </div>
