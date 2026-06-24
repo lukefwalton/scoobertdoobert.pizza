@@ -53,6 +53,10 @@ export type Progress = {
   /** Total luck ever SPENT by the system biasing d20 rolls. Current luck =
    *  luckEarned − luckSpent; both monotonic, so the multi-tab max-merge holds. */
   luckSpent: number;
+  /** Inventory: item ids the player has picked up (items.ts). Durable so a key
+   *  found last visit still opens its door this visit — and the side door it
+   *  unlocks stays open, like a revealSecret. Monotonic (the array only grows). */
+  itemsHeld: string[];
 };
 
 const DEFAULTS: Progress = {
@@ -67,6 +71,7 @@ const DEFAULTS: Progress = {
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,
+  itemsHeld: [],
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -93,6 +98,7 @@ function read(): Progress {
       radioUnlocked: bool(p.radioUnlocked, false),
       luckEarned: num(p.luckEarned, 0),
       luckSpent: num(p.luckSpent, 0),
+      itemsHeld: strArr(p.itemsHeld),
     };
   } catch {
     return { ...DEFAULTS };
@@ -132,6 +138,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     radioUnlocked: a.radioUnlocked || b.radioUnlocked,
     luckEarned: Math.max(a.luckEarned, b.luckEarned),
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
+    itemsHeld: uniq(a.itemsHeld, b.itemsHeld),
   };
 }
 
@@ -152,6 +159,9 @@ type ProgressState = Progress & {
   /** Spend luck (the SYSTEM does this to bias a d20 roll — never the player).
    *  Capped at the luck actually available, so it can't go negative. */
   spendLuck: (n: number) => void;
+  /** Pick an item up (the pickup announces it). Idempotent — holding it twice is
+   *  a no-op, so re-clicking a pickup or a multi-tab race can't dupe it. */
+  collectItem: (id: string) => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -166,6 +176,7 @@ const snapshot = (s: ProgressState): Progress => ({
   radioUnlocked: s.radioUnlocked,
   luckEarned: s.luckEarned,
   luckSpent: s.luckSpent,
+  itemsHeld: s.itemsHeld,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -238,12 +249,23 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       if (s <= 0) return;
       apply({ luckSpent: fresh.luckSpent + s });
     },
+    collectItem: (id) => {
+      if (get().itemsHeld.includes(id)) return;
+      apply({ itemsHeld: [...get().itemsHeld, id] });
+    },
   };
 });
 
 /** Current spendable luck (earned minus what the system has spent), never < 0. */
 export const selectLuck = (s: Pick<Progress, 'luckEarned' | 'luckSpent'>): number =>
   Math.max(0, s.luckEarned - s.luckSpent);
+
+/** Does the player hold this item id? (Door locks read this.) Curried so it can
+ *  be a stable zustand selector: `useProgressStore(selectHasItem('pool-locker-key'))`. */
+export const selectHasItem =
+  (id: string) =>
+  (s: Pick<Progress, 'itemsHeld'>): boolean =>
+    s.itemsHeld.includes(id);
 
 /** The durable progress as a plain, store-free snapshot — for non-React readers
  *  (e.g. the terminal's `status`/`whoami`, which take a Progress via ctx so

@@ -18,6 +18,9 @@ import { GrassRoom } from './GrassRoom';
 import { GrassBattleRoom } from './GrassBattleRoom';
 import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
+import { LockerRoom } from './LockerRoom';
+import { ItemPickup } from './ItemPickup';
+import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
@@ -94,6 +97,8 @@ function RoomScene({ room }: { room: Room }) {
       return <GroveRoom room={room} />;
     case 'frutiger':
       return <FrutigerRoom />;
+    case 'lockerroom':
+      return <LockerRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -113,6 +118,43 @@ function RoomProps({ room }: { room: Room }) {
         <Suspense key={`${spec.url}#${i}`} fallback={null}>
           <GlbProp spec={spec} />
         </Suspense>
+      ))}
+    </>
+  );
+}
+
+// Collectible items lying in the current room (room.pickups). Each ItemPickup
+// renders nothing once held, so taken items just vanish. Works for procedural +
+// GLB rooms alike (a sibling of RoomScene, like RoomProps).
+function RoomPickups({ room }: { room: Room }) {
+  if (!room.pickups?.length) return null;
+  return (
+    <>
+      {room.pickups.map((p) => (
+        <ItemPickup key={p.itemId} itemId={p.itemId} position={p.position} />
+      ))}
+    </>
+  );
+}
+
+// Wandering, dancing entities for the current room (room.entities) — GLB levels
+// only, by data. A sibling of RoomScene (like RoomProps), so they overlay GLB
+// geometry. Gated to desktop + motion-OK for free: the whole World only mounts
+// there (mobile/reduced-motion gets /text instead).
+function Entities({ room }: { room: Room }) {
+  if (!room.entities?.length) return null;
+  return (
+    <>
+      {room.entities.map((e) => (
+        <Wanderer
+          key={e.id}
+          id={e.id}
+          body={e.body}
+          bounds={room.dims}
+          spawn={e.spawn}
+          danceRadius={e.danceRadius}
+          speed={e.speed}
+        />
       ))}
     </>
   );
@@ -167,6 +209,8 @@ export default function World() {
         <RoomScene room={room} />
       </Suspense>
       <RoomProps room={room} />
+      <RoomPickups room={room} />
+      <Entities room={room} />
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
       <Doors />
