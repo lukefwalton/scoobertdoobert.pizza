@@ -228,10 +228,18 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   sound," no new collectible. Reuses the shipped `Water` (now tint/placement-
   configurable), `palm-tree`/`arcade-cabinet` props. `shoot:boardwalk`,
   `music.test` Room.song guard. Surface stays sweet (taste guardrail).
+- ✅ **The Sunken Gallery wing (world-content):** a submerged vaporwave-classical
+  hall off the poolrooms — **The Sunken Gallery** (a colonnade of **crunched greek
+  GLBs** from the trove: doric + ionic columns, a centre sculpture, a broken
+  statue, amphorae; knee-deep flood, dim teal, funny-uncanny) opening onto
+  **Daydream** (a pastel watercolor-sky breather — the taste-guardrail contrast).
+  Both song-rooms (`underwater` / `watercolor-sky`). Crunched via the documented
+  `gltf-transform optimize … --texture-size 256` pipeline; `THIRD_PARTY_NOTICES.md`
+  rows added; IP-flagged trove models still excluded. `shoot:gallery`.
 - ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
   a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
-  reactivity** (the shop reflects your deeds — clover at high luck, etc.); more
-  album-themed wings (greek-vaporwave gallery, memory-lane) reusing the GLB trove.
+  reactivity** (the shop reflects your deeds — clover at high luck, etc.); a
+  greek-lyre "play it" instrument node; further album-themed wings (memory-lane).
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
