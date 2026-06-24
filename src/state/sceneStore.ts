@@ -76,6 +76,11 @@ type SceneState = {
   /** Whether the on-screen objective chip + compass is shown (pause-menu toggle).
    *  Ephemeral UI pref; defaults on. */
   objectiveHudOn: boolean;
+  /** An NPC the camera is near + can talk to (the rat once settled), or null —
+   *  drives the "Press E to talk" prompt. */
+  nearNpc: { id: string; label: string } | null;
+  /** The NPC whose dialogue box is open (its id), or null. */
+  openNpc: string | null;
   /** A "dance back" pulse: when you dance along with an entity, cheerId names it
    *  and cheerNonce bumps, so that Wanderer can flourish for a beat. */
   cheerId: string | null;
@@ -145,6 +150,9 @@ type SceneState = {
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
   toggleObjectiveHud: () => void;
+  setNearNpc: (npc: { id: string; label: string } | null) => void;
+  openNpcDialog: (id: string) => void;
+  closeNpcDialog: () => void;
   /** The rat knocked — open up the hidden classified door (idempotent). */
   revealSecret: () => void;
   /** Took the looping corridor's forward door again — count another lap. */
@@ -171,6 +179,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearTv: null,
   nearEntity: null,
   objectiveHudOn: true,
+  nearNpc: null,
+  openNpc: null,
   cheerId: null,
   cheerNonce: 0,
   divingTo: null,
@@ -207,6 +217,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearDoor: null,
       nearTv: null,
       nearEntity: null,
+      nearNpc: null,
+      openNpc: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -223,6 +235,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearDoor: null,
       nearTv: null,
       nearEntity: null,
+      nearNpc: null,
+      openNpc: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -270,6 +284,8 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearHotspot: null,
         nearTv: null,
         nearEntity: null,
+        nearNpc: null,
+        openNpc: null,
       };
     }),
   // Dive into a painting: ripple/swallow the cover for DIVE_MS (divingTo drives the
@@ -286,7 +302,15 @@ export const useSceneStore = create<SceneState>((set) => ({
         useSceneStore.getState().goToRoom(to, spawn);
         set({ divingTo: null });
       }, DIVE_MS);
-      return { divingTo: to, nearDoor: null, nearHotspot: null, nearTv: null, nearEntity: null };
+      return {
+        divingTo: to,
+        nearDoor: null,
+        nearHotspot: null,
+        nearTv: null,
+        nearEntity: null,
+        nearNpc: null,
+        openNpc: null,
+      };
     }),
   // Commit mid-wipe: the room actually swaps here (behind the black) and Controls
   // repositions to the new spawn. transitioning stays true through the fade-in.
@@ -307,6 +331,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
   toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),
+  setNearNpc: (npc) => set({ nearNpc: npc }),
+  openNpcDialog: (id) => set({ openNpc: id }),
+  closeNpcDialog: () => set({ openNpc: null }),
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),

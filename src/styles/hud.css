@@ -26,6 +26,11 @@
   border-color: rgba(236, 156, 222, 0.85);
   color: #ffd8f4;
 }
+/* talk-to-NPC cue — soft warm grey, like a spoken aside. */
+.hud-prompt--npc {
+  border-color: rgba(210, 190, 160, 0.85);
+  color: #f0e6d2;
+}
 
 /* the always-on objective chip + compass — top-center, subtle, never in the way. */
 .hud-objective {
@@ -186,6 +191,12 @@
   z-index: 75;
   width: min(380px, 92vw);
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+/* the rat's nudge toward your next objective — set off from the greeting. */
+.hud-dialog__nudge {
+  border-left: 3px solid #caa14a;
+  padding-left: 8px;
+  color: #3a3a3a;
 }
 .hud-dialog .window-body p {
   margin: 8px 0;

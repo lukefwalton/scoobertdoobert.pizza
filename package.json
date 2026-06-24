@@ -46,7 +46,8 @@
     "shoot:grass": "node scripts/shoot-grass.mjs",
     "shoot:keys": "node scripts/shoot-keys.mjs",
     "shoot:entities": "node scripts/shoot-entities.mjs",
-    "shoot:objective": "node scripts/shoot-objective.mjs"
+    "shoot:objective": "node scripts/shoot-objective.mjs",
+    "shoot:rat": "node scripts/shoot-rat.mjs"
   },
   "engines": {
     "node": ">=20.19"
