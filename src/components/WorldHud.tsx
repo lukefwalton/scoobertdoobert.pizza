@@ -9,6 +9,7 @@ import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { questStatus, questsDone, QUESTS } from '../data/quests';
+import { WorldMap } from './WorldMap';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { enterDoor } from '../lib/doorTravel';
@@ -397,6 +398,7 @@ export function WorldHud() {
                   ))}
                 </ul>
               </div>
+              <WorldMap visited={visitedRooms} current={currentRoom} />
               <ul className="hud-pause__list">
                 {MENU_DESTINATIONS.map((d) => (
                   <li key={d.id}>

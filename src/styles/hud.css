@@ -146,6 +146,14 @@
 }
 .hud-pause__panel {
   width: min(420px, 92vw);
+  /* the game layer (Pockets / Progress / To-Do / Map / links) can outgrow the
+     viewport — let the window body scroll instead of overflowing off-screen. */
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+}
+.hud-pause__panel .window-body {
+  overflow-y: auto;
 }
 .hud-pause__hint {
   font-size: 0.85em;
@@ -415,6 +423,83 @@
 }
 .hud-pause__todolist li.is-done span {
   color: #3a7a3a;
+}
+
+/* the pause-menu map — a fog-of-war node graph of the room world. */
+.hud-pause__map {
+  margin: 0 0 10px;
+  padding: 5px 9px 6px;
+  background: #0c1620;
+  border: 1px solid #2a4256;
+  box-shadow: inset 1px 1px 0 #1c2c3a;
+}
+.hud-pause__map .hud-pause__invtitle {
+  color: #7fa8c8;
+}
+.hud-pause__mapsvg {
+  display: block;
+  width: 100%;
+  max-height: 190px;
+  margin: 2px 0;
+}
+.hud-map__edge {
+  stroke: #4f7490;
+  stroke-width: 0.05;
+}
+.hud-map__edge.is-locked {
+  stroke: #b88a4a;
+  stroke-dasharray: 0.18 0.14;
+}
+.hud-map__node {
+  stroke: #0c1620;
+  stroke-width: 0.04;
+}
+.hud-map__node.is-visited {
+  fill: #6fb0d6;
+}
+.hud-map__node.is-current {
+  fill: #ffd17a;
+  stroke: #ffffff;
+  stroke-width: 0.06;
+}
+.hud-map__node.is-frontier {
+  fill: none;
+  stroke: #4a6b82;
+  stroke-width: 0.05;
+}
+.hud-map__q {
+  fill: #6f8ea8;
+  font-size: 0.36px;
+  text-anchor: middle;
+  font-family: 'Courier New', monospace;
+}
+.hud-map__lock {
+  font-size: 0.34px;
+  text-anchor: middle;
+}
+.hud-pause__maplegend {
+  margin: 4px 0 0;
+  font-size: 0.72em;
+  color: #7fa8c8;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.hud-map__dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #4a6b82;
+  vertical-align: middle;
+}
+.hud-map__dot.is-visited {
+  background: #6fb0d6;
+  border-color: #6fb0d6;
+}
+.hud-map__dot.is-current {
+  background: #ffd17a;
+  border-color: #ffffff;
 }
 
 /* a locked door reads COOL (you can't pass), distinct from the warm "step through"
