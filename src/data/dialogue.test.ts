@@ -35,6 +35,15 @@ describe('ratDialogue', () => {
     expect(ratDialogue(COLD).nudge).toContain(firstUndone!.hint);
   });
 
+  it('shares a rat tidbit, deterministic by visit count (rotates on return)', () => {
+    const d = ratDialogue(COLD);
+    expect(d.tidbit.length).toBeGreaterThan(0);
+    // Same visit count → same tidbit; a later visit → (eventually) a different one.
+    expect(ratDialogue({ ...COLD, visits: 1 }).tidbit).toBe(d.tidbit);
+    const laters = [2, 3, 4, 5, 6, 7, 8].map((v) => ratDialogue({ ...COLD, visits: v }).tidbit);
+    expect(laters.some((t) => t !== d.tidbit)).toBe(true);
+  });
+
   it('when everything is done, says there is nothing left to point at', () => {
     // Force every quest done by satisfying all the signals they read.
     const ALL: Progress = {

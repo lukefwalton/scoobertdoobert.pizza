@@ -482,6 +482,9 @@ export function WorldHud() {
               <div className="window-body">
                 <p>{lines.greeting}</p>
                 <p className="hud-dialog__nudge">{lines.nudge}</p>
+                <p className="hud-dialog__tidbit">
+                  <span aria-hidden="true">🐀</span> <i>{lines.tidbit}</i>
+                </p>
                 <p>
                   <button onClick={closeNpc}>…thanks, rat</button>
                 </p>
