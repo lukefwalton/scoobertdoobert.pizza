@@ -31,6 +31,11 @@
   border-color: rgba(210, 190, 160, 0.85);
   color: #f0e6d2;
 }
+/* fire-up-a-cabinet cue — electric cyan, distinct from "step through" / "read". */
+.hud-prompt--arcade {
+  border-color: rgba(120, 220, 255, 0.85);
+  color: #d6f4ff;
+}
 
 /* the always-on objective chip + compass — top-center, subtle, never in the way. */
 .hud-objective {
@@ -705,6 +710,19 @@
 .hud-dialog--tv {
   width: min(92vw, 520px);
   max-width: 92vw;
+}
+
+/* ── Arcade: the far side of an in-world cabinet — a rolled minigame in a window.
+   The game owns its own internal layout (canvas / pads); we just size the frame
+   to the games' native ~460px column and let the body scroll if a game is tall. ── */
+.hud-dialog--arcade {
+  width: min(94vw, 480px);
+  max-width: 94vw;
+}
+.hud-arcade-body {
+  padding: 8px;
+  max-height: 80vh;
+  overflow: auto;
 }
 .tv__bezel {
   background: #15110f;
