@@ -93,8 +93,7 @@ if (prompted) {
   // breaks this smoke); fall back to the static list if the global is missing.
   const validIds = (await page.evaluate(() => window.__sdpArcadeIds)) || GAMES;
   rolledOk = validIds.includes(rolled);
-  if (!rolledOk)
-    fail(`rolled game "${rolled}" not in the live registry [${validIds.join(', ')}]`);
+  if (!rolledOk) fail(`rolled game "${rolled}" not in the live registry [${validIds.join(', ')}]`);
   await page.screenshot({ path: '.shots/cabinet-playable.png' });
 
   // Esc closes it.
