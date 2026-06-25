@@ -220,14 +220,18 @@ unblocks you (same anticlimax as the dice pit). Rides the engine already shipped
 the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
 it stays a delight, not a grind.
 
-### The shop remembers your deeds — storefront reactivity (BACKLOG → seed shipped, Luke)
+### The shop remembers your deeds — storefront reactivity (SHIPPED, Luke)
 "What you did IN the game changes how the top-level pizza shop looks." This is the
-persistence spine reaching the surface. **Already live:** the rat greeting + the
-deep-diver curdled copy change with progress. **Next:** more diegetic surface tells
-keyed to the save — e.g. a **four-leaf clover taped to the dead-plain page once
-LUCK is high**, a trophy after you beat the goblin, the menu subtly richer the
-deeper you've been. **Hard line unchanged:** all of it is post-hydration,
-`useMounted`-gated, JS-only — the crawlable / JS-off front door never changes.
+persistence spine reaching the surface. **Live now (`PlainFloor.tsx` news section),
+each keyed to a DIFFERENT axis of play, all sweet (never dread):** the **rat
+greeting** (returning / how deep you've been), the **four-leaf clover** once LUCK
+is high, a **goblin-shaped trophy** once you beat the grass goblin
+(`secretsFound`), and the **lost-and-found cassette count** (the tape collectible).
+The deep-diver curdled copy is the one bitter tell, gated on max-`unease`. **Hard
+line held + smoke-verified:** all of it is post-hydration, `useMounted`-gated,
+JS-only — the prerendered / JS-off front door is byte-for-byte unchanged (none of
+these strings appear in `dist/index.html`; `shoot:fallback` guards it). **Next
+(optional):** the menu subtly richer the deeper you've been.
 
 ### The `unease` dread conductor (Phase 5 — see PHASES.md for the build order)
 - **One value (0→1) in zustand, data-driven via `src/data/dread.ts`** (per-room
