@@ -10,6 +10,7 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore } from '../state/progressStore';
 import { announce } from '../state/toastStore';
 import { noteToFreq } from '../lib/chimes';
+import { useTipsyStore } from '../state/tipsyStore';
 import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
@@ -37,6 +38,8 @@ import { MoonlightRoom } from './MoonlightRoom';
 import { BestDayRoom } from './BestDayRoom';
 import { CaliforniaRoom } from './CaliforniaRoom';
 import { TidepoolsRoom } from './TidepoolsRoom';
+import { ZooRoom } from './ZooRoom';
+import { NorthParkRoom } from './NorthParkRoom';
 import { ItemPickup } from './ItemPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
@@ -169,6 +172,10 @@ function RoomScene({ room }: { room: Room }) {
       return <CaliforniaRoom room={room} />;
     case 'tidepools':
       return <TidepoolsRoom room={room} />;
+    case 'zoo':
+      return <ZooRoom room={room} />;
+    case 'northpark':
+      return <NorthParkRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
@@ -252,6 +259,11 @@ export default function World() {
   // whole subtree on exitWorld, so this runs exactly once on the way out.
   useEffect(() => () => audio.setSongLevel(1), []);
 
+  // The North Park "too many beers" gag: a gentle, gradual full-frame blur (no
+  // strobe, no flash — WCAG-safe) layered on the canvas via CSS, fading back on
+  // its own after a few seconds (see tipsyStore). Off everywhere else.
+  const tipsy = useTipsyStore((s) => s.blurry);
+
   return (
     <Canvas
       dpr={PS1.dpr}
@@ -271,6 +283,8 @@ export default function World() {
         imageRendering: 'pixelated',
         touchAction: 'none',
         cursor: 'grab',
+        filter: tipsy ? 'blur(5px) saturate(1.15)' : 'none',
+        transition: 'filter 0.6s ease-in-out',
       }}
     >
       <RoomEnvironment room={room} />
