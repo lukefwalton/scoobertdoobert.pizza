@@ -12,6 +12,7 @@ import { noteToFreq } from '../lib/chimes';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore } from '../state/progressStore';
 import { D20 } from './D20';
+import { ArcadeCabinet } from './ArcadeCabinet';
 
 // The jukebox room — the music payoff at the end of the hall. Warm, dim, a
 // little womb-like. The jukebox plays Scoobert's OWN catalog, "kinda fucked up"
@@ -235,6 +236,13 @@ export function JukeboxRoom({ room }: { room: Room }) {
       <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       <Jukebox title={track.title} onSelect={cycle} />
+      {/* a procedural arcade cabinet humming in the corner of the music shrine */}
+      <ArcadeCabinet
+        position={[-3.6, 0, -4.4]}
+        rotationY={0.7}
+        tint="#b8348f"
+        marquee="PIZZA RUN"
+      />
       {/* The dice-music selector: roll for a random track. Off to the side of
           the cabinet, on the player's path in from the door. */}
       {/* the music selector is a LOW-STAKES roll — a "high" face means nothing
