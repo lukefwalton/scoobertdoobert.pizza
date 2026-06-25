@@ -149,6 +149,16 @@ rat, the music, recurrence, even the loaders all flip the same way.
   with depth** (wow/flutter, bitcrush, detune) — the dread layer applied to the
   layer themes, not a separate asset. Going deep = hearing the catalog, then
   hearing it haunted.
+  - **SHIPPED — song discovery ("hidden until found", Luke 2026-06-25).** Each
+    side-wing room owns a track (`Room.song`); that track is **HIDDEN from the
+    jukebox dial until you wander into its room**, then it unlocks there forever
+    (persisted in `progressStore.discoveredSongs`, announced with a "♪ new song
+    unlocked" chime on first find). The jukebox shows the *seed* (non-room) catalog
+    always + whatever you've discovered — so exploration literally grows your
+    record collection. Only the jukebox UI is filtered (`visibleJukeboxTracks`);
+    the boot loop, the `Room.song` override, and the engine's loop indices are
+    untouched. The set of "find-it-in-its-room" songs is **derived from the room
+    graph** (`ROOM_SONG_SLUGS`), so adding a song-room needs no second list.
 - **Play it.** Instrument rooms (borrowed/adapted from the `fun/` submodule's
   generative-synth toys) where *you* make the sound. They're discovered
   **exhale-valves found by going deep**, not surface toys — bright goofy rooms

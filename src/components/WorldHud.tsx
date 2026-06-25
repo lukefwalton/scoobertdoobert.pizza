@@ -92,6 +92,7 @@ export function WorldHud() {
       luckEarned: s.luckEarned,
       luckSpent: s.luckSpent,
       itemsHeld: s.itemsHeld,
+      discoveredSongs: s.discoveredSongs,
     })),
   );
   // Derived locals (used throughout the pause menu below).
