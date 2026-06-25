@@ -24,6 +24,10 @@ the public repo carries proper attribution. Anything not yet filled in is marked
 | `metro-tunnel.glb` | `levels/metro-tunnel.glb` | 46.4 MB → 1.42 MB (optimize: meshopt, 128px) — the tunnel deep below the wayside shrine | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `backrooms-vr.glb` | `levels/backrooms-vr.glb` | 19.8 MB → 0.83 MB (optimize: meshopt, 128px) — "End of the Line", the backrooms terminus of the metro tunnel | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `crt-tv.glb` | `crt-tvs/crt-tv-lowpoly.glb` | 101 KB → 25 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `greek-doric-column.glb` | `greek-vaporwave/greek-doric-column.glb` | 1.6 MB → 154 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `ionic-column.glb` | `greek-vaporwave/ionic-column.glb` | 2.24 MB → 260 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `classical-greek-sculpture.glb` | `greek-vaporwave/classical-greek-sculpture.glb` | 2.77 MB → 514 KB (optimize: meshopt, 256px) — the Sunken Gallery centrepiece | **TODO(license)** | **TODO(license)** | **TODO(license)** |
+| `greek-jar.glb` | `greek-vaporwave/greek-jar.glb` | 1.22 MB → 146 KB (optimize: meshopt, 256px) — Sunken Gallery dressing | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 
 ## Tooling
 
