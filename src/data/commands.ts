@@ -13,6 +13,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import type { Progress } from '../state/progressStore';
+import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug } from './lyrics';
 
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
@@ -139,6 +140,38 @@ export const COMMANDS: Command[] = [
           `  games cleared ....... ${progress.clearedGames.length}`,
           ' ',
           '(the machine keeps better records than it admits.)',
+        ],
+      };
+    },
+  },
+  {
+    name: 'lyrics',
+    help: 'read the words — `lyrics` to list, `lyrics boardwalk` to read one',
+    run: ({ args }) => {
+      const q = args.join(' ').trim();
+      if (!q) {
+        const slugs = songsWithLyrics();
+        const width = Math.max(...slugs.map((s) => s.length));
+        return {
+          output: [
+            'WORDS ON FILE — read one with `lyrics <name>`:',
+            ...slugs.map((s) => `  ${s.padEnd(width + 2)}${LYRICS[s].title}`),
+            '',
+            '(instrumentals + covers have no words to print.)',
+          ],
+        };
+      }
+      const slug = findLyricSlug(q);
+      const L = slug ? lyricFor(slug) : undefined;
+      if (!L) return { output: [`lyrics: nothing on file matching "${q}". try \`lyrics\`.`] };
+      return {
+        output: [
+          `♪ ${L.title.toUpperCase()}`,
+          ...(L.meaning ? ['  ' + L.meaning] : []),
+          '',
+          ...L.lyrics.split('\n'),
+          '',
+          '— Scoobert Doobert. © Luke F. Walton. all rights reserved.',
         ],
       };
     },
