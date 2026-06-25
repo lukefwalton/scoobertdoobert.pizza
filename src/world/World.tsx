@@ -27,6 +27,8 @@ import { OceanviewRoom } from './OceanviewRoom';
 import { BalboaRoom } from './BalboaRoom';
 import { GalleryRoom } from './GalleryRoom';
 import { DaydreamRoom } from './DaydreamRoom';
+import { MemoryLaneRoom } from './MemoryLaneRoom';
+import { InternetRoom } from './InternetRoom';
 import { ItemPickup } from './ItemPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
@@ -138,6 +140,10 @@ function RoomScene({ room }: { room: Room }) {
       return <GalleryRoom room={room} />;
     case 'daydream':
       return <DaydreamRoom room={room} />;
+    case 'memorylane':
+      return <MemoryLaneRoom room={room} />;
+    case 'internet':
+      return <InternetRoom room={room} />;
     case 'shop':
     default:
       return <ShopRoom />;
