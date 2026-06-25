@@ -37,7 +37,12 @@ export type RoomKind =
   // own Scoobert song (Room.song) — the reward for wandering out is the music.
   | 'boardwalk'
   | 'oceanview'
-  | 'balboa';
+  | 'balboa'
+  // The Sunken Gallery wing — a submerged vaporwave-classical hall of crunched
+  // greek statuary off the poolrooms (funny-uncanny, never traumatic), opening
+  // onto a sweet pastel daydream breather. Each plays its own song (Room.song).
+  | 'gallery'
+  | 'daydream';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -511,6 +516,9 @@ export const ROOMS: Room[] = [
       // Stepping back out of the staff locker room: by the -X locker door (far
       // end), facing +X into the room, clear of its radius.
       fromLocker: { position: [-4.45, EYE, -5], yaw: Math.PI / 2 },
+      // Surfacing back up from the sunken gallery: by the +X gallery door (far
+      // end), facing -X into the room, clear of every door radius.
+      fromGallery: { position: [4.45, EYE, -5], yaw: -Math.PI / 2 },
     },
     // The rusted locker key rests on the deck — pocket it to open the STAFF ONLY
     // door in the far -X wall. Off the main descent (a side reward), so it never
@@ -578,6 +586,18 @@ export const ROOMS: Room[] = [
         hidden: true,
         revealOn: 'secret',
         radius: 3.0,
+      },
+      {
+        id: 'pool-to-gallery',
+        to: 'gallery',
+        toSpawn: 'fromPool',
+        // A flooded archway at the far end of the +X wall (the mobius door is the
+        // near end) — down into a sunken hall of statuary. A side branch, visible
+        // (not hidden) and unlocked: the greek statue in the pool is the wink.
+        position: [8.95, 0, -5],
+        rotationY: -Math.PI / 2, // +X wall, opening faces -X into the room
+        label: 'wade into the sunken gallery',
+        radius: 3,
       },
     ],
   },
@@ -1245,6 +1265,98 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  // ── The Sunken Gallery wing ─────────────────────────────────────────────────
+  // Wade out of the poolrooms' false water into a submerged hall of vaporwave-
+  // classical statuary (crunched greek GLBs): a colonnade, a centre sculpture, a
+  // broken statue in the murk. Funny-uncanny, NEVER traumatic — dim deep-sea teal,
+  // still water, drips. It opens at the far end onto a sweet pastel daydream — the
+  // taste-guardrail breather. Each room plays its own song (Room.song).
+  {
+    id: 'gallery',
+    kind: 'gallery',
+    title: 'The Sunken Gallery',
+    dims: { halfW: 10, halfD: 10, height: 6, eye: EYE },
+    // Submerged museum teal — dim, close-ish fog, statues looming out of the murk.
+    palette: { background: '#0f2e34', fog: '#123c42', fogNear: 5, fogFar: 36 },
+    drips: true, // it's flooded — water drips from the vaulted dark
+    song: 'underwater',
+    // A colonnade of crunched greek columns (doric + ionic alternating) down both
+    // sides, a sculpture on the centre line, a broken statue + amphorae in the
+    // murk. All lazy GLB props (each its own Suspense) — provenance in
+    // THIRD_PARTY_NOTICES.md. The IP-flagged trove models are NOT used.
+    props: [
+      { url: '/models/ionic-column.glb', position: [-5.5, 0, -6], fit: 5.2 },
+      { url: '/models/greek-doric-column.glb', position: [5.5, 0, -6], fit: 5.2 },
+      { url: '/models/ionic-column.glb', position: [-5.5, 0, 0], fit: 5.2 },
+      { url: '/models/greek-doric-column.glb', position: [5.5, 0, 0], fit: 5.2 },
+      { url: '/models/ionic-column.glb', position: [-5.5, 0, 6], fit: 5.2 },
+      { url: '/models/greek-doric-column.glb', position: [5.5, 0, 6], fit: 5.2 },
+      {
+        url: '/models/classical-greek-sculpture.glb',
+        position: [0, 0, -3.5],
+        fit: 3.6,
+        rotationY: Math.PI,
+      },
+      { url: '/models/greek-statue.glb', position: [-2.8, 0, 2.5], fit: 3.2, rotationY: 0.5 },
+      { url: '/models/greek-jar.glb', position: [3, 0, 3.5], fit: 1.4, rotationY: -0.4 },
+      { url: '/models/greek-jar.glb', position: [2.2, 0, -7], fit: 1.2, rotationY: 0.8 },
+    ],
+    spawns: {
+      // Wade in from the poolrooms at the +Z end, facing -Z down the colonnade
+      // toward the light at the far end. Clear of the +Z return door.
+      default: { position: [0, EYE, 5.5], yaw: Math.PI },
+      fromPool: { position: [0, EYE, 5.5], yaw: Math.PI },
+      // Back from the daydream: at the -Z end, facing +Z back up the hall.
+      fromDaydream: { position: [0, EYE, -5.5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'gallery-to-pool',
+        to: 'poolrooms',
+        toSpawn: 'fromGallery',
+        position: [0, 0, 9.9], // +Z — back up to the poolrooms
+        rotationY: 0,
+        label: 'wade back up to the poolrooms',
+        radius: 3.2,
+      },
+      {
+        id: 'gallery-to-daydream',
+        to: 'daydream',
+        toSpawn: 'fromGallery',
+        position: [0, 0, -9.9], // -Z far end — toward the light
+        rotationY: Math.PI,
+        label: 'step toward the light',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'daydream',
+    kind: 'daydream',
+    title: 'Daydream',
+    dims: { halfW: 9, halfD: 9, height: 8, eye: EYE },
+    // Pastel watercolor sky — soft lavender, bright, far gentle fog. The sweet
+    // breather after the murk (taste guardrail: the contrast is the point).
+    palette: { background: '#c4b6ea', fog: '#dccff4', fogNear: 9, fogFar: 64 },
+    song: 'watercolor-sky',
+    spawns: {
+      // Surface onto the cloud deck, facing out into the pastel haze (-Z), clear
+      // of the +Z door back down into the gallery.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromGallery: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'daydream-to-gallery',
+        to: 'gallery',
+        toSpawn: 'fromDaydream',
+        position: [0, 0, 8.95], // +Z — back down into the gallery
+        rotationY: 0,
+        label: 'back down into the gallery',
+        radius: 3.2,
+      },
+    ],
+  },
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -1367,6 +1479,10 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   jukebox: { x: 5, y: 2.4 },
   practice: { x: 3, y: 2.8 },
   poolrooms: { x: 5, y: 3.6 },
+  // sunken gallery wing — a side branch off the poolrooms (right), dipping then
+  // rising into the pastel daydream.
+  gallery: { x: 6.8, y: 3.2 },
+  daydream: { x: 8, y: 2.6 },
   dicepit: { x: 3.2, y: 4.0 },
   lockerroom: { x: 2.2, y: 4.6 },
   mobius: { x: 5, y: 4.8 },
