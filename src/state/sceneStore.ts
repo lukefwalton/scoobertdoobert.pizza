@@ -6,6 +6,7 @@ import { BOTTOM_FLOOR } from '../data/floors';
 // app-chunk check in the build.
 import { FIRST_ROOM } from '../data/rooms';
 import { type TvVideo } from '../data/videos';
+import { type ArcadeGameId } from '../data/arcadeGames';
 
 /** How long a painting cover ripples + swallows the view before the room wipe
  *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
@@ -69,6 +70,10 @@ type SceneState = {
    *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
    *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
   nearTv: string | null;
+  /** the camera is standing in front of an arcade CABINET — drives its "Press E to
+   *  play" prompt + the E action (launchRandomArcade). Boolean, not an id: at most
+   *  one cabinet per room. Cleared when the cabinet unmounts (you leave the room). */
+  nearArcade: boolean;
   /** A dancing Wanderer the camera is close to (its id + a friendly label), or
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
@@ -94,6 +99,9 @@ type SceneState = {
   /** A CRT in an album-room was switched on: the video to play in the modal TV
    *  overlay (the far side of a painting — the album's music videos). null = closed. */
   tvVideo: TvVideo | null;
+  /** A cabinet was fired up: which game's modal is open (a random roll), or null.
+   *  Same modal grammar as tvVideo — the far side of a cabinet is a real minigame. */
+  arcadeGame: ArcadeGameId | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -120,6 +128,10 @@ type SceneState = {
   /** Switch a CRT in an album-room on (modal video overlay) / off. */
   openTv: (video: TvVideo) => void;
   closeTv: () => void;
+  /** Fire up a cabinet (open its rolled game's modal) / close it. */
+  openArcade: (id: ArcadeGameId) => void;
+  closeArcade: () => void;
+  setNearArcade: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -191,6 +203,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   finaleNonce: 0,
   divingTo: null,
   tvVideo: null,
+  arcadeGame: null,
+  nearArcade: false,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -225,6 +239,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearEntity: null,
       nearNpc: null,
       openNpc: null,
+      nearArcade: false,
+      arcadeGame: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -243,6 +259,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearEntity: null,
       nearNpc: null,
       openNpc: null,
+      nearArcade: false,
+      arcadeGame: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -260,6 +278,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeHotspotDialog: () => set({ openHotspot: null }),
   openTv: (video) => set({ tvVideo: video }),
   closeTv: () => set({ tvVideo: null }),
+  openArcade: (id) => set({ arcadeGame: id }),
+  closeArcade: () => set({ arcadeGame: null }),
+  setNearArcade: (near) => set({ nearArcade: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),

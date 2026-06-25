@@ -57,7 +57,8 @@
     "shoot:finale": "node scripts/shoot-finale.mjs",
     "shoot:sprint": "node scripts/shoot-sprint.mjs",
     "shoot:tapes": "node scripts/shoot-tapes.mjs",
-    "shoot:discovery": "node scripts/shoot-discovery.mjs"
+    "shoot:discovery": "node scripts/shoot-discovery.mjs",
+    "shoot:cabinet": "node scripts/shoot-cabinet.mjs"
   },
   "engines": {
     "node": ">=20.19"
