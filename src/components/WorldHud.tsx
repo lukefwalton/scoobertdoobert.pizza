@@ -20,7 +20,6 @@ import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
 import { itemById, CASSETTE_IDS } from '../data/items';
-import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
 import { launchRandomArcade } from '../lib/arcade';
@@ -236,7 +235,8 @@ export function WorldHud() {
           });
         } else if (st.nearTv) {
           // Switch on the CRT — the same modal the TV's click opens (keyboard parity).
-          st.openTv(albumVideo(st.nearTv));
+          // nearTv already holds the resolved clip (TvSet did the lookup).
+          st.openTv(st.nearTv);
         } else if (st.nearArcade) {
           // Fire up the cabinet — rolls a random game (same as clicking it).
           launchRandomArcade();

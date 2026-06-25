@@ -12,12 +12,14 @@ import { TV_SPOTS, type TvVideo } from '../data/videos';
 // ───────────────────────────────────────────────────────────────────────────
 export function YoutubeFacade({
   video = TV_SPOTS,
-  caption = TV_SPOTS.blurb,
+  caption,
 }: {
   video?: TvVideo;
   caption?: string;
 }) {
   const [playing, setPlaying] = useState(false);
+  // The clip's own caption (a song/album line) wins; fall back to the channel blurb.
+  const cap = caption ?? video.blurb ?? TV_SPOTS.blurb;
   return (
     <div className="tv">
       <div className="tv__bezel">
@@ -47,7 +49,7 @@ export function YoutubeFacade({
         </div>
       </div>
       <p className="tv__caption">
-        {caption}{' '}
+        {cap}{' '}
         <a href={video.watch} target="_blank" rel="noopener noreferrer">
           Watch on YouTube &raquo;
         </a>
