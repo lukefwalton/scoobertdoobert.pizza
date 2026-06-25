@@ -4,18 +4,11 @@
 // jumped to the rolled track. Asserts on the `__sdpDice` test hook + the jukebox
 // selection, not on tumble timing.
 import { chromium } from 'playwright';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync } from 'node:fs';
 import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
-
-// Derive the catalog size from the single source (jukebox.catalog.json) instead
-// of hardcoding it, so adding/removing a track can't make this test lie about
-// the face→track mapping while the feature still works.
-const TRACK_COUNT = JSON.parse(
-  readFileSync(new URL('../src/data/jukebox.catalog.json', import.meta.url)),
-).length;
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
@@ -88,7 +81,12 @@ if (inJuke) {
     fail('clicking the d20 did not register a roll (1..20) — the click may have missed the die');
   if (rolled) {
     const face = await page.evaluate(() => window.__sdpDice);
-    const expected = (face - 1) % TRACK_COUNT; // derived from the live catalog
+    // The d20 rolls over the VISIBLE dial (seed + discovered songs — "hidden until
+    // found"), so derive the modulus from the live visible-track count, not the
+    // full catalog. We've discovered nothing on this direct shop→jukebox route, so
+    // visible = the seed tracks.
+    const visibleLen = (await page.evaluate(() => window.__sdpJukeboxVisible?.length)) || 1;
+    const expected = (face - 1) % visibleLen;
     trackJumped = await page
       .waitForFunction((idx) => window.__sdpJukebox?.index === idx, expected, { timeout: 4000 })
       .then(

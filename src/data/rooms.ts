@@ -381,16 +381,8 @@ export const ROOMS: Room[] = [
     dims: { halfW: 6, halfD: 7, height: 5.5, eye: EYE },
     // Warm, dim, womb-like — the payoff room. Deep magenta dark, close fog.
     palette: { background: '#190b1d', fog: '#2a1233', fogNear: 4, fogFar: 28 },
-    // An old arcade cabinet humming in the corner of the music shrine.
-    props: [
-      {
-        url: '/models/arcade-cabinet.glb',
-        position: [-3.6, 0, -4.4],
-        fit: 2.5,
-        rotationY: 0.7,
-        glow: 0.3,
-      },
-    ],
+    // The arcade cabinet humming in the corner is procedural now (an <ArcadeCabinet>
+    // in JukeboxRoom — a real CRT + joystick, not the old generic GLB).
     // A cassette left on the jukebox's side — fitting that the music room hides one.
     pickups: [{ itemId: 'tape-moonlight', position: [3.6, 0.7, -3] }],
     spawns: {
@@ -1190,11 +1182,11 @@ export const ROOMS: Room[] = [
     dims: { halfW: 9, halfD: 9, height: 6, eye: EYE },
     // Golden hour: warm peach sky, soft far fog so the sea fades into the dusk.
     palette: { background: '#e7b27a', fog: '#f0cb98', fogNear: 12, fogFar: 80 },
-    // A potted palm by the rail + an old boardwalk arcade cabinet humming away.
+    // Potted palms by the rail. (The boardwalk arcade cabinet is procedural — an
+    // <ArcadeCabinet> in BoardwalkRoom, a real CRT + joystick.)
     props: [
       { url: '/models/palm-tree.glb', position: [-6.2, 0, -4], fit: 4.6, rotationY: 0.4 },
       { url: '/models/palm-tree.glb', position: [6.4, 0, -3], fit: 4.2, rotationY: -0.7 },
-      { url: '/models/arcade-cabinet.glb', position: [6, 0, 5.2], fit: 2.4, rotationY: -2.3 },
     ],
     // The boardwalk plays its namesake track.
     song: 'boardwalk',
