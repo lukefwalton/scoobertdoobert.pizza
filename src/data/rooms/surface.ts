@@ -21,6 +21,10 @@ export const SURFACE_ROOMS: Room[] = [
     ],
     // The boardwalk plays its namesake track.
     song: 'boardwalk',
+    // A CRT on the pier opposite the arcade cabinet — switch it on for the
+    // "Boardwalk" music video (the song is literally about this place). A fun
+    // anachronism, like the Frutiger set.
+    tv: { songSlug: 'boardwalk', position: [-3, 0, 0.5], rotationY: 0.4 },
     spawns: {
       // Step out of the shop onto the pier, facing the sea (-Z) — the establishing
       // view down the boardwalk toward the water. Clear of the +Z shop door. Coming
@@ -232,6 +236,9 @@ export const SURFACE_ROOMS: Room[] = [
     ],
     song: 'i-live-in-california',
     // (The California Tower itself is procedural — see CaliforniaRoom.)
+    // A CRT off to the side of the overlook plays the "I Live in California" music
+    // video — the song this golden-hour coast is named for. Clear of the centre tower.
+    tv: { songSlug: 'i-live-in-california', position: [-4.5, 0, 1], rotationY: -0.6 },
     spawns: {
       // Arrive at the +Z (park) end of the overlook, facing -Z out toward the sea
       // + the lower tidepool gate. Clear of every door radius.
