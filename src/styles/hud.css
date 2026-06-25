@@ -80,9 +80,10 @@
 .hud-objective__hint {
   font-size: 0.7rem;
   color: rgba(223, 234, 243, 0.6);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Wrap the hint instead of truncating it with an ellipsis — show the whole
+     line ("…then find the door it opens"), letting the chip grow a row taller. */
+  white-space: normal;
+  line-height: 1.3;
 }
 
 /* quiet room name, lower-left — orientation flavor, never in the way. */

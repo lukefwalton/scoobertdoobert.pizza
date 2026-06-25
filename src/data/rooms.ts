@@ -1532,7 +1532,7 @@ export const ROOMS: Room[] = [
     palette: { background: '#1b1d3e', fog: '#262a52', fogNear: 11, fogFar: 75 },
     props: [
       { url: '/models/palm-tree.glb', position: [-6.2, 0, -3], fit: 4.4, rotationY: 0.5 },
-      { url: '/models/arcade-cabinet.glb', position: [6.4, 0, -1.5], fit: 2.4, rotationY: -2.2 },
+      { url: '/models/palm-tree.glb', position: [6.4, 0, -2], fit: 4, rotationY: -0.6 },
     ],
     song: 'dancing-in-the-moonlight',
     spawns: {
@@ -1576,7 +1576,6 @@ export const ROOMS: Room[] = [
     props: [
       { url: '/models/palm-tree.glb', position: [-6.5, 0, -3], fit: 5, rotationY: 0.3 },
       { url: '/models/palm-tree.glb', position: [6.6, 0, -4], fit: 4.6, rotationY: -0.6 },
-      { url: '/models/arcade-cabinet.glb', position: [6, 0, 4.5], fit: 2.4, rotationY: -2.4 },
     ],
     song: 'best-day-ever',
     spawns: {
