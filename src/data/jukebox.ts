@@ -18,6 +18,7 @@
 // so the HUD/store can import it.
 // ───────────────────────────────────────────────────────────────────────────
 import catalog from './jukebox.catalog.json';
+import { ROOM_SONG_SLUGS } from './rooms';
 
 export type JukeboxTrack = {
   /** Matches the rendered file at /audio/jukebox/<slug>.mp3. */
@@ -36,3 +37,23 @@ export const JUKEBOX_TRACKS: JukeboxTrack[] = (catalog as { slug: string; title:
 
 /** The shipped loop for a track slug. */
 export const jukeboxTrackUrl = (slug: string): string => `/audio/jukebox/${slug}.mp3`;
+
+/** Is this a "find it in its room" song (owned by some Room.song), vs an
+ *  always-available seed track? */
+export const isRoomSong = (slug: string): boolean => ROOM_SONG_SLUGS.has(slug);
+
+/** The display title for a slug (for the "new song" announce); the slug itself
+ *  if it somehow isn't in the catalog. */
+export const jukeboxTitle = (slug: string): string =>
+  JUKEBOX_TRACKS.find((t) => t.slug === slug)?.title ?? slug;
+
+/** The tracks the JUKEBOX may show + cycle, given what the player has DISCOVERED:
+ *  every seed (non-room) track, plus any room-song they've already found in its
+ *  room. Room-songs stay HIDDEN until found ("exploration's reward is sound") — the
+ *  reward for wandering into a room is that its track joins your jukebox forever.
+ *  Catalog order is preserved. Only the jukebox UI is filtered; the engine's
+ *  LOOP_OPTIONS / boot loop / Room.song override playback are untouched. */
+export const visibleJukeboxTracks = (discovered: readonly string[]): JukeboxTrack[] => {
+  const found = new Set(discovered);
+  return JUKEBOX_TRACKS.filter((t) => !ROOM_SONG_SLUGS.has(t.slug) || found.has(t.slug));
+};

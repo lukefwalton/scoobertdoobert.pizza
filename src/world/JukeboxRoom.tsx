@@ -5,7 +5,8 @@ import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
-import { JUKEBOX_TRACKS, jukeboxTrackUrl } from '../data/jukebox';
+import { visibleJukeboxTracks, jukeboxTrackUrl } from '../data/jukebox';
+import { loopIndexForUrl } from '../data/music';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useMusicStore } from '../state/musicStore';
@@ -144,27 +145,36 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 export function JukeboxRoom({ room }: { room: Room }) {
   const fog = fogFor(room);
 
-  // Which catalog track the jukebox is on. Clicking the cabinet advances it in
+  // The tracks this cabinet shows: the seed catalog + whatever SONG-ROOMS the
+  // player has discovered ("hidden until found"). Room-songs you haven't wandered
+  // into yet simply aren't on the dial. Recomputed if a new song is unlocked
+  // (the room remounts on re-entry, so this is usually a fresh read anyway).
+  const discovered = useProgressStore((s) => s.discoveredSongs);
+  const tracks = useMemo(() => visibleJukeboxTracks(discovered), [discovered]);
+
+  // Which visible track the jukebox is on. Clicking the cabinet advances it in
   // order; rolling the d20 jumps to whatever the dice picks (the chaos path).
   const [index, setIndex] = useState(0);
   const [roll, setRoll] = useState<number | null>(null);
-  const track = JUKEBOX_TRACKS[index];
+  const track = tracks[Math.min(index, tracks.length - 1)];
   const cycle = () => {
     audio.playChime(noteToFreq('E', 5), 0.25, 0.09, 0.5); // a little bell on track change
-    setIndex((i) => (i + 1) % JUKEBOX_TRACKS.length);
+    setIndex((i) => (i + 1) % tracks.length);
   };
-  // A d20 face (1..20) maps onto the catalog by modulo, so every track is
-  // reachable and the rolled number still reads as a real D&D roll. Rolling the
-  // bone is also the UPGRADE: it unlocks the flip-through radio (durable) and
-  // makes the rolled track your STATION, so it follows you out of the room (the
-  // jukebox already plays it locally; setPreferred records it without re-playing,
-  // and restorePreferred hands that pick back on exit instead of the boot loop).
+  // A d20 face (1..20) maps onto the VISIBLE tracks by modulo, so every unlocked
+  // track is reachable and the rolled number still reads as a real D&D roll.
+  // Rolling the bone is also the UPGRADE: it unlocks the flip-through radio
+  // (durable) and makes the rolled track your STATION, so it follows you out of
+  // the room (setPreferred records the pick without re-playing; restorePreferred
+  // hands it back on exit instead of the boot loop). We map the chosen track to
+  // its STABLE LOOP_OPTIONS index by slug, so filtering the dial never desyncs the
+  // engine's loop-voice indices.
   const rollTo = (face: number) => {
     setRoll(face);
-    const i = (face - 1) % JUKEBOX_TRACKS.length;
+    const i = (face - 1) % tracks.length;
     setIndex(i);
     useProgressStore.getState().unlockRadio();
-    useMusicStore.getState().setPreferred(i + 1); // +1: LOOP_OPTIONS[0] is the boot loop
+    useMusicStore.getState().setPreferred(loopIndexForUrl(jukeboxTrackUrl(tracks[i].slug)));
     exposeTestGlobal('__sdpDice', face);
   };
 
@@ -174,15 +184,25 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // __sdpDice is cleared on BOTH enter and exit so it always means "the roll
   // from THIS visit" (edge-triggered), never a sticky last-roll-since-page-load.
   useEffect(() => {
-    audio.preloadJukebox(JUKEBOX_TRACKS.map((t) => jukeboxTrackUrl(t.slug)));
+    audio.preloadJukebox(tracks.map((t) => jukeboxTrackUrl(t.slug)));
     exposeTestGlobal('__sdpDice', undefined);
+    // The dial the player can actually see this visit (seed + discovered) — for the
+    // discovery smoke to assert "hidden until found".
+    exposeTestGlobal(
+      '__sdpJukeboxVisible',
+      tracks.map((t) => t.slug),
+    );
     return () => {
       // Leaving the cabinet hands the loop voice back to the user's chosen track
       // (the switcher), not unconditionally to boot.
       useMusicStore.getState().restorePreferred();
       exposeTestGlobal('__sdpJukebox', undefined);
+      exposeTestGlobal('__sdpJukeboxVisible', undefined);
       exposeTestGlobal('__sdpDice', undefined);
     };
+    // mount-once: preload the visible catalog + manage the test globals for this
+    // visit. `tracks` is stable for the room's lifetime (re-entry remounts).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Play the selected track — runs on entry (index 0) and on every cycle.
