@@ -59,7 +59,14 @@ export type RoomKind =
   // overlook on the road, drifting down into a hazy tidepool daydream. Pure
   // surface goof (taste-safe). Each plays its own song (Room.song).
   | 'california'
-  | 'tidepools';
+  | 'tidepools'
+  // The San Diego wing — Balboa Park spills into the city: the San Diego Zoo (a
+  // flock of low-poly flamingos in a pond) opening onto a North Park dusk street
+  // under the iconic NORTH PARK sign, where you can drink little beers (too many
+  // and the screen goes goofily blurry). Pure surface goof (taste-safe). Each
+  // plays its own song (Room.song).
+  | 'zoo'
+  | 'northpark';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -1624,6 +1631,9 @@ export const ROOMS: Room[] = [
       // Back up from the tidepools: by the -Z gate, facing +Z back up the road,
       // clear of every door radius.
       fromTidepools: { position: [0, EYE, -4.5], yaw: 0 },
+      // Back from the zoo: by the +X gate, facing -X back into the overlook, clear
+      // of every door radius.
+      fromZoo: { position: [4.45, EYE, 3.5], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -1642,6 +1652,15 @@ export const ROOMS: Room[] = [
         position: [0, 0, -8.95], // -Z — down to the tidepools
         rotationY: Math.PI,
         label: 'down to the tidepools',
+        radius: 3.2,
+      },
+      {
+        id: 'california-to-zoo',
+        to: 'zoo',
+        toSpawn: 'fromCalifornia',
+        position: [8.95, 0, 3.5], // +X gate — into the park / the zoo
+        rotationY: -Math.PI / 2,
+        label: 'into the zoo',
         radius: 3.2,
       },
     ],
@@ -1670,6 +1689,80 @@ export const ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z — back up the coast road
         rotationY: 0,
         label: 'back up the coast road',
+        radius: 3.2,
+      },
+    ],
+  },
+  // ── The San Diego wing ──────────────────────────────────────────────────────
+  // Off the Balboa Park overlook, the city proper: the San Diego Zoo (a flock of
+  // low-poly flamingos wading a pond) opening onto a North Park dusk street under
+  // the iconic NORTH PARK sign, where little beers litter the curb — drink too
+  // many and the screen goes goofily blurry for a few seconds. Pure surface goof
+  // (taste guardrail). Each plays its own song (Room.song).
+  {
+    id: 'zoo',
+    kind: 'zoo',
+    title: 'The San Diego Zoo',
+    dims: { halfW: 10, halfD: 9, height: 7, eye: EYE },
+    // Bright lush midday — warm green, soft far fog.
+    palette: { background: '#a9cf7e', fog: '#c2e0a0', fogNear: 12, fogFar: 80 },
+    props: [
+      { url: '/models/palm-tree.glb', position: [-7, 0, -4], fit: 5.2, rotationY: 0.3 },
+      { url: '/models/palm-tree.glb', position: [7.2, 0, -5], fit: 4.8, rotationY: -0.6 },
+    ],
+    song: 'my-friend-scoobert',
+    spawns: {
+      // Step in at the +Z (park) end, facing -Z down the enclosure toward the
+      // flamingo pond + the North Park gate. Clear of every door radius.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromCalifornia: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Back from North Park: by the -Z gate, facing +Z back into the zoo, clear
+      // of every door radius.
+      fromNorthPark: { position: [0, EYE, -4.5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'zoo-to-california',
+        to: 'california',
+        toSpawn: 'fromZoo',
+        position: [0, 0, 8.95], // +Z — back to the overlook
+        rotationY: 0,
+        label: 'back to the overlook',
+        radius: 3.2,
+      },
+      {
+        id: 'zoo-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromZoo',
+        position: [0, 0, -8.95], // -Z — out the gate into North Park
+        rotationY: Math.PI,
+        label: 'out into North Park',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'northpark',
+    kind: 'northpark',
+    title: 'North Park',
+    dims: { halfW: 10, halfD: 10, height: 8, eye: EYE },
+    // Golden-hour dusk on the boulevard under the sign — warm amber sky, soft fog.
+    palette: { background: '#d99a5e', fog: '#e6b884', fogNear: 13, fogFar: 80 },
+    song: 'velma-what-a-night',
+    spawns: {
+      // Arrive at the +Z end of the block, facing -Z down the street toward the
+      // NORTH PARK sign. Clear of the +Z gate back to the zoo.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromZoo: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'northpark-to-zoo',
+        to: 'zoo',
+        toSpawn: 'fromNorthPark',
+        position: [0, 0, 8.95], // +Z — back to the zoo gate
+        rotationY: 0,
+        label: 'back to the zoo',
         radius: 3.2,
       },
     ],
@@ -1805,6 +1898,10 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // tidepool daydream. Still pure surface.
   california: { x: 0.6, y: -0.9 },
   tidepools: { x: -0.4, y: -1.6 },
+  // san diego wing — Balboa Park spills into the city (east of the overlook):
+  // the zoo, then North Park.
+  zoo: { x: 1.8, y: -1.5 },
+  northpark: { x: 1.6, y: -2.6 },
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
   hallway: { x: 5, y: 1.2 },
