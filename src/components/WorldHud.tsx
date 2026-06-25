@@ -7,6 +7,8 @@ import { roomById, ROOM_FADE_MS, ROOMS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
+import { LOOP_OPTIONS } from '../data/music';
+import { hasLyrics, lyricFor } from '../data/lyrics';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
 import { WorldMap } from './WorldMap';
@@ -76,7 +78,14 @@ export function WorldHud() {
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
   const nowPlaying = useMusicStore((s) => s.title);
+  const musicIndex = useMusicStore((s) => s.index);
   const shiftSong = useMusicStore((s) => s.shift);
+  // The slug of whatever's actually playing (null = boot loop), so the pause menu
+  // can offer "read the words" when the current track has lyrics on file.
+  const playingSlug = LOOP_OPTIONS[musicIndex]?.slug ?? null;
+  // Which song's lyrics the reader panel is showing (null = closed). In the store
+  // (like tvVideo) so Esc closes it before the pause menu.
+  const lyricsSong = useSceneStore((s) => s.lyricsSong);
   // One shallow-compared snapshot of the durable progress drives the whole
   // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
   // door prompt). useShallow so re-rendering only happens when a field actually
@@ -216,6 +225,7 @@ export function WorldHud() {
       if (e.key === 'Escape') {
         if (st.arcadeGame) st.closeArcade();
         else if (st.tvVideo) st.closeTv();
+        else if (st.lyricsSong) st.closeLyrics();
         else if (st.openNpc) st.closeNpcDialog();
         else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
@@ -494,6 +504,39 @@ export function WorldHud() {
 
       {arcadeGame && <ArcadeModal id={arcadeGame} onClose={closeArcade} />}
 
+      {/* The lyric reader — opened from the pause menu's "read the words". A plain
+          98.css window over the menu; the words scroll. (Luke's copyright, shown
+          with a quiet credit.) */}
+      {lyricsSong &&
+        (() => {
+          const L = lyricFor(lyricsSong);
+          if (!L) return null;
+          return (
+            <div
+              className="hud-dialog hud-dialog--lyrics window"
+              role="dialog"
+              aria-label={L.title}
+            >
+              <div className="title-bar">
+                <div className="title-bar-text">♪ {L.title}</div>
+                <div className="title-bar-controls">
+                  <button
+                    aria-label="Close"
+                    onClick={() => useSceneStore.getState().closeLyrics()}
+                  />
+                </div>
+              </div>
+              <div className="window-body">
+                {L.meaning && <p className="hud-lyrics__meaning">{L.meaning}</p>}
+                <pre className="hud-lyrics__words">{L.lyrics}</pre>
+                <p className="hud-lyrics__credit">
+                  © Luke F. Walton dba Scoobert Doobert. All rights reserved.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
       {paused && (
         <div className="hud-pause" role="dialog" aria-label="Paused">
           <div className="hud-pause__panel window">
@@ -613,6 +656,18 @@ export function WorldHud() {
                     roll the bone at the jukebox to tune the radio
                   </span>
                 </div>
+              )}
+              {/* Read along with whatever's playing — the words are a reward too.
+                  Shown whenever the current track has lyrics on file (not gated by
+                  the radio upgrade; reading is always allowed). */}
+              {hasLyrics(playingSlug) && (
+                <button
+                  className="hud-pause__lyricsbtn"
+                  onClick={() => useSceneStore.getState().openLyrics(playingSlug)}
+                  title="Read the words to this song"
+                >
+                  📜 read the words
+                </button>
               )}
               <div className="hud-pause__actions">
                 <button onClick={() => toggleObjectiveHud()}>

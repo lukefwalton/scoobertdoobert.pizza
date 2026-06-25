@@ -724,6 +724,44 @@
   max-height: 80vh;
   overflow: auto;
 }
+
+/* ── The lyric reader — pause-menu "read the words". A plain window over the menu;
+   the words scroll in a monospace column (a karaoke sheet for the current song). ── */
+.hud-pause__lyricsbtn {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.85em;
+}
+.hud-dialog--lyrics {
+  width: min(94vw, 440px);
+  z-index: 90; /* above the pause menu (z 80) it opens over */
+}
+.hud-dialog--lyrics .window-body {
+  max-height: 70vh;
+  overflow: auto;
+}
+.hud-lyrics__meaning {
+  font-style: italic;
+  color: #3a3a3a;
+  border-left: 3px solid #caa14a;
+  padding-left: 8px;
+  margin: 2px 0 8px;
+  font-size: 0.9em;
+}
+.hud-lyrics__words {
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 0.92em;
+  line-height: 1.45;
+  margin: 0;
+  color: #101010;
+}
+.hud-lyrics__credit {
+  margin-top: 10px;
+  font-size: 0.68em;
+  color: #8a8a8a;
+  text-align: center;
+}
 .tv__bezel {
   background: #15110f;
   padding: 14px 14px 10px;

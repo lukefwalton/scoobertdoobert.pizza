@@ -102,6 +102,9 @@ type SceneState = {
   /** A cabinet was fired up: which game's modal is open (a random roll), or null.
    *  Same modal grammar as tvVideo — the far side of a cabinet is a real minigame. */
   arcadeGame: ArcadeGameId | null;
+  /** The lyric reader (pause-menu "read the words") is open on this jukebox slug,
+   *  or null. Same modal grammar as tvVideo — Esc closes it before the pause menu. */
+  lyricsSong: string | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -131,6 +134,9 @@ type SceneState = {
   /** Fire up a cabinet (open its rolled game's modal) / close it. */
   openArcade: (id: ArcadeGameId) => void;
   closeArcade: () => void;
+  /** Open the lyric reader on a jukebox slug / close it. */
+  openLyrics: (slug: string) => void;
+  closeLyrics: () => void;
   setNearArcade: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
@@ -204,6 +210,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   divingTo: null,
   tvVideo: null,
   arcadeGame: null,
+  lyricsSong: null,
   nearArcade: false,
   secretRevealed: false,
   mobiusLoops: 0,
@@ -241,6 +248,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       arcadeGame: null,
+      lyricsSong: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -261,6 +269,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       arcadeGame: null,
+      lyricsSong: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -280,6 +289,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeTv: () => set({ tvVideo: null }),
   openArcade: (id) => set({ arcadeGame: id }),
   closeArcade: () => set({ arcadeGame: null }),
+  openLyrics: (slug) => set({ lyricsSong: slug }),
+  closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near) => set({ nearArcade: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
