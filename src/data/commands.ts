@@ -14,6 +14,9 @@
 
 import type { Progress } from '../state/progressStore';
 import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug } from './lyrics';
+import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
+import { loreAt } from './lore';
+import { ALBUMS } from './albums';
 
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
@@ -72,6 +75,15 @@ const FILES: Record<string, string[]> = {
     '(hint: it is not a number. try /1101)',
   ],
   'EMPLOYEES.TXT': ['on duty: 1', 'on duty: 1', 'on duty: 1 (you keep counting the same one)'],
+  'LMM.TXT': [
+    'LOVE MUSIC MORE — staff listening, mandatory.',
+    'a podcast about the craft of music. the manager hosts it.',
+    '(the manager is the rat. the manager is also the philosopher. type `lmm`.)',
+  ],
+  'WORDS.TXT': [
+    'lyrics are kept on file for legal reasons.',
+    'type `lyrics` to read along. type `lore` for a deep cut.',
+  ],
 };
 
 function helpListing(): string[] {
@@ -172,6 +184,55 @@ export const COMMANDS: Command[] = [
           ...L.lyrics.split('\n'),
           '',
           '— Scoobert Doobert. © Luke F. Walton. all rights reserved.',
+        ],
+      };
+    },
+  },
+  {
+    name: 'lmm',
+    help: 'Love Music More — the podcast. `lmm` to list, `lmm 1` to listen',
+    run: ({ args }) => {
+      const n = parseInt(args[0] ?? '', 10);
+      if (Number.isInteger(n) && n >= 1 && n <= LMM_EPISODES.length) {
+        const ep = LMM_EPISODES[n - 1];
+        return {
+          output: [`opening: ${ep.title}…`, ep.url],
+          action: { type: 'navigate', href: ep.url, external: true },
+        };
+      }
+      return {
+        output: [
+          LMM_CONCEPT,
+          '',
+          'EPISODES (listen with `lmm <n>`):',
+          ...LMM_EPISODES.map(
+            (ep, i) =>
+              `  ${String(i + 1).padStart(2)}. ${ep.title}${ep.guest ? '' : '  [scoobert]'}`,
+          ),
+          '',
+          `more at ${LMM_HOME}`,
+        ],
+      };
+    },
+  },
+  {
+    name: 'lore',
+    help: 'a deep cut about the management (run it again for another)',
+    run: ({ history }) => ({
+      output: ['…', loreAt(history.length)],
+    }),
+  },
+  {
+    name: 'discography',
+    help: 'the records on file',
+    run: () => {
+      const width = Math.max(...ALBUMS.map((a) => a.title.length));
+      return {
+        output: [
+          'SCOOBERT DOOBERT — THE RECORDS:',
+          ...ALBUMS.map((a) => `  ${a.title.padEnd(width + 2)}${a.video ? '▶ has a video' : ''}`),
+          '',
+          '(switch a CRT on in the world to watch one. or `catalog` for the shop.)',
         ],
       };
     },
