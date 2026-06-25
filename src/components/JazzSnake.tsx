@@ -268,7 +268,7 @@ export function JazzSnake() {
           <div className="arcade-overlay">
             <p className="arcade-title">GAME OVER</p>
             <p className="arcade-sub">
-              {score} eaten &middot; best {Math.max(best, score)}
+              {score + 3} long &middot; best {Math.max(best, score + 3)}
             </p>
             <p className="arcade-blink">▸ TAP TO PLAY AGAIN</p>
           </div>
