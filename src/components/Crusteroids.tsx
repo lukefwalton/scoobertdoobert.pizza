@@ -309,12 +309,15 @@ export function Crusteroids() {
       const g = game.current;
       switch (e.key) {
         case 'ArrowLeft':
+          e.preventDefault(); // don't scroll/move focus while flying
           g.left = down;
           break;
         case 'ArrowRight':
+          e.preventDefault();
           g.right = down;
           break;
         case 'ArrowUp':
+          e.preventDefault();
           g.thrust = down;
           break;
         case ' ':

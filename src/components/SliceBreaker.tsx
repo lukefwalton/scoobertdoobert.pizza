@@ -98,16 +98,23 @@ export function SliceBreaker() {
       g.px = W / 2;
       g.bx = W / 2;
       g.by = PADDLE_Y - BALL_R - 1;
-      g.stuck = true;
       g.phase = 'playing';
       setPhase('playing');
+      // Launch the olive immediately — one tap from the title sends it, matching
+      // the "TAP TO LAUNCH" copy (no dead second tap). Mid-game re-serves (after a
+      // lost life / a cleared wave) still wait on the paddle below.
+      serve();
       return;
     }
-    if (g.phase === 'playing' && g.stuck) {
-      g.stuck = false;
-      g.vx = (Math.random() * 2 - 1) * 90;
-      g.vy = -g.speed;
-    }
+    if (g.phase === 'playing' && g.stuck) serve();
+  };
+
+  // Send the ball off the paddle at a slight random angle.
+  const serve = () => {
+    const g = game.current;
+    g.stuck = false;
+    g.vx = (Math.random() * 2 - 1) * 90;
+    g.vy = -g.speed;
   };
 
   useEffect(() => {
@@ -255,9 +262,13 @@ export function SliceBreaker() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent, down: boolean) => {
       const g = game.current;
-      if (e.key === 'ArrowLeft') g.keyLeft = down;
-      else if (e.key === 'ArrowRight') g.keyRight = down;
-      else if (down && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'Enter')) {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault(); // don't scroll/move focus while sliding the paddle
+        g.keyLeft = down;
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        g.keyRight = down;
+      } else if (down && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'Enter')) {
         e.preventDefault();
         launch();
       }
@@ -270,6 +281,8 @@ export function SliceBreaker() {
       window.removeEventListener('keydown', dn);
       window.removeEventListener('keyup', up);
     };
+    // listeners mount once; launch reads game.current (stable enough for play).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

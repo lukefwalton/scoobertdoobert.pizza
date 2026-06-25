@@ -19,6 +19,14 @@ describe('song meta (liner notes)', () => {
     }
   });
 
+  it('no meaning contains raw markdown (it renders as plain text everywhere)', () => {
+    // The pause HUD, lyric reader, and terminal all show `meaning` as plain text,
+    // so a stray markdown link would render literally. Guard against it.
+    for (const [slug, m] of Object.entries(SONG_META)) {
+      expect(/\]\(|\[\*|\*\]/.test(m.meaning ?? ''), `${slug} meaning has markdown`).toBe(false);
+    }
+  });
+
   it('helpers resolve known slugs and fall back gracefully', () => {
     expect(songTitle('memory-lan')).toBe('MEMORY LAN');
     expect(songMeaning('memory-lan')).toMatch(/LAN-party/i);
