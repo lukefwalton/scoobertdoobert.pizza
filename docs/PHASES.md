@@ -240,6 +240,17 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
   reactivity** (the shop reflects your deeds — clover at high luck, etc.); a
   greek-lyre "play it" instrument node; further album-themed wings (memory-lane).
+- ✅ **Real in-world VIDEO (`src/data/videos.ts`, 2026-06-25):** the CRTs now play
+  the *right* clip, not one generic playlist. Each song/album carries a **verified**
+  YouTube id (mined from `lukefwalton.com`, grep-checked — no hallucinated ids); a
+  CRT resolves its clip through one chain — the song's OWN music video → its record's
+  video → the general TV-spots channel — so a room declares only what it has
+  (`tv.songSlug` / `tv.albumSlug`). Playlist-vs-video embeds are auto-detected
+  (`ytEmbed`). **Memory Lane** (one live set in the corridor of dead web → the real
+  MEMORY LAN MV) and **the server void** (the "all my friends" video) got CRTs;
+  `albums.json` got `video` ids for 8 records. Covered by `videos.test.ts` (well-formed
+  ids + the resolution chain + a room-CRT guard) and `shoot:tv`. "The reward for
+  finding a song-room is its picture, too."
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +

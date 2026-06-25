@@ -66,10 +66,10 @@ type SceneState = {
     albumSlug?: string;
     requiresKey?: string;
   } | null;
-  /** the album-room TV the camera is standing in front of (its albumSlug), or null —
-   *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
-   *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
-  nearTv: string | null;
+  /** the room TV the camera is standing in front of (its already-resolved clip), or
+   *  null — drives the "Press E to switch on the TV" prompt + the E action (openTv).
+   *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
+  nearTv: TvVideo | null;
   /** the camera is standing in front of an arcade CABINET — drives its "Press E to
    *  play" prompt + the E action (launchRandomArcade). Boolean, not an id: at most
    *  one cabinet per room. Cleared when the cabinet unmounts (you leave the room). */
@@ -160,7 +160,7 @@ type SceneState = {
       requiresKey?: string;
     } | null,
   ) => void;
-  setNearTv: (albumSlug: string | null) => void;
+  setNearTv: (video: TvVideo | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
@@ -354,7 +354,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
-  setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
+  setNearTv: (video) => set({ nearTv: video }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
   triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),

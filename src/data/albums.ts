@@ -17,8 +17,11 @@ export type Album = {
   /** A representative jukebox-catalog slug (jukebox.catalog.json) — what plays when
    *  you dive into this cover (the reward is sound). Absent if there's no public track. */
   track?: string;
-  /** This album's own YouTube PLAYLIST id — what the CRT on the far side of its
-   *  painting plays. Absent → the general TV-spots playlist (see videos.albumVideo). */
+  /** This album's own YouTube id — what the CRT on the far side of its painting
+   *  plays. Either a single VIDEO id (a visualizer / the record's lead-single
+   *  music video) or a PLAYLIST id (PL… / OLAK5uy_…); videos.ts detects which.
+   *  Absent → the general TV-spots channel (see videos.albumVideo). Verified
+   *  against the album's lukefwalton.com page. */
   video?: string;
 };
 

@@ -213,9 +213,17 @@ export type Room = {
   props?: RoomProp[];
   /** Album covers hung on the walls as framed showcase paintings (CoverArt). */
   paintings?: RoomPainting[];
-  /** A CRT television (TvSet) — the far side of an album's painting: click it to
-   *  play that record's music videos in the modal player. */
-  tv?: { position: [number, number, number]; rotationY?: number; albumSlug: string };
+  /** A CRT television (TvSet) — click it to play a clip in the modal player. It
+   *  resolves what to show through videos.tvVideoFor: a `songSlug` (a jukebox
+   *  slug — its own music video, the most specific) wins, else an `albumSlug`
+   *  (that record's video). A song-room's CRT should name its `song`, so the set
+   *  plays the very track the room is scored to. At least one of the two is set. */
+  tv?: {
+    position: [number, number, number];
+    rotationY?: number;
+    albumSlug?: string;
+    songSlug?: string;
+  };
   /** Collectible items lying in the room (ItemPickup). Durable: each disappears
    *  for good once taken (progressStore.itemsHeld). */
   pickups?: { itemId: string; position: [number, number, number] }[];
@@ -1427,20 +1435,18 @@ export const ROOMS: Room[] = [
     // is just a smear of light down the hall.
     palette: { background: '#140d22', fog: '#1b1330', fogNear: 4, fogFar: 30 },
     song: 'memory-lan',
-    // A row of old CRT sets facing in off both walls, humming, mid-corridor.
+    // The one CRT in the corridor of dead web that still PLAYS: switch it on and
+    // it runs the real MEMORY LAN music video — the very track scoring the room.
+    // (Faces -X into the aisle, in the +X-wall row, where a dead prop set used to
+    // sit — so the live one stands among its dead siblings.)
+    tv: { songSlug: 'memory-lan', position: [3, 0, 1], rotationY: -Math.PI / 2 },
+    // A row of old (dead) CRT sets facing in off both walls, humming, mid-corridor.
     props: [
       {
         url: '/models/crt-tv.glb',
         position: [-3, 0, 4],
         fit: 1.3,
         rotationY: Math.PI / 2,
-        glow: 0.4,
-      },
-      {
-        url: '/models/crt-tv.glb',
-        position: [3, 0, 1],
-        fit: 1.3,
-        rotationY: -Math.PI / 2,
         glow: 0.4,
       },
       {
@@ -1498,6 +1504,13 @@ export const ROOMS: Room[] = [
     // the drifting data motes read as little lights in the void.
     palette: { background: '#05080f', fog: '#070d18', fogNear: 5, fogFar: 34 },
     song: 'all-my-friends-live-on-the-internet',
+    // A lone CRT glowing off the aisle in the server void: switch it on for the
+    // "All My Friends Live on the Internet" video — the friends made literal.
+    tv: {
+      songSlug: 'all-my-friends-live-on-the-internet',
+      position: [3.4, 0, 1.5],
+      rotationY: -Math.PI / 4,
+    },
     spawns: {
       // Arrive at the +Z mouth of the hall, facing -Z into the racks. Clear of the
       // +Z door back up the corridor.

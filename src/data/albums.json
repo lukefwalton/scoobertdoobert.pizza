@@ -8,7 +8,8 @@
     "slug": "big-hug",
     "title": "Big Hug",
     "art": "/brand/albums/big-hug.webp",
-    "track": "i-live-in-california"
+    "track": "i-live-in-california",
+    "video": "gdo4a4jv2nY"
   },
   {
     "slug": "dancing-in-the-moonlight-beach",
@@ -19,7 +20,8 @@
   {
     "slug": "dragon-ball-sd",
     "title": "Dragon Ball SD",
-    "art": "/brand/albums/dragon-ball-sd.webp"
+    "art": "/brand/albums/dragon-ball-sd.webp",
+    "video": "4OaFBwv0dsw"
   },
   {
     "slug": "feels-so-good",
@@ -30,7 +32,8 @@
     "slug": "finding-sd",
     "title": "Finding SD",
     "art": "/brand/albums/finding-sd.webp",
-    "track": "my-friend-scoobert"
+    "track": "my-friend-scoobert",
+    "video": "aXl2RLmEvNc"
   },
   {
     "slug": "gonna-go-to-japan",
@@ -47,19 +50,22 @@
     "slug": "i",
     "title": "I",
     "art": "/brand/albums/i.webp",
-    "track": "daydreaming"
+    "track": "daydreaming",
+    "video": "Utz-0iIg0EE"
   },
   {
     "slug": "koan",
     "title": "koan",
     "art": "/brand/albums/koan.webp",
-    "track": "boardwalk"
+    "track": "boardwalk",
+    "video": "Ir6jc3iAGeg"
   },
   {
     "slug": "little-hug",
     "title": "Little Hug",
     "art": "/brand/albums/little-hug.webp",
-    "track": "walking-balboa"
+    "track": "walking-balboa",
+    "video": "wo6DdbU_c_I"
   },
   {
     "slug": "low-tide",
@@ -70,7 +76,8 @@
     "slug": "masks-and-monsters",
     "title": "Masks and Monsters",
     "art": "/brand/albums/masks-and-monsters.webp",
-    "track": "mystery-machine"
+    "track": "mystery-machine",
+    "video": "8zcGome9-yI"
   },
   {
     "slug": "meteor-shower",
@@ -81,7 +88,8 @@
     "slug": "mob",
     "title": "MÖB",
     "art": "/brand/albums/mob.webp",
-    "track": "memory-lan"
+    "track": "memory-lan",
+    "video": "rc_exGnBdCA"
   },
   {
     "slug": "moonlight-beach",
