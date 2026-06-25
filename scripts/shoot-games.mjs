@@ -15,7 +15,10 @@ mkdirSync('.shots', { recursive: true });
 const GAMES = [
   { slug: 'crusteroids', title: 'Crusteroids', id: 'crusteroids' },
   { slug: 'slice-breaker', title: 'Slice Breaker', id: 'slice-breaker' },
-  { slug: 'jazz-snake', title: 'Jazz Snake', id: 'jazz-snake' },
+  // jazz-snake can be driven to a DETERMINISTIC loss (steer up into the top wall),
+  // so it carries the real lose-path assertion: the GAME OVER overlay must render
+  // (guards the "ref phase set but React setPhase missing" regression).
+  { slug: 'jazz-snake', title: 'Jazz Snake', id: 'jazz-snake', forceLoss: true },
 ];
 
 const browser = await chromium.launch();
@@ -68,6 +71,23 @@ for (const g of GAMES) {
       const started = !/TAP TO START|TAP TO LAUNCH|TAP \/ SWIPE/i.test(overlayText);
       if (!started) bad(`${g.slug} JS: tapping the screen did not start the game`);
       if (errs.length) bad(`${g.slug} JS: page error -> ${errs[0]?.slice(0, 80)}`);
+
+      // The real lose path: drive a deterministic loss and assert the GAME OVER
+      // overlay actually renders (not just the ref phase flipping). Check BEFORE each
+      // keypress so we don't restart the game by pressing a steer key post-over.
+      if (g.forceLoss) {
+        let gameOver = false;
+        for (let t = 0; t < 40 && !gameOver; t++) {
+          gameOver = await page
+            .$eval('.arcade-overlay', (el) => /GAME OVER/i.test(el.textContent || ''))
+            .catch(() => false);
+          if (gameOver) break;
+          await page.keyboard.press('ArrowUp'); // steer into the top wall
+          await page.waitForTimeout(110);
+        }
+        if (!gameOver) bad(`${g.slug} JS: a real loss never surfaced the GAME OVER overlay`);
+        console.log(`${g.slug} loss  -> gameover=${gameOver}`);
+      }
 
       // per-cabinet high score persistence: write it into arcadeHighs[id], reload,
       // and confirm the HUD reads it back (the progress spine + the game's HI).
