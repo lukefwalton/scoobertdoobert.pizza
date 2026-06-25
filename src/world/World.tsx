@@ -4,8 +4,12 @@ import * as THREE from 'three';
 import { PS1 } from './constants';
 import { roomById, type Room } from '../data/rooms';
 import { jukeboxTrackUrl } from '../data/music';
+import { jukeboxTitle } from '../data/jukebox';
 import { useSceneStore } from '../state/sceneStore';
 import { useMusicStore } from '../state/musicStore';
+import { useProgressStore } from '../state/progressStore';
+import { announce } from '../state/toastStore';
+import { noteToFreq } from '../lib/chimes';
 import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
 import { HallwayRoom } from './HallwayRoom';
@@ -77,7 +81,16 @@ function RoomEnvironment({ room }: { room: Room }) {
 function RoomMusic({ room }: { room: Room }) {
   useEffect(() => {
     if (!room.song) return;
-    void audio.playJukeboxTrack(jukeboxTrackUrl(room.song));
+    const song = room.song;
+    void audio.playJukeboxTrack(jukeboxTrackUrl(song));
+    // Exploration's reward is sound: finding a song-room UNLOCKS its track in the
+    // jukebox forever (it's hidden there until found). Chime + announce ONLY on the
+    // first find (discoverSong returns true once), so revisits stay quiet.
+    if (useProgressStore.getState().discoverSong(song)) {
+      announce(`♪ new song unlocked — ${jukeboxTitle(song)}`, 'luck');
+      audio.playChime(noteToFreq('E', 5), 0.18, 0.08, 0.5);
+      window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0.22, 0.08, 0.5), 150);
+    }
     return () => {
       useMusicStore.getState().restorePreferred();
     };

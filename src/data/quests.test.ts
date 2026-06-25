@@ -17,6 +17,7 @@ const COLD: Progress = {
   luckEarned: 0,
   luckSpent: 0,
   itemsHeld: [],
+  discoveredSongs: [],
 };
 
 describe('quests', () => {

@@ -1757,6 +1757,15 @@ export function spawnFacingInward(
 
 const BY_ID = new Map(ROOMS.map((r) => [r.id, r]));
 
+/** Every jukebox slug that some room OWNS as its `Room.song`. These are the
+ *  "exploration's reward is sound" tracks: HIDDEN from the jukebox until you find
+ *  the room that plays them (see jukebox.ts `visibleJukeboxTracks` + the discovery
+ *  hook in World's RoomMusic). Catalog songs NOT in here are the always-available
+ *  seed. Derived from the room graph, so adding a song-room needs no second list. */
+export const ROOM_SONG_SLUGS: ReadonlySet<string> = new Set(
+  ROOMS.map((r) => r.song).filter((s): s is string => typeof s === 'string'),
+);
+
 /** The starting room — the beach shop. */
 export const FIRST_ROOM = ROOMS[0].id;
 
