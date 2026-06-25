@@ -1,8 +1,8 @@
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, type ReactElement } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PS1 } from './constants';
-import { roomById, type Room } from '../data/rooms';
+import { roomById, ROOMS, type Room, type RoomKind } from '../data/rooms';
 import { jukeboxTrackUrl } from '../data/music';
 import { jukeboxTitle } from '../data/jukebox';
 import { useSceneStore } from '../state/sceneStore';
@@ -101,8 +101,47 @@ function RoomMusic({ room }: { room: Room }) {
   return null;
 }
 
-// Which room geometry to render. Each room kind owns its own scene + lights, so
-// adding a room is: a ROOMS entry + a case here (+ a geometry component).
+// The room-kind → scene registry. Each PROCEDURAL room kind renders its own scene
+// component (its geometry + lights). Adding a room kind is one entry here (+ the
+// component + a ROOMS entry), never a new switch case. GLB-level kinds (liminal,
+// metro) aren't here — those rooms render through GlbRoom below (room.glb), so the
+// registry only covers procedural kinds; a missing kind falls back to the shop
+// (matching the old switch default). A DEV guard (bottom of file) warns if any
+// non-GLB room's kind lacks an entry, so a typo can't silently render the shop.
+type RoomRenderer = (room: Room) => ReactElement;
+export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
+  shop: () => <ShopRoom />,
+  hallway: (room) => <HallwayRoom room={room} />,
+  jukebox: (room) => <JukeboxRoom room={room} />,
+  classified: (room) => <ClassifiedRoom room={room} />,
+  poolrooms: (room) => <PoolroomsRoom room={room} />,
+  mobius: (room) => <MobiusRoom room={room} />,
+  dicepit: (room) => <DicePitRoom room={room} />,
+  shrine: (room) => <ShrineRoom room={room} />,
+  practice: (room) => <PracticeRoom room={room} />,
+  grass: (room) => <GrassRoom room={room} />,
+  grassbattle: (room) => <GrassBattleRoom room={room} />,
+  grove: (room) => <GroveRoom room={room} />,
+  frutiger: () => <FrutigerRoom />,
+  lockerroom: (room) => <LockerRoom room={room} />,
+  closet: (room) => <ClosetRoom room={room} />,
+  boardwalk: (room) => <BoardwalkRoom room={room} />,
+  oceanview: (room) => <OceanviewRoom room={room} />,
+  balboa: (room) => <BalboaRoom room={room} />,
+  gallery: (room) => <GalleryRoom room={room} />,
+  daydream: (room) => <DaydreamRoom room={room} />,
+  memorylane: (room) => <MemoryLaneRoom room={room} />,
+  internet: (room) => <InternetRoom room={room} />,
+  moonlight: (room) => <MoonlightRoom room={room} />,
+  bestday: (room) => <BestDayRoom room={room} />,
+  california: (room) => <CaliforniaRoom room={room} />,
+  tidepools: (room) => <TidepoolsRoom room={room} />,
+  zoo: (room) => <ZooRoom room={room} />,
+  northpark: (room) => <NorthParkRoom room={room} />,
+};
+
+// Which room geometry to render. GLB levels short-circuit (lazy useGLTF); every
+// procedural kind comes from the ROOM_SCENES registry above.
 function RoomScene({ room }: { room: Room }) {
   // GLB levels (lazy-loaded; suspends until decoded). The DOM LevelLoader covers
   // a slow load and AUTO-ENTERS the instant it resolves (see LevelLoader / GlbRoom). Keyed by
@@ -121,65 +160,7 @@ function RoomScene({ room }: { room: Room }) {
         {room.kind === 'metro' && <MetroTunnelFx room={room} />}
       </>
     );
-  switch (room.kind) {
-    case 'hallway':
-      return <HallwayRoom room={room} />;
-    case 'jukebox':
-      return <JukeboxRoom room={room} />;
-    case 'classified':
-      return <ClassifiedRoom room={room} />;
-    case 'poolrooms':
-      return <PoolroomsRoom room={room} />;
-    case 'mobius':
-      return <MobiusRoom room={room} />;
-    case 'dicepit':
-      return <DicePitRoom room={room} />;
-    case 'shrine':
-      return <ShrineRoom room={room} />;
-    case 'practice':
-      return <PracticeRoom room={room} />;
-    case 'grass':
-      return <GrassRoom room={room} />;
-    case 'grassbattle':
-      return <GrassBattleRoom room={room} />;
-    case 'grove':
-      return <GroveRoom room={room} />;
-    case 'frutiger':
-      return <FrutigerRoom />;
-    case 'lockerroom':
-      return <LockerRoom room={room} />;
-    case 'closet':
-      return <ClosetRoom room={room} />;
-    case 'boardwalk':
-      return <BoardwalkRoom room={room} />;
-    case 'oceanview':
-      return <OceanviewRoom room={room} />;
-    case 'balboa':
-      return <BalboaRoom room={room} />;
-    case 'gallery':
-      return <GalleryRoom room={room} />;
-    case 'daydream':
-      return <DaydreamRoom room={room} />;
-    case 'memorylane':
-      return <MemoryLaneRoom room={room} />;
-    case 'internet':
-      return <InternetRoom room={room} />;
-    case 'moonlight':
-      return <MoonlightRoom room={room} />;
-    case 'bestday':
-      return <BestDayRoom room={room} />;
-    case 'california':
-      return <CaliforniaRoom room={room} />;
-    case 'tidepools':
-      return <TidepoolsRoom room={room} />;
-    case 'zoo':
-      return <ZooRoom room={room} />;
-    case 'northpark':
-      return <NorthParkRoom room={room} />;
-    case 'shop':
-    default:
-      return <ShopRoom />;
-  }
+  return (ROOM_SCENES[room.kind] ?? ROOM_SCENES.shop!)(room);
 }
 
 // GLB set-dressing for the current room (room.props). Each prop is small + loads
@@ -306,4 +287,17 @@ export default function World() {
       <DreadVisuals />
     </Canvas>
   );
+}
+
+// Dev guardrail: every PROCEDURAL room (not a GLB level) must have a ROOM_SCENES
+// renderer, or it silently falls back to the shop. Surfaces a missing/typo'd kind
+// at the source as the registry grows (the switch's old default hid this).
+if (import.meta.env?.DEV) {
+  for (const room of ROOMS) {
+    if (!room.glb && !ROOM_SCENES[room.kind]) {
+      console.warn(
+        `[world] room "${room.id}" kind "${room.kind}" has no ROOM_SCENES renderer → falls back to the shop`,
+      );
+    }
+  }
 }
