@@ -57,6 +57,10 @@ export type Progress = {
    *  found last visit still opens its door this visit — and the side door it
    *  unlocks stays open, like a revealSecret. Monotonic (the array only grows). */
   itemsHeld: string[];
+  /** Jukebox slugs UNLOCKED by visiting their song-room ("exploration's reward is
+   *  sound"). Room-songs are hidden from the jukebox until found; finding the room
+   *  adds its track to the cabinet forever. Monotonic (the array only grows). */
+  discoveredSongs: string[];
 };
 
 const DEFAULTS: Progress = {
@@ -72,6 +76,7 @@ const DEFAULTS: Progress = {
   luckEarned: 0,
   luckSpent: 0,
   itemsHeld: [],
+  discoveredSongs: [],
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -99,6 +104,7 @@ function read(): Progress {
       luckEarned: num(p.luckEarned, 0),
       luckSpent: num(p.luckSpent, 0),
       itemsHeld: strArr(p.itemsHeld),
+      discoveredSongs: strArr(p.discoveredSongs),
     };
   } catch {
     return { ...DEFAULTS };
@@ -139,6 +145,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     luckEarned: Math.max(a.luckEarned, b.luckEarned),
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
     itemsHeld: uniq(a.itemsHeld, b.itemsHeld),
+    discoveredSongs: uniq(a.discoveredSongs, b.discoveredSongs),
   };
 }
 
@@ -162,6 +169,10 @@ type ProgressState = Progress & {
   /** Pick an item up (the pickup announces it). Idempotent — holding it twice is
    *  a no-op, so re-clicking a pickup or a multi-tab race can't dupe it. */
   collectItem: (id: string) => void;
+  /** Discover a song by entering its room → it joins the jukebox forever. Returns
+   *  true only the FIRST time (so the caller can chime/announce just on the new
+   *  find); idempotent thereafter. */
+  discoverSong: (slug: string) => boolean;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -177,6 +188,7 @@ const snapshot = (s: ProgressState): Progress => ({
   luckEarned: s.luckEarned,
   luckSpent: s.luckSpent,
   itemsHeld: s.itemsHeld,
+  discoveredSongs: s.discoveredSongs,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -252,6 +264,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     collectItem: (id) => {
       if (get().itemsHeld.includes(id)) return;
       apply({ itemsHeld: [...get().itemsHeld, id] });
+    },
+    discoverSong: (slug) => {
+      if (get().discoveredSongs.includes(slug)) return false;
+      apply({ discoveredSongs: [...get().discoveredSongs, slug] });
+      return true;
     },
   };
 });
