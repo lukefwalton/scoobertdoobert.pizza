@@ -9,6 +9,7 @@ import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { LOOP_OPTIONS } from '../data/music';
 import { hasLyrics, lyricFor } from '../data/lyrics';
+import { songMeaning } from '../data/songMeta';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
 import { WorldMap } from './WorldMap';
@@ -657,6 +658,11 @@ export function WorldHud() {
                     roll the bone at the jukebox to tune the radio
                   </span>
                 </div>
+              )}
+              {/* The current track's one-line liner note (what it's about) — the
+                  reward-is-sound spine, annotated. From songMeta (lfw). */}
+              {playingSlug && songMeaning(playingSlug) && (
+                <p className="hud-pause__songmeaning">{songMeaning(playingSlug)}</p>
               )}
               {/* Read along with whatever's playing — the words are a reward too.
                   Shown whenever the current track has lyrics on file (not gated by
