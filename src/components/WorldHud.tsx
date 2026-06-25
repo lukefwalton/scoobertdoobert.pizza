@@ -101,6 +101,7 @@ export function WorldHud() {
       maxUnease: s.maxUnease,
       clearedGames: s.clearedGames,
       arcadeHigh: s.arcadeHigh,
+      arcadeHighs: s.arcadeHighs,
       radioUnlocked: s.radioUnlocked,
       luckEarned: s.luckEarned,
       luckSpent: s.luckSpent,

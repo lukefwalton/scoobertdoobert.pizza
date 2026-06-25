@@ -44,6 +44,11 @@ export type Progress = {
   clearedGames: string[];
   /** Best score in the standalone Pizza Run arcade (the mobile reward). */
   arcadeHigh: number;
+  /** Best score PER arcade cabinet game, keyed by game id (crusteroids /
+   *  slice-breaker / jazz-snake / …). Different games score on different scales,
+   *  so each keeps its own high — `arcadeHigh` stays Pizza Run's. Monotonic per
+   *  key (only ever rises), so the multi-tab max-merge holds. */
+  arcadeHighs: Record<string, number>;
   /** Has the player rolled the jukebox d20 to UNLOCK the flip-through radio?
    *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
    *  the pick follows you across the site. Monotonic (only ever goes true). */
@@ -72,6 +77,7 @@ const DEFAULTS: Progress = {
   maxUnease: 0,
   clearedGames: [],
   arcadeHigh: 0,
+  arcadeHighs: {},
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,
@@ -85,6 +91,15 @@ const num = (v: unknown, d: number): number =>
 const bool = (v: unknown, d: boolean): boolean => (typeof v === 'boolean' ? v : d);
 const strArr = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+// A { gameId: score } map; drops any non-finite-number entry. Malformed → {}.
+const numMap = (v: unknown): Record<string, number> =>
+  v && typeof v === 'object' && !Array.isArray(v)
+    ? Object.fromEntries(
+        Object.entries(v as Record<string, unknown>).filter(
+          ([, n]) => typeof n === 'number' && Number.isFinite(n),
+        ) as [string, number][],
+      )
+    : {};
 
 function read(): Progress {
   try {
@@ -100,6 +115,7 @@ function read(): Progress {
       maxUnease: num(p.maxUnease, 0),
       clearedGames: strArr(p.clearedGames),
       arcadeHigh: num(p.arcadeHigh, 0),
+      arcadeHighs: numMap(p.arcadeHighs),
       radioUnlocked: bool(p.radioUnlocked, false),
       luckEarned: num(p.luckEarned, 0),
       luckSpent: num(p.luckSpent, 0),
@@ -129,6 +145,15 @@ function write(p: Progress) {
 }
 
 const uniq = (a: string[], b: string[]): string[] => Array.from(new Set([...a, ...b]));
+/** Per-key max merge for the per-game high-score map (each key only ever rises). */
+const mergeNumMap = (
+  a: Record<string, number>,
+  b: Record<string, number>,
+): Record<string, number> => {
+  const out: Record<string, number> = { ...a };
+  for (const [k, v] of Object.entries(b)) out[k] = Math.max(out[k] ?? 0, v);
+  return out;
+};
 
 /** Monotonic merge: the "furthest" value of each field wins — never regresses. */
 function mergeProgress(a: Progress, b: Progress): Progress {
@@ -141,6 +166,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     maxUnease: Math.max(a.maxUnease, b.maxUnease),
     clearedGames: uniq(a.clearedGames, b.clearedGames),
     arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
+    arcadeHighs: mergeNumMap(a.arcadeHighs, b.arcadeHighs),
     radioUnlocked: a.radioUnlocked || b.radioUnlocked,
     luckEarned: Math.max(a.luckEarned, b.luckEarned),
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
@@ -159,6 +185,8 @@ type ProgressState = Progress & {
   recordUnease: (v: number) => void;
   clearGame: (id: string) => void;
   recordArcadeScore: (n: number) => void;
+  /** Record a per-cabinet-game high score (id → best), monotonic per id. */
+  recordArcadeHigh: (id: string, n: number) => void;
   /** Roll the jukebox d20 → unlock the flip-through radio (idempotent). */
   unlockRadio: () => void;
   /** Earn luck (a ritual paid off — the shrine clap). Announced by the caller. */
@@ -184,6 +212,7 @@ const snapshot = (s: ProgressState): Progress => ({
   maxUnease: s.maxUnease,
   clearedGames: s.clearedGames,
   arcadeHigh: s.arcadeHigh,
+  arcadeHighs: s.arcadeHighs,
   radioUnlocked: s.radioUnlocked,
   luckEarned: s.luckEarned,
   luckSpent: s.luckSpent,
@@ -236,6 +265,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     recordArcadeScore: (n) => {
       if (n <= get().arcadeHigh) return;
       apply({ arcadeHigh: n });
+    },
+    recordArcadeHigh: (id, n) => {
+      const cur = get().arcadeHighs[id] ?? 0;
+      if (n <= cur) return;
+      apply({ arcadeHighs: { ...get().arcadeHighs, [id]: n } });
     },
     unlockRadio: () => {
       if (get().radioUnlocked) return;
