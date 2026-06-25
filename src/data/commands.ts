@@ -13,7 +13,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import type { Progress } from '../state/progressStore';
-import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug } from './lyrics';
+import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug, hasLyrics } from './lyrics';
+import { SONG_META, songMeta } from './songMeta';
 import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
@@ -186,6 +187,36 @@ export const COMMANDS: Command[] = [
           '— Scoobert Doobert. © Luke F. Walton. all rights reserved.',
         ],
       };
+    },
+  },
+  {
+    name: 'song',
+    help: 'the liner notes — `song boardwalk` for what a track is about',
+    run: ({ args }) => {
+      const q = args.join(' ').trim().toLowerCase();
+      const slugs = Object.keys(SONG_META);
+      if (!q) {
+        return {
+          output: [
+            'THE CATALOG (liner notes — `song <name>`):',
+            ...slugs.map((s) => `  ${SONG_META[s].title}`),
+          ],
+        };
+      }
+      const slug =
+        slugs.find((s) => s === q) ??
+        slugs.find((s) => s.startsWith(q)) ??
+        slugs.find(
+          (s) => s.replace(/-/g, ' ').includes(q) || SONG_META[s].title.toLowerCase().includes(q),
+        );
+      const m = slug ? songMeta(slug) : undefined;
+      if (!m || !slug)
+        return { output: [`song: nothing matching "${q}". try \`song\` or \`discography\`.`] };
+      const out = [`♪ ${m.title.toUpperCase()}${m.year ? `  (${m.year})` : ''}`];
+      if (m.meaning) out.push('  ' + m.meaning);
+      if (hasLyrics(slug)) out.push('', `  the words are on file — try \`lyrics ${slug}\`.`);
+      else out.push('', '  (instrumental / cover — no words.)');
+      return { output: out };
     },
   },
   {

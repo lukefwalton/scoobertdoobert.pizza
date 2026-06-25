@@ -727,6 +727,15 @@
 
 /* ── The lyric reader — pause-menu "read the words". A plain window over the menu;
    the words scroll in a monospace column (a karaoke sheet for the current song). ── */
+/* The now-playing liner note — a small italic blurb under the radio readout. */
+.hud-pause__songmeaning {
+  margin: 4px 2px 0;
+  font-size: 0.72em;
+  font-style: italic;
+  line-height: 1.4;
+  color: #b9c2cc;
+  text-align: center;
+}
 .hud-pause__lyricsbtn {
   width: 100%;
   margin-top: 6px;
