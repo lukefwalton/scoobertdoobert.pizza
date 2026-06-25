@@ -204,6 +204,11 @@
   padding-left: 8px;
   color: #3a3a3a;
 }
+/* the rat's gossip — a light Scoobert deep-cut, smaller + dimmer than the nudge. */
+.hud-dialog__tidbit {
+  font-size: 0.85em;
+  color: #5a5a5a;
+}
 
 /* the dance rhythm minigame — a centered panel; arrow beats light in sequence. */
 .hud-rhythm {
