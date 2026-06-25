@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
+import { useSceneStore } from '../state/sceneStore';
+import { launchRandomArcade } from '../lib/arcade';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ArcadeCabinet — a procedural PS1 upright arcade machine (replaces the generic
@@ -9,7 +11,14 @@ import { flatMat, makeTextTexture } from './ps1';
 // (blinking INSERT COIN), and an angled control panel with a ball-top JOYSTICK +
 // three chunky buttons. Flat-shaded, sharp, late-90s. `tint` colours the side art
 // so two cabinets can read a little different. Faces +Z; place via position/rotationY.
+//
+// It's PLAYABLE: click it (or press E in range) and it ROLLS a random game into the
+// in-world modal — a little slot-pull so a cabinet feels alive (never the same
+// twice). Proximity drives the "Press E to play" prompt, mirroring the album TVs.
 // ───────────────────────────────────────────────────────────────────────────
+
+// How close (horizontal) the camera must be for the "play" prompt — matches the TV.
+const ARCADE_PROMPT_RADIUS = 3.4;
 export function ArcadeCabinet({
   position = [0, 0, 0],
   rotationY = 0,
@@ -48,13 +57,38 @@ export function ArcadeCabinet({
   );
   const screenMat = useMemo(() => new THREE.MeshBasicMaterial({ map: screenTex }), [screenTex]);
   const glow = useRef<THREE.PointLight>(null);
+  const { gl, camera } = useThree();
+  // Only write the store on a CHANGE (enter/leave range), not every frame — the
+  // same guard the doors + TV use.
+  const inRange = useRef(false);
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     // gentle CRT breathing + a slow INSERT-COIN blink
     if (glow.current) glow.current.intensity = 0.5 + Math.sin(t * 5) * 0.08;
     screenMat.opacity = Math.sin(t * 1.6) > -0.4 ? 1 : 0.55;
     screenMat.transparent = true;
+
+    // "Press E to play" proximity — no prompt under a modal / mid-transition / while
+    // a game is already up (mirrors TvSet's frozen check).
+    const st = useSceneStore.getState();
+    const frozen =
+      st.paused ||
+      st.openHotspot !== null ||
+      st.transitioning ||
+      st.arcadeGame !== null ||
+      st.tvVideo !== null ||
+      st.divingTo;
+    const dx = camera.position.x - position[0];
+    const dz = camera.position.z - position[2];
+    const near = !frozen && Math.hypot(dx, dz) < ARCADE_PROMPT_RADIUS;
+    if (near !== inRange.current) {
+      inRange.current = near;
+      st.setNearArcade(near);
+    }
   });
+
+  // Leaving the room (cabinet unmounts) must clear any lingering prompt.
+  useEffect(() => () => useSceneStore.getState().setNearArcade(false), []);
 
   useEffect(
     () => () => {
@@ -70,7 +104,20 @@ export function ArcadeCabinet({
   );
 
   return (
-    <group position={position} rotation-y={rotationY}>
+    <group
+      position={position}
+      rotation-y={rotationY}
+      onClick={(e) => {
+        e.stopPropagation();
+        launchRandomArcade(); // roll a random game into the modal
+      }}
+      onPointerOver={() => {
+        gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
+      }}
+      onPointerOut={() => {
+        gl.domElement.style.cursor = 'grab';
+      }}
+    >
       {/* lower body */}
       <mesh material={bodyMat} position={[0, 0.55, 0]}>
         <boxGeometry args={[0.92, 1.1, 0.86]} />

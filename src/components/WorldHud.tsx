@@ -22,6 +22,8 @@ import { ratDialogue } from '../data/dialogue';
 import { itemById, CASSETTE_IDS } from '../data/items';
 import { albumVideo } from '../data/videos';
 import { YoutubeFacade } from './YoutubeFacade';
+import { ArcadeModal } from './ArcadeModal';
+import { launchRandomArcade } from '../lib/arcade';
 
 // The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
 // on world entry; the last line glows habanero.
@@ -64,6 +66,9 @@ export function WorldHud() {
   const closeDialog = useSceneStore((s) => s.closeHotspotDialog);
   const tvVideo = useSceneStore((s) => s.tvVideo);
   const closeTv = useSceneStore((s) => s.closeTv);
+  const nearArcade = useSceneStore((s) => s.nearArcade);
+  const arcadeGame = useSceneStore((s) => s.arcadeGame);
+  const closeArcade = useSceneStore((s) => s.closeArcade);
   const setPaused = useSceneStore((s) => s.setPaused);
   const exitWorld = useSceneStore((s) => s.exitWorld);
   const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
@@ -210,14 +215,15 @@ export function WorldHud() {
       // mid-dive and stranding you in the old room after the album already started.
       if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
-        if (st.tvVideo) st.closeTv();
+        if (st.arcadeGame) st.closeArcade();
+        else if (st.tvVideo) st.closeTv();
         else if (st.openNpc) st.closeNpcDialog();
         else if (st.openHotspot) st.closeHotspotDialog();
         else st.togglePaused();
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot || st.tvVideo || st.openNpc) return;
+        if (st.paused || st.openHotspot || st.tvVideo || st.arcadeGame || st.openNpc) return;
         // A door takes priority over a hotspot if you're somehow near both.
         if (st.nearDoor) {
           // enterDoor honors a key lock (shared with the click path), then dives
@@ -231,6 +237,9 @@ export function WorldHud() {
         } else if (st.nearTv) {
           // Switch on the CRT — the same modal the TV's click opens (keyboard parity).
           st.openTv(albumVideo(st.nearTv));
+        } else if (st.nearArcade) {
+          // Fire up the cabinet — rolls a random game (same as clicking it).
+          launchRandomArcade();
         } else if (st.nearHotspot) {
           st.openHotspotDialog(st.nearHotspot);
         } else if (st.nearNpc) {
@@ -317,7 +326,7 @@ export function WorldHud() {
       <ObjectiveHud
         progress={progress}
         currentRoom={currentRoom}
-        hidden={paused || !!pendingRoom || !!open || !!tvVideo}
+        hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
       />
       <RhythmGame />
       {toast && (
@@ -385,7 +394,11 @@ export function WorldHud() {
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
       )}
 
-      {nearHs && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
+      {nearArcade && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--arcade">Press E to play</div>
+      )}
+
+      {nearHs && !nearDoor && !nearTv && !nearArcade && !open && !paused && !pendingRoom && (
         <div className="hud-prompt">{nearHs.prompt}</div>
       )}
 
@@ -478,6 +491,8 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {arcadeGame && <ArcadeModal id={arcadeGame} onClose={closeArcade} />}
 
       {paused && (
         <div className="hud-pause" role="dialog" aria-label="Paused">
