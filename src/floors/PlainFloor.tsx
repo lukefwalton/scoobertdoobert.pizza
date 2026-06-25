@@ -113,7 +113,10 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         {beatGoblin && (
           <p className="news-lucky" title="You won the roll-off downstairs">
             <span aria-hidden="true">🏆</span>{' '}
-            <i>A little goblin-shaped trophy has appeared by the register. You won it fair and square (you rolled well).</i>
+            <i>
+              A little goblin-shaped trophy has appeared by the register. You won it fair and square
+              (you rolled well).
+            </i>
           </p>
         )}
         {tapes > 0 && (
