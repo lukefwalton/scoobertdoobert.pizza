@@ -121,7 +121,10 @@ export function JazzSnake() {
           // walls
           if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) {
             g.phase = 'over';
-            recordArcadeHigh(GAME_ID, g.score);
+            setPhase('over'); // surface the GAME OVER card (React state, not just the ref)
+            // High score is the snake LENGTH (= eaten + the 3 starting segments), to
+            // match the LEN readout — not the raw food-eaten count.
+            recordArcadeHigh(GAME_ID, g.snake.length);
             audio.playTone(noteToFreq('C', 2), 240, 0.18);
             break;
           }
@@ -131,7 +134,10 @@ export function JazzSnake() {
           const body = willEat ? g.snake : g.snake.slice(0, -1);
           if (body.some((s) => eq(s, next))) {
             g.phase = 'over';
-            recordArcadeHigh(GAME_ID, g.score);
+            setPhase('over'); // surface the GAME OVER card (React state, not just the ref)
+            // High score is the snake LENGTH (= eaten + the 3 starting segments), to
+            // match the LEN readout — not the raw food-eaten count.
+            recordArcadeHigh(GAME_ID, g.snake.length);
             audio.playTone(noteToFreq('C', 2), 240, 0.18);
             break;
           }
@@ -225,7 +231,9 @@ export function JazzSnake() {
     <div className="arcade-screen">
       <div className="arcade-hud">
         <span>LEN {String(score + 3).padStart(3, '0')}</span>
-        <span>HI {String(Math.max(best, score)).padStart(3, '0')}</span>
+        {/* HI is the best LENGTH (best is stored as snake length), so it reads on
+            the same scale as LEN — not the raw eaten count. */}
+        <span>HI {String(Math.max(best, score + 3)).padStart(3, '0')}</span>
       </div>
       <div className="arcade-stage">
         <canvas

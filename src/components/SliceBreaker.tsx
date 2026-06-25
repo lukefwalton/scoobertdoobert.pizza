@@ -189,6 +189,7 @@ export function SliceBreaker() {
             setLives(g.lives);
             if (g.lives <= 0) {
               g.phase = 'over';
+              setPhase('over'); // surface the GAME OVER card (React state, not just the ref)
               const final = Math.floor(g.score);
               setScore(final);
               recordArcadeHigh(GAME_ID, final);
