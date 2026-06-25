@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" shape-rendering="crispEdges">
+  <!-- A seamless pizzeria-tablecloth check (red + cream) with a pepperoni on each
+       cream square. Tiles forever via background-repeat — the period "one picture
+       repeating" wallpaper for the goofy late-90s arcade page. Original art. -->
+  <rect width="48" height="48" fill="#e7d3aa"/>
+  <rect x="0" y="0" width="24" height="24" fill="#bf3a2b"/>
+  <rect x="24" y="24" width="24" height="24" fill="#bf3a2b"/>
+  <!-- pepperoni dots, interior to the cream cells so the tile stays seamless -->
+  <circle cx="36" cy="12" r="4.6" fill="#8f2a20"/>
+  <circle cx="12" cy="36" r="4.6" fill="#8f2a20"/>
+</svg>
