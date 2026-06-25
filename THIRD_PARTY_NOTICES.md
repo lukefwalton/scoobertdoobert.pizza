@@ -29,6 +29,26 @@ the public repo carries proper attribution. Anything not yet filled in is marked
 | `classical-greek-sculpture.glb` | `greek-vaporwave/classical-greek-sculpture.glb` | 2.77 MB → 514 KB (optimize: meshopt, 256px) — the Sunken Gallery centrepiece | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 | `greek-jar.glb` | `greek-vaporwave/greek-jar.glb` | 1.22 MB → 146 KB (optimize: meshopt, 256px) — Sunken Gallery dressing | **TODO(license)** | **TODO(license)** | **TODO(license)** |
 
+## Minigames (arcade cabinets)
+
+The arcade games are **original code and original art** — no third-party game
+code or assets are bundled. They implement the *mechanics* (the public-domain
+grammar) of classic arcade games, never any specific game's code, sprites, names,
+or trade dress (no marks):
+
+- **Crusteroids** (`src/components/Crusteroids.tsx`) — Asteroids mechanics.
+- **Slice Breaker** (`src/components/SliceBreaker.tsx`) — Breakout mechanics.
+- **Jazz Snake** (`src/components/JazzSnake.tsx`) — Snake mechanics.
+- **Scoobert's Pizza Run** (`src/components/RunnerGame.tsx`) — endless-runner.
+
+Each is a self-contained `<canvas>` + 2D context (no engine, no three.js); all
+art is drawn procedurally in code, and all sound is synthesised through the
+site's own audio engine. The classic mechanics they riff on are decades-old and
+not themselves copyrightable; we deliberately took inspiration from MIT-licensed
+reference implementations (e.g. Kidel/HTML5-JS-Games, dmcinnes/HTML5-Asteroids)
+for *how the mechanics work*, but wrote our own files rather than vendoring code
+— matching this repo's "copy technique in as our own files" rule.
+
 ## Tooling
 
 - **gltf-transform** (`@gltf-transform/cli`, MIT) — used at author-time to crunch

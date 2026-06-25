@@ -240,6 +240,22 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
   reactivity** (the shop reflects your deeds — clover at high luck, etc.); a
   greek-lyre "play it" instrument node; further album-themed wings (memory-lane).
+- ✅ **The arcade grew — three reskinned cabinets (2026-06-25):** **Crusteroids**
+  (Asteroids), **Slice Breaker** (Breakout), **Jazz Snake** (Snake, every bite
+  plays the next note of a climbing scale). Original code + procedural art + own
+  audio, classic mechanics only (no marks; provenance in `THIRD_PARTY_NOTICES.md`).
+  Each is a self-contained `<canvas>` (no three.js), touch-first (an on-screen pad
+  for the games that need one), with a **per-cabinet high score** (`arcadeHighs`
+  map in `progressStore`, monotonic per id). They join the in-world cabinet's
+  random roll (`arcadeGames.ts` + `ArcadeModal`) AND get standalone mobile routes
+  (`/crusteroids`, `/slice-breaker`, `/jazz-snake`) through a shared, DRY
+  `ArcadeCabinetPage` shell. Covered by `shoot:games` (JS-off crawlable + JS
+  mounts/starts/persists) + `arcadeGames.test`.
+- ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
+  catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
+  terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
+  `discography` listing in the terminal — all mined + grep-verified from
+  lukefwalton.com so the repo stays standalone.
 - ✅ **Real in-world VIDEO (`src/data/videos.ts`, 2026-06-25):** the CRTs now play
   the *right* clip, not one generic playlist. Each song/album carries a **verified**
   YouTube id (mined from `lukefwalton.com`, grep-checked — no hallucinated ids); a

@@ -13,6 +13,7 @@ const COLD: Progress = {
   maxUnease: 0,
   clearedGames: [],
   arcadeHigh: 0,
+  arcadeHighs: {},
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,
