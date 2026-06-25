@@ -54,7 +54,12 @@ export type RoomKind =
   // day ever" carnival end. Pure surface goof (taste-safe). Each plays its own
   // song (Room.song) — the reward for strolling further is the music.
   | 'moonlight'
-  | 'bestday';
+  | 'bestday'
+  // The California wing — a sweet golden-hour pair up the park path: a coastal
+  // overlook on the road, drifting down into a hazy tidepool daydream. Pure
+  // surface goof (taste-safe). Each plays its own song (Room.song).
+  | 'california'
+  | 'tidepools';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -1290,6 +1295,9 @@ export const ROOMS: Room[] = [
       // Arrive on the path, facing up into the park (-Z). Clear of the +Z gate back.
       default: { position: [0, EYE, 4.5], yaw: Math.PI },
       fromBoardwalk: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Back down off the coast road: by the -Z gate, facing +Z back into the park,
+      // clear of every door radius.
+      fromCalifornia: { position: [0, EYE, -4.5], yaw: 0 },
     },
     doors: [
       {
@@ -1299,6 +1307,15 @@ export const ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z — back down to the boardwalk
         rotationY: 0,
         label: 'back to the boardwalk',
+        radius: 3.2,
+      },
+      {
+        id: 'balboa-to-california',
+        to: 'california',
+        toSpawn: 'fromBalboa',
+        position: [0, 0, -8.95], // -Z — up the path to the coast road
+        rotationY: Math.PI,
+        label: 'up to the coast road',
         radius: 3.2,
       },
     ],
@@ -1580,6 +1597,83 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  // ── The California wing ─────────────────────────────────────────────────────
+  // Up the park path past balboa onto a golden-hour coast road overlook, then
+  // drift down to a hazy sunlit tidepool — a sweet "daydreaming" breather. Pure
+  // surface goof (taste guardrail). Each plays its own song (Room.song).
+  {
+    id: 'california',
+    kind: 'california',
+    title: 'I Live in California',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Golden hour on the coast highway: warm amber sky, soft far fog so the sea
+    // melts into the haze.
+    palette: { background: '#f0b274', fog: '#f6cf9c', fogNear: 12, fogFar: 82 },
+    props: [
+      { url: '/models/palm-tree.glb', position: [-6.4, 0, -2], fit: 5.2, rotationY: 0.4 },
+      // a foreground palm framing the tower from the right (clear of its dome)
+      { url: '/models/palm-tree.glb', position: [8, 0, -0.5], fit: 4.6, rotationY: -0.5 },
+    ],
+    song: 'i-live-in-california',
+    // (The California Tower itself is procedural — see CaliforniaRoom.)
+    spawns: {
+      // Arrive at the +Z (park) end of the overlook, facing -Z out toward the sea
+      // + the lower tidepool gate. Clear of every door radius.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromBalboa: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Back up from the tidepools: by the -Z gate, facing +Z back up the road,
+      // clear of every door radius.
+      fromTidepools: { position: [0, EYE, -4.5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'california-to-balboa',
+        to: 'balboa',
+        toSpawn: 'fromCalifornia',
+        position: [0, 0, 8.95], // +Z — back down the path to the park
+        rotationY: 0,
+        label: 'back down to the park',
+        radius: 3.2,
+      },
+      {
+        id: 'california-to-tidepools',
+        to: 'tidepools',
+        toSpawn: 'fromCalifornia',
+        position: [0, 0, -8.95], // -Z — down to the tidepools
+        rotationY: Math.PI,
+        label: 'down to the tidepools',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'tidepools',
+    kind: 'tidepools',
+    title: 'Daydreaming',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Hazy bright noon over a shallow lagoon — soft mint + cream, a shimmer on the
+    // still water. The sweet drift at the bottom of the wing.
+    palette: { background: '#bfe3d6', fog: '#d6efe6', fogNear: 11, fogFar: 78 },
+    props: [{ url: '/models/palm-tree.glb', position: [-6.6, 0, -3], fit: 4.6, rotationY: 0.6 }],
+    song: 'daydreaming',
+    spawns: {
+      // Arrive at the +Z edge of the lagoon, facing -Z out across the still water.
+      // Clear of the +Z gate back up the road.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromCalifornia: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'tidepools-to-california',
+        to: 'california',
+        toSpawn: 'fromTidepools',
+        position: [0, 0, 8.95], // +Z — back up the coast road
+        rotationY: 0,
+        label: 'back up the coast road',
+        radius: 3.2,
+      },
+    ],
+  },
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -1698,6 +1792,10 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // trailing up and away from the descent (still pure surface).
   moonlight: { x: 3.7, y: -0.7 },
   bestday: { x: 4.5, y: -1.4 },
+  // california wing — up the park path (north of balboa), drifting down to the
+  // tidepool daydream. Still pure surface.
+  california: { x: 0.6, y: -0.9 },
+  tidepools: { x: -0.4, y: -1.6 },
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
   hallway: { x: 5, y: 1.2 },
