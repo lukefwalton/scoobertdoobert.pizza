@@ -32,7 +32,7 @@ export default function Arcade() {
           content="Scoobert's Pizza Run — a tiny late-90s arcade game. Jump the broken web buttons. Best played on your phone."
         />
         <meta name="robots" content="index,follow" />
-        <meta name="theme-color" content="#06060b" />
+        <meta name="theme-color" content="#bf3a2b" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/arcade" />
         <meta property="og:title" content="The Pizza Arcade — Scoobert Doobert" />
         <meta
