@@ -48,7 +48,13 @@ export type RoomKind =
   // dark server-void where drifting data motes are "all my friends." Mildly
   // eerie-warm, NOT dread. Each plays its own song (Room.song).
   | 'memorylane'
-  | 'internet';
+  | 'internet'
+  // The Moonlight wing — a sweet night→day pair extending the boardwalk's SoCal
+  // surface: a moonlit dance plaza out on the pier, opening onto a bright "best
+  // day ever" carnival end. Pure surface goof (taste-safe). Each plays its own
+  // song (Room.song) — the reward for strolling further is the music.
+  | 'moonlight'
+  | 'bestday';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -1197,6 +1203,9 @@ export const ROOMS: Room[] = [
       // Back from the park path: by the -X gate (mid-pier), facing +X into the
       // boardwalk, clear of every door radius.
       fromBalboa: { position: [-4.45, EYE, 4.5], yaw: Math.PI / 2 },
+      // Back off the moonlight plaza: by the +X gate (mid-pier), facing -X into the
+      // boardwalk, clear of every door radius.
+      fromMoonlight: { position: [4.45, EYE, 4.5], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -1224,6 +1233,15 @@ export const ROOMS: Room[] = [
         position: [-8.95, 0, 4.5], // -X gate, level with the spawn — up to the park
         rotationY: Math.PI / 2,
         label: 'follow the path to the park',
+        radius: 3.2,
+      },
+      {
+        id: 'boardwalk-to-moonlight',
+        to: 'moonlight',
+        toSpawn: 'fromBoardwalk',
+        position: [8.95, 0, 4.5], // +X gate, level with the spawn — out to the plaza
+        rotationY: -Math.PI / 2,
+        label: 'out onto the dance floor',
         radius: 3.2,
       },
     ],
@@ -1482,6 +1500,86 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  // ── The Moonlight wing ──────────────────────────────────────────────────────
+  // Off the +X end of the boardwalk: a moonlit dance plaza out on the pier (string
+  // lights, a checker dance floor, the sea + moon out the back), opening inland
+  // onto a bright "best day ever" carnival morning. A sweet night→day pair — pure
+  // surface goof (taste guardrail). Each plays its own song (Room.song).
+  {
+    id: 'moonlight',
+    kind: 'moonlight',
+    title: 'Moonlight Plaza',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Moonlit, but festive — a warmer indigo than the cold ocean beach, lit by
+    // string bulbs. Soft far fog so the sea fades into the night.
+    palette: { background: '#1b1d3e', fog: '#262a52', fogNear: 11, fogFar: 75 },
+    props: [
+      { url: '/models/palm-tree.glb', position: [-6.2, 0, -3], fit: 4.4, rotationY: 0.5 },
+      { url: '/models/arcade-cabinet.glb', position: [6.4, 0, -1.5], fit: 2.4, rotationY: -2.2 },
+    ],
+    song: 'dancing-in-the-moonlight',
+    spawns: {
+      // Step onto the plaza at the -Z (seaward) end, facing +Z up the pier across
+      // the dance floor toward the morning gate. Clear of every door radius.
+      default: { position: [0, EYE, -4.5], yaw: 0 },
+      fromBoardwalk: { position: [0, EYE, -4.5], yaw: 0 },
+      // Back from the morning: by the +Z gate, facing -Z back across the plaza,
+      // clear of every door radius.
+      fromBestday: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'moonlight-to-boardwalk',
+        to: 'boardwalk',
+        toSpawn: 'fromMoonlight',
+        position: [0, 0, -8.95], // -Z gate (seaward end) — back to the boardwalk
+        rotationY: Math.PI,
+        label: 'back to the boardwalk',
+        radius: 3.2,
+      },
+      {
+        id: 'moonlight-to-bestday',
+        to: 'bestday',
+        toSpawn: 'fromMoonlight',
+        position: [0, 0, 8.95], // +Z gate — inland, toward the morning
+        rotationY: 0,
+        label: 'chase the morning',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'bestday',
+    kind: 'bestday',
+    title: 'The Best Day Ever',
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Bright cheerful day — sky blue, warm sun, gentle far fog. The sweet daytime
+    // counterpart to the moonlit plaza (the contrast is the point).
+    palette: { background: '#8fc7e8', fog: '#b6dcf0', fogNear: 12, fogFar: 85 },
+    props: [
+      { url: '/models/palm-tree.glb', position: [-6.5, 0, -3], fit: 5, rotationY: 0.3 },
+      { url: '/models/palm-tree.glb', position: [6.6, 0, -4], fit: 4.6, rotationY: -0.6 },
+      { url: '/models/arcade-cabinet.glb', position: [6, 0, 4.5], fit: 2.4, rotationY: -2.4 },
+    ],
+    song: 'best-day-ever',
+    spawns: {
+      // Arrive at the north edge facing -Z out into the sunny morning. Clear of the
+      // +Z door back into the night.
+      default: { position: [0, EYE, 4.5], yaw: Math.PI },
+      fromMoonlight: { position: [0, EYE, 4.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'bestday-to-moonlight',
+        to: 'moonlight',
+        toSpawn: 'fromBestday',
+        position: [0, 0, 8.95], // +Z — back into the moonlight
+        rotationY: 0,
+        label: 'back into the moonlight',
+        radius: 3.2,
+      },
+    ],
+  },
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -1596,6 +1694,10 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   boardwalk: { x: 3, y: 0.3 },
   balboa: { x: 1.4, y: 0 },
   oceanview: { x: 2.4, y: 1.1 },
+  // moonlight wing — a night→day pair off the +X (east) end of the boardwalk,
+  // trailing up and away from the descent (still pure surface).
+  moonlight: { x: 3.7, y: -0.7 },
+  bestday: { x: 4.5, y: -1.4 },
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
   hallway: { x: 5, y: 1.2 },
