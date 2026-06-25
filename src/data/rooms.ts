@@ -42,7 +42,13 @@ export type RoomKind =
   // greek statuary off the poolrooms (funny-uncanny, never traumatic), opening
   // onto a sweet pastel daydream breather. Each plays its own song (Room.song).
   | 'gallery'
-  | 'daydream';
+  | 'daydream'
+  // The Memory Lane wing — a digital-nostalgia branch off the classified file
+  // room: a corridor of glowing CRTs showing old-web fragments, opening into a
+  // dark server-void where drifting data motes are "all my friends." Mildly
+  // eerie-warm, NOT dread. Each plays its own song (Room.song).
+  | 'memorylane'
+  | 'internet';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
@@ -470,6 +476,9 @@ export const ROOMS: Room[] = [
       // Just inside the door, facing the cabinets at the back (-Z).
       default: { position: [0, EYE, 0.6], yaw: Math.PI },
       fromHall: { position: [0, EYE, 0.6], yaw: Math.PI },
+      // Back out of memory lane: by the -X service door, facing +X into the room,
+      // clear of the door radius (and the cabinets, which sit further back in -Z).
+      fromMemoryLane: { position: [-1.6, EYE, 0.4], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -480,6 +489,17 @@ export const ROOMS: Room[] = [
         rotationY: 0,
         label: 'back out to the hall',
         radius: 2.6,
+      },
+      // A service hatch behind the filing cabinets — the wing's mouth. Off the main
+      // descent; no key (a side branch, never gating the way down).
+      {
+        id: 'classified-to-memorylane',
+        to: 'memorylane',
+        toSpawn: 'fromClassified',
+        position: [-3.95, 0, 0], // -X wall, mid-room
+        rotationY: Math.PI / 2,
+        label: 'a hatch into the back wiring',
+        radius: 1.8,
       },
     ],
   },
@@ -1357,6 +1377,111 @@ export const ROOMS: Room[] = [
       },
     ],
   },
+  // ── The Memory Lane wing ────────────────────────────────────────────────────
+  // Through a hatch behind the classified room's cabinets: a long corridor of
+  // humming CRTs running old-web fragments (UNDER CONSTRUCTION, a hit counter, a
+  // guestbook), opening at the far end into a dark server-void where drifting data
+  // motes bloom soft notes — "all my friends live on the internet." Warm-eerie
+  // digital nostalgia, never dread (taste guardrail). Each plays its own song.
+  {
+    id: 'memorylane',
+    kind: 'memorylane',
+    title: 'Memory Lane',
+    // A long, narrow corridor — you walk the length of it past the screens.
+    dims: { halfW: 4, halfD: 11, height: 4, eye: EYE },
+    // CRT dusk: deep indigo black washed in monitor glow, close fog so the far end
+    // is just a smear of light down the hall.
+    palette: { background: '#140d22', fog: '#1b1330', fogNear: 4, fogFar: 30 },
+    song: 'memory-lan',
+    // A row of old CRT sets facing in off both walls, humming, mid-corridor.
+    props: [
+      {
+        url: '/models/crt-tv.glb',
+        position: [-3, 0, 4],
+        fit: 1.3,
+        rotationY: Math.PI / 2,
+        glow: 0.4,
+      },
+      {
+        url: '/models/crt-tv.glb',
+        position: [3, 0, 1],
+        fit: 1.3,
+        rotationY: -Math.PI / 2,
+        glow: 0.4,
+      },
+      {
+        url: '/models/crt-tv.glb',
+        position: [-3, 0, -3],
+        fit: 1.3,
+        rotationY: Math.PI / 2,
+        glow: 0.4,
+      },
+      {
+        url: '/models/crt-tv.glb',
+        position: [3, 0, -6],
+        fit: 1.3,
+        rotationY: -Math.PI / 2,
+        glow: 0.4,
+      },
+    ],
+    spawns: {
+      // Step out of the hatch at the +Z end, facing -Z down the corridor toward the
+      // far light. Clear of the +Z return door (radius 3.2).
+      default: { position: [0, EYE, 7.4], yaw: Math.PI },
+      fromClassified: { position: [0, EYE, 7.4], yaw: Math.PI },
+      // Back up the cables from the servers: at the -Z end, facing +Z back up the
+      // corridor, clear of the -Z door radius.
+      fromInternet: { position: [0, EYE, -7.4], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'memorylane-to-classified',
+        to: 'classified',
+        toSpawn: 'fromMemoryLane',
+        position: [0, 0, 10.95], // +Z — back through the hatch
+        rotationY: 0,
+        label: 'back through the hatch',
+        radius: 3.2,
+      },
+      {
+        id: 'memorylane-to-internet',
+        to: 'internet',
+        toSpawn: 'fromMemoryLane',
+        position: [0, 0, -10.95], // -Z — follow the cables down into the servers
+        rotationY: Math.PI,
+        label: 'follow the cables into the dark',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'internet',
+    kind: 'internet',
+    title: 'Where the Friends Live',
+    // A wide, dark void — server racks fading into the distance.
+    dims: { halfW: 9, halfD: 9, height: 5, eye: EYE },
+    // Near-black, cool blue; close-ish fog so the racks loom out of the dark and
+    // the drifting data motes read as little lights in the void.
+    palette: { background: '#05080f', fog: '#070d18', fogNear: 5, fogFar: 34 },
+    song: 'all-my-friends-live-on-the-internet',
+    spawns: {
+      // Arrive at the +Z mouth of the hall, facing -Z into the racks. Clear of the
+      // +Z door back up the corridor.
+      default: { position: [0, EYE, 5], yaw: Math.PI },
+      fromMemoryLane: { position: [0, EYE, 5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'internet-to-memorylane',
+        to: 'memorylane',
+        toSpawn: 'fromInternet',
+        position: [0, 0, 8.95], // +Z — back up the cables to memory lane
+        rotationY: 0,
+        label: 'back up the cables',
+        radius: 3.2,
+      },
+    ],
+  },
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -1477,6 +1602,10 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   closet: { x: 6.6, y: 1.5 },
   classified: { x: 3, y: 1.6 },
   jukebox: { x: 5, y: 2.4 },
+  // memory lane wing — a side branch WEST off the classified file room, deeper
+  // into the machine's wiring (the dark server-void past the CRT corridor).
+  memorylane: { x: 1.5, y: 1.4 },
+  internet: { x: 0.3, y: 1.9 },
   practice: { x: 3, y: 2.8 },
   poolrooms: { x: 5, y: 3.6 },
   // sunken gallery wing — a side branch off the poolrooms (right), dipping then
