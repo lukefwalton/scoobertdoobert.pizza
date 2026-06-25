@@ -47,6 +47,7 @@
     "shoot:boardwalk": "node scripts/shoot-boardwalk.mjs",
     "shoot:gallery": "node scripts/shoot-gallery.mjs",
     "shoot:memorylane": "node scripts/shoot-memorylane.mjs",
+    "shoot:moonlight": "node scripts/shoot-moonlight.mjs",
     "shoot:keys": "node scripts/shoot-keys.mjs",
     "shoot:entities": "node scripts/shoot-entities.mjs",
     "shoot:objective": "node scripts/shoot-objective.mjs",
