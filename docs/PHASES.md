@@ -236,10 +236,15 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   Both song-rooms (`underwater` / `watercolor-sky`). Crunched via the documented
   `gltf-transform optimize … --texture-size 256` pipeline; `THIRD_PARTY_NOTICES.md`
   rows added; IP-flagged trove models still excluded. `shoot:gallery`.
+- ✅ **The greek lyre — a "play it" instrument in the Sunken Gallery (2026-06-25):**
+  a procedural, pluckable 7-string lyre (`GreekLyre.tsx`) set among the statuary
+  (it mirrors the broken statue across the nave). Each string is a pentatonic note
+  played through the shared bell engine (mute-aware + limited); original parody
+  geometry, no sourced model. Advances the music ladder's "play it" rung in a deep
+  room. `shoot:gallery` now plucks a string.
 - ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
-  a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
-  reactivity** (the shop reflects your deeds — clover at high luck, etc.); a
-  greek-lyre "play it" instrument node; further album-themed wings (memory-lane).
+  a **rare Pokémon-style grass-level encounter** vs the goblin; further
+  album-themed wings. (Storefront reactivity + the greek lyre are now shipped.)
 - ✅ **The arcade grew — three reskinned cabinets (2026-06-25):** **Crusteroids**
   (Asteroids), **Slice Breaker** (Breakout), **Jazz Snake** (Snake, every bite
   plays the next note of a climbing scale). Original code + procedural art + own
