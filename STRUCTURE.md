@@ -67,7 +67,7 @@ scoobertdoobert.pizza/
 | Add / change a destination link | `src/data/links.ts` |
 | Add / move an in-world hotspot | `src/data/hotspots.ts` |
 | Add / change an era floor | `src/data/floors.ts` + a template in `src/floors/` |
-| Add / change a 3D room | `src/data/rooms.ts` + geometry in `src/world/` |
+| Add / change a 3D room | `src/data/rooms/<wing>.ts` (data, split by region) + geometry in `src/world/`; types in `src/data/rooms/types.ts`, assembled by `src/data/rooms.ts` |
 | Edit storefront copy/layout | `src/floors/PlainFloor.tsx` |
 | Touch the Calzone install / descent | `src/components/Descent.tsx` |
 | Add to the `/links` archive | `links.md` (root) |
