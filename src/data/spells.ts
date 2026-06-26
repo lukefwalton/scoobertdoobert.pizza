@@ -18,7 +18,7 @@
 // the effect is a smooth warm ramp, never a strobe (WCAG 2.3.1).
 // ───────────────────────────────────────────────────────────────────────────
 
-export type SpellId = 'fireball';
+export type SpellId = 'fireball' | 'light';
 
 export type Spell = {
   /** Stable id — persisted in progressStore.knownSpells, keys the HUD hotbar. */
@@ -28,13 +28,21 @@ export type Spell = {
   school: string;
   /** A single emoji/glyph for the HUD hotbar slot — no art asset needed. */
   glyph: string;
-  /** Shared spell slots one cast burns (Fireball = 1). */
+  /** The mnemonic cast hotkey (single lowercase letter): f = fireball, l = light.
+   *  The HUD maps a keypress to the spell by this — so each known spell has its
+   *  own key, no equip/select dance. */
+  key: string;
+  /** Shared spell slots one cast burns. 0 = a CANTRIP (D&D): free + unlimited, it
+   *  never touches the pool. Fireball = 1 (a real spell); Light = 0 (a cantrip). */
   slotCost: number;
   /** The item id whose pickup TEACHES this spell (items.ts) — how you earn it. */
   learnedFromItem: string;
   /** One-line storefront-voice blurb for the learn toast + the pause-menu grimoire. */
   blurb: string;
 };
+
+/** A cantrip is a slotless spell — free to cast, as many times as you like. */
+export const isCantrip = (s: Spell): boolean => s.slotCost === 0;
 
 /** Shared spell-slot pool size (the D&D long-rest model): a cast spends a slot; a
  *  rest — the shrine clap, or stepping into a sweet breather room — refills to
@@ -47,9 +55,21 @@ export const SPELLS: Spell[] = [
     name: 'Fireball',
     school: 'Evocation',
     glyph: '🔥',
+    key: 'f',
     slotCost: 1,
     learnedFromItem: 'fireball-scroll',
     blurb: 'A bead of flame blooms and the whole room catches. Warmth, for once, in the dark.',
+  },
+  {
+    id: 'light',
+    name: 'Light',
+    school: 'Evocation cantrip',
+    glyph: '🕯️',
+    key: 'l',
+    slotCost: 0, // a cantrip — free + unlimited, so you can always push back the dark
+    learnedFromItem: 'light-scroll',
+    blurb:
+      'A mote of soft light lifts and the room remembers its corners. No slot — cast it freely.',
   },
 ];
 

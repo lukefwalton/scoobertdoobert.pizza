@@ -239,6 +239,9 @@ export const CORE_ROOMS: Room[] = [
     // Tiny, cold, claustrophobic — the X-Files file room of rejected demos.
     dims: { halfW: 4, halfD: 4, height: 3.2, eye: EYE },
     palette: { background: '#0a1410', fog: '#0c1812', fogNear: 2, fogFar: 15 },
+    // The Scroll of Light waits on the desk in the darkest room in the building —
+    // the poetic earn: the dark archive hands you the means to see (kind 'tome').
+    pickups: [{ itemId: 'light-scroll', position: [1.3, 0.95, -1.6] }],
     // A dead CRT in the corner of the file room (the surveillance tell).
     props: [
       {
