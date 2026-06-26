@@ -130,6 +130,19 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
       </table>
 
       <div className="tl__furniture">
+        {/* a REAL under-construction GIF (our own GIF89a encoder, not a lifted one);
+            <picture> serves a still frame under prefers-reduced-motion. */}
+        <picture className="tl__construction">
+          <source srcSet="/gifs/construction-static.gif" media="(prefers-reduced-motion: reduce)" />
+          <img
+            className="tl__construction-img"
+            src="/gifs/construction.gif"
+            width={104}
+            height={26}
+            alt="Under construction"
+          />
+        </picture>
+
         <span className="tl__badge tl__badge--ie">
           BEST VIEWED IN
           <small>Internet Explorer 5</small>

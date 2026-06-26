@@ -250,29 +250,24 @@
   }
 }
 
-/* a "dancing" mascot — a goofy pizza wedge that bops in place, the dancing-baby
-   energy, on-brand for the goblin-mode pizza site. Original CSS shape. */
+/* the "dancing baby" mascot — a REAL animated GIF we printed ourselves (see
+   StarburstFloor.tsx). The wrapper just centers it; the still-frame swap for
+   reduced motion is handled by the <picture> <source>, not CSS. */
 .sb__dancer {
-  width: 64px;
-  height: 64px;
-  margin: 4px auto 0;
-  /* a pizza wedge: a triangle of crust-gold with pepperoni dots */
-  background:
-    radial-gradient(circle at 32% 60%, #b3261e 0 5px, transparent 6px),
-    radial-gradient(circle at 60% 44%, #b3261e 0 5px, transparent 6px),
-    radial-gradient(circle at 48% 74%, #b3261e 0 4px, transparent 5px),
-    linear-gradient(#ffd56b, #f0a93a);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  animation: sb-dance 0.6s ease-in-out infinite alternate;
-  transform-origin: 50% 100%;
+  display: block;
+  width: max-content;
+  margin: 8px auto 0;
+  padding: 5px;
+  /* match the GIF's baked navy tile so the padding reads as one framed panel */
+  background: #0e1430;
+  border: 3px ridge #6a78c0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
-@keyframes sb-dance {
-  from {
-    transform: rotate(-9deg) translateY(0);
-  }
-  to {
-    transform: rotate(9deg) translateY(-5px);
-  }
+.sb__dancer-img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated; /* keep the 64px art crunchy when scaled up */
 }
 
 .sb__doors {
@@ -303,8 +298,7 @@
   .sb__rat,
   .sb__construction,
   .sb__cone,
-  .sb__sparkles span,
-  .sb__dancer {
+  .sb__sparkles span {
     animation: none;
   }
   /* a still barber-pole still reads as "construction"; just don't scroll it */

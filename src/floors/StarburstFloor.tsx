@@ -91,7 +91,23 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             </span>
           </div>
 
-          <div className="sb__dancer" role="img" aria-label="A dancing slice of pizza" />
+          {/* The site's "dancing baby": a REAL animated GIF, printed from scratch by
+              our own GIF89a encoder (scripts/make-gifs.mjs). <picture> swaps to a
+              still first frame under prefers-reduced-motion — a GIF can't be paused
+              by CSS, so the static frame IS the WCAG accommodation. */}
+          <picture className="sb__dancer">
+            <source
+              srcSet="/gifs/dancing-pizza-static.gif"
+              media="(prefers-reduced-motion: reduce)"
+            />
+            <img
+              className="sb__dancer-img"
+              src="/gifs/dancing-pizza.gif"
+              width={64}
+              height={64}
+              alt="A dancing slice of pizza"
+            />
+          </picture>
 
           <div className="sb__doors">
             <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />

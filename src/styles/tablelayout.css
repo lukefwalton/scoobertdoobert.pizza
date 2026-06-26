@@ -167,6 +167,18 @@
   background: #cdd4dc;
   border: 3px ridge #eef1f5;
 }
+.tl__construction {
+  flex-basis: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+.tl__construction-img {
+  display: block;
+  width: min(312px, 86vw);
+  height: auto;
+  image-rendering: pixelated; /* crunchy upscaled barber-pole */
+}
 .tl__badge {
   font-family: 'Courier New', monospace;
   font-size: 0.72rem;
