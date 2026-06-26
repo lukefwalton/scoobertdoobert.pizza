@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { exposeTestGlobal } from '../lib/testHooks';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // BurritoBelt (BURRITO BELT) — the "falling blocks" cabinet: stacks of burrito
@@ -404,13 +404,15 @@ export function BurritoBelt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Test hook (?debug): a DETERMINISTIC loss that exercises the LOCK-OUT jam the
-  // review flagged — lock a T-piece at the spawn row (-1) so a cell sits above row
-  // 0, which must end the game via the real lockedAbove → endGame path (not truncate
-  // + limp on). Seeds a non-zero score first (line-clears aren't deterministically
+  // Test hook: a DETERMINISTIC loss that exercises the LOCK-OUT jam the review
+  // flagged — lock a T-piece at the spawn row (-1) so a cell sits above row 0, which
+  // must end the game via the real lockedAbove → endGame path (not truncate + limp
+  // on). Seeds a non-zero score first (line-clears aren't deterministically
   // forceable) so the over-branch's recordArcadeHigh actually writes; shoot:games
-  // asserts both the game-over overlay AND that durable write.
+  // asserts both the game-over overlay AND that durable write. ACTION hook (forces a
+  // loss) → STRICTER ?debug-only gate, like __sdpGoToRoom, not the wider entrance.
   useEffect(() => {
+    if (!isDebugEntrance()) return;
     exposeTestGlobal('__sdpBeltForceLose', () => {
       const g = game.current;
       if (g.phase !== 'playing') return;
