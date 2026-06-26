@@ -3,6 +3,7 @@ import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
+import { locksOut } from './arcadeRules';
 
 // ───────────────────────────────────────────────────────────────────────────
 // BurritoBelt (BURRITO BELT) — the "falling blocks" cabinet: stacks of burrito
@@ -179,11 +180,10 @@ export function BurritoBelt() {
     const a = g.active;
     if (!a) return;
     const color = PIECES[a.piece].color;
-    let lockedAbove = false;
+    const lockedAbove = locksOut(a.cells, a.row); // any cell above row 0 → a lock-out
     for (const [r, c] of a.cells) {
       const br = a.row + r;
       if (br >= 0) g.board[br][a.col + c] = color;
-      else lockedAbove = true; // a cell locked ABOVE the top row → a lock-out
     }
     // clear full rows (roll them off the belt)
     let cleared = 0;
