@@ -27,12 +27,27 @@ const GAMES = [
     title: 'Pizza Radar 1996',
     id: 'pizza-radar',
     loseHook: '__sdpRadarForceLose',
+    // The held turret controls: pressing ◀/▶ sets an internal flag, releasing clears
+    // it. Read it back through the read-only state hook (no RAF timing).
+    holdProbe: {
+      stateHook: '__sdpRadarState',
+      holds: [
+        { button: 'left', field: 'moveL' },
+        { button: 'right', field: 'moveR' },
+      ],
+    },
   },
   {
     slug: 'burrito-belt',
     title: 'Burrito Belt',
     id: 'burrito-belt',
     loseHook: '__sdpBeltForceLose',
+    // The held soft-drop control (the parity gap the review flagged): the ▼ pad
+    // button engages soft-drop while pressed and releases it on lift.
+    holdProbe: {
+      stateHook: '__sdpBeltState',
+      holds: [{ button: 'soft drop', field: 'softDrop' }],
+    },
   },
 ];
 
@@ -104,6 +119,38 @@ for (const g of GAMES) {
       const started = !/TAP TO START|TAP TO LAUNCH|TAP \/ SWIPE/i.test(overlayText);
       if (!started) bad(`${g.slug} JS: tapping the screen did not start the game`);
       if (errs.length) bad(`${g.slug} JS: page error -> ${errs[0]?.slice(0, 80)}`);
+
+      // Touch-hold parity: the held pad controls (PizzaRadar ◀/▶, BurritoBelt
+      // soft-drop) set an internal flag on pointerdown and clear it on pointerup —
+      // the trickiest input path, and easy to regress unnoticed on desktop. Press +
+      // release the REAL pad button and read the flag back through the game's
+      // read-only ?world/?debug state hook (deterministic — no RAF timing).
+      if (g.holdProbe) {
+        const { stateHook, holds } = g.holdProbe;
+        const read = (field) =>
+          page.evaluate(
+            ([h, f]) => (typeof window[h] === 'function' ? !!window[h]()[f] : null),
+            [stateHook, field],
+          );
+        for (const { button, field } of holds) {
+          const padBtn = await page.$(`.arcade-pad button[aria-label="${button}"]`);
+          if (!padBtn) {
+            bad(`${g.slug} JS: no "${button}" pad button to hold-test`);
+            continue;
+          }
+          const bx = await padBtn.boundingBox();
+          await page.mouse.move(bx.x + bx.width / 2, bx.y + bx.height / 2);
+          await page.mouse.down();
+          const held = await read(field);
+          await page.mouse.up();
+          const released = await read(field);
+          if (held !== true)
+            bad(`${g.slug} JS: holding "${button}" did not set ${field} (got ${held})`);
+          if (released !== false)
+            bad(`${g.slug} JS: releasing "${button}" left ${field} stuck (got ${released})`);
+          console.log(`${g.slug} hold "${button}" -> down=${held} up=${released}`);
+        }
+      }
 
       // The real lose path: drive a deterministic loss and assert the GAME OVER
       // overlay actually renders (not just the ref phase flipping). Check BEFORE each

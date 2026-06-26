@@ -431,6 +431,14 @@ export function BurritoBelt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Test hook (READ-ONLY): report whether soft-drop is engaged so a smoke can verify
+  // the ▼ pad button's HOLD behavior (press → softDrop true; release → false) without
+  // timing the fall against the RAF loop. Read-only → normal ?world/?debug entrance.
+  useEffect(() => {
+    exposeTestGlobal('__sdpBeltState', () => ({ softDrop: game.current.softDrop }));
+    return () => exposeTestGlobal('__sdpBeltState', undefined);
+  }, []);
+
   return (
     <div className="arcade-screen">
       <div className="arcade-hud">
