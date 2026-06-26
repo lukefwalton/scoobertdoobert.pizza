@@ -9,6 +9,7 @@ import Crusteroids from './pages/Crusteroids';
 import SliceBreaker from './pages/SliceBreaker';
 import JazzSnake from './pages/JazzSnake';
 import PizzaRadar from './pages/PizzaRadar';
+import BurritoBelt from './pages/BurritoBelt';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
@@ -40,6 +41,8 @@ export const routes: RouteRecord[] = [
   { path: '/jazz-snake', element: <JazzSnake /> },
   // /pizza-radar -> "Pizza Radar 1996," a green-phosphor Space-Invaders defense.
   { path: '/pizza-radar', element: <PizzaRadar /> },
+  // /burrito-belt -> "Burrito Belt," the falling-blocks stacker.
+  { path: '/burrito-belt', element: <BurritoBelt /> },
   // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
   { path: '/poke', element: <Poke /> },
   // /chimes -> "Pendulum Chimes," a tap-to-play bell instrument (a third cabinet,
