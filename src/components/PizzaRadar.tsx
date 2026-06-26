@@ -3,6 +3,7 @@ import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
+import { breachesFloor } from './arcadeRules';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PizzaRadar (PIZZA RADAR 1996) — the "alien shooter": a green-phosphor radar
@@ -154,7 +155,7 @@ export function PizzaRadar() {
           // a soft formation "tok" panned to the block centre
           audio.playChime(noteToFreq('E', 3), ((minX + maxX) / 2 / W) * 2 - 1, 0.05, 0.4);
           // a saucer reached the floor → the slice falls
-          if (aliveArr.some((b) => b.cy >= LOSE_Y)) {
+          if (breachesFloor(g.blips, LOSE_Y)) {
             endGame();
             raf = requestAnimationFrame(tick);
             return;
