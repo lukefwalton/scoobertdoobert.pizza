@@ -3,6 +3,11 @@
 // ONLY under the ?world / ?debug test entrances, so it's never part of the normal
 // runtime surface. This centralizes that gate so each consumer doesn't re-spell
 // the regex + the window cast.
+//
+// NOTE: ?room=ID (WorldMount's deterministic room entry) is intentionally NOT a test
+// entrance — it works in production builds, so exposing __sdp* hooks under it would
+// be real prod surface. Smokes that need the hooks while in a specific room pass
+// &debug=1 alongside ?room (e.g. ?room=jukebox&debug=1).
 
 /** True on the ?world / ?debug test entrances (where smoke globals are allowed). */
 export function isTestEntrance(): boolean {

@@ -19,6 +19,7 @@ import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
 import { spellById, isCantrip, SPELL_SLOTS_MAX, type Spell } from './spells';
+import { rollLuckyD20, critBanner } from '../lib/luck-core';
 
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
@@ -221,6 +222,33 @@ export const COMMANDS: Command[] = [
           `spell slots ......... ${slots}/${SPELL_SLOTS_MAX}  (rest at a shrine to refill)`,
         ],
       };
+    },
+  },
+  {
+    name: 'roll',
+    help: 'roll the bones — a d20, your luck nudges it',
+    run: ({ progress }) => {
+      const luck = Math.max(0, progress.luckEarned - progress.luckSpent);
+      // A free "feeling lucky?" peek: it uses your luck for D&D advantage but NEVER
+      // spends it (rollLuckyD20 is pure — only the world's STAKES rolls debit the
+      // save). So this shows the system tipping the dice your way, at no cost.
+      const r = rollLuckyD20(luck);
+      const banner = critBanner(r.crit); // ★ NAT 20 ★ / ☠ CRIT FAIL ☠ / none
+      const out = [`🎲 d20 → ${r.face}${banner ? `   ${banner}` : ''}`];
+      // Key the advantage note off what the roll ACTUALLY did (luckSpent), not just
+      // whether you have luck — so the copy can't claim advantage the helper didn't take.
+      if (r.luckSpent > 0)
+        out.push(
+          `(your ${luck} luck rolled a second die behind it, kept the higher — a peek; nothing spent.)`,
+        );
+      out.push(
+        r.crit === 'nat20'
+          ? 'the machine likes you today.'
+          : r.crit === 'nat1'
+            ? 'the machine does not like you today.'
+            : 'the bones settle. nothing fated, this time.',
+      );
+      return { output: out };
     },
   },
   {

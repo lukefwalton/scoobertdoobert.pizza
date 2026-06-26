@@ -13,52 +13,18 @@
 // spend by hand. So the luckier you are, the more of your rolls have advantage:
 // a likelier nat 20, a rarer crit fail, while your luck lasts.
 //
-// The core (`rollLuckyD20`) is PURE — it takes the luck available and an rng, so it
-// unit-tests deterministically. The thin store-bound `rollD20` reads + spends luck
-// from the durable save.
+// The PURE math (`rollLuckyD20`, crits, labels) lives in `./luck-core` so store-free
+// modules (the terminal's `roll`) can use it; this file re-exports all of it and
+// adds the thin store-bound `rollD20`, which reads + spends luck from the durable
+// save. Existing importers of '../lib/luck' are unchanged.
 // ───────────────────────────────────────────────────────────────────────────
 
 import { useProgressStore, selectLuck } from '../state/progressStore';
+import { rollLuckyD20, type Roll } from './luck-core';
 
-export type Crit = 'nat20' | 'nat1' | null;
-
-/** A crit (nat 20 or crit fail) swings the outcome 3× — "across the board." */
-export const CRIT_MULT = 3;
-
-/** Advantage costs one point of luck: D&D-style, it rolls a second d20 and keeps
- *  the higher — so at most one luck is ever spent on a single roll. */
-export const LUCK_PER_ADVANTAGE = 1;
-
-export type Roll = {
-  /** The face you land on, 1..20 — the higher of the two dice under advantage. */
-  face: number;
-  /** nat20 (crit success) / nat1 (crit fail) / null, read off the landed face. */
-  crit: Crit;
-  /** Luck the system consumed for this roll: 1 if it bought advantage, else 0. */
-  luckSpent: number;
-};
-
-const d20 = (rng: () => number): number => 1 + Math.floor(rng() * 20);
-const critOf = (face: number): Crit => (face === 20 ? 'nat20' : face === 1 ? 'nat1' : null);
-
-/**
- * Roll the universal d20, D&D-style. Pure: pass the luck available + an rng
- * (Math.random in prod, a seeded sequence in tests). With at least one luck banked
- * the system buys ADVANTAGE — rolls a second, hidden d20 and keeps the higher face
- * — and reports the one luck it spent so the caller can debit the save. With no
- * luck it's a single plain d20. Advantage is committed up front (both dice roll
- * before we know the first), exactly like declaring advantage at the table; a nat
- * 20 / nat 1 always reads off the landed (kept) face.
- */
-export function rollLuckyD20(luckAvailable: number, rng: () => number = Math.random): Roll {
-  const first = d20(rng);
-  if (Math.floor(luckAvailable) < LUCK_PER_ADVANTAGE) {
-    return { face: first, crit: critOf(first), luckSpent: 0 };
-  }
-  const second = d20(rng); // the backend die — never shown
-  const face = Math.max(first, second); // advantage: keep the higher
-  return { face, crit: critOf(face), luckSpent: LUCK_PER_ADVANTAGE };
-}
+// Re-export the pure core so '../lib/luck' stays the single import site for callers
+// that also want the store-bound rollD20 (D20, TrapDoor, …).
+export * from './luck-core';
 
 /**
  * Roll the universal d20 against the durable save. `useLuck` (default true) gates
@@ -73,9 +39,4 @@ export function rollD20(useLuck = true): Roll {
   const r = rollLuckyD20(luck);
   if (r.luckSpent > 0) useProgressStore.getState().spendLuck(r.luckSpent);
   return r;
-}
-
-/** Short label for a crit, for the announce toast / signage. */
-export function critLabel(crit: Crit): string | null {
-  return crit === 'nat20' ? 'NAT 20' : crit === 'nat1' ? 'CRIT FAIL' : null;
 }

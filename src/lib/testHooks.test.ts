@@ -41,6 +41,20 @@ describe('exposeTestGlobal gating', () => {
     expect(g.window!.__sdpUnitProbe2).toBe('x');
   });
 
+  it('does NOT treat ?room= as a test entrance — it works in prod, so no hooks leak', () => {
+    // ?room=ID is WorldMount's deterministic room entry (available in prod). A
+    // visitor on it must NOT get the read-only __sdp* hooks; smokes that need them in
+    // a room pass &debug=1 alongside (?room=jukebox&debug=1).
+    setSearch('?room=jukebox');
+    expect(isTestEntrance()).toBe(false);
+    exposeTestGlobal('__sdpUnitProbe4', 'r');
+    expect(g.window!.__sdpUnitProbe4).toBeUndefined();
+    // …but ?room WITH &debug is a (debug) test entrance, the smokes' real path.
+    setSearch('?room=jukebox&debug=1');
+    expect(isTestEntrance()).toBe(true);
+    expect(isDebugEntrance()).toBe(true);
+  });
+
   it('a bare query (e.g. ?worldly) does not satisfy the gate (word-boundary match)', () => {
     setSearch('?worldly=1');
     expect(isTestEntrance()).toBe(false);

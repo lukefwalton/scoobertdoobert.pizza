@@ -293,12 +293,14 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
   `discography` listing in the terminal — all mined + grep-verified from
   lukefwalton.com so the repo stays standalone.
-- ✅ **The terminal surfaces the game layer (2026-06-26):** two new commands make
-  the RPG layer legible from the command line — `luck` (your banked luck + how the
-  system spends it for D&D advantage; "be lucky") and `spells` (your spellbook +
-  the key that casts each + your slot count). Both are PURE reads of the progress
-  snapshot (commands.ts stays store-free), so the otherwise-invisible LUCK economy
-  and your learned spells are inspectable. `commands.test.ts` + `shoot:terminal`.
+- ✅ **The terminal surfaces the game layer (2026-06-26):** three new commands make
+  the RPG layer legible + playable from the command line — `luck` (your banked luck +
+  how the system spends it for D&D advantage; "be lucky"), `spells` (your spellbook +
+  the key that casts each + your slot count), and `roll` (roll the universal d20 right
+  there — your luck nudges it via advantage, a free peek that never spends). All PURE
+  reads of the progress snapshot (commands.ts stays store-free); the pure d20 math was
+  split into `src/lib/luck-core.ts` so a store-free command can roll, with `luck.ts`
+  re-exporting it (every existing importer unchanged). `commands.test.ts` + `shoot:terminal`.
 - ✅ **Real in-world VIDEO (`src/data/videos.ts`, 2026-06-25):** the CRTs now play
   the *right* clip, not one generic playlist. Each song/album carries a **verified**
   YouTube id (mined from `lukefwalton.com`, grep-checked — no hallucinated ids); a

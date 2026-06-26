@@ -4,10 +4,21 @@
 
 .sb {
   min-height: 100vh;
-  background: repeating-linear-gradient(0deg, #1a3acc 0 2px, #1633b8 2px 4px), #1633b8;
+  /* the most GeoCities thing of all: a tiled starfield wallpaper (our own GIF). The
+     dark base means the floor's light text gains contrast over it (WCAG-friendly). */
+  background: #0a1024 url('/gifs/wallpaper.gif') repeat;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
   padding-bottom: 48px;
+}
+
+/* the GeoCities rainbow <hr> — a real animated GIF divider */
+.sb__rule {
+  display: block;
+  width: min(560px, 90vw);
+  height: auto;
+  margin: 10px auto 2px;
+  image-rendering: pixelated;
 }
 
 /* scrolling marquee */
@@ -168,17 +179,106 @@
   }
 }
 
+/* "UNDER CONSTRUCTION" — the single most iconic piece of 1999 web furniture, drawn
+   here as ORIGINAL animated CSS (a scrolling caution barber-pole), never a lifted
+   GIF. Diagonal yellow/black stripes scroll behind a readable plate. */
 .sb__construction {
-  text-align: center;
-  background: #000000;
-  color: #ffe600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px 0;
+  padding: 9px 7px;
+  border-top: 3px solid #000000;
+  border-bottom: 3px solid #000000;
+  background: repeating-linear-gradient(-45deg, #ffcc00 0 14px, #1a1a1a 14px 28px);
+  background-size: 200% 100%;
+  animation: sb-barber 0.7s linear infinite;
+}
+.sb__cc-plate {
+  background: #ffe600;
+  color: #1a1a1a;
   font-weight: bold;
-  border: 2px dashed #ffe600;
-  margin: 12px 0;
-  padding: 7px;
+  letter-spacing: 0.04em;
+  border: 2px solid #000000;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+  padding: 4px 12px;
 }
 .sb__cone {
-  color: #ff8c00;
+  /* the little hazard signs flip-flop like a cheap GIF */
+  display: inline-block;
+  color: #1a1a1a;
+  background: #ff8c00;
+  border: 2px solid #000000;
+  width: 1.5em;
+  height: 1.5em;
+  line-height: 1.4em;
+  text-align: center;
+  animation: sb-wobble 0.5s steps(2) infinite;
+}
+@keyframes sb-barber {
+  to {
+    background-position: 39.6px 0; /* 28px stripe-pair × √2 at -45° = one seamless period */
+  }
+}
+@keyframes sb-wobble {
+  50% {
+    transform: rotate(-12deg);
+  }
+}
+
+/* a twinkling sparkle divider — a row of stars that blink out of phase, the way a
+   GIF star-bar did. Pure CSS; the stars are real glyphs. */
+.sb__sparkles {
+  text-align: center;
+  color: #ffe600;
+  font-size: 1.2rem;
+  letter-spacing: 0.5em;
+  margin: 12px 0;
+  text-shadow: 0 0 6px rgba(255, 230, 0, 0.8);
+}
+.sb__sparkles span {
+  display: inline-block;
+  animation: sb-twinkle 1.3s ease-in-out infinite;
+}
+.sb__sparkles span:nth-child(2n) {
+  animation-delay: 0.25s;
+  color: #ff5ec7;
+}
+.sb__sparkles span:nth-child(3n) {
+  animation-delay: 0.6s;
+  color: #5ec8ff;
+}
+@keyframes sb-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.7);
+  }
+}
+
+/* the "dancing baby" mascot — a REAL animated GIF we printed ourselves (see
+   StarburstFloor.tsx). The wrapper just centers it; the still-frame swap for
+   reduced motion is handled by the <picture> <source>, not CSS. */
+.sb__dancer {
+  display: block;
+  width: max-content;
+  margin: 8px auto 0;
+  padding: 5px;
+  /* match the GIF's baked navy tile so the padding reads as one framed panel */
+  background: #0e1430;
+  border: 3px ridge #6a78c0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.sb__dancer-img {
+  display: block;
+  width: 96px;
+  height: 96px;
+  image-rendering: pixelated; /* keep the 64px art crunchy when scaled up */
 }
 
 .sb__doors {
@@ -206,7 +306,14 @@
   .sb__marquee span,
   .sb__star,
   .sb__star-text,
-  .sb__rat {
+  .sb__rat,
+  .sb__construction,
+  .sb__cone,
+  .sb__sparkles span {
     animation: none;
+  }
+  /* a still barber-pole still reads as "construction"; just don't scroll it */
+  .sb__construction {
+    background-position: 0 0;
   }
 }

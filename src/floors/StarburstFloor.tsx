@@ -37,6 +37,13 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
         <p className="sb__sub">est. 1996 &middot; still online &middot; the {floor.era} edition</p>
       </header>
 
+      {/* a GeoCities rainbow <hr>, made by our own GIF encoder; decorative (alt=""),
+          with a still frame under reduced motion. */}
+      <picture>
+        <source srcSet="/gifs/rainbow-rule-static.gif" media="(prefers-reduced-motion: reduce)" />
+        <img className="sb__rule" src="/gifs/rainbow-rule.gif" width={168} height={8} alt="" />
+      </picture>
+
       <div className="sb__body">
         <nav className="sb__rail" aria-label="Main menu">
           <p className="sb__rail-h">&raquo; MAIN MENU &laquo;</p>
@@ -67,15 +74,47 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             {floor.copy && <p className="sb__copy">{floor.copy}</p>}
           </div>
 
-          <p className="sb__construction">
-            <span className="sb__cone" aria-hidden="true">
-              &#9888;
-            </span>{' '}
-            This site is under <b>eternal</b> construction.{' '}
+          <p className="sb__sparkles" aria-hidden="true">
+            <span>★</span>
+            <span>✦</span>
+            <span>✧</span>
+            <span>★</span>
+            <span>✦</span>
+            <span>✧</span>
+            <span>★</span>
+          </p>
+
+          <div
+            className="sb__construction"
+            role="img"
+            aria-label="This site is under eternal construction"
+          >
             <span className="sb__cone" aria-hidden="true">
               &#9888;
             </span>
-          </p>
+            <span className="sb__cc-plate">UNDER&nbsp;ETERNAL&nbsp;CONSTRUCTION</span>
+            <span className="sb__cone" aria-hidden="true">
+              &#9888;
+            </span>
+          </div>
+
+          {/* The site's "dancing baby": a REAL animated GIF, printed from scratch by
+              our own GIF89a encoder (scripts/make-gifs.mjs). <picture> swaps to a
+              still first frame under prefers-reduced-motion — a GIF can't be paused
+              by CSS, so the static frame IS the WCAG accommodation. */}
+          <picture className="sb__dancer">
+            <source
+              srcSet="/gifs/dancing-pizza-static.gif"
+              media="(prefers-reduced-motion: reduce)"
+            />
+            <img
+              className="sb__dancer-img"
+              src="/gifs/dancing-pizza.gif"
+              width={64}
+              height={64}
+              alt="A dancing slice of pizza"
+            />
+          </picture>
 
           <div className="sb__doors">
             <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
