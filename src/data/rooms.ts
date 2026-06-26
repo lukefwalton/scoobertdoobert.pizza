@@ -47,20 +47,35 @@ export const ROOMS: Room[] = [
 // Deliberately the PROCEDURAL deep rooms + the medium liminal GLB — NOT the
 // heaviest deeppool GLB: a whimsical storefront click shouldn't spring a 5 MB
 // download on a casual visitor (the abandoned pool stays something you EARN by
-// descending). The d20 face maps onto this list (face → list index), so the
-// number the die lands on genuinely decides where the floor drops you.
+// descending). Ordered UNLUCKIEST → LUCKIEST: the trap door is a STAKES d20 now
+// (see lib/luck), so a higher face — luck buys advantage — lands you somewhere
+// less wrong. face 1 = the tightest dark, face 20 = the most navigable of the
+// wrong rooms. Same face (+ crit) → same room, so the roll is the randomizer.
 export type TrapDrop = { room: string; spawn: string; title: string };
 const TRAP_DROP_ROOMS: TrapDrop[] = [
-  { room: 'classified', spawn: 'default', title: 'Classified' },
-  { room: 'dicepit', spawn: 'default', title: 'The Back Room' },
-  { room: 'mobius', spawn: 'default', title: 'The Long Corridor' },
+  { room: 'classified', spawn: 'default', title: 'Classified' }, // tightest, near-black
   { room: 'liminal', spawn: 'default', title: 'Liminal Space' },
+  { room: 'mobius', spawn: 'default', title: 'The Long Corridor' },
+  { room: 'dicepit', spawn: 'default', title: 'The Back Room' }, // warm felt, least wrong
 ];
 
-/** Map a d20 face (1..20) to a drop destination. The face decides — same face,
- *  same room — so the roll isn't decorative: it's the randomizer. */
-export function trapDropForRoll(face: number): TrapDrop {
-  const i = (Math.max(1, Math.min(20, Math.floor(face))) - 1) % TRAP_DROP_ROOMS.length;
+// The nat 20 jackpot: a "soft landing." Instead of the deep-and-wrong rooms, a
+// crit-lucky fall drops you clean THROUGH into the pastel daydream — the rarest,
+// sweetest drop the storefront floor can give (luck makes the nat 20 likelier).
+const TRAP_DROP_LUCKY: TrapDrop = { room: 'daydream', spawn: 'default', title: 'a soft landing' };
+
+/** Map a d20 face (1..20) to a drop destination. The trap door is a STAKES roll:
+ *  a natural 20 is the "soft landing" jackpot (into the daydream); otherwise the
+ *  ladder is ordinal — the higher you roll, the kinder the landing. Same face (+
+ *  crit) → same room, so the roll is the randomizer, never decorative. The bare
+ *  `crit`-less call (tests, non-roll callers) maps purely ordinally. */
+export function trapDropForRoll(face: number, crit?: 'nat20' | 'nat1' | null): TrapDrop {
+  if (crit === 'nat20') return TRAP_DROP_LUCKY;
+  const f = Math.max(1, Math.min(20, Math.floor(face)));
+  const i = Math.min(
+    TRAP_DROP_ROOMS.length - 1,
+    Math.floor(((f - 1) / 20) * TRAP_DROP_ROOMS.length),
+  );
   return TRAP_DROP_ROOMS[i];
 }
 

@@ -43,6 +43,27 @@ describe('rooms graph', () => {
     }
   });
 
+  it('trapDropForRoll is an ordinal luck ladder: higher face lands kinder, nat 20 is the soft landing', () => {
+    // ordinal: the lowest roll is the tightest dark, the highest the most navigable
+    expect(trapDropForRoll(1).room).toBe('classified');
+    expect(trapDropForRoll(20).room).toBe('dicepit');
+    // the ladder never gets *less* kind as the face climbs (indices monotonic)
+    const order = ['classified', 'liminal', 'mobius', 'dicepit'];
+    let prev = 0;
+    for (let face = 1; face <= 20; face++) {
+      const idx = order.indexOf(trapDropForRoll(face).room);
+      expect(idx).toBeGreaterThanOrEqual(prev);
+      prev = idx;
+    }
+    // the nat 20 jackpot overrides the face entirely — a soft landing in the daydream
+    const lucky = trapDropForRoll(1, 'nat20');
+    expect(lucky.room).toBe('daydream');
+    expect(roomById(lucky.room).spawns[lucky.spawn]).toBeDefined();
+    expect(trapDropForRoll(20, 'nat20').room).toBe('daydream');
+    // a crit fail is just the ordinary low end, not special-cased
+    expect(trapDropForRoll(1, 'nat1').room).toBe('classified');
+  });
+
   it('every room has pause-menu map coords (and no stray ids in ROOM_MAP)', () => {
     for (const room of ROOMS) {
       expect(ROOM_MAP[room.id], `room "${room.id}" missing a ROOM_MAP entry`).toBeDefined();
