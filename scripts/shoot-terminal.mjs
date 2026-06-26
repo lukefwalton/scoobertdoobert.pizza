@@ -51,6 +51,8 @@ if (term) {
   if (!luck.includes('LUCK') || !luck.includes('banked'))
     bad('`luck` did not print the luck readout');
   if (!(await run('spells')).includes('SPELLBOOK')) bad('`spells` did not print the spellbook');
+  if (!/d20\D+(?:[1-9]|1\d|20)\b/.test(await run('roll')))
+    bad('`roll` did not print a d20 face (1..20)');
   if (!(await run('echo scoobert')).includes('scoobert')) bad('`echo` did not echo');
   if (!(await run('sudo')).toLowerCase().includes('reported'))
     bad('forbidden `sudo` gave no response');

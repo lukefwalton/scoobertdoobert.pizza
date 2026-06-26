@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import '../styles/tablelayout.css';
-import { resolveLinks } from '../data/links';
+import { resolveLinks, destById, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
@@ -128,6 +128,58 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
           </tr>
         </tbody>
       </table>
+
+      {/* a GeoCities rainbow <hr> divider (our own GIF), decorative + reduced-motion still */}
+      <picture>
+        <source srcSet="/gifs/rainbow-rule-static.gif" media="(prefers-reduced-motion: reduce)" />
+        <img className="tl__rule" src="/gifs/rainbow-rule.gif" width={168} height={8} alt="" />
+      </picture>
+
+      <div className="tl__furniture">
+        {/* a REAL under-construction GIF (our own GIF89a encoder, not a lifted one);
+            <picture> serves a still frame under prefers-reduced-motion. */}
+        <picture className="tl__construction">
+          <source srcSet="/gifs/construction-static.gif" media="(prefers-reduced-motion: reduce)" />
+          <img
+            className="tl__construction-img"
+            src="/gifs/construction.gif"
+            width={104}
+            height={26}
+            alt="Under construction"
+          />
+        </picture>
+
+        <span className="tl__badge tl__badge--ie">
+          BEST VIEWED IN
+          <small>Internet Explorer 5</small>
+        </span>
+        <span className="tl__badge tl__badge--ns">
+          OR
+          <small>Netscape 4.7</small>
+        </span>
+
+        <p className="tl__hits">
+          visitors served
+          <br />
+          <b>00134219</b>
+        </p>
+
+        <nav className="tl__ring" aria-label="Pizza Webring">
+          <span className="tl__ring-h">&#9733; PIZZA WEBRING &#9733;</span>
+          <a href={TEXT_ONLY_PATH}>&laquo; prev</a> &middot; <a href="/links">hub</a> &middot;{' '}
+          <a href={destById('listen')?.href ?? '/'} target="_blank" rel="noopener noreferrer">
+            next &raquo;
+          </a>
+        </nav>
+
+        <a
+          className="tl__mail"
+          href="mailto:webmaster@scoobertdoobert.pizza"
+          aria-label="Email the webmaster"
+        >
+          @
+        </a>
+      </div>
 
       <div className="tl__doors">
         <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />

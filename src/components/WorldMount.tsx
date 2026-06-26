@@ -27,12 +27,15 @@ export function WorldMount() {
   // Testing / debug entrance: ?world jumps straight into the first room; ?room=ID
   // drops straight into any room (deterministic smoke entry for deep/hidden rooms
   // like the shrine, which otherwise need the rat's secret to reach). The real
-  // entrance is the Calzone Player install gag (step 3).
+  // entrance is the Calzone Player install gag (step 3). The SPECIFIC param wins:
+  // ?room=ID beats a generic ?world, so a smoke can combine them — e.g.
+  // ?room=jukebox&world=1 lands in the jukebox AND flips isTestEntrance on (to
+  // prove a debug-only action hook stays gated even under a test entrance).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    if (params.has('world')) enter();
-    else if (params.has('room')) enter(params.get('room') || undefined);
+    if (params.has('room')) enter(params.get('room') || undefined);
+    else if (params.has('world')) enter();
   }, [enter]);
 
   if (!mounted) return null;
