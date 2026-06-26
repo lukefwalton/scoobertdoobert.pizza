@@ -14,7 +14,7 @@
 // the one before its lock. The dev guard in rooms.ts enforces the descent half.
 // ───────────────────────────────────────────────────────────────────────────
 
-export type ItemKind = 'key' | 'trinket';
+export type ItemKind = 'key' | 'trinket' | 'tome';
 
 export type Item = {
   /** Stable id — persisted in progressStore.itemsHeld and referenced by a
@@ -31,6 +31,9 @@ export type Item = {
    *  you pocket it, that track plays (the musical reward — "exploration's reward
    *  is sound") and the radio unlocks. Undefined for non-tape items. */
   track?: string;
+  /** TOMES (scrolls): the spell id this item TEACHES (spells.ts). Pocketing it
+   *  learns the spell — how you EARN your magic. Undefined for non-tome items. */
+  teachesSpell?: string;
 };
 
 export const ITEMS: Item[] = [
@@ -81,6 +84,25 @@ export const ITEMS: Item[] = [
     blurb: 'Dubbed twice over; you can almost hear the tape hiss already.',
     glyph: '📼',
     track: 'all-my-friends-live-on-the-internet',
+  },
+  // ── Tomes — the spell scrolls (the RPG layer's magic, earned by finding them).
+  {
+    id: 'fireball-scroll',
+    kind: 'tome',
+    label: 'Scroll of Fireball',
+    blurb:
+      'A singed lyric sheet, the chorus scorched out. The margin note just reads “🔥 press F”.',
+    glyph: '📜',
+    teachesSpell: 'fireball',
+  },
+  {
+    id: 'light-scroll',
+    kind: 'tome',
+    label: 'Scroll of Light',
+    blurb:
+      'A water-stained index card from the file room. In faint pencil: “for the dark parts. press L”.',
+    glyph: '📜',
+    teachesSpell: 'light',
   },
 ];
 

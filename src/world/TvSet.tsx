@@ -2,15 +2,17 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useSceneStore } from '../state/sceneStore';
-import { albumVideo } from '../data/videos';
+import { tvVideoFor, songAlbumSlug } from '../data/videos';
 import { albumBySlug } from '../data/albums';
 
 // ───────────────────────────────────────────────────────────────────────────
-// TvSet — a 3D CRT television in an album-room: the far side of that album's
-// painting. Its screen shows the cover; switch it on (click) and the modal player
-// (YoutubeFacade) plays that record's music videos. So a painting gives you the
-// album's WORLD (the room), its SOUND (the track, already playing), and now its
-// VIDEO (this set). A retro CRT on a glossy beach is a fun anachronism, on purpose.
+// TvSet — a 3D CRT television in a room. Its screen shows a record sleeve; switch
+// it on (click / E) and the modal player (YoutubeFacade) plays that room's clip —
+// resolved by videos.tvVideoFor from the set's `songSlug` (its own music video,
+// the most specific) or `albumSlug` (that record's video). So a song-room gives
+// you its WORLD (the room), its SOUND (the track, already playing), and now its
+// VIDEO (this set, the very song). A retro CRT on a glossy beach is a fun
+// anachronism, on purpose.
 // ───────────────────────────────────────────────────────────────────────────
 
 // How close the camera must be (horizontal) for the "switch on the TV" E-prompt.
@@ -20,13 +22,20 @@ export function TvSet({
   position,
   rotationY = 0,
   albumSlug,
+  songSlug,
 }: {
   position: [number, number, number];
   rotationY?: number;
-  albumSlug: string;
+  albumSlug?: string;
+  songSlug?: string;
 }) {
   const { gl, camera } = useThree();
-  const album = albumBySlug(albumSlug);
+  // The clip this set plays (song video wins over album video), resolved once.
+  const video = useMemo(() => tvVideoFor({ songSlug, albumSlug }), [songSlug, albumSlug]);
+  // Whose sleeve to show on the dark screen: the named album, else the song's own
+  // record — so a song-only set still displays real cover art, not a blank tube.
+  const coverSlug = albumSlug ?? (songSlug ? songAlbumSlug(songSlug) : undefined);
+  const album = coverSlug ? albumBySlug(coverSlug) : undefined;
 
   const bodyMat = useMemo(
     () => new THREE.MeshPhongMaterial({ color: '#d8cbb0', specular: '#ffffff', shininess: 24 }),
@@ -81,7 +90,7 @@ export function TvSet({
     const near = !frozen && Math.hypot(dx, dz) < TV_PROMPT_RADIUS;
     if (near !== inRange.current) {
       inRange.current = near;
-      st.setNearTv(near ? albumSlug : null);
+      st.setNearTv(near ? video : null);
     }
   });
 
@@ -94,7 +103,7 @@ export function TvSet({
       rotation-y={rotationY}
       onClick={(e) => {
         e.stopPropagation();
-        useSceneStore.getState().openTv(albumVideo(albumSlug));
+        useSceneStore.getState().openTv(video);
       }}
       onPointerOver={() => {
         gl.domElement.style.cursor = "url('/cursor.cur'), pointer";

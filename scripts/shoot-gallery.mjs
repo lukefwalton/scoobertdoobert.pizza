@@ -91,6 +91,29 @@ if (!gallerySong) fail('the gallery did not take over the loop voice with "under
 await page.waitForTimeout(600); // let a few props pop in for the shot
 await page.screenshot({ path: '.shots/gallery.png' });
 
+// 1b) The pluckable greek lyre (the "play it" rung): it sits lower-right of the
+//     entrance view. Sweep-click that region; a hit exposes window.__sdpLyre with
+//     the note. Generous sweep so it isn't pixel-fragile across viewports.
+let lyrePlayed = false;
+{
+  const cv = await page.$('canvas');
+  const box = cv ? await cv.boundingBox() : null;
+  if (box) {
+    for (const fx of [0.74, 0.78, 0.82, 0.86, 0.9, 0.7]) {
+      for (const fy of [0.6, 0.66, 0.72, 0.78, 0.56]) {
+        await page.mouse.click(box.x + box.width * fx, box.y + box.height * fy);
+        await page.waitForTimeout(40);
+        if (await page.evaluate(() => !!window.__sdpLyre)) {
+          lyrePlayed = true;
+          break;
+        }
+      }
+      if (lyrePlayed) break;
+    }
+  }
+  if (!lyrePlayed) fail('plucking the greek lyre never sounded a string (no __sdpLyre)');
+}
+
 // 2) Down the nave toward the light (-Z) → the pastel daydream.
 if (!(await holdUntilDoorPrompt(page, 'w', { timeout: 8000 })))
   fail('daydream door prompt never appeared walking -Z down the nave');
@@ -121,7 +144,7 @@ await ctx.close();
 await browser.close();
 console.log(
   `gallery: bootReady=${bootReady} gallery=${inGallery} gallerySong=${gallerySong} ` +
-    `daydream=${inDaydream} daydreamSong=${daydreamSong} backGallery=${backGallery} ` +
+    `lyre=${lyrePlayed} daydream=${inDaydream} daydreamSong=${daydreamSong} backGallery=${backGallery} ` +
     `galleryResumes=${galleryResumes} backPool=${backPool} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

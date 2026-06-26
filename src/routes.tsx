@@ -5,6 +5,9 @@ import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
 import AboutJp from './pages/AboutJp';
 import Arcade from './pages/Arcade';
+import Crusteroids from './pages/Crusteroids';
+import SliceBreaker from './pages/SliceBreaker';
+import JazzSnake from './pages/JazzSnake';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
@@ -28,6 +31,12 @@ export const routes: RouteRecord[] = [
   // /arcade -> the touch-first Pizza Run minigame (the mobile reward). A real,
   // crawlable route; the live canvas game is a post-hydration enhancement.
   { path: '/arcade', element: <Arcade /> },
+  // The Asteroids/Breakout/Snake reskins — more touch-first cabinets (the mobile
+  // arcade shelf). Original code + art, no famous marks; each its own route via
+  // the shared ArcadeCabinetPage shell.
+  { path: '/crusteroids', element: <Crusteroids /> },
+  { path: '/slice-breaker', element: <SliceBreaker /> },
+  { path: '/jazz-snake', element: <JazzSnake /> },
   // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
   { path: '/poke', element: <Poke /> },
   // /chimes -> "Pendulum Chimes," a tap-to-play bell instrument (a third cabinet,

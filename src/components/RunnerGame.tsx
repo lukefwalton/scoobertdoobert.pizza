@@ -142,6 +142,7 @@ export function RunnerGame() {
           if (runnerHitsObstacle(g.py, groundY, o)) {
             const final = Math.floor(g.score);
             g.phase = 'over';
+            setPhase('over'); // surface the GAME OVER card (React state, not just the ref)
             setLastScore(final);
             setScore(final);
             recordArcadeScore(final);

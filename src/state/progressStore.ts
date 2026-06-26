@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { SPELL_SLOTS_MAX } from '../data/spells';
 
 // ───────────────────────────────────────────────────────────────────────────
 // src/state/progressStore.ts — the PERSISTENCE SPINE (the retention mechanism).
@@ -44,6 +45,11 @@ export type Progress = {
   clearedGames: string[];
   /** Best score in the standalone Pizza Run arcade (the mobile reward). */
   arcadeHigh: number;
+  /** Best score PER arcade cabinet game, keyed by game id (crusteroids /
+   *  slice-breaker / jazz-snake / …). Different games score on different scales,
+   *  so each keeps its own high — `arcadeHigh` stays Pizza Run's. Monotonic per
+   *  key (only ever rises), so the multi-tab max-merge holds. */
+  arcadeHighs: Record<string, number>;
   /** Has the player rolled the jukebox d20 to UNLOCK the flip-through radio?
    *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
    *  the pick follows you across the site. Monotonic (only ever goes true). */
@@ -61,6 +67,15 @@ export type Progress = {
    *  sound"). Room-songs are hidden from the jukebox until found; finding the room
    *  adds its track to the cabinet forever. Monotonic (the array only grows). */
   discoveredSongs: string[];
+  /** Spell ids the player has LEARNED (spells.ts) — earned by finding a scroll.
+   *  Durable so a spell stays yours across visits. Monotonic (array only grows). */
+  knownSpells: string[];
+  /** Total spell SLOTS ever charged (the initial grant on learning + every rest
+   *  top-up) and total ever SPENT casting. Current slots = gained − spent, clamped
+   *  to SPELL_SLOTS_MAX — the same earned/spent monotonic trick as luck, so the
+   *  multi-tab max-merge holds for a resource that otherwise rises AND falls. */
+  spellSlotsGained: number;
+  spellSlotsSpent: number;
 };
 
 const DEFAULTS: Progress = {
@@ -72,11 +87,15 @@ const DEFAULTS: Progress = {
   maxUnease: 0,
   clearedGames: [],
   arcadeHigh: 0,
+  arcadeHighs: {},
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  knownSpells: [],
+  spellSlotsGained: 0,
+  spellSlotsSpent: 0,
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -85,6 +104,15 @@ const num = (v: unknown, d: number): number =>
 const bool = (v: unknown, d: boolean): boolean => (typeof v === 'boolean' ? v : d);
 const strArr = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+// A { gameId: score } map; drops any non-finite-number entry. Malformed → {}.
+const numMap = (v: unknown): Record<string, number> =>
+  v && typeof v === 'object' && !Array.isArray(v)
+    ? Object.fromEntries(
+        Object.entries(v as Record<string, unknown>).filter(
+          ([, n]) => typeof n === 'number' && Number.isFinite(n),
+        ) as [string, number][],
+      )
+    : {};
 
 function read(): Progress {
   try {
@@ -100,11 +128,15 @@ function read(): Progress {
       maxUnease: num(p.maxUnease, 0),
       clearedGames: strArr(p.clearedGames),
       arcadeHigh: num(p.arcadeHigh, 0),
+      arcadeHighs: numMap(p.arcadeHighs),
       radioUnlocked: bool(p.radioUnlocked, false),
       luckEarned: num(p.luckEarned, 0),
       luckSpent: num(p.luckSpent, 0),
       itemsHeld: strArr(p.itemsHeld),
       discoveredSongs: strArr(p.discoveredSongs),
+      knownSpells: strArr(p.knownSpells),
+      spellSlotsGained: num(p.spellSlotsGained, 0),
+      spellSlotsSpent: num(p.spellSlotsSpent, 0),
     };
   } catch {
     return { ...DEFAULTS };
@@ -129,6 +161,15 @@ function write(p: Progress) {
 }
 
 const uniq = (a: string[], b: string[]): string[] => Array.from(new Set([...a, ...b]));
+/** Per-key max merge for the per-game high-score map (each key only ever rises). */
+const mergeNumMap = (
+  a: Record<string, number>,
+  b: Record<string, number>,
+): Record<string, number> => {
+  const out: Record<string, number> = { ...a };
+  for (const [k, v] of Object.entries(b)) out[k] = Math.max(out[k] ?? 0, v);
+  return out;
+};
 
 /** Monotonic merge: the "furthest" value of each field wins — never regresses. */
 function mergeProgress(a: Progress, b: Progress): Progress {
@@ -141,11 +182,15 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     maxUnease: Math.max(a.maxUnease, b.maxUnease),
     clearedGames: uniq(a.clearedGames, b.clearedGames),
     arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
+    arcadeHighs: mergeNumMap(a.arcadeHighs, b.arcadeHighs),
     radioUnlocked: a.radioUnlocked || b.radioUnlocked,
     luckEarned: Math.max(a.luckEarned, b.luckEarned),
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
     itemsHeld: uniq(a.itemsHeld, b.itemsHeld),
     discoveredSongs: uniq(a.discoveredSongs, b.discoveredSongs),
+    knownSpells: uniq(a.knownSpells, b.knownSpells),
+    spellSlotsGained: Math.max(a.spellSlotsGained, b.spellSlotsGained),
+    spellSlotsSpent: Math.max(a.spellSlotsSpent, b.spellSlotsSpent),
   };
 }
 
@@ -159,6 +204,8 @@ type ProgressState = Progress & {
   recordUnease: (v: number) => void;
   clearGame: (id: string) => void;
   recordArcadeScore: (n: number) => void;
+  /** Record a per-cabinet-game high score (id → best), monotonic per id. */
+  recordArcadeHigh: (id: string, n: number) => void;
   /** Roll the jukebox d20 → unlock the flip-through radio (idempotent). */
   unlockRadio: () => void;
   /** Earn luck (a ritual paid off — the shrine clap). Announced by the caller. */
@@ -173,6 +220,16 @@ type ProgressState = Progress & {
    *  true only the FIRST time (so the caller can chime/announce just on the new
    *  find); idempotent thereafter. */
   discoverSong: (slug: string) => boolean;
+  /** Learn a spell (its scroll was found). Idempotent. Learning also grants a full
+   *  rest, so a fresh caster starts with a full slot pool. */
+  learnSpell: (id: string) => void;
+  /** Spend spell slots on a cast (lib/spellcast does this). Capped at what's
+   *  available, so it can't go negative — mirrors spendLuck. */
+  spendSpellSlot: (n: number) => void;
+  /** REST: refill the spell-slot pool to SPELL_SLOTS_MAX (the shrine clap / a
+   *  breather room). Monotonic — only ever raises spellSlotsGained. Idempotent
+   *  when already full. */
+  restSpellSlots: () => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -184,11 +241,15 @@ const snapshot = (s: ProgressState): Progress => ({
   maxUnease: s.maxUnease,
   clearedGames: s.clearedGames,
   arcadeHigh: s.arcadeHigh,
+  arcadeHighs: s.arcadeHighs,
   radioUnlocked: s.radioUnlocked,
   luckEarned: s.luckEarned,
   luckSpent: s.luckSpent,
   itemsHeld: s.itemsHeld,
   discoveredSongs: s.discoveredSongs,
+  knownSpells: s.knownSpells,
+  spellSlotsGained: s.spellSlotsGained,
+  spellSlotsSpent: s.spellSlotsSpent,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -237,6 +298,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       if (n <= get().arcadeHigh) return;
       apply({ arcadeHigh: n });
     },
+    recordArcadeHigh: (id, n) => {
+      const cur = get().arcadeHighs[id] ?? 0;
+      if (n <= cur) return;
+      apply({ arcadeHighs: { ...get().arcadeHighs, [id]: n } });
+    },
     unlockRadio: () => {
       if (get().radioUnlocked) return;
       apply({ radioUnlocked: true });
@@ -270,12 +336,47 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       apply({ discoveredSongs: [...get().discoveredSongs, slug] });
       return true;
     },
+    learnSpell: (id) => {
+      if (get().knownSpells.includes(id)) return;
+      // Learning grants a full rest: a fresh caster starts with a full pool. Off
+      // FRESH disk (read()) so a concurrent tab's spends aren't clobbered — same
+      // additive-counter reasoning as gainLuck.
+      const fresh = read();
+      const gained = Math.max(fresh.spellSlotsGained, fresh.spellSlotsSpent + SPELL_SLOTS_MAX);
+      apply({ knownSpells: [...get().knownSpells, id], spellSlotsGained: gained });
+    },
+    spendSpellSlot: (n) => {
+      const fresh = read();
+      const avail = Math.max(0, fresh.spellSlotsGained - fresh.spellSlotsSpent);
+      const s = Math.min(Math.max(0, Math.floor(n)), avail); // never spend more than you have
+      if (s <= 0) return;
+      apply({ spellSlotsSpent: fresh.spellSlotsSpent + s });
+    },
+    restSpellSlots: () => {
+      const fresh = read();
+      const target = fresh.spellSlotsSpent + SPELL_SLOTS_MAX; // gained that yields a full pool
+      if (target <= fresh.spellSlotsGained) return; // already full — nothing to top up
+      apply({ spellSlotsGained: target });
+    },
   };
 });
 
 /** Current spendable luck (earned minus what the system has spent), never < 0. */
 export const selectLuck = (s: Pick<Progress, 'luckEarned' | 'luckSpent'>): number =>
   Math.max(0, s.luckEarned - s.luckSpent);
+
+/** Current spell slots available (charged minus spent), clamped to [0, MAX]. The
+ *  HUD hotbar + lib/spellcast read this; a cast needs slots ≥ the spell's cost. */
+export const selectSpellSlots = (
+  s: Pick<Progress, 'spellSlotsGained' | 'spellSlotsSpent'>,
+): number => Math.max(0, Math.min(SPELL_SLOTS_MAX, s.spellSlotsGained - s.spellSlotsSpent));
+
+/** Does the player know this spell id? Curried so it can be a stable selector:
+ *  `useProgressStore(selectKnowsSpell('fireball'))`. */
+export const selectKnowsSpell =
+  (id: string) =>
+  (s: Pick<Progress, 'knownSpells'>): boolean =>
+    s.knownSpells.includes(id);
 
 /** Does the player hold this item id? (Door locks read this.) Curried so it can
  *  be a stable zustand selector: `useProgressStore(selectHasItem('pool-locker-key'))`. */

@@ -30,6 +30,7 @@
     "shoot:props": "node scripts/shoot-props.mjs",
     "shoot:deeppool": "node scripts/shoot-deeppool.mjs",
     "shoot:arcade": "node scripts/shoot-arcade.mjs",
+    "shoot:games": "node scripts/shoot-games.mjs",
     "shoot:trapdoor": "node scripts/shoot-trapdoor.mjs",
     "shoot:shrine": "node scripts/shoot-shrine.mjs",
     "shoot:poke": "node scripts/shoot-poke.mjs",
@@ -58,7 +59,9 @@
     "shoot:sprint": "node scripts/shoot-sprint.mjs",
     "shoot:tapes": "node scripts/shoot-tapes.mjs",
     "shoot:discovery": "node scripts/shoot-discovery.mjs",
-    "shoot:cabinet": "node scripts/shoot-cabinet.mjs"
+    "shoot:cabinet": "node scripts/shoot-cabinet.mjs",
+    "shoot:spell": "node scripts/shoot-spell.mjs",
+    "shoot:whisper": "node scripts/shoot-whisper.mjs"
   },
   "engines": {
     "node": ">=20.19"

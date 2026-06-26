@@ -236,10 +236,42 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   Both song-rooms (`underwater` / `watercolor-sky`). Crunched via the documented
   `gltf-transform optimize … --texture-size 256` pipeline; `THIRD_PARTY_NOTICES.md`
   rows added; IP-flagged trove models still excluded. `shoot:gallery`.
+- ✅ **The greek lyre — a "play it" instrument in the Sunken Gallery (2026-06-25):**
+  a procedural, pluckable 7-string lyre (`GreekLyre.tsx`) set among the statuary
+  (it mirrors the broken statue across the nave). Each string is a pentatonic note
+  played through the shared bell engine (mute-aware + limited); original parody
+  geometry, no sourced model. Advances the music ladder's "play it" rung in a deep
+  room. `shoot:gallery` now plucks a string.
 - ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
-  a **rare Pokémon-style grass-level encounter** vs the goblin; **storefront
-  reactivity** (the shop reflects your deeds — clover at high luck, etc.); a
-  greek-lyre "play it" instrument node; further album-themed wings (memory-lane).
+  a **rare Pokémon-style grass-level encounter** vs the goblin; further
+  album-themed wings. (Storefront reactivity + the greek lyre are now shipped.)
+- ✅ **The arcade grew — three reskinned cabinets (2026-06-25):** **Crusteroids**
+  (Asteroids), **Slice Breaker** (Breakout), **Jazz Snake** (Snake, every bite
+  plays the next note of a climbing scale). Original code + procedural art + own
+  audio, classic mechanics only (no marks; provenance in `THIRD_PARTY_NOTICES.md`).
+  Each is a self-contained `<canvas>` (no three.js), touch-first (an on-screen pad
+  for the games that need one), with a **per-cabinet high score** (`arcadeHighs`
+  map in `progressStore`, monotonic per id). They join the in-world cabinet's
+  random roll (`arcadeGames.ts` + `ArcadeModal`) AND get standalone mobile routes
+  (`/crusteroids`, `/slice-breaker`, `/jazz-snake`) through a shared, DRY
+  `ArcadeCabinetPage` shell. Covered by `shoot:games` (JS-off crawlable + JS
+  mounts/starts/persists) + `arcadeGames.test`.
+- ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
+  catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
+  terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
+  `discography` listing in the terminal — all mined + grep-verified from
+  lukefwalton.com so the repo stays standalone.
+- ✅ **Real in-world VIDEO (`src/data/videos.ts`, 2026-06-25):** the CRTs now play
+  the *right* clip, not one generic playlist. Each song/album carries a **verified**
+  YouTube id (mined from `lukefwalton.com`, grep-checked — no hallucinated ids); a
+  CRT resolves its clip through one chain — the song's OWN music video → its record's
+  video → the general TV-spots channel — so a room declares only what it has
+  (`tv.songSlug` / `tv.albumSlug`). Playlist-vs-video embeds are auto-detected
+  (`ytEmbed`). **Memory Lane** (one live set in the corridor of dead web → the real
+  MEMORY LAN MV) and **the server void** (the "all my friends" video) got CRTs;
+  `albums.json` got `video` ids for 8 records. Covered by `videos.test.ts` (well-formed
+  ids + the resolution chain + a room-CRT guard) and `shoot:tv`. "The reward for
+  finding a song-room is its picture, too."
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
