@@ -41,19 +41,23 @@ describe('exposeTestGlobal gating', () => {
     expect(g.window!.__sdpUnitProbe2).toBe('x');
   });
 
-  it('exposes on the ?room= smoke entrance (read-only globals) but it is NOT debug', () => {
+  it('does NOT treat ?room= as a test entrance — it works in prod, so no hooks leak', () => {
+    // ?room=ID is WorldMount's deterministic room entry (available in prod). A
+    // visitor on it must NOT get the read-only __sdp* hooks; smokes that need them in
+    // a room pass &debug=1 alongside (?room=jukebox&debug=1).
     setSearch('?room=jukebox');
-    expect(isTestEntrance()).toBe(true); // a deterministic smoke entry → read hooks ok
-    expect(isDebugEntrance()).toBe(false); // …but action hooks still need ?debug
+    expect(isTestEntrance()).toBe(false);
     exposeTestGlobal('__sdpUnitProbe4', 'r');
-    expect(g.window!.__sdpUnitProbe4).toBe('r');
+    expect(g.window!.__sdpUnitProbe4).toBeUndefined();
+    // …but ?room WITH &debug is a (debug) test entrance, the smokes' real path.
+    setSearch('?room=jukebox&debug=1');
+    expect(isTestEntrance()).toBe(true);
+    expect(isDebugEntrance()).toBe(true);
   });
 
-  it('a bare query (e.g. ?worldly / ?roomy) does not satisfy the gate (word-boundary match)', () => {
-    for (const s of ['?worldly=1', '?roomy=1']) {
-      setSearch(s);
-      expect(isTestEntrance(), s).toBe(false);
-    }
+  it('a bare query (e.g. ?worldly) does not satisfy the gate (word-boundary match)', () => {
+    setSearch('?worldly=1');
+    expect(isTestEntrance()).toBe(false);
     exposeTestGlobal('__sdpUnitProbe3', 1);
     expect(g.window!.__sdpUnitProbe3).toBeUndefined();
   });

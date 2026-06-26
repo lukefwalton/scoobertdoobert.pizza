@@ -235,7 +235,9 @@ export const COMMANDS: Command[] = [
       const r = rollLuckyD20(luck);
       const banner = critBanner(r.crit); // ★ NAT 20 ★ / ☠ CRIT FAIL ☠ / none
       const out = [`🎲 d20 → ${r.face}${banner ? `   ${banner}` : ''}`];
-      if (luck > 0)
+      // Key the advantage note off what the roll ACTUALLY did (luckSpent), not just
+      // whether you have luck — so the copy can't claim advantage the helper didn't take.
+      if (r.luckSpent > 0)
         out.push(
           `(your ${luck} luck rolled a second die behind it, kept the higher — a peek; nothing spent.)`,
         );
