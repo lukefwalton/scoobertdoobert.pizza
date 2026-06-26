@@ -1,0 +1,164 @@
+// Spell-system smoke: the FIREBALL loop end-to-end. Earn it (find the scroll in
+// the practice room → learn), see the hotbar light up with a full slot pool, cast
+// it (the room ignites: __sdpFireball is stamped, a slot is spent, a pip drops),
+// run the pool dry (a cast with no slots is a no-op that nudges, never a crash),
+// then REST at the shrine (the clap refills the pool). Asserts on the durable
+// store + the hotbar DOM + the ignition test hook, not on animation timing.
+import { chromium } from 'playwright';
+import { mkdirSync } from 'node:fs';
+import { watchPageErrors } from './lib/smoke.mjs';
+
+const base = process.argv[2] || 'http://localhost:4173';
+mkdirSync('.shots', { recursive: true });
+
+const browser = await chromium.launch();
+const ctx = await browser.newContext({
+  viewport: { width: 1280, height: 800 },
+  deviceScaleFactor: 1,
+});
+const page = await ctx.newPage();
+let errors = 0;
+const bad = (m) => {
+  errors++;
+  console.log('FAIL:', m);
+};
+watchPageErrors(page, bad);
+
+// Read the durable spell-slot count (gained − spent, clamped to the pool max=3)
+// straight from the save, so a stale state can't mask a broken spend/restore.
+const readSlots = () =>
+  page.evaluate(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
+      const cur = (p.spellSlotsGained || 0) - (p.spellSlotsSpent || 0);
+      return Math.max(0, Math.min(3, cur));
+    } catch {
+      return null;
+    }
+  });
+const knowsFireball = () =>
+  page.evaluate(() => {
+    try {
+      const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
+      return (p.knownSpells || []).includes('fireball');
+    } catch {
+      return false;
+    }
+  });
+const litPips = () => page.$$eval('.hud-hotbar__pip.is-lit', (els) => els.length);
+const fireballNonce = () => page.evaluate(() => window.__sdpFireball?.nonce ?? -1);
+
+// ?room=practice drops straight into the practice room (where the scroll waits);
+// &debug=1 exposes the pickup + cast + nav test hooks.
+await page.goto(base + '/?room=practice&debug=1', { waitUntil: 'commit' });
+const canvas = await page.waitForSelector('canvas', { timeout: 12000 }).catch(() => null);
+if (!canvas) bad('spell: world canvas never mounted');
+await page.waitForTimeout(1200); // WebGL warmup
+
+// 0) Before learning: no hotbar, no spell known, zero slots.
+const hotbarBefore = (await page.$('.hud-hotbar')) !== null;
+if (hotbarBefore) bad('spell: the hotbar showed BEFORE any spell was learned');
+if (await knowsFireball()) bad('spell: fireball known before the scroll was found');
+
+// 1) Find the scroll → learn Fireball. The pickup hook is keyed by item id.
+const hasPickup = await page
+  .waitForFunction(() => typeof window['__sdpPickup:fireball-scroll'] === 'function', null, {
+    timeout: 8000,
+  })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!hasPickup)
+  bad('spell: the fireball-scroll pickup hook never appeared (practice not mounted?)');
+await page.evaluate(() => window['__sdpPickup:fireball-scroll']());
+
+const learned = await knowsFireball();
+if (!learned) bad('spell: pocketing the scroll did not learn fireball');
+const learnToast = await page.waitForSelector('.hud-toast--crit-good', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!learnToast) bad('spell: learning the scroll did not raise the “you learned” toast');
+
+// 2) The hotbar lights up with a FULL pool (3 lit pips).
+const hotbar = await page.waitForSelector('.hud-hotbar', { timeout: 4000 }).catch(() => null);
+if (!hotbar) bad('spell: the hotbar never appeared after learning');
+const slotsLearned = await readSlots();
+if (slotsLearned !== 3) bad(`spell: a fresh caster should have 3 slots, has ${slotsLearned}`);
+const pipsLearned = await litPips();
+if (pipsLearned !== 3) bad(`spell: hotbar shows ${pipsLearned} lit pips, expected 3`);
+
+// 3) Cast → the room ignites (__sdpFireball stamped), a slot is spent, a pip drops.
+const n0 = await fireballNonce();
+await page.evaluate(() => window.__sdpCast());
+const ignited = await page
+  .waitForFunction((prev) => (window.__sdpFireball?.nonce ?? -1) > prev, n0, { timeout: 4000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!ignited) bad('spell: casting did not ignite the fireball (no __sdpFireball bump)');
+await page.waitForTimeout(700); // let the burn reach its peak for the shot
+await page.screenshot({ path: '.shots/spell-fireball.png' });
+const slotsAfter1 = await readSlots();
+if (slotsAfter1 !== 2) bad(`spell: a cast should leave 2 slots, left ${slotsAfter1}`);
+
+// 4) Run the pool dry, then a no-slot cast must be a harmless no-op (nudge toast,
+//    no ignition bump, slots stay 0).
+await page.evaluate(() => window.__sdpCast());
+await page.evaluate(() => window.__sdpCast());
+const slotsEmpty = await readSlots();
+if (slotsEmpty !== 0) bad(`spell: three casts should empty the pool, left ${slotsEmpty}`);
+const pipsEmpty = await litPips();
+if (pipsEmpty !== 0) bad(`spell: an empty pool should show 0 lit pips, shows ${pipsEmpty}`);
+const nBeforeDry = await fireballNonce();
+await page.evaluate(() => window.__sdpCast()); // the dry cast
+await page.waitForTimeout(200);
+const nAfterDry = await fireballNonce();
+if (nAfterDry !== nBeforeDry) bad('spell: a no-slot cast still ignited (the dry guard is broken)');
+const dryToast = await page.waitForSelector('.hud-toast--crit-bad', { timeout: 3000 }).then(
+  () => true,
+  () => false,
+);
+if (!dryToast) bad('spell: a no-slot cast did not nudge with the out-of-slots toast');
+
+// 5) REST at the shrine: the clap refills the pool. Jump there (poll past the
+//    first-entry intro that hard-blocks goToRoom), then clap via its test hook.
+const atShrine = await page
+  .waitForFunction(
+    () => {
+      const go = window.__sdpGoToRoom;
+      if (typeof go !== 'function') return false;
+      if (document.querySelector('.hud-room')?.textContent?.includes('Shrine')) return true;
+      go('shrine', 'default');
+      return false;
+    },
+    null,
+    { timeout: 15000, polling: 500 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!atShrine) bad('spell: could not reach the shrine to rest');
+const hasClap = await page
+  .waitForFunction(() => typeof window.__sdpShrineClap === 'function', null, { timeout: 8000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!hasClap) bad('spell: the shrine clap hook never appeared');
+await page.evaluate(() => window.__sdpShrineClap());
+await page.waitForTimeout(300);
+const slotsRested = await readSlots();
+if (slotsRested !== 3) bad(`spell: the shrine clap should refill to 3, has ${slotsRested}`);
+
+await ctx.close();
+await browser.close();
+console.log(
+  `spell: learned=${learned} hotbar=${!!hotbar} pipsLearned=${pipsLearned} ignited=${ignited} ` +
+    `afterCast=${slotsAfter1} empty=${slotsEmpty} dryNoop=${nAfterDry === nBeforeDry} ` +
+    `rested=${slotsRested} | errors=${errors}`,
+);
+process.exit(errors ? 1 : 0);

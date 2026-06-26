@@ -59,7 +59,8 @@
     "shoot:sprint": "node scripts/shoot-sprint.mjs",
     "shoot:tapes": "node scripts/shoot-tapes.mjs",
     "shoot:discovery": "node scripts/shoot-discovery.mjs",
-    "shoot:cabinet": "node scripts/shoot-cabinet.mjs"
+    "shoot:cabinet": "node scripts/shoot-cabinet.mjs",
+    "shoot:spell": "node scripts/shoot-spell.mjs"
   },
   "engines": {
     "node": ">=20.19"

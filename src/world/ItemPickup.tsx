@@ -9,6 +9,7 @@ import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { itemById } from '../data/items';
+import { spellById } from '../data/spells';
 import { jukeboxTrackUrl, loopIndexForUrl } from '../data/music';
 
 // A collectible lying in a room (Room.pickups). Click it to pocket it: a bright
@@ -59,9 +60,18 @@ export function ItemPickup({
     prog.collectItem(itemId);
     // Trinkets (the cassettes) tip a little luck; keys' reward is the door.
     if (item?.kind === 'trinket') prog.gainLuck(1);
-    // A CASSETTE: play its track now (the reward IS sound), make it your station,
-    // and unlock the radio — an exploration path to the upgrade beside the d20.
-    if (item?.track) {
+    // A TOME (spell scroll): learn its spell — the reward IS the magic. A short
+    // arcane flourish over the pickup ring, then point them at the cast key.
+    if (item?.teachesSpell) {
+      prog.learnSpell(item.teachesSpell);
+      const spell = spellById(item.teachesSpell);
+      audio.playChime(noteToFreq('C', 6), 0, 0.12, 0.7);
+      audio.playChime(noteToFreq('G', 6), 0, 0.12, 0.9);
+      announce(
+        `${spell?.glyph ?? '✨'} You learned ${spell?.name ?? 'a spell'}! Press F to cast.`,
+        'crit-good',
+      );
+    } else if (item?.track) {
       const url = jukeboxTrackUrl(item.track);
       void audio.playJukeboxTrack(url);
       useMusicStore.getState().setPreferred(loopIndexForUrl(url));

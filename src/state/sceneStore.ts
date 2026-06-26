@@ -114,6 +114,12 @@ type SceneState = {
    *  room AND spawn id are unchanged — which is exactly the Möbius loop (re-enter
    *  the same room at the same spawn). Controls + MobiusRoom key off it. */
   roomNonce: number;
+  /** A spell was cast: the spell id + a bumping nonce, so the world's RoomFireball
+   *  fires a one-shot effect each time (the same pulse grammar as cheerNonce /
+   *  finaleNonce). Transient/ephemeral — the slot economy lives in progressStore;
+   *  this is just the visual trigger. */
+  castingSpell: string | null;
+  castNonce: number;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -182,6 +188,9 @@ type SceneState = {
   loopMobius: () => void;
   /** Arrived fresh into the corridor (not via the loop) — reset the lap count. */
   resetMobius: () => void;
+  /** Fire a spell's world effect (RoomFireball watches castNonce). Pure visual
+   *  trigger — lib/spellcast already spent the slot + announced. */
+  triggerCastFx: (spellId: string) => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -215,6 +224,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
+  castingSpell: null,
+  castNonce: 0,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
@@ -376,4 +387,5 @@ export const useSceneStore = create<SceneState>((set) => ({
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),
+  triggerCastFx: (spellId) => set((s) => ({ castingSpell: spellId, castNonce: s.castNonce + 1 })),
 }));

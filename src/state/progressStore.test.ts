@@ -96,3 +96,54 @@ describe('progressStore luck economy', () => {
     expect(selectLuck(useProgressStore.getState())).toBe(3); // 6 − (2 + 1)
   });
 });
+
+describe('progressStore spell-slot economy', () => {
+  it('learnSpell records the spell and grants a full slot pool', async () => {
+    const { useProgressStore, selectSpellSlots, selectKnowsSpell } = await freshStore();
+    const { SPELL_SLOTS_MAX } = await import('../data/spells');
+    expect(selectKnowsSpell('fireball')(useProgressStore.getState())).toBe(false);
+    useProgressStore.getState().learnSpell('fireball');
+    expect(selectKnowsSpell('fireball')(useProgressStore.getState())).toBe(true);
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX);
+    // idempotent: learning again neither dupes the spell nor re-grants slots
+    useProgressStore.getState().spendSpellSlot(1);
+    useProgressStore.getState().learnSpell('fireball');
+    expect(useProgressStore.getState().knownSpells).toEqual(['fireball']);
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX - 1);
+  });
+
+  it('spendSpellSlot debits, caps at what you have, and never goes negative', async () => {
+    const { useProgressStore, selectSpellSlots } = await freshStore();
+    const { SPELL_SLOTS_MAX } = await import('../data/spells');
+    useProgressStore.getState().learnSpell('fireball');
+    useProgressStore.getState().spendSpellSlot(1);
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX - 1);
+    useProgressStore.getState().spendSpellSlot(99); // can't overspend
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(0);
+  });
+
+  it('restSpellSlots refills the pool to max and is idempotent when full', async () => {
+    const { useProgressStore, selectSpellSlots } = await freshStore();
+    const { SPELL_SLOTS_MAX } = await import('../data/spells');
+    useProgressStore.getState().learnSpell('fireball');
+    useProgressStore.getState().spendSpellSlot(2);
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX - 2);
+    useProgressStore.getState().restSpellSlots(); // a rest tops the pool back up
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX);
+    const gainedBefore = useProgressStore.getState().spellSlotsGained;
+    useProgressStore.getState().restSpellSlots(); // already full → no-op (monotonic guard)
+    expect(useProgressStore.getState().spellSlotsGained).toBe(gainedBefore);
+  });
+
+  it('current slots never exceed max even after a rest mid-pool', async () => {
+    const { useProgressStore, selectSpellSlots } = await freshStore();
+    const { SPELL_SLOTS_MAX } = await import('../data/spells');
+    useProgressStore.getState().learnSpell('fireball');
+    useProgressStore.getState().spendSpellSlot(1);
+    useProgressStore.getState().restSpellSlots();
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX);
+    // a fresh cast after the rest still only costs one, never overshoots the cap
+    useProgressStore.getState().spendSpellSlot(1);
+    expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX - 1);
+  });
+});

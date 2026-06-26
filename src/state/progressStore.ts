@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { SPELL_SLOTS_MAX } from '../data/spells';
 
 // ───────────────────────────────────────────────────────────────────────────
 // src/state/progressStore.ts — the PERSISTENCE SPINE (the retention mechanism).
@@ -66,6 +67,15 @@ export type Progress = {
    *  sound"). Room-songs are hidden from the jukebox until found; finding the room
    *  adds its track to the cabinet forever. Monotonic (the array only grows). */
   discoveredSongs: string[];
+  /** Spell ids the player has LEARNED (spells.ts) — earned by finding a scroll.
+   *  Durable so a spell stays yours across visits. Monotonic (array only grows). */
+  knownSpells: string[];
+  /** Total spell SLOTS ever charged (the initial grant on learning + every rest
+   *  top-up) and total ever SPENT casting. Current slots = gained − spent, clamped
+   *  to SPELL_SLOTS_MAX — the same earned/spent monotonic trick as luck, so the
+   *  multi-tab max-merge holds for a resource that otherwise rises AND falls. */
+  spellSlotsGained: number;
+  spellSlotsSpent: number;
 };
 
 const DEFAULTS: Progress = {
@@ -83,6 +93,9 @@ const DEFAULTS: Progress = {
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  knownSpells: [],
+  spellSlotsGained: 0,
+  spellSlotsSpent: 0,
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -121,6 +134,9 @@ function read(): Progress {
       luckSpent: num(p.luckSpent, 0),
       itemsHeld: strArr(p.itemsHeld),
       discoveredSongs: strArr(p.discoveredSongs),
+      knownSpells: strArr(p.knownSpells),
+      spellSlotsGained: num(p.spellSlotsGained, 0),
+      spellSlotsSpent: num(p.spellSlotsSpent, 0),
     };
   } catch {
     return { ...DEFAULTS };
@@ -172,6 +188,9 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
     itemsHeld: uniq(a.itemsHeld, b.itemsHeld),
     discoveredSongs: uniq(a.discoveredSongs, b.discoveredSongs),
+    knownSpells: uniq(a.knownSpells, b.knownSpells),
+    spellSlotsGained: Math.max(a.spellSlotsGained, b.spellSlotsGained),
+    spellSlotsSpent: Math.max(a.spellSlotsSpent, b.spellSlotsSpent),
   };
 }
 
@@ -201,6 +220,16 @@ type ProgressState = Progress & {
    *  true only the FIRST time (so the caller can chime/announce just on the new
    *  find); idempotent thereafter. */
   discoverSong: (slug: string) => boolean;
+  /** Learn a spell (its scroll was found). Idempotent. Learning also grants a full
+   *  rest, so a fresh caster starts with a full slot pool. */
+  learnSpell: (id: string) => void;
+  /** Spend spell slots on a cast (lib/spellcast does this). Capped at what's
+   *  available, so it can't go negative — mirrors spendLuck. */
+  spendSpellSlot: (n: number) => void;
+  /** REST: refill the spell-slot pool to SPELL_SLOTS_MAX (the shrine clap / a
+   *  breather room). Monotonic — only ever raises spellSlotsGained. Idempotent
+   *  when already full. */
+  restSpellSlots: () => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -218,6 +247,9 @@ const snapshot = (s: ProgressState): Progress => ({
   luckSpent: s.luckSpent,
   itemsHeld: s.itemsHeld,
   discoveredSongs: s.discoveredSongs,
+  knownSpells: s.knownSpells,
+  spellSlotsGained: s.spellSlotsGained,
+  spellSlotsSpent: s.spellSlotsSpent,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -304,12 +336,47 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       apply({ discoveredSongs: [...get().discoveredSongs, slug] });
       return true;
     },
+    learnSpell: (id) => {
+      if (get().knownSpells.includes(id)) return;
+      // Learning grants a full rest: a fresh caster starts with a full pool. Off
+      // FRESH disk (read()) so a concurrent tab's spends aren't clobbered — same
+      // additive-counter reasoning as gainLuck.
+      const fresh = read();
+      const gained = Math.max(fresh.spellSlotsGained, fresh.spellSlotsSpent + SPELL_SLOTS_MAX);
+      apply({ knownSpells: [...get().knownSpells, id], spellSlotsGained: gained });
+    },
+    spendSpellSlot: (n) => {
+      const fresh = read();
+      const avail = Math.max(0, fresh.spellSlotsGained - fresh.spellSlotsSpent);
+      const s = Math.min(Math.max(0, Math.floor(n)), avail); // never spend more than you have
+      if (s <= 0) return;
+      apply({ spellSlotsSpent: fresh.spellSlotsSpent + s });
+    },
+    restSpellSlots: () => {
+      const fresh = read();
+      const target = fresh.spellSlotsSpent + SPELL_SLOTS_MAX; // gained that yields a full pool
+      if (target <= fresh.spellSlotsGained) return; // already full — nothing to top up
+      apply({ spellSlotsGained: target });
+    },
   };
 });
 
 /** Current spendable luck (earned minus what the system has spent), never < 0. */
 export const selectLuck = (s: Pick<Progress, 'luckEarned' | 'luckSpent'>): number =>
   Math.max(0, s.luckEarned - s.luckSpent);
+
+/** Current spell slots available (charged minus spent), clamped to [0, MAX]. The
+ *  HUD hotbar + lib/spellcast read this; a cast needs slots ≥ the spell's cost. */
+export const selectSpellSlots = (
+  s: Pick<Progress, 'spellSlotsGained' | 'spellSlotsSpent'>,
+): number => Math.max(0, Math.min(SPELL_SLOTS_MAX, s.spellSlotsGained - s.spellSlotsSpent));
+
+/** Does the player know this spell id? Curried so it can be a stable selector:
+ *  `useProgressStore(selectKnowsSpell('fireball'))`. */
+export const selectKnowsSpell =
+  (id: string) =>
+  (s: Pick<Progress, 'knownSpells'>): boolean =>
+    s.knownSpells.includes(id);
 
 /** Does the player hold this item id? (Door locks read this.) Curried so it can
  *  be a stable zustand selector: `useProgressStore(selectHasItem('pool-locker-key'))`. */
