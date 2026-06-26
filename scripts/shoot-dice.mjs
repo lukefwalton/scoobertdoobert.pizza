@@ -22,7 +22,11 @@ watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+// ?world mounts + auto-enters the world; &debug additionally exposes the ?debug-only
+// ACTION hooks. The CRIT payoff below is driven through __sdpRollDice (it forces a
+// roll + durably unlocks the radio), which rides the stricter ?debug gate — so the
+// run needs both, like the __sdpGoToRoom smokes.
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
 } catch (e) {
@@ -104,8 +108,42 @@ if (inJuke) {
   }
 }
 
+// The CRIT payoffs (DESIGN: "I rolled a 1 and got the cursed one"). The real die
+// is random, so drive the nat 20 / nat 1 FACES through the ?debug force-roll hook
+// and assert the matching crit is reported (the toast + dice SFX ride along; we
+// assert on the deterministic __sdpDiceCrit, not on audio/animation timing).
+let critPristine = false;
+let critCursed = false;
+if (inJuke) {
+  const forceFace = async (face, want) => {
+    await page.evaluate(() => {
+      window.__sdpDiceCrit = undefined;
+    });
+    const fired = await page.evaluate((f) => {
+      if (typeof window.__sdpRollDice !== 'function') return false;
+      window.__sdpRollDice(f);
+      return true;
+    }, face);
+    if (!fired) {
+      fail(`__sdpRollDice missing — cannot drive the ${want} crit (is this a ?debug run?)`);
+      return false;
+    }
+    return page
+      .waitForFunction((w) => window.__sdpDiceCrit === w, want, { timeout: 3000 })
+      .then(
+        () => true,
+        () => false,
+      );
+  };
+  critPristine = await forceFace(20, 'nat20');
+  if (!critPristine) fail('forcing a 20 did not land the nat20 (pristine pressing) crit');
+  critCursed = await forceFace(1, 'nat1');
+  if (!critCursed) fail('forcing a 1 did not land the nat1 (cursed pressing) crit');
+  await page.screenshot({ path: '.shots/dice-crit.png' });
+}
+
 await browser.close();
 console.log(
-  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} | errors=${errors}`,
+  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
