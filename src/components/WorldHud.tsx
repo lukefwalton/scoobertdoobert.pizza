@@ -1,50 +1,31 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
-import { MENU_DESTINATIONS, destById } from '../data/links';
-import { roomById, ROOM_FADE_MS, ROOMS } from '../data/rooms';
+import { destById } from '../data/links';
+import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
-import { useAudioStore } from '../state/audioStore';
-import { useMusicStore } from '../state/musicStore';
-import { LOOP_OPTIONS } from '../data/music';
-import { hasLyrics, lyricFor } from '../data/lyrics';
-import { songMeaning } from '../data/songMeta';
-import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
-import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
+import { lyricFor } from '../data/lyrics';
+import { useProgressStore } from '../state/progressStore';
+import { SPELLS } from '../data/spells';
 import { castSpell, castEquippedSpell } from '../lib/spellcast';
-import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
-import { WorldMap } from './WorldMap';
+import { QUESTS, allQuestsDone } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
+import { WelcomeOverlay } from './WelcomeOverlay';
+import { SpellHotbar } from './SpellHotbar';
+import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { dancedCount } from '../lib/danceAlong';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
-import { itemById, CASSETTE_IDS } from '../data/items';
+import { itemById } from '../data/items';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
 import { launchRandomArcade } from '../lib/arcade';
-
-// The Scoobertverse welcome script. Streamed in char-by-char (terminal style)
-// on world entry; the last line glows habanero.
-const WELCOME_LINES = [
-  'Hello.',
-  'You have entered the Scoobertverse.',
-  'Be careful as you explore.',
-  'These wilds are as spicy and delicious as habanero.',
-];
-const WELCOME_SPICE = WELCOME_LINES.length - 1;
-const WELCOME_FULL = WELCOME_LINES.join('\n');
-// Start index of each line within WELCOME_FULL (newlines count as one char).
-const WELCOME_OFFSETS = WELCOME_LINES.reduce<number[]>((acc, _, i) => {
-  acc.push(i === 0 ? 0 : acc[i - 1] + WELCOME_LINES[i - 1].length + 1);
-  return acc;
-}, []);
 
 // DOM heads-up display for the world: the proximity prompt, the hotspot dialog
 // (98.css, with the real anchor), and the pause menu — the always-reachable
@@ -74,19 +55,6 @@ export function WorldHud() {
   const nearArcade = useSceneStore((s) => s.nearArcade);
   const arcadeGame = useSceneStore((s) => s.arcadeGame);
   const closeArcade = useSceneStore((s) => s.closeArcade);
-  const setPaused = useSceneStore((s) => s.setPaused);
-  const exitWorld = useSceneStore((s) => s.exitWorld);
-  const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
-  const toggleObjectiveHud = useSceneStore((s) => s.toggleObjectiveHud);
-  const muted = useAudioStore((s) => s.muted);
-  const audioReady = useAudioStore((s) => s.ready);
-  const toggleMute = useAudioStore((s) => s.toggleMute);
-  const nowPlaying = useMusicStore((s) => s.title);
-  const musicIndex = useMusicStore((s) => s.index);
-  const shiftSong = useMusicStore((s) => s.shift);
-  // The slug of whatever's actually playing (null = boot loop), so the pause menu
-  // can offer "read the words" when the current track has lyrics on file.
-  const playingSlug = LOOP_OPTIONS[musicIndex]?.slug ?? null;
   // Which song's lyrics the reader panel is showing (null = closed). In the store
   // (like tvVideo) so Esc closes it before the pause menu.
   const lyricsSong = useSceneStore((s) => s.lyricsSong);
@@ -116,58 +84,12 @@ export function WorldHud() {
       spellSlotsSpent: s.spellSlotsSpent,
     })),
   );
-  // Derived locals (used throughout the pause menu below).
-  const radioUnlocked = progress.radioUnlocked;
-  const luck = selectLuck(progress);
-  // The spells you've learned (book order) + current slots — drives the on-screen
-  // hotbar row and the pause-menu grimoire. Each known spell gets its own slot+key.
-  const learnedSpells = SPELLS.filter((sp) => progress.knownSpells.includes(sp.id));
-  const spellSlots = selectSpellSlots(progress);
+  // The one durable field WorldHud itself still needs (the locked-door prompt);
+  // every other readout moved into PauseMenu / SpellHotbar with its JSX.
   const itemsHeld = progress.itemsHeld;
-  const visitedRooms = progress.visitedRooms;
-  const tapesHeld = CASSETTE_IDS.filter((id) => itemsHeld.includes(id)).length;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
-
-  // The Scoobertverse welcome — a quest intro that streams in char-by-char on
-  // world entry (WorldHud mounts with the world), holds, then fades. Non-blocking,
-  // so you can start exploring while it runs.
-  const [welcome, setWelcome] = useState(true);
-  const [welcomeLeaving, setWelcomeLeaving] = useState(false);
-  const [typed, setTyped] = useState(0);
-
-  // Stream the text in like a terminal.
-  useEffect(() => {
-    const reduce =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) {
-      setTyped(WELCOME_FULL.length);
-      return;
-    }
-    let i = 0;
-    let t = window.setTimeout(function tick() {
-      i += 1;
-      setTyped(i);
-      if (i >= WELCOME_FULL.length) return;
-      const prev = WELCOME_FULL[i - 1];
-      const delay = prev === '\n' ? 300 : prev === '.' ? 120 : 21;
-      t = window.setTimeout(tick, delay);
-    }, 380);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  // Once fully typed, hold a beat, then fade out + unmount.
-  useEffect(() => {
-    if (typed < WELCOME_FULL.length) return;
-    const tLeave = window.setTimeout(() => setWelcomeLeaving(true), 1900);
-    const tGone = window.setTimeout(() => setWelcome(false), 3000);
-    return () => {
-      window.clearTimeout(tLeave);
-      window.clearTimeout(tGone);
-    };
-  }, [typed]);
 
   // A door was activated: the screen is fading to black — commit the room swap at
   // the midpoint (behind the black) so the geometry change is never seen, then
@@ -380,42 +302,7 @@ export function WorldHud() {
         </div>
       )}
 
-      {welcome && (
-        <div
-          className={`hud-welcome${welcomeLeaving ? ' hud-welcome--leaving' : ''}`}
-          role="status"
-        >
-          <div className="hud-welcome__card">
-            <button
-              type="button"
-              className="hud-welcome__close"
-              aria-label="dismiss intro"
-              onClick={() => {
-                setWelcomeLeaving(true);
-                window.setTimeout(() => setWelcome(false), 600);
-              }}
-            >
-              ×
-            </button>
-            {WELCOME_LINES.map((line, idx) => {
-              const start = WELCOME_OFFSETS[idx];
-              const rev = Math.max(0, Math.min(line.length, typed - start));
-              const frontier =
-                typed > start && typed <= start + line.length && typed < WELCOME_FULL.length;
-              return (
-                <p
-                  key={idx}
-                  className={`hud-welcome__line${idx === WELCOME_SPICE ? ' hud-welcome__line--spice' : ''}`}
-                >
-                  <span>{line.slice(0, rev)}</span>
-                  {frontier && <span className="hud-welcome__caret" aria-hidden="true" />}
-                  <span className="hud-welcome__ghost">{line.slice(rev)}</span>
-                </p>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <WelcomeOverlay />
 
       {!pendingRoom && (
         <div className="hud-room" aria-hidden="true">
@@ -423,53 +310,7 @@ export function WorldHud() {
         </div>
       )}
 
-      {/* The spell hotbar — one slot per LEARNED spell (found its scroll). A click
-          or the slot's mnemonic key (F / L) casts; slotted spells show pips, a
-          cantrip shows ∞ (free + unlimited). Hidden in any modal/pause. */}
-      {learnedSpells.length > 0 &&
-        !open &&
-        !paused &&
-        !pendingRoom &&
-        !tvVideo &&
-        !arcadeGame &&
-        !openNpc && (
-          <div className="hud-hotbar">
-            {learnedSpells.map((sp) => {
-              const cantrip = isCantrip(sp);
-              const usable = cantrip || spellSlots >= sp.slotCost;
-              const K = sp.key.toUpperCase();
-              return (
-                <button
-                  key={sp.id}
-                  type="button"
-                  className={`hud-hotbar__slot${usable ? '' : ' is-empty'}`}
-                  onClick={() => castSpell(sp.id)}
-                  aria-label={`Cast ${sp.name} — ${cantrip ? 'cantrip (free)' : `${spellSlots} of ${SPELL_SLOTS_MAX} slots`} (${K})`}
-                  title={`${sp.name} — press ${K}`}
-                >
-                  <span className="hud-hotbar__glyph" aria-hidden="true">
-                    {sp.glyph}
-                  </span>
-                  <span className="hud-hotbar__pips" aria-hidden="true">
-                    {cantrip ? (
-                      <span className="hud-hotbar__cantrip">∞</span>
-                    ) : (
-                      Array.from({ length: SPELL_SLOTS_MAX }, (_, i) => (
-                        <span
-                          key={i}
-                          className={`hud-hotbar__pip${i < spellSlots ? ' is-lit' : ''}`}
-                        />
-                      ))
-                    )}
-                  </span>
-                  <span className="hud-hotbar__key" aria-hidden="true">
-                    {K}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+      <SpellHotbar />
 
       {nearDoor &&
         !open &&
@@ -623,182 +464,7 @@ export function WorldHud() {
           );
         })()}
 
-      {paused && (
-        <div className="hud-pause" role="dialog" aria-label="Paused">
-          <div className="hud-pause__panel window">
-            <div className="title-bar">
-              <div className="title-bar-text">Paused</div>
-            </div>
-            <div className="window-body">
-              <p className="hud-pause__hint">Every destination, always one keypress away.</p>
-              <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
-                <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
-              </p>
-              {learnedSpells.map((sp) => (
-                <p
-                  key={sp.id}
-                  className="hud-pause__luck"
-                  title={`${sp.school} · ${sp.blurb} — press ${sp.key.toUpperCase()} to cast${
-                    isCantrip(sp) ? '' : '; rest to recharge'
-                  }`}
-                >
-                  <span aria-hidden="true">{sp.glyph}</span> {sp.name}{' '}
-                  <strong>{isCantrip(sp) ? '∞' : `${spellSlots}/${SPELL_SLOTS_MAX}`}</strong>
-                </p>
-              ))}
-              {itemsHeld.length > 0 && (
-                <div className="hud-pause__inventory">
-                  <p className="hud-pause__invtitle">Pockets</p>
-                  <ul className="hud-pause__invlist">
-                    {itemsHeld.map((id) => {
-                      const item = itemById(id);
-                      if (!item) return null;
-                      return (
-                        <li key={id} title={item.blurb}>
-                          <span aria-hidden="true">{item.glyph}</span> {item.label}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              )}
-              <div className="hud-pause__progress" title="What you've turned up so far">
-                <span>
-                  Rooms <strong>{visitedRooms.length}</strong>/{ROOMS.length}
-                </span>
-                <span>
-                  Secrets <strong>{progress.secretsFound.length}</strong>
-                </span>
-                <span>
-                  Games <strong>{progress.clearedGames.length}</strong>
-                </span>
-                {dancedCount(progress.secretsFound) > 0 && (
-                  <span>
-                    Danced <strong>{dancedCount(progress.secretsFound)}</strong>
-                  </span>
-                )}
-                {tapesHeld > 0 && (
-                  <span>
-                    Tapes{' '}
-                    <strong>
-                      {tapesHeld}/{CASSETTE_IDS.length}
-                    </strong>
-                  </span>
-                )}
-              </div>
-              <div className="hud-pause__todo">
-                <p className="hud-pause__invtitle">
-                  To-Do{' '}
-                  <span className="hud-pause__todocount">
-                    {allQuestsDone(progress)
-                      ? `★ ${completionPct(progress)}% — seen it all`
-                      : `${completionPct(progress)}%`}
-                  </span>
-                </p>
-                <ul className="hud-pause__todolist">
-                  {questStatus(progress).map(({ quest, done }) => (
-                    <li
-                      key={quest.id}
-                      className={done ? 'is-done' : ''}
-                      title={done ? 'Done' : quest.hint}
-                    >
-                      <span aria-hidden="true">{done ? '✓' : '○'}</span> {quest.label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <WorldMap visited={visitedRooms} current={currentRoom} />
-              <ul className="hud-pause__list">
-                {MENU_DESTINATIONS.map((d) => (
-                  <li key={d.id}>
-                    <a
-                      href={d.href}
-                      {...(d.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                    >
-                      {d.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-              {/* The radio. Locked until you roll the jukebox d20 (the upgrade):
-                  before, it's a read-out of whatever the room is playing; after,
-                  the ◀/▶ flip the catalog and your pick follows you everywhere. */}
-              {radioUnlocked ? (
-                <div className="hud-pause__nowplaying">
-                  <button
-                    className="hud-pause__songbtn"
-                    aria-label="previous song"
-                    disabled={!audioReady}
-                    onClick={() => shiftSong(-1)}
-                  >
-                    ◀
-                  </button>
-                  <span className="hud-pause__songtitle" title="Now playing">
-                    ♪ {!audioReady ? 'loading…' : nowPlaying}
-                  </span>
-                  <button
-                    className="hud-pause__songbtn"
-                    aria-label="next song"
-                    disabled={!audioReady}
-                    onClick={() => shiftSong(1)}
-                  >
-                    ▶
-                  </button>
-                </div>
-              ) : (
-                <div className="hud-pause__nowplaying hud-pause__nowplaying--locked">
-                  <span className="hud-pause__songtitle" title="Now playing">
-                    ♪ {!audioReady ? 'loading…' : nowPlaying}
-                  </span>
-                  <span className="hud-pause__radiohint">
-                    roll the bone at the jukebox to tune the radio
-                  </span>
-                </div>
-              )}
-              {/* The current track's one-line liner note (what it's about) — the
-                  reward-is-sound spine, annotated. From songMeta (lfw). */}
-              {playingSlug && songMeaning(playingSlug) && (
-                <p className="hud-pause__songmeaning">{songMeaning(playingSlug)}</p>
-              )}
-              {/* Read along with whatever's playing — the words are a reward too.
-                  Shown whenever the current track has lyrics on file (not gated by
-                  the radio upgrade; reading is always allowed). */}
-              {hasLyrics(playingSlug) && (
-                <button
-                  className="hud-pause__lyricsbtn"
-                  onClick={() => useSceneStore.getState().openLyrics(playingSlug)}
-                  title="Read the words to this song"
-                >
-                  📜 read the words
-                </button>
-              )}
-              <div className="hud-pause__actions">
-                <button onClick={() => toggleObjectiveHud()}>
-                  ◎ objective: {objectiveHudOn ? 'on' : 'off'}
-                </button>
-                <button
-                  disabled={!audioReady}
-                  onClick={() => {
-                    audio.unlock();
-                    toggleMute();
-                  }}
-                >
-                  ♪ music: {!audioReady ? 'loading…' : muted ? 'off' : 'on'}
-                </button>
-                <button onClick={() => setPaused(false)}>Resume</button>
-                <button
-                  onClick={() => {
-                    audio.restorePitch();
-                    exitWorld();
-                  }}
-                >
-                  Return to storefront
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <PauseMenu />
 
       {/* room-to-room transition: black wipe that hides the geometry swap. The
           fade duration is single-sourced from ROOM_FADE_MS (also the commit
