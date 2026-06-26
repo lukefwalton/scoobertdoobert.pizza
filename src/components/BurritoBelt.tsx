@@ -179,9 +179,11 @@ export function BurritoBelt() {
     const a = g.active;
     if (!a) return;
     const color = PIECES[a.piece].color;
+    let lockedAbove = false;
     for (const [r, c] of a.cells) {
       const br = a.row + r;
       if (br >= 0) g.board[br][a.col + c] = color;
+      else lockedAbove = true; // a cell locked ABOVE the top row → a lock-out
     }
     // clear full rows (roll them off the belt)
     let cleared = 0;
@@ -209,21 +211,32 @@ export function BurritoBelt() {
     } else {
       audio.playTone(noteToFreq('A', 3), 70, 0.08); // a soft thunk on lock
     }
+    // A LOCK-OUT: a piece that locks with cells above row 0 means the belt is jammed
+    // RIGHT NOW — end immediately (the jam rule) instead of silently truncating it
+    // off-screen and limping on to a later spawn-fail.
+    if (lockedAbove) {
+      endGame();
+      return;
+    }
     spawnOrEnd();
   };
 
-  // Spawn the next piece, or — if it can't be placed (the belt's jammed) — run the
-  // real game-over branch. Factored out so the test force-lose hook drives the SAME
-  // code path the smoke asserts on, not a copy of it.
-  const spawnOrEnd = () => {
+  // The single game-over path: both a failed spawn AND a lock-out (a piece locking
+  // with cells above the top) funnel through here, so the test force-lose hook + the
+  // smoke drive the SAME code, not a copy of it.
+  const endGame = () => {
     const g = game.current;
     g.active = null;
-    if (!spawn()) {
-      g.phase = 'over';
-      setPhase('over'); // surface the GAME OVER card (React state, not just the ref)
-      recordArcadeHigh(GAME_ID, g.score);
-      audio.playTone(noteToFreq('C', 2), 280, 0.18);
-    }
+    g.phase = 'over';
+    setPhase('over'); // surface the BELT JAMMED card (React state, not just the ref)
+    recordArcadeHigh(GAME_ID, g.score);
+    audio.playTone(noteToFreq('C', 2), 280, 0.18);
+  };
+
+  // Spawn the next piece, or — if it can't be placed (the belt's jammed) — end.
+  const spawnOrEnd = () => {
+    game.current.active = null;
+    if (!spawn()) endGame();
   };
 
   const move = (dCol: number) => {
@@ -391,21 +404,26 @@ export function BurritoBelt() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Test hook (?debug): a DETERMINISTIC loss — jam the spawn lanes (without
-  // completing a row, so nothing clears) then run spawnOrEnd, so the next spawn
-  // fails and the REAL game-over branch fires. shoot:games asserts the GAME OVER
-  // overlay + the persisted high score off this.
+  // Test hook (?debug): a DETERMINISTIC loss that exercises the LOCK-OUT jam the
+  // review flagged — lock a T-piece at the spawn row (-1) so a cell sits above row
+  // 0, which must end the game via the real lockedAbove → endGame path (not truncate
+  // + limp on). Seeds a non-zero score first (line-clears aren't deterministically
+  // forceable) so the over-branch's recordArcadeHigh actually writes; shoot:games
+  // asserts both the game-over overlay AND that durable write.
   useEffect(() => {
     exposeTestGlobal('__sdpBeltForceLose', () => {
       const g = game.current;
       if (g.phase !== 'playing') return;
-      // Seed a non-zero score first (line-clears aren't deterministically forceable
-      // here) so the over-branch's recordArcadeHigh actually writes — the smoke
-      // asserts that durable write, not just the overlay.
       g.score = 5;
       setScore(5);
-      for (let c = 3; c <= 6; c++) g.board[0][c] = '#555'; // block the centre spawn lanes
-      spawnOrEnd();
+      const T = 2; // PIECES index of the T (its n×n box has a filled top-row cell)
+      g.active = {
+        piece: T,
+        cells: PIECES[T].cells.map(([r, c]) => [r, c] as Cell),
+        row: -1,
+        col: 4,
+      };
+      lockAndNext();
     });
     return () => exposeTestGlobal('__sdpBeltForceLose', undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
