@@ -41,9 +41,19 @@ describe('exposeTestGlobal gating', () => {
     expect(g.window!.__sdpUnitProbe2).toBe('x');
   });
 
-  it('a bare query (e.g. ?worldly) does not satisfy the gate (word-boundary match)', () => {
-    setSearch('?worldly=1');
-    expect(isTestEntrance()).toBe(false);
+  it('exposes on the ?room= smoke entrance (read-only globals) but it is NOT debug', () => {
+    setSearch('?room=jukebox');
+    expect(isTestEntrance()).toBe(true); // a deterministic smoke entry → read hooks ok
+    expect(isDebugEntrance()).toBe(false); // …but action hooks still need ?debug
+    exposeTestGlobal('__sdpUnitProbe4', 'r');
+    expect(g.window!.__sdpUnitProbe4).toBe('r');
+  });
+
+  it('a bare query (e.g. ?worldly / ?roomy) does not satisfy the gate (word-boundary match)', () => {
+    for (const s of ['?worldly=1', '?roomy=1']) {
+      setSearch(s);
+      expect(isTestEntrance(), s).toBe(false);
+    }
     exposeTestGlobal('__sdpUnitProbe3', 1);
     expect(g.window!.__sdpUnitProbe3).toBeUndefined();
   });

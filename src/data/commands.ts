@@ -19,7 +19,7 @@ import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
 import { spellById, isCantrip, SPELL_SLOTS_MAX, type Spell } from './spells';
-import { rollLuckyD20, critLabel } from '../lib/luck-core';
+import { rollLuckyD20, critBanner } from '../lib/luck-core';
 
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
@@ -233,8 +233,8 @@ export const COMMANDS: Command[] = [
       // spends it (rollLuckyD20 is pure — only the world's STAKES rolls debit the
       // save). So this shows the system tipping the dice your way, at no cost.
       const r = rollLuckyD20(luck);
-      const label = critLabel(r.crit);
-      const out = [`🎲 d20 → ${r.face}${label ? `   ★ ${label} ★` : ''}`];
+      const banner = critBanner(r.crit); // ★ NAT 20 ★ / ☠ CRIT FAIL ☠ / none
+      const out = [`🎲 d20 → ${r.face}${banner ? `   ${banner}` : ''}`];
       if (luck > 0)
         out.push(
           `(your ${luck} luck rolled a second die behind it, kept the higher — a peek; nothing spent.)`,
