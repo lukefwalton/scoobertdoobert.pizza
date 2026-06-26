@@ -76,6 +76,16 @@ describe('albumVideo + tvVideoFor', () => {
   it('tvVideoFor with only an albumSlug uses the album video', () => {
     expect(tvVideoFor({ albumSlug: 'big-hug' }).embed).toContain('gdo4a4jv2nY');
   });
+
+  it('tvVideoFor falls to an explicit albumSlug when the songSlug is UNresolved (not the channel)', () => {
+    // ocean-view has neither its own clip nor an album mapping, so on its own it
+    // would fall straight to TV_SPOTS — but a room pairing it with an explicit
+    // albumSlug must get THAT album's video first (the bug the review bot caught).
+    const v = tvVideoFor({ songSlug: 'ocean-view', albumSlug: 'koan' });
+    const koan = ALBUMS.find((a) => a.slug === 'koan')!;
+    expect(v.embed).toContain(koan.video!);
+    expect(v.embed).not.toBe(TV_SPOTS.embed);
+  });
 });
 
 describe('video ids are well-formed (no truncation / typos ship)', () => {

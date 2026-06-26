@@ -132,9 +132,20 @@ export function songVideo(slug: string): TvVideo {
 
 /** Resolve the clip for a room CRT spec: the song's video wins (most specific),
  *  else the album's, else the TV-spots channel. The single entry point TvSet
- *  uses, so a room declares only what it has (`songSlug` and/or `albumSlug`). */
+ *  uses, so a room declares only what it has (`songSlug` and/or `albumSlug`).
+ *
+ *  Order matters: a song's OWN video → its record's video → the caller's explicit
+ *  `albumSlug` → TV spots. The explicit album is consulted BEFORE the channel
+ *  fallback, so a room that pairs an unresolved songSlug with an albumSlug still
+ *  gets the album's clip (not the generic channel) — the bug the review bot
+ *  caught: songVideo() alone would skip the caller's album and fall to TV_SPOTS. */
 export function tvVideoFor(spec: { songSlug?: string; albumSlug?: string }): TvVideo {
-  if (spec.songSlug) return songVideo(spec.songSlug);
-  if (spec.albumSlug) return albumVideo(spec.albumSlug);
+  if (spec.songSlug) {
+    if (SONG_VIDEOS[spec.songSlug]) return songVideo(spec.songSlug); // the song's own clip
+    const album = SONG_ALBUM[spec.songSlug] ?? spec.albumSlug; // its record, else the caller's
+    if (album) return albumVideo(album);
+  } else if (spec.albumSlug) {
+    return albumVideo(spec.albumSlug);
+  }
   return { embed: TV_SPOTS.embed, watch: TV_SPOTS.watch, title: TV_SPOTS.title };
 }
