@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import '../styles/arcade.css';
 import { MuteToggle } from './MuteToggle';
 import { useMounted } from '../lib/useMounted';
+import { ARCADE_GAMES } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ArcadeCabinetPage — the shared period cabinet shell for a standalone game route
@@ -16,18 +17,10 @@ import { useMounted } from '../lib/useMounted';
 // and stay standalone; new cabinets share this shell so the boilerplate lives once.
 // ───────────────────────────────────────────────────────────────────────────
 
-// Every cabinet in the arcade, for the cross-link footer (the shelf).
-const CABINETS: { slug: string; label: string }[] = [
-  { slug: 'arcade', label: 'PIZZA RUN' },
-  { slug: 'crusteroids', label: 'CRUSTEROIDS' },
-  { slug: 'slice-breaker', label: 'SLICE BREAKER' },
-  { slug: 'jazz-snake', label: 'JAZZ SNAKE' },
-  { slug: 'pizza-radar', label: 'PIZZA RADAR 1996' },
-  { slug: 'burrito-belt', label: 'BURRITO BELT' },
-  { slug: 'poke', label: 'POKE SCOOBERT' },
-  { slug: 'chimes', label: 'PENDULUM CHIMES' },
-  { slug: 'cultures', label: 'CULTURES' },
-];
+// Every cabinet in the arcade, for the cross-link footer (the shelf) — DERIVED
+// from the one registry so a new cabinet shows up here automatically and this
+// list can never drift out of sync with arcadeGames.ts.
+const CABINETS = ARCADE_GAMES.map((g) => ({ slug: g.slug, label: g.title }));
 
 export function ArcadeCabinetPage({
   slug,
