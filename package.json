@@ -60,7 +60,8 @@
     "shoot:tapes": "node scripts/shoot-tapes.mjs",
     "shoot:discovery": "node scripts/shoot-discovery.mjs",
     "shoot:cabinet": "node scripts/shoot-cabinet.mjs",
-    "shoot:spell": "node scripts/shoot-spell.mjs"
+    "shoot:spell": "node scripts/shoot-spell.mjs",
+    "shoot:whisper": "node scripts/shoot-whisper.mjs"
   },
   "engines": {
     "node": ">=20.19"
