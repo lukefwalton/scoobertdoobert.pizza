@@ -114,6 +114,7 @@ if (inJuke) {
 // assert on the deterministic __sdpDiceCrit, not on audio/animation timing).
 let critPristine = false;
 let critCursed = false;
+let junkIgnored = false;
 if (inJuke) {
   const forceFace = async (face, want) => {
     await page.evaluate(() => {
@@ -139,11 +140,28 @@ if (inJuke) {
   if (!critPristine) fail('forcing a 20 did not land the nat20 (pristine pressing) crit');
   critCursed = await forceFace(1, 'nat1');
   if (!critCursed) fail('forcing a 1 did not land the nat1 (cursed pressing) crit');
+
+  // Negative guard — lock in __sdpRollDice's input validation: a junk "face" (0,
+  // >20, a float, a negative) must be IGNORED, never driving a roll. Park a sentinel
+  // on the crit signal, fire the junk faces, and assert it survives — a leaked roll
+  // would overwrite it (face 21 → a valid index) or throw on tracks[-1].slug (which
+  // watchPageErrors would catch). So an unchanged sentinel proves every junk face was
+  // a no-op that touched no jukebox/progress state.
+  await page.evaluate(() => {
+    window.__sdpDiceCrit = 'sentinel';
+  });
+  await page.evaluate(() => [0, 21, 3.5, -1].forEach((f) => window.__sdpRollDice?.(f)));
+  await page.waitForTimeout(150);
+  const afterJunk = await page.evaluate(() => window.__sdpDiceCrit);
+  junkIgnored = afterJunk === 'sentinel';
+  if (!junkIgnored)
+    fail(`a junk d20 face was not ignored (__sdpDiceCrit=${JSON.stringify(afterJunk)})`);
+
   await page.screenshot({ path: '.shots/dice-crit.png' });
 }
 
 await browser.close();
 console.log(
-  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} | errors=${errors}`,
+  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} junkIgnored=${junkIgnored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
