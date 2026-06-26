@@ -14,7 +14,8 @@ export type ArcadeGameId =
   | 'cultures'
   | 'crusteroids'
   | 'slice-breaker'
-  | 'jazz-snake';
+  | 'jazz-snake'
+  | 'pizza-radar';
 
 export type ArcadeGame = { id: ArcadeGameId; title: string };
 
@@ -24,6 +25,7 @@ export const ARCADE_GAMES: readonly ArcadeGame[] = [
   { id: 'crusteroids', title: 'CRUSTEROIDS' },
   { id: 'slice-breaker', title: 'SLICE BREAKER' },
   { id: 'jazz-snake', title: 'JAZZ SNAKE' },
+  { id: 'pizza-radar', title: 'PIZZA RADAR 1996' },
   { id: 'poke', title: 'POKE SCOOBERT' },
   { id: 'chimes', title: 'PENDULUM CHIMES' },
   { id: 'cultures', title: 'CULTURES' },
