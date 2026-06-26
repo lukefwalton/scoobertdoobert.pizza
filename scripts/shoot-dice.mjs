@@ -166,6 +166,11 @@ let contained = false;
     .catch((e) => fail(`non-debug world did not mount: ${e.message}`));
   const cleanJuke = await sharedRoomIs(clean, 'The Jukebox', { fail });
   if (cleanJuke) {
+    // Settle past the mount tick before asserting ABSENCE: the jukebox's hooks (if
+    // they ever leaked) would attach a beat AFTER the room label renders — so an
+    // immediate read could false-pass on a future delayed leak. Wait first, so any
+    // leak has surfaced by the time we check (the ?world block proves the timing).
+    await clean.waitForTimeout(1200);
     const types = await clean.evaluate(() => ({
       roll: typeof window.__sdpRollDice,
       dice: typeof window.__sdpDice,
