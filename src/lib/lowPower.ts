@@ -15,13 +15,18 @@ export function isLowPower(): boolean {
   return LOW_POWER_QUERIES.some((q) => window.matchMedia(q).matches);
 }
 
-/** True specifically on a phone-sized screen — a SUBSET of low-power (which also
- *  covers reduced-motion on a desktop). The machine-room install uses this to fire
- *  the "phones didn't exist in 1996" desktop-invite gag on mobile only, while a
- *  reduced-motion desktop user (who IS on a desktop) just gets the flat handoff. */
+/** True on a small TOUCH device — a phone/handheld, not merely a narrow viewport.
+ *  The machine-room install uses this to fire the "phones didn't exist in 1996"
+ *  desktop-invite gag on real handhelds only: the `pointer: coarse` half keeps a
+ *  RESIZED desktop window (narrow but mouse-driven) out of it — that user IS on a
+ *  desktop, so they get the plain /text handoff instead of a nonsensical "try
+ *  desktop." A handheld that somehow reports a fine pointer just falls back to that
+ *  same /text handoff (it's still low-power), so the gate degrades gracefully. */
 export function isSmallScreen(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return window.matchMedia(SMALL_SCREEN_QUERY).matches;
+  return (
+    window.matchMedia(SMALL_SCREEN_QUERY).matches && window.matchMedia('(pointer: coarse)').matches
+  );
 }
 
 /** Reactive hook — re-renders when the viewport crosses the breakpoint or the
