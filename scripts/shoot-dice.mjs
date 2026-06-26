@@ -179,8 +179,40 @@ let contained = false;
   await cleanCtx.close();
 }
 
+// The OTHER half of the gate, also deterministic: under a TEST entrance that is NOT
+// debug (?room=jukebox&world=1 — isTestEntrance true, isDebugEntrance false), the
+// READ hooks SHOULD appear (so a curious ?world visitor can inspect state) but the
+// ACTION hook __sdpRollDice must STILL be absent (it's the stricter isDebugEntrance
+// gate, like __sdpGoToRoom). This proves the action hook keys off debug, not merely
+// any test entrance — the exact ?world=1 path the corridor walk used to cover, now
+// without the walk. So a regression that widened the action gate to isTestEntrance
+// would redden here even though the plain-?room check above stays green.
+let worldGated = false;
+{
+  const wctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const wp = await wctx.newPage();
+  watchPageErrors(wp, fail);
+  await wp.goto(base + '/?room=jukebox&world=1', { waitUntil: 'commit' });
+  await wp
+    .waitForSelector('.hud-menu-btn', { timeout: 12000 })
+    .catch((e) => fail(`?world jukebox did not mount: ${e.message}`));
+  const wJuke = await sharedRoomIs(wp, 'The Jukebox', { fail });
+  if (wJuke) {
+    const types = await wp.evaluate(() => ({
+      roll: typeof window.__sdpRollDice, // action hook — must stay absent (needs ?debug)
+      juke: typeof window.__sdpJukebox, // read hook (an object) — present under ?world
+    }));
+    worldGated = types.roll === 'undefined' && types.juke === 'object';
+    if (!worldGated)
+      fail(
+        `?world gate wrong (action hook must be absent, read hook present): ${JSON.stringify(types)}`,
+      );
+  }
+  await wctx.close();
+}
+
 await browser.close();
 console.log(
-  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} | errors=${errors}`,
+  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} worldGated=${worldGated} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
