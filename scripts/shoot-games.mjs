@@ -22,6 +22,8 @@ const GAMES = [
   // pizza-radar's loss (a saucer reaching the floor) isn't keypress-forceable, so
   // like crusteroids/slice-breaker it just verifies load → start → no errors → HI.
   { slug: 'pizza-radar', title: 'Pizza Radar 1996', id: 'pizza-radar' },
+  // burrito-belt's loss (stack to the top) isn't quickly forceable either.
+  { slug: 'burrito-belt', title: 'Burrito Belt', id: 'burrito-belt' },
 ];
 
 const browser = await chromium.launch();
