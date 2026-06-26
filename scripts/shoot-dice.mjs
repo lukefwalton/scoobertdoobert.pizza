@@ -114,6 +114,7 @@ if (inJuke) {
 // assert on the deterministic __sdpDiceCrit, not on audio/animation timing).
 let critPristine = false;
 let critCursed = false;
+let noCritOnPlain = false;
 let junkIgnored = false;
 if (inJuke) {
   const forceFace = async (face, want) => {
@@ -141,6 +142,11 @@ if (inJuke) {
   critCursed = await forceFace(1, 'nat1');
   if (!critCursed) fail('forcing a 1 did not land the nat1 (cursed pressing) crit');
 
+  // The other half of the crit contract: a plain face (10) is a real roll but NOT a
+  // crit, so it must report __sdpDiceCrit === null (no pristine/cursed flavor fires).
+  noCritOnPlain = await forceFace(10, null);
+  if (!noCritOnPlain) fail('a non-crit face (10) should report __sdpDiceCrit === null');
+
   // Negative guard — lock in __sdpRollDice's input validation: a junk "face" (0,
   // >20, a float, a negative) must be IGNORED, never driving a roll. Park a sentinel
   // on the crit signal, fire the junk faces, and assert it survives — a leaked roll
@@ -162,6 +168,6 @@ if (inJuke) {
 
 await browser.close();
 console.log(
-  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} junkIgnored=${junkIgnored} | errors=${errors}`,
+  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
