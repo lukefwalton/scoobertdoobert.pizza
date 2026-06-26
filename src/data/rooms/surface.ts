@@ -203,6 +203,9 @@ export const SURFACE_ROOMS: Room[] = [
       { url: '/models/palm-tree.glb', position: [6.6, 0, -4], fit: 4.6, rotationY: -0.6 },
     ],
     song: 'best-day-ever',
+    // A little CRT off to the left plays the song's own video (the "TV spots" gag) —
+    // clear of the corner palms, angled back toward the entrance view.
+    tv: { songSlug: 'best-day-ever', position: [-3.5, 0, 0.5], rotationY: 0.4 },
     spawns: {
       // Arrive at the north edge facing -Z out into the sunny morning. Clear of the
       // +Z door back into the night.
@@ -291,6 +294,9 @@ export const SURFACE_ROOMS: Room[] = [
     palette: { background: '#bfe3d6', fog: '#d6efe6', fogNear: 11, fogFar: 78 },
     props: [{ url: '/models/palm-tree.glb', position: [-6.6, 0, -3], fit: 4.6, rotationY: 0.6 }],
     song: 'daydreaming',
+    // A CRT off to the right plays the song's video (album fallback) — clear of the
+    // single left palm and the scattered tide rocks.
+    tv: { songSlug: 'daydreaming', position: [3.6, 0, 0.6], rotationY: -0.4 },
     spawns: {
       // Arrive at the +Z edge of the lagoon, facing -Z out across the still water.
       // Clear of the +Z gate back up the road.
@@ -321,6 +327,9 @@ export const SURFACE_ROOMS: Room[] = [
       { url: '/models/palm-tree.glb', position: [7.2, 0, -5], fit: 4.8, rotationY: -0.6 },
     ],
     song: 'my-friend-scoobert',
+    // A CRT off to the left-front plays the song's own video — clear of the corner
+    // palms and the flamingo pond (which sits further back toward -Z).
+    tv: { songSlug: 'my-friend-scoobert', position: [-3.8, 0, 0.6], rotationY: 0.4 },
     spawns: {
       // Step in at the +Z (park) end, facing -Z down the enclosure toward the
       // flamingo pond + the North Park gate. Clear of every door radius.
