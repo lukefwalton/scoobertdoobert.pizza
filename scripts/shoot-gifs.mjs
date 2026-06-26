@@ -26,6 +26,8 @@ const GIFS = [
   { name: 'rainbow-rule.gif', w: 168, h: 8, frames: 7 },
   { name: 'rainbow-rule-static.gif', w: 168, h: 8, frames: 1 },
   { name: 'wallpaper.gif', w: 48, h: 48, frames: 1 },
+  { name: 'new-badge.gif', w: 56, h: 22, frames: 2 },
+  { name: 'new-badge-static.gif', w: 56, h: 22, frames: 1 },
 ];
 
 // Pull a GIF apart into its header / LSD / global color table and each frame's

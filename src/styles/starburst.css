@@ -281,6 +281,50 @@
   image-rendering: pixelated; /* keep the 64px art crunchy when scaled up */
 }
 
+/* "Sign My Guestbook!" — the real anchor the marquee keeps promising. A beveled
+   period button (navy on gold = ~10:1 contrast, comfortably AA) with the NEW!
+   blinky GIF beside it. Wraps on a phone. */
+.sb__guestbook {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 16px 0 4px;
+}
+.sb__gbook {
+  display: inline-block;
+  font-family: 'Comic Sans MS', 'Times New Roman', cursive;
+  font-weight: bold;
+  font-size: 1.05rem;
+  color: #000080;
+  text-decoration: none;
+  padding: 8px 18px;
+  background: linear-gradient(#fffef0, #ffe06a 60%, #f4b000);
+  border: 3px outset #ffd34d;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
+}
+.sb__gbook span {
+  margin-right: 2px;
+}
+.sb__gbook:hover {
+  background: linear-gradient(#ffffff, #fff0a8 60%, #ffd34d);
+}
+.sb__gbook:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+.sb__newblink {
+  display: inline-block;
+  line-height: 0;
+}
+.sb__newblink img {
+  width: 56px;
+  height: 22px;
+  image-rendering: pixelated; /* keep the badge crisp */
+  vertical-align: middle;
+}
+
 .sb__doors {
   display: flex;
   flex-wrap: wrap;
