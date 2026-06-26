@@ -20,33 +20,38 @@ const fail = (m) => {
 };
 watchPageErrors(page, fail);
 
-const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
-
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
-try {
-  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
-} catch (e) {
-  fail(`world did not mount: ${e.message}`);
+// Walk the direct corridor shop → back hall → jukebox (no rat detour). Both the crit
+// run and the ?world containment check below take this same real route, so it lives
+// in one helper. Returns which rooms we reached.
+async function walkToJukebox(p) {
+  const roomIs = (name, timeout) => sharedRoomIs(p, name, { fail, timeout });
+  await p
+    .waitForSelector('.hud-menu-btn', { timeout: 12000 })
+    .catch((e) => fail(`world did not mount: ${e.message}`));
+  await p.waitForTimeout(1500);
+  const startShop = await roomIs('Beach Pizza Shop');
+  // shop → back hall (back up to the rear door, E).
+  await p.keyboard.down('s');
+  await p.waitForTimeout(900);
+  await p.keyboard.up('s');
+  await p.keyboard.press('e');
+  const inHall = await roomIs('Back Hall');
+  // down the long corridor to the far jukebox door. Hold 'w' and POLL for the door
+  // prompt rather than walking a fixed time, so a slow machine (CI) still covers it.
+  await p.keyboard.down('w');
+  await p.waitForSelector('.hud-prompt--door', { timeout: 9000 }).catch(() => {});
+  await p.keyboard.up('w');
+  await p.keyboard.press('e');
+  const inJuke = await roomIs('The Jukebox');
+  return { startShop, inHall, inJuke };
 }
-await page.waitForTimeout(1500);
 
-const startShop = await roomIs('Beach Pizza Shop');
-
-// shop → back hall (back up to the rear door, E).
-await page.keyboard.down('s');
-await page.waitForTimeout(900);
-await page.keyboard.up('s');
-await page.keyboard.press('e');
-const inHall = await roomIs('Back Hall');
-
-// down the long corridor to the far jukebox door (no rat detour needed). Hold
-// 'w' and POLL for the prompt rather than walking a fixed time, so a slow
-// machine (CI) still covers the corridor.
-await page.keyboard.down('w');
-await page.waitForSelector('.hud-prompt--door', { timeout: 9000 }).catch(() => {});
-await page.keyboard.up('w');
-await page.keyboard.press('e');
-const inJuke = await roomIs('The Jukebox');
+// ?world mounts + auto-enters the world; &debug additionally exposes the ?debug-only
+// ACTION hooks. The CRIT payoff below is driven through __sdpRollDice (it forces a
+// roll + durably unlocks the radio), which rides the stricter ?debug gate — so the
+// crit run needs both, like the __sdpGoToRoom smokes.
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
+const { startShop, inHall, inJuke } = await walkToJukebox(page);
 await page.waitForTimeout(800);
 await page.screenshot({ path: '.shots/dice-before.png' });
 
@@ -104,8 +109,97 @@ if (inJuke) {
   }
 }
 
+// The CRIT payoffs (DESIGN: "I rolled a 1 and got the cursed one"). The real die
+// is random, so drive the nat 20 / nat 1 FACES through the ?debug force-roll hook
+// and assert the matching crit is reported (the toast + dice SFX ride along; we
+// assert on the deterministic __sdpDiceCrit, not on audio/animation timing).
+let critPristine = false;
+let critCursed = false;
+let noCritOnPlain = false;
+let junkIgnored = false;
+if (inJuke) {
+  const forceFace = async (face, want) => {
+    await page.evaluate(() => {
+      window.__sdpDiceCrit = undefined;
+    });
+    const fired = await page.evaluate((f) => {
+      if (typeof window.__sdpRollDice !== 'function') return false;
+      window.__sdpRollDice(f);
+      return true;
+    }, face);
+    if (!fired) {
+      fail(`__sdpRollDice missing — cannot drive the ${want} crit (is this a ?debug run?)`);
+      return false;
+    }
+    return page
+      .waitForFunction((w) => window.__sdpDiceCrit === w, want, { timeout: 3000 })
+      .then(
+        () => true,
+        () => false,
+      );
+  };
+  critPristine = await forceFace(20, 'nat20');
+  if (!critPristine) fail('forcing a 20 did not land the nat20 (pristine pressing) crit');
+  critCursed = await forceFace(1, 'nat1');
+  if (!critCursed) fail('forcing a 1 did not land the nat1 (cursed pressing) crit');
+
+  // The other half of the crit contract: a plain face (10) is a real roll but NOT a
+  // crit, so it must report __sdpDiceCrit === null (no pristine/cursed flavor fires).
+  noCritOnPlain = await forceFace(10, null);
+  if (!noCritOnPlain) fail('a non-crit face (10) should report __sdpDiceCrit === null');
+
+  // Negative guard — lock in __sdpRollDice's input validation: a junk "face" (0,
+  // >20, a float, a negative) must be IGNORED, never driving a roll. Park a sentinel
+  // on the crit signal, fire the junk faces, and assert it survives — a leaked roll
+  // would overwrite it (face 21 → a valid index) or throw on tracks[-1].slug (which
+  // watchPageErrors would catch). So an unchanged sentinel proves every junk face was
+  // a no-op that touched no jukebox/progress state.
+  await page.evaluate(() => {
+    window.__sdpDiceCrit = 'sentinel';
+  });
+  await page.evaluate(() => [0, 21, 3.5, -1].forEach((f) => window.__sdpRollDice?.(f)));
+  await page.waitForTimeout(150);
+  const afterJunk = await page.evaluate(() => window.__sdpDiceCrit);
+  junkIgnored = afterJunk === 'sentinel';
+  if (!junkIgnored)
+    fail(`a junk d20 face was not ignored (__sdpDiceCrit=${JSON.stringify(afterJunk)})`);
+
+  await page.screenshot({ path: '.shots/dice-crit.png' });
+}
+
+// Containment: __sdpRollDice mutates DURABLE progress (unlockRadio), so it must ride
+// the stricter ?debug gate — ABSENT on the wider ?world entrance even IN the jukebox
+// room, where the READ-ONLY hooks (e.g. __sdpJukeboxVisible) ARE exposed. Re-walk
+// under ?world (no &debug) and assert the action hook is gone but a read hook remains.
+let actionHookGated = false;
+{
+  const wctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const wpage = await wctx.newPage();
+  watchPageErrors(wpage, fail);
+  await wpage.goto(base + '/?world=1', { waitUntil: 'commit' });
+  const { inJuke: wInJuke } = await walkToJukebox(wpage);
+  // Wait for the room's READ-ONLY hook to appear — that proves the JukeboxRoom
+  // actually mounted under ?world, so the action-hook absence below means "gated",
+  // not merely "not loaded yet" (the mount effect lands a beat after the room title).
+  const mounted = await wpage
+    .waitForFunction(() => Array.isArray(window.__sdpJukeboxVisible), null, { timeout: 5000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!wInJuke || !mounted) {
+    fail('?world containment check never mounted the jukebox room');
+  } else {
+    const action = await wpage.evaluate(() => typeof window.__sdpRollDice === 'function');
+    actionHookGated = !action;
+    if (action)
+      fail('__sdpRollDice is exposed on ?world — a durable-mutating hook must be ?debug-only');
+  }
+  await wctx.close();
+}
+
 await browser.close();
 console.log(
-  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} | errors=${errors}`,
+  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} hookGated=${actionHookGated} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

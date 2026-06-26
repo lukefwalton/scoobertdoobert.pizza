@@ -80,6 +80,10 @@ export function PizzaRadar() {
     score: 0,
   });
 
+  // Canvas drag/tap state (a tap fires; a drag sweeps the turret). Declared up here
+  // with the other refs so the read-only test hook can report whether a drag is live.
+  const drag = useRef<{ x: number; moved: boolean } | null>(null);
+
   const start = () => {
     const g = game.current;
     g.phase = 'playing';
@@ -325,12 +329,13 @@ export function PizzaRadar() {
     exposeTestGlobal('__sdpRadarState', () => ({
       moveL: game.current.moveL,
       moveR: game.current.moveR,
+      dragging: !!drag.current,
     }));
     return () => exposeTestGlobal('__sdpRadarState', undefined);
   }, []);
 
-  // drag the turret along the canvas; a tap (no drag) fires.
-  const drag = useRef<{ x: number; moved: boolean } | null>(null);
+  // drag the turret along the canvas; a tap (no drag) fires. (`drag` ref lives with
+  // the other refs above so the test hook can read it.)
   const press = (clientX: number, rectLeft: number, rectW: number) => {
     const g = game.current;
     g.cannonX = Math.max(10, Math.min(W - 10, ((clientX - rectLeft) / rectW) * W));
@@ -350,14 +355,22 @@ export function PizzaRadar() {
           className="arcade-canvas"
           onPointerDown={(e) => {
             e.preventDefault();
-            const r = (e.target as HTMLCanvasElement).getBoundingClientRect();
+            // Capture the pointer so a drag that ends OFF the canvas still delivers
+            // its move + up here. Without it, an off-canvas release never hits the
+            // cleanup, leaving drag state stranded so a later hover reads as a drag.
+            try {
+              e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {
+              // some pointer ids aren't capturable; up / cancel still clear the drag
+            }
+            const r = e.currentTarget.getBoundingClientRect();
             drag.current = { x: e.clientX, moved: false };
             if (game.current.phase === 'playing') press(e.clientX, r.left, r.width);
           }}
           onPointerMove={(e) => {
             if (!drag.current) return;
             if (Math.abs(e.clientX - drag.current.x) > 4) drag.current.moved = true;
-            const r = (e.target as HTMLCanvasElement).getBoundingClientRect();
+            const r = e.currentTarget.getBoundingClientRect();
             if (game.current.phase === 'playing') press(e.clientX, r.left, r.width);
           }}
           onPointerUp={() => {
@@ -366,6 +379,9 @@ export function PizzaRadar() {
             if (!d || !d.moved) fire(); // a tap fires / starts
           }}
           onPointerCancel={() => (drag.current = null)} // a stolen gesture doesn't strand a drag
+          // belt-and-suspenders: if capture ends without a normal up/cancel (some
+          // browser-cancel paths), still clear the drag so it can't strand.
+          onLostPointerCapture={() => (drag.current = null)}
         />
         {phase === 'ready' && (
           <div className="arcade-overlay">

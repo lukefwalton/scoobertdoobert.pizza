@@ -45,6 +45,12 @@ if (term) {
   const status = await run('status');
   if (!status.includes('VISITOR RECORD')) bad('`status` did not print the visitor record');
   if (!status.includes('plug-in installed')) bad('`status` missing the persistence fields');
+  // The game-layer readouts (pure reads of the progress snapshot). On a fresh load
+  // luck is 0 (the "earn it at the shrine" branch) and the spellbook is empty.
+  const luck = await run('luck');
+  if (!luck.includes('LUCK') || !luck.includes('banked'))
+    bad('`luck` did not print the luck readout');
+  if (!(await run('spells')).includes('SPELLBOOK')) bad('`spells` did not print the spellbook');
   if (!(await run('echo scoobert')).includes('scoobert')) bad('`echo` did not echo');
   if (!(await run('sudo')).toLowerCase().includes('reported'))
     bad('forbidden `sudo` gave no response');
