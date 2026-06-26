@@ -163,7 +163,9 @@ for (const g of GAMES) {
         const cb = await canvas.boundingBox();
         await page.mouse.move(cb.x + cb.width / 2, cb.y + cb.height / 2);
         await page.mouse.down();
-        await page.mouse.move(cb.x + cb.width / 2, Math.max(2, cb.y - 40)); // above the canvas
+        // Move off the TOP edge AND shift X by >4px first, so this exercises the real
+        // moved=true DRAG branch (the path that originally stranded), not the tap path.
+        await page.mouse.move(cb.x + cb.width / 2 + 40, Math.max(2, cb.y - 40));
         await page.mouse.up(); // released OUTSIDE the canvas bounds
         const dragging = await page.evaluate(
           (h) => (typeof window[h] === 'function' ? !!window[h]().dragging : null),
