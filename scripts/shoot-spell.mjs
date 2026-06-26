@@ -99,6 +99,9 @@ const ignited = await page
     () => false,
   );
 if (!ignited) bad('spell: casting did not ignite the fireball (no __sdpFireball bump)');
+// The cast must push back the dark — spellcast bumps the dread relief pool.
+const relief = await page.evaluate(() => window.__sdpRelief ?? 0);
+if (!(relief > 0)) bad(`spell: casting did not ease the dread (relief ${relief})`);
 await page.waitForTimeout(700); // let the burn reach its peak for the shot
 await page.screenshot({ path: '.shots/spell-fireball.png' });
 const slotsAfter1 = await readSlots();
@@ -221,7 +224,7 @@ await browser.close();
 console.log(
   `spell: learned=${learned} hotbar=${!!hotbar} pipsLearned=${pipsLearned} ignited=${ignited} ` +
     `afterCast=${slotsAfter1} empty=${slotsEmpty} dryNoop=${nAfterDry === nBeforeDry} ` +
-    `rested=${slotsRested} | light: learned=${knowsLight} slots=${slotCount} lit=${litUp} ` +
-    `free=${slotsAfterLight === slotsBeforeLight} | errors=${errors}`,
+    `rested=${slotsRested} relief=${relief.toFixed(2)} | light: learned=${knowsLight} ` +
+    `slots=${slotCount} lit=${litUp} free=${slotsAfterLight === slotsBeforeLight} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
