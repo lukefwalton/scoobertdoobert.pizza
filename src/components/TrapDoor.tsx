@@ -6,6 +6,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { trapDropForRoll, type TrapDrop } from '../data/rooms';
+import { rollD20, critLabel, type Crit } from '../lib/luck';
 
 // ───────────────────────────────────────────────────────────────────────────
 // TrapDoor — the storefront's secret shortcut into the deep (design: docs/
@@ -42,6 +43,7 @@ export function TrapDoor() {
 
   const [phase, setPhase] = useState<Phase>('idle');
   const [face, setFace] = useState(20); // the number on the die's face (flickers, then settles)
+  const [crit, setCrit] = useState<Crit>(null); // nat20 (soft landing) / nat1, for the flourish
   const [dest, setDest] = useState<TrapDrop | null>(null);
 
   const worldReady = useRef(false);
@@ -66,11 +68,15 @@ export function TrapDoor() {
 
   const fall = () => {
     if (phase !== 'idle') return;
-    // Decide the landing up front (the die will reveal it), then roll.
-    const rolled = 1 + Math.floor(Math.random() * 20);
-    const d = trapDropForRoll(rolled);
+    // Decide the landing up front (the die will reveal it), then roll. The trap
+    // door is a STAKES d20 (lib/luck): if you've banked luck the system spends one
+    // to roll with advantage, so the floor tips you toward a kinder landing — and a
+    // natural 20 is the "soft landing" jackpot. No luck → a plain d20, nothing spent.
+    const r = rollD20(true);
+    const d = trapDropForRoll(r.face, r.crit);
     setDest(d);
-    setFace(rolled);
+    setFace(r.face);
+    setCrit(r.crit);
     settled.current = false;
     worldReady.current = false;
     setPhase('rolling');
@@ -156,7 +162,11 @@ export function TrapDoor() {
                 <span className="trapdoor-d20__face">{face}</span>
               </div>
               <p className="trapdoor-roll__sub">
-                {phase === 'dropping' && dest ? `d20 → ${face} · ${dest.title}` : `d20 · rolling…`}
+                {phase === 'dropping' && dest
+                  ? crit === 'nat20'
+                    ? `NAT 20 ✦ ${dest.title}`
+                    : `${critLabel(crit) ? `${critLabel(crit)} · ` : `d20 → ${face} · `}${dest.title}`
+                  : `d20 · rolling…`}
               </p>
             </div>
           )}
