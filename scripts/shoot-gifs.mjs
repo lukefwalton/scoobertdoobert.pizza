@@ -12,6 +12,7 @@
 // — counted off the GIF block structure, independent of LZW so it can't share a bug).
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
+import { lzwDecode } from './lib/gif89a.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 
@@ -27,14 +28,19 @@ const GIFS = [
   { name: 'wallpaper.gif', w: 48, h: 48, frames: 1 },
 ];
 
-// Walk the GIF block structure and count image descriptors (0x2C) — pure framing,
-// no LZW, so it's a frame count an encoder LZW bug can't fake.
-function frameCount(bytes) {
+// Walk the GIF block structure and LZW-DECODE every frame's pixels. Decoding all
+// frames (not just counting descriptors) means a later-frame corruption can't hide
+// behind a correct frame count: lzwDecode throws on a malformed stream, and a frame
+// that decoded short fails the pixel-count check. (Chromium can't help here — its
+// WebCodecs ImageDecoder is disabled in this build and headless doesn't advance
+// in-DOM GIFs — so the per-frame decode is done in node; Chromium still proves the
+// LZW algorithm itself on frame 0, and the encoder runs the same path every frame.)
+function decodeFrames(bytes) {
   let p = 6 + 4; // 'GIF89a' + width/height
   const packed = bytes[p];
   p += 3; // packed, background, aspect
   if (packed & 0x80) p += 3 * (1 << ((packed & 7) + 1)); // global color table
-  let n = 0;
+  const frames = [];
   while (p < bytes.length) {
     const b = bytes[p++];
     if (b === 0x3b) break; // trailer
@@ -43,16 +49,17 @@ function frameCount(bytes) {
       let s;
       while ((s = bytes[p++]) !== 0) p += s; // sub-blocks
     } else if (b === 0x2c) {
-      n++;
       p += 8; // left, top, w, h
       const ip = bytes[p++];
       if (ip & 0x80) p += 3 * (1 << ((ip & 7) + 1)); // local color table (we emit none)
-      p++; // min code size
+      const mcs = bytes[p++]; // min code size
+      const data = [];
       let s;
-      while ((s = bytes[p++]) !== 0) p += s; // image data sub-blocks
+      while ((s = bytes[p++]) !== 0) for (let i = 0; i < s; i++) data.push(bytes[p++]);
+      frames.push(lzwDecode(mcs, data));
     } else break;
   }
-  return n;
+  return frames;
 }
 
 const browser = await chromium.launch();
@@ -65,11 +72,30 @@ const fail = (m) => {
 await page.goto(base, { waitUntil: 'commit' });
 
 for (const g of GIFS) {
-  // Structural frame count, straight off disk (independent of the LZW decode).
-  const fc = frameCount(readFileSync(`public/gifs/${g.name}`));
-  if (fc !== g.frames) fail(`${g.name}: ${fc} frames, expected ${g.frames} (animation lost?)`);
+  // Decode EVERY frame off disk: the count must match, each frame must decode to a
+  // full w*h of pixels (a corrupt later frame throws or comes up short), and an
+  // animation must actually MOVE — some frame differs from frame 0 — so a generation
+  // bug that collapsed the frames can't pass on frame count alone.
+  let frames;
+  try {
+    frames = decodeFrames(readFileSync(`public/gifs/${g.name}`));
+  } catch (e) {
+    fail(`${g.name}: a frame failed to decode — ${e.message}`);
+    continue;
+  }
+  if (frames.length !== g.frames)
+    fail(`${g.name}: ${frames.length} frames, expected ${g.frames} (animation lost?)`);
+  for (const fr of frames)
+    if (fr.length !== g.w * g.h)
+      fail(`${g.name}: a frame decoded to ${fr.length}px, expected ${g.w * g.h}`);
+  if (g.frames > 1) {
+    const f0 = frames[0].join(',');
+    if (!frames.slice(1).some((fr) => fr.join(',') !== f0))
+      fail(`${g.name}: all ${g.frames} frames identical — animation didn't survive generation`);
+  }
 
-  // Chromium decode of the served file — the spec oracle.
+  // Chromium decode of the served file — the spec oracle for the LZW algorithm
+  // (frame-identical, so a correct frame 0 means correct later frames too).
   const res = await page.evaluate(async (url) => {
     const img = new Image();
     img.src = url;
@@ -115,7 +141,7 @@ for (const g of GIFS) {
     fail(`${g.name}: only ${res.distinct} distinct colors — art did not decode (blank fill?)`);
   }
   console.log(
-    `  ${g.name}: ${res.w}x${res.h}, ${fc}f, ${res.distinct} colors, ${res.transparent} transp`,
+    `  ${g.name}: ${res.w}x${res.h}, ${frames.length}f, ${res.distinct} colors, ${res.transparent} transp`,
   );
 }
 
