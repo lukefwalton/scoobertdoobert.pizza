@@ -116,6 +116,7 @@ const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.lengt
 // /text (never a dead end), so: gag appears → its text-only link → /text.
 await mp.click('.mr__install');
 let mobileGag = false;
+let tabTraps = false;
 let gagEscapes = false;
 let focusReturned = false;
 let backdropCloses = false;
@@ -127,6 +128,22 @@ try {
   fail('mobile install did not show the desktop-invite gag');
 }
 if (mobileGag) {
+  // Focus trap (the gag is open): Tab from the last control wraps to the first,
+  // and Shift+Tab from the first wraps to the last — focus can't leave the modal.
+  await mp.locator('.mr__gag-back').focus();
+  await mp.keyboard.press('Tab');
+  const wrapFwd = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__gag-x') ?? false,
+  );
+  await mp.locator('.mr__gag-x').focus();
+  await mp.keyboard.press('Shift+Tab');
+  const wrapBack = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__gag-back') ?? false,
+  );
+  tabTraps = wrapFwd && wrapBack;
+  if (!tabTraps)
+    fail(`focus did not trap within the gag (fwd→first=${wrapFwd}, back→last=${wrapBack})`);
+
   // a11y: Escape closes the modal AND returns focus to the Install button (the
   // focus-trap/restore logic is JS, so without this it could regress unseen).
   await mp.keyboard.press('Escape');
@@ -169,6 +186,6 @@ await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
