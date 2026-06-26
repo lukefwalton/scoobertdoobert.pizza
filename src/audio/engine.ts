@@ -45,6 +45,10 @@ class PizzaAudio {
   // where the room's own bells/pads should own the space.
   private songGain?: GainNode;
   private songLevel = 1; // 0..1 current song-duck target (survives graph (re)builds)
+  // A SOUND-MAKER is up (an arcade game with its own notes/SFX, a CRT video with its
+  // own audio) → duck the song so the user's music doesn't fight it. Composes with
+  // the music-room songLevel duck (either reason silences the song).
+  private musicSuppressed = false;
   private trackBuffer?: AudioBuffer; // the decoded degraded boot loop (Best Day Ever)
   // The jukebox can temporarily take over the single loop voice with a catalog
   // track. When set, it overrides trackBuffer; cleared (restoreBoot) on leaving.
@@ -168,7 +172,8 @@ class PizzaAudio {
     // The loop's own gain, ahead of the lowpass — lets a music room duck the song
     // without touching the instrument one-shots (they connect straight to master).
     const songGain = ctx.createGain();
-    songGain.gain.value = this.songLevel; // honor a duck set before the graph existed
+    // honor a duck set before the graph existed (a music room OR a live sound-maker)
+    songGain.gain.value = this.musicSuppressed ? 0.0001 : this.songLevel;
     songGain.connect(lowpass);
     master.connect(limiter);
     limiter.connect(ctx.destination);
@@ -424,12 +429,34 @@ class PizzaAudio {
   setSongLevel(level: number, ms = 700): void {
     this.songLevel = Math.max(0, Math.min(1, level));
     exposeTestGlobal('__sdpSongLevel', this.songLevel); // for the music-duck smoke
+    this.applySongGain(ms);
+  }
+
+  /** Ramp the song voice to its EFFECTIVE level: the music-room duck (songLevel)
+   *  unless a sound-maker has suppressed it (then silence). Both reasons compose —
+   *  either pulls it down, lifting one restores the other. No-op without the graph. */
+  private applySongGain(ms: number): void {
     if (!this.ctx || !this.songGain) return;
+    const target = this.musicSuppressed ? 0.0001 : Math.max(0.0001, this.songLevel);
     const now = this.ctx.currentTime;
     const g = this.songGain.gain;
     g.cancelScheduledValues(now);
     g.setValueAtTime(Math.max(0.0001, g.value), now);
-    g.linearRampToValueAtTime(Math.max(0.0001, this.songLevel), now + Math.max(0.05, ms / 1000));
+    g.linearRampToValueAtTime(target, now + Math.max(0.05, ms / 1000));
+  }
+
+  /**
+   * Duck the radio (the song voice) while a SOUND-MAKER is active — an arcade game
+   * that plays its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
+   * video with its own audio. The world calls suppressMusic(true) when such an
+   * overlay opens and (false) when it closes, so the user's music doesn't fight it.
+   * Composes with the music-room duck (setSongLevel); a quick fade — it's a
+   * deliberate "step aside," not a swell.
+   */
+  suppressMusic(on: boolean, ms = 350): void {
+    this.musicSuppressed = on;
+    exposeTestGlobal('__sdpMusicSuppressed', on); // for the sound-maker duck smoke
+    this.applySongGain(ms);
   }
 
   setMuted(m: boolean): void {
