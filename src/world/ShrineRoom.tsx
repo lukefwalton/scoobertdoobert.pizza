@@ -300,8 +300,16 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
     );
     if (!claimed.current) {
       claimed.current = true;
-      useProgressStore.getState().gainLuck(1);
-      announce('🍀 You clap twice. Fortune smiles · +1 luck', 'luck');
+      const prog = useProgressStore.getState();
+      prog.gainLuck(1);
+      // The ritual doubles as your REST (the D&D long rest): paying respects
+      // refills your spell slots. Only mentioned once you actually have magic.
+      if (prog.knownSpells.length > 0) {
+        prog.restSpellSlots();
+        announce('🍀 You clap twice. Fortune smiles · +1 luck · 🔥 slots restored', 'luck');
+      } else {
+        announce('🍀 You clap twice. Fortune smiles · +1 luck', 'luck');
+      }
     } else {
       announce('🙏 The kami have already heard you this visit.', 'info');
     }

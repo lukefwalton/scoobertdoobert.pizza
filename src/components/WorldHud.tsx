@@ -10,7 +10,9 @@ import { useMusicStore } from '../state/musicStore';
 import { LOOP_OPTIONS } from '../data/music';
 import { hasLyrics, lyricFor } from '../data/lyrics';
 import { songMeaning } from '../data/songMeta';
-import { useProgressStore, selectLuck } from '../state/progressStore';
+import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
+import { SPELLS, SPELL_SLOTS_MAX } from '../data/spells';
+import { castEquippedSpell } from '../lib/spellcast';
 import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
 import { WorldMap } from './WorldMap';
 import { ObjectiveHud } from './ObjectiveHud';
@@ -18,6 +20,7 @@ import { useToastStore, announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { dancedCount } from '../lib/danceAlong';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
@@ -108,11 +111,18 @@ export function WorldHud() {
       luckSpent: s.luckSpent,
       itemsHeld: s.itemsHeld,
       discoveredSongs: s.discoveredSongs,
+      knownSpells: s.knownSpells,
+      spellSlotsGained: s.spellSlotsGained,
+      spellSlotsSpent: s.spellSlotsSpent,
     })),
   );
   // Derived locals (used throughout the pause menu below).
   const radioUnlocked = progress.radioUnlocked;
   const luck = selectLuck(progress);
+  // The equipped spell (the first one you know) + current slots — drives the
+  // on-screen hotbar and the pause-menu grimoire row.
+  const equippedSpell = SPELLS.find((sp) => progress.knownSpells.includes(sp.id)) ?? null;
+  const spellSlots = selectSpellSlots(progress);
   const itemsHeld = progress.itemsHeld;
   const visitedRooms = progress.visitedRooms;
   const tapesHeld = CASSETTE_IDS.filter((id) => itemsHeld.includes(id)).length;
@@ -262,9 +272,31 @@ export function WorldHud() {
           useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
+      // F — cast the equipped spell (Fireball). Blocked in any modal/pause; a no-op
+      // (with a nudge) when you've learned nothing or are out of slots. Same path as
+      // clicking the hotbar slot, so keyboard + mouse stay in parity (like E).
+      if (e.key === 'f' || e.key === 'F') {
+        if (
+          st.paused ||
+          st.openHotspot ||
+          st.tvVideo ||
+          st.arcadeGame ||
+          st.openNpc ||
+          st.lyricsSong
+        )
+          return;
+        castEquippedSpell();
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Test hook (?world / ?debug): cast deterministically from a smoke (clicking the
+  // bobbing hotbar through Playwright is fine, but a direct trigger is sturdier).
+  useEffect(() => {
+    exposeTestGlobal('__sdpCast', () => castEquippedSpell());
+    return () => exposeTestGlobal('__sdpCast', undefined);
   }, []);
 
   // Auto-dismiss the announce toast after a beat (a gentle, non-flashing fade —
@@ -387,6 +419,33 @@ export function WorldHud() {
       {!pendingRoom && (
         <div className="hud-room" aria-hidden="true">
           {roomById(currentRoom).title}
+        </div>
+      )}
+
+      {/* The spell hotbar — shown only once you've LEARNED a spell (found the
+          scroll). A click or F casts; the pips show slots left. Hidden in any
+          modal/pause so it never overlaps a dialog. */}
+      {equippedSpell && !open && !paused && !pendingRoom && !tvVideo && !arcadeGame && !openNpc && (
+        <div className="hud-hotbar">
+          <button
+            type="button"
+            className={`hud-hotbar__slot${spellSlots > 0 ? '' : ' is-empty'}`}
+            onClick={() => castEquippedSpell()}
+            aria-label={`Cast ${equippedSpell.name} — ${spellSlots} of ${SPELL_SLOTS_MAX} slots (F)`}
+            title={`${equippedSpell.name} — press F`}
+          >
+            <span className="hud-hotbar__glyph" aria-hidden="true">
+              {equippedSpell.glyph}
+            </span>
+            <span className="hud-hotbar__pips" aria-hidden="true">
+              {Array.from({ length: SPELL_SLOTS_MAX }, (_, i) => (
+                <span key={i} className={`hud-hotbar__pip${i < spellSlots ? ' is-lit' : ''}`} />
+              ))}
+            </span>
+            <span className="hud-hotbar__key" aria-hidden="true">
+              F
+            </span>
+          </button>
         </div>
       )}
 
@@ -553,6 +612,17 @@ export function WorldHud() {
               <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
                 <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
               </p>
+              {equippedSpell && (
+                <p
+                  className="hud-pause__luck"
+                  title={`${equippedSpell.school} · ${equippedSpell.blurb} — F to cast; rest to recharge`}
+                >
+                  <span aria-hidden="true">{equippedSpell.glyph}</span> {equippedSpell.name}{' '}
+                  <strong>
+                    {spellSlots}/{SPELL_SLOTS_MAX}
+                  </strong>
+                </p>
+              )}
               {itemsHeld.length > 0 && (
                 <div className="hud-pause__inventory">
                   <p className="hud-pause__invtitle">Pockets</p>

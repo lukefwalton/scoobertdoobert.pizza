@@ -205,13 +205,16 @@ export const CORE_ROOMS: Room[] = [
     id: 'practice',
     kind: 'practice',
     title: 'The Practice Room',
-    // Backstage from the jukebox shrine: where the music gets MADE. A warm, SAFE
-    // relief room (a "play it" reward, kept sweet) — a wall of pads you can
-    // actually play, and a 4-track that calls a phrase to play back (the sequence
-    // door-game → clearGame unlock of a sealed demo). Procedural PS1.
+    // Backstage from the jukebox shrine: where the music gets MADE — and now where
+    // the MAGIC is learned. A warm, SAFE relief room (a "play it" reward, kept
+    // sweet) — a wall of pads you can actually play, and the Scroll of Fireball on
+    // a stand by the pad wall (find it = earn the spell). Procedural PS1.
     dims: { halfW: 6, halfD: 6, height: 4.5, eye: EYE },
     // Warm amber, cosy — a sibling to the jukebox's womb, deliberately sweet.
     palette: { background: '#1c130a', fog: '#2a1d0e', fogNear: 5, fogFar: 30 },
+    // The spell scroll waits on a stand by the pad wall — ahead-and-right as you
+    // step in. Pocketing it teaches Fireball (ItemPickup reads item.teachesSpell).
+    pickups: [{ itemId: 'fireball-scroll', position: [1.8, 0.95, -1.2] }],
     spawns: {
       // Just inside the +Z door, clear of its radius, facing the pad wall (-Z).
       default: { position: [0, EYE, 2.5], yaw: Math.PI },

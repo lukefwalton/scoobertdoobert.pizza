@@ -19,6 +19,9 @@ const COLD: Progress = {
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  knownSpells: [],
+  spellSlotsGained: 0,
+  spellSlotsSpent: 0,
 };
 
 describe('ratDialogue', () => {

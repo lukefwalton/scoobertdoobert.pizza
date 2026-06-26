@@ -189,6 +189,62 @@
   background: rgba(0, 0, 0, 0.82);
 }
 
+/* The spell hotbar — a single slot, bottom-right (mirrors the menu button up
+   top). Period monospace, dark translucent chrome. Shown only once a spell is
+   learned. No animation/flash (WCAG): the in-world fire is the feedback. */
+.hud-hotbar {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 70;
+}
+.hud-hotbar__slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 60px;
+  padding: 6px 6px 4px;
+  font-family: 'Courier New', Courier, monospace;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffe3b0;
+  border: 1px solid rgba(255, 180, 90, 0.6);
+  cursor: url('/cursor.cur'), pointer;
+}
+.hud-hotbar__slot:hover {
+  background: rgba(40, 16, 0, 0.82);
+}
+.hud-hotbar__slot.is-empty {
+  opacity: 0.5;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.hud-hotbar__glyph {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.hud-hotbar__pips {
+  display: flex;
+  gap: 3px;
+  height: 6px;
+}
+.hud-hotbar__pip {
+  width: 6px;
+  height: 6px;
+  border: 1px solid rgba(255, 180, 90, 0.55);
+  background: transparent;
+}
+.hud-hotbar__pip.is-lit {
+  background: #ff8a3a;
+  border-color: #ffb06a;
+}
+.hud-hotbar__key {
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
+  color: #d8c39a;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 0 4px;
+}
+
 .hud-dialog {
   position: fixed;
   left: 50%;
