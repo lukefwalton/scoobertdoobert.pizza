@@ -125,7 +125,23 @@ for (const g of GAMES) {
         }
         if (!gameOver)
           bad(`${g.slug} JS: the force-lose hook never surfaced the game-over overlay`);
-        console.log(`${g.slug} loss  -> gameover=${gameOver}`);
+        // The loss must also PERSIST a high score via recordArcadeHigh (the real
+        // over branch scores before ending) — read it BEFORE the manual seed below,
+        // so a regression that shows the overlay but skips the HI write is caught.
+        const lossHi = await page.evaluate((id) => {
+          try {
+            return (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').arcadeHighs || {})[
+              id
+            ];
+          } catch {
+            return undefined;
+          }
+        }, g.id);
+        if (!(lossHi > 0))
+          bad(
+            `${g.slug} JS: the loss did not persist a high score (arcadeHighs[${g.id}]=${lossHi})`,
+          );
+        console.log(`${g.slug} loss  -> gameover=${gameOver} hiWritten=${lossHi}`);
       }
 
       // per-cabinet high score persistence: write it into arcadeHighs[id], reload,

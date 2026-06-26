@@ -274,11 +274,19 @@ export function PizzaRadar() {
       if (e.key === 'ArrowLeft') g.moveL = false;
       if (e.key === 'ArrowRight') g.moveR = false;
     };
+    // Losing window focus drops the keyup, so a held key could leave the turret
+    // drifting forever — clear held movement on blur.
+    const blur = () => {
+      game.current.moveL = false;
+      game.current.moveR = false;
+    };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -291,6 +299,14 @@ export function PizzaRadar() {
     exposeTestGlobal('__sdpRadarForceLose', () => {
       const g = game.current;
       if (g.phase !== 'playing') return;
+      // Down a couple of saucers through the REAL scoring first, so the loss has a
+      // non-zero score and the over-branch's recordArcadeHigh actually writes (the
+      // smoke asserts that durable write, not just the overlay).
+      for (const b of g.blips.filter((x) => x.alive).slice(0, 3)) {
+        b.alive = false;
+        g.score += 1;
+      }
+      setScore(g.score);
       for (const b of g.blips) if (b.alive) b.cy = LOSE_Y;
       g.march = 999; // force a march next frame → the floor-breach check ends it
     });

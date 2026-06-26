@@ -377,11 +377,16 @@ export function BurritoBelt() {
     const up = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') game.current.softDrop = false;
     };
+    // Losing window focus drops the keyup, so a held ↓ could leave the belt stuck
+    // in permanent soft-drop — clear it on blur.
+    const blur = () => (game.current.softDrop = false);
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
+    window.addEventListener('blur', blur);
     return () => {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
+      window.removeEventListener('blur', blur);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -394,6 +399,11 @@ export function BurritoBelt() {
     exposeTestGlobal('__sdpBeltForceLose', () => {
       const g = game.current;
       if (g.phase !== 'playing') return;
+      // Seed a non-zero score first (line-clears aren't deterministically forceable
+      // here) so the over-branch's recordArcadeHigh actually writes — the smoke
+      // asserts that durable write, not just the overlay.
+      g.score = 5;
+      setScore(5);
       for (let c = 3; c <= 6; c++) g.board[0][c] = '#555'; // block the centre spawn lanes
       spawnOrEnd();
     });
