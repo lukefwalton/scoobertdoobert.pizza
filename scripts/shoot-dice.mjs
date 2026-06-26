@@ -154,7 +154,17 @@ let actionHookGated = false;
   const wpage = await wctx.newPage();
   watchPageErrors(wpage, fail);
   const wInJuke = await enterJukebox(wpage, { debug: false });
-  if (!wInJuke) {
+  // ?room is a test entrance, so the room's READ-ONLY hook (__sdpJukeboxVisible)
+  // exposes — wait for it as a POSITIVE "the JukeboxRoom mount effect has run" signal,
+  // so the action hook's absence below means the ?debug gate held, not merely that the
+  // room hadn't finished mounting yet.
+  const mounted = await wpage
+    .waitForFunction(() => Array.isArray(window.__sdpJukeboxVisible), null, { timeout: 5000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!wInJuke || !mounted) {
     fail('containment check never mounted the jukebox room');
   } else {
     const action = await wpage.evaluate(() => typeof window.__sdpRollDice === 'function');

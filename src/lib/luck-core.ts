@@ -50,3 +50,10 @@ export function rollLuckyD20(luckAvailable: number, rng: () => number = Math.ran
 export function critLabel(crit: Crit): string | null {
   return crit === 'nat20' ? 'NAT 20' : crit === 'nat1' ? 'CRIT FAIL' : null;
 }
+
+/** The framed crit banner for signage / the terminal — a STAR for a nat 20, a SKULL
+ *  for a crit fail, null otherwise. One source for the framing so nat20 vs nat1
+ *  signage can't drift apart (a star fail would read wrong). */
+export function critBanner(crit: Crit): string | null {
+  return crit === 'nat20' ? '★ NAT 20 ★' : crit === 'nat1' ? '☠ CRIT FAIL ☠' : null;
+}
