@@ -19,6 +19,36 @@ const GAMES = [
   // so it carries the real lose-path assertion: the GAME OVER overlay must render
   // (guards the "ref phase set but React setPhase missing" regression).
   { slug: 'jazz-snake', title: 'Jazz Snake', id: 'jazz-snake', forceLoss: true },
+  // pizza-radar + burrito-belt losses (a saucer to the floor / a jammed belt) aren't
+  // keypress-forceable, so each exposes a ?debug force-lose hook that drives its REAL
+  // game-over branch; the smoke calls it and asserts the GAME OVER overlay renders.
+  {
+    slug: 'pizza-radar',
+    title: 'Pizza Radar 1996',
+    id: 'pizza-radar',
+    loseHook: '__sdpRadarForceLose',
+    // The held turret controls: pressing ◀/▶ sets an internal flag, releasing clears
+    // it. Read it back through the read-only state hook (no RAF timing).
+    holdProbe: {
+      stateHook: '__sdpRadarState',
+      holds: [
+        { button: 'left', field: 'moveL' },
+        { button: 'right', field: 'moveR' },
+      ],
+    },
+  },
+  {
+    slug: 'burrito-belt',
+    title: 'Burrito Belt',
+    id: 'burrito-belt',
+    loseHook: '__sdpBeltForceLose',
+    // The held soft-drop control (the parity gap the review flagged): the ▼ pad
+    // button engages soft-drop while pressed and releases it on lift.
+    holdProbe: {
+      stateHook: '__sdpBeltState',
+      holds: [{ button: 'soft drop', field: 'softDrop' }],
+    },
+  },
 ];
 
 const browser = await chromium.launch();
@@ -43,6 +73,24 @@ for (const g of GAMES) {
     if (canvas) bad(`${g.slug} no-JS: a <canvas> leaked into the crawlable HTML`);
     console.log(`${g.slug} no-JS -> titled=${titled} back=${!!back} canvas=${!!canvas}`);
     await ctx.close();
+  }
+
+  // --- 1b. The force-lose globals are ACTION hooks → ?debug-ONLY (the stricter
+  //     gate, like __sdpGoToRoom). Confirm they're ABSENT at the real call site on a
+  //     normal route AND on the wider ?world entrance (which only gates read-only
+  //     state). Presence on ?debug is proven by the lose path working in block 2. ---
+  if (g.loseHook) {
+    for (const q of ['', '?world=1']) {
+      const ctx = await browser.newContext();
+      const page = await ctx.newPage();
+      await page.goto(`${base}/${g.slug}${q}`, { waitUntil: 'networkidle' });
+      await page.waitForSelector('.arcade-canvas', { timeout: 12000 }).catch(() => {});
+      const leaked = await page.evaluate((h) => typeof window[h] === 'function', g.loseHook);
+      if (leaked)
+        bad(`${g.slug}: ${g.loseHook} is exposed on "${q || 'plain'}" — must be ?debug-only`);
+      console.log(`${g.slug} ${q || 'plain'} -> hookAbsent=${!leaked}`);
+      await ctx.close();
+    }
   }
 
   // --- 2. JS ON: mounts, starts, no errors, per-game high score persists ---
@@ -72,6 +120,38 @@ for (const g of GAMES) {
       if (!started) bad(`${g.slug} JS: tapping the screen did not start the game`);
       if (errs.length) bad(`${g.slug} JS: page error -> ${errs[0]?.slice(0, 80)}`);
 
+      // Touch-hold parity: the held pad controls (PizzaRadar ◀/▶, BurritoBelt
+      // soft-drop) set an internal flag on pointerdown and clear it on pointerup —
+      // the trickiest input path, and easy to regress unnoticed on desktop. Press +
+      // release the REAL pad button and read the flag back through the game's
+      // read-only ?world/?debug state hook (deterministic — no RAF timing).
+      if (g.holdProbe) {
+        const { stateHook, holds } = g.holdProbe;
+        const read = (field) =>
+          page.evaluate(
+            ([h, f]) => (typeof window[h] === 'function' ? !!window[h]()[f] : null),
+            [stateHook, field],
+          );
+        for (const { button, field } of holds) {
+          const padBtn = await page.$(`.arcade-pad button[aria-label="${button}"]`);
+          if (!padBtn) {
+            bad(`${g.slug} JS: no "${button}" pad button to hold-test`);
+            continue;
+          }
+          const bx = await padBtn.boundingBox();
+          await page.mouse.move(bx.x + bx.width / 2, bx.y + bx.height / 2);
+          await page.mouse.down();
+          const held = await read(field);
+          await page.mouse.up();
+          const released = await read(field);
+          if (held !== true)
+            bad(`${g.slug} JS: holding "${button}" did not set ${field} (got ${held})`);
+          if (released !== false)
+            bad(`${g.slug} JS: releasing "${button}" left ${field} stuck (got ${released})`);
+          console.log(`${g.slug} hold "${button}" -> down=${held} up=${released}`);
+        }
+      }
+
       // The real lose path: drive a deterministic loss and assert the GAME OVER
       // overlay actually renders (not just the ref phase flipping). Check BEFORE each
       // keypress so we don't restart the game by pressing a steer key post-over.
@@ -87,6 +167,46 @@ for (const g of GAMES) {
         }
         if (!gameOver) bad(`${g.slug} JS: a real loss never surfaced the GAME OVER overlay`);
         console.log(`${g.slug} loss  -> gameover=${gameOver}`);
+      }
+
+      // Hook-driven lose path: call the game's ?debug force-lose hook (it drives the
+      // REAL game-over branch) and assert the over overlay renders. Asserts on the
+      // shared "PLAY AGAIN" blink, so it works whether the card says GAME OVER or a
+      // flavour title (e.g. burrito-belt's "BELT JAMMED").
+      if (g.loseHook) {
+        const fired = await page.evaluate((h) => {
+          if (typeof window[h] !== 'function') return false;
+          window[h]();
+          return true;
+        }, g.loseHook);
+        if (!fired) bad(`${g.slug} JS: the force-lose hook ${g.loseHook} was not exposed`);
+        let gameOver = false;
+        for (let t = 0; t < 30 && !gameOver; t++) {
+          gameOver = await page
+            .$eval('.arcade-overlay', (el) => /PLAY AGAIN/i.test(el.textContent || ''))
+            .catch(() => false);
+          if (gameOver) break;
+          await page.waitForTimeout(100);
+        }
+        if (!gameOver)
+          bad(`${g.slug} JS: the force-lose hook never surfaced the game-over overlay`);
+        // The loss must also PERSIST a high score via recordArcadeHigh (the real
+        // over branch scores before ending) — read it BEFORE the manual seed below,
+        // so a regression that shows the overlay but skips the HI write is caught.
+        const lossHi = await page.evaluate((id) => {
+          try {
+            return (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').arcadeHighs || {})[
+              id
+            ];
+          } catch {
+            return undefined;
+          }
+        }, g.id);
+        if (!(lossHi > 0))
+          bad(
+            `${g.slug} JS: the loss did not persist a high score (arcadeHighs[${g.id}]=${lossHi})`,
+          );
+        console.log(`${g.slug} loss  -> gameover=${gameOver} hiWritten=${lossHi}`);
       }
 
       // per-cabinet high score persistence: write it into arcadeHighs[id], reload,

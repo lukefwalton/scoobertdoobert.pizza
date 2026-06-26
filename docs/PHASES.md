@@ -24,7 +24,7 @@ unless the work is genuinely ambiguous.
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
 | 7+ | `fun/` instruments → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
-| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), shrine clap, pause-menu stat | ✅ core shipped |
+| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -242,9 +242,26 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   played through the shared bell engine (mute-aware + limited); original parody
   geometry, no sourced model. Advances the music ladder's "play it" rung in a deep
   room. `shoot:gallery` now plucks a string.
-- ⬜ **Tail / backlog (in DESIGN):** wire the d20 into the dice-selector + trap-door;
-  a **rare Pokémon-style grass-level encounter** vs the goblin; further
-  album-themed wings. (Storefront reactivity + the greek lyre are now shipped.)
+- ✅ **D&D mechanics — the trap-door luck-d20 (2026-06-26):** the chute is a real
+  luck-biased d20 (`rollD20(true)` + `trapDropForRoll`): the face ordinally picks
+  WHERE you drop (unluckiest → luckiest room), a nat 20 drops you somewhere sweet
+  and a nat 1 somewhere wrong, each with a crit flourish. `shoot:trapdoor`.
+- ✅ **Spells — earn one, cast it (2026-06-26):** you can now learn a spell from a
+  found scroll and cast it. **Fireball** (a WCAG-safe AoE that lights the room) and
+  **Light** (a cantrip glow) live in `src/data/spells.ts`; casting spends a slot
+  (two monotonic counters in `progressStore`), **rest restores slots** (shrine clap
+  / breather rooms), and a cast feeds the dread-**relief** pool — a sanctioned way
+  to push the unease back. Multi-spell hotbar in the HUD. `shoot:spell`.
+- ✅ **Perception whispers (2026-06-26):** each room entry rolls a luck-biased d20
+  **perception check** (DC 12); on a hit you catch a room-specific whisper (lore
+  mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **The grass encounter (in DESIGN, now shipped):** a **rare Pokémon-style
+  grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
+  to a battle room, and winning the d20 roll-off opens the grove + records the
+  unlock. `shoot:grass`.
+- ⬜ **Tail / backlog (in DESIGN):** further album-themed wings. (Trap-door d20,
+  spells, perception whispers, the grass encounter, storefront reactivity, the greek
+  lyre, and the full arcade are all shipped.)
 - ✅ **The arcade grew — three reskinned cabinets (2026-06-25):** **Crusteroids**
   (Asteroids), **Slice Breaker** (Breakout), **Jazz Snake** (Snake, every bite
   plays the next note of a climbing scale). Original code + procedural art + own
@@ -256,6 +273,15 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   (`/crusteroids`, `/slice-breaker`, `/jazz-snake`) through a shared, DRY
   `ArcadeCabinetPage` shell. Covered by `shoot:games` (JS-off crawlable + JS
   mounts/starts/persists) + `arcadeGames.test`.
+- ✅ **…and completed — five cabinets (2026-06-26):** added **Pizza Radar 1996**
+  (Space Invaders, green-phosphor) and **Burrito Belt** (a falling-blocks stacker
+  with an on-screen held soft-drop for touch), filling out the shelf via the same
+  plumbing — standalone routes (`/pizza-radar`, `/burrito-belt`) + the in-world roll.
+  Their two RAF lose-rules were lifted into pure, unit-tested predicates
+  (`arcadeRules.ts`) and their REAL game-over paths are exercised by `?debug`-only
+  force-lose hooks in `shoot:games`. The cross-link shelf is now DERIVED from the
+  registry and a route-parity test (`routes.test.ts`) guards `routes.tsx`, so the
+  cabinet set can't drift across its parallel lists.
 - ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
   catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
@@ -282,7 +308,11 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
 - **Repo DRY (shipped):** the PS1 `flatMat` material helper is one export in
   `src/world/ps1.ts` (was copy-pasted into 13 rooms); the `?world`/`?debug` smoke
   globals all route through `src/lib/testHooks.ts` (`isTestEntrance` /
-  `exposeTestGlobal`).
+  `exposeTestGlobal`); the arcade cabinet set is one registry (`arcadeGames.ts`)
+  the shelf derives from + a route-parity test guards (no parallel lists drift).
+- **Component decomposition (shipped):** the 825-line `WorldHud` was split into
+  self-sufficient children — `WelcomeOverlay`, `SpellHotbar`, `PauseMenu` — each
+  reading its own store slices, so the HUD is no longer a monolith.
 - **Media reorg (done on `main`, 2026-06-20):** source media now nests under
   `media/` (`media/masters`, `media/music/<year>`, `media/photos`, `media/sfx`,
   and the GLB troves under `media/models/<category>`). Old loose root folders are
