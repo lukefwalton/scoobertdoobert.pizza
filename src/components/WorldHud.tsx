@@ -14,7 +14,7 @@ import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
-import { useToastStore, announce } from '../state/toastStore';
+import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
@@ -229,8 +229,7 @@ export function WorldHud() {
   // no strobe — and longer-on-screen is strictly friendlier for slow readers.)
   useEffect(() => {
     if (!toast) return;
-    const ms = Math.min(9000, Math.max(2800, 1800 + toast.msg.length * 55));
-    const t = window.setTimeout(() => clearToast(), ms);
+    const t = window.setTimeout(() => clearToast(), toastDurationMs(toast.msg));
     return () => window.clearTimeout(t);
   }, [toast, clearToast]);
 
