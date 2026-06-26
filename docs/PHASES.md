@@ -314,7 +314,7 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   ids + the resolution chain + a room-CRT guard) and `shoot:tv`. "The reward for
   finding a song-room is its picture, too."
 
-## ✅ GifCities pass — our own GIFs + retro furniture + the mobile gag (2026-06-26)
+## ✅ GifCities pass — our own GIFs + retro furniture + the mobile gag (2026-06-26, PRs #76–#77)
 The surface floors got the gaudy late-90s/GeoCities energy they were missing — all
 ORIGINAL, no fetched artifacts (the agent proxy blocks archive.org / gifcities.org
 anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 GIFs.
@@ -372,7 +372,7 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   (incl. JS-disabled), `shoot:world`, `shoot:descent`, `shoot:rooms`,
   `shoot:fallback`, `shoot:gifs`.
 
-## What's next (planned)
+## What's next (planned, as of 2026-06-26)
 Candidate next chunks — no fixed order, pick by appetite (and re-check the SCOPE
 guardrail before anything that adds a place/NPC/system):
 - **Mobile polish sweep.** The era floors are universal, so phones are a first-class
