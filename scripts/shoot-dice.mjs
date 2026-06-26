@@ -20,37 +20,38 @@ const fail = (m) => {
 };
 watchPageErrors(page, fail);
 
-const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
+// Walk the direct corridor shop → back hall → jukebox (no rat detour). Both the crit
+// run and the ?world containment check below take this same real route, so it lives
+// in one helper. Returns which rooms we reached.
+async function walkToJukebox(p) {
+  const roomIs = (name, timeout) => sharedRoomIs(p, name, { fail, timeout });
+  await p
+    .waitForSelector('.hud-menu-btn', { timeout: 12000 })
+    .catch((e) => fail(`world did not mount: ${e.message}`));
+  await p.waitForTimeout(1500);
+  const startShop = await roomIs('Beach Pizza Shop');
+  // shop → back hall (back up to the rear door, E).
+  await p.keyboard.down('s');
+  await p.waitForTimeout(900);
+  await p.keyboard.up('s');
+  await p.keyboard.press('e');
+  const inHall = await roomIs('Back Hall');
+  // down the long corridor to the far jukebox door. Hold 'w' and POLL for the door
+  // prompt rather than walking a fixed time, so a slow machine (CI) still covers it.
+  await p.keyboard.down('w');
+  await p.waitForSelector('.hud-prompt--door', { timeout: 9000 }).catch(() => {});
+  await p.keyboard.up('w');
+  await p.keyboard.press('e');
+  const inJuke = await roomIs('The Jukebox');
+  return { startShop, inHall, inJuke };
+}
 
 // ?world mounts + auto-enters the world; &debug additionally exposes the ?debug-only
 // ACTION hooks. The CRIT payoff below is driven through __sdpRollDice (it forces a
 // roll + durably unlocks the radio), which rides the stricter ?debug gate — so the
-// run needs both, like the __sdpGoToRoom smokes.
+// crit run needs both, like the __sdpGoToRoom smokes.
 await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
-try {
-  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
-} catch (e) {
-  fail(`world did not mount: ${e.message}`);
-}
-await page.waitForTimeout(1500);
-
-const startShop = await roomIs('Beach Pizza Shop');
-
-// shop → back hall (back up to the rear door, E).
-await page.keyboard.down('s');
-await page.waitForTimeout(900);
-await page.keyboard.up('s');
-await page.keyboard.press('e');
-const inHall = await roomIs('Back Hall');
-
-// down the long corridor to the far jukebox door (no rat detour needed). Hold
-// 'w' and POLL for the prompt rather than walking a fixed time, so a slow
-// machine (CI) still covers the corridor.
-await page.keyboard.down('w');
-await page.waitForSelector('.hud-prompt--door', { timeout: 9000 }).catch(() => {});
-await page.keyboard.up('w');
-await page.keyboard.press('e');
-const inJuke = await roomIs('The Jukebox');
+const { startShop, inHall, inJuke } = await walkToJukebox(page);
 await page.waitForTimeout(800);
 await page.screenshot({ path: '.shots/dice-before.png' });
 
@@ -166,8 +167,39 @@ if (inJuke) {
   await page.screenshot({ path: '.shots/dice-crit.png' });
 }
 
+// Containment: __sdpRollDice mutates DURABLE progress (unlockRadio), so it must ride
+// the stricter ?debug gate — ABSENT on the wider ?world entrance even IN the jukebox
+// room, where the READ-ONLY hooks (e.g. __sdpJukeboxVisible) ARE exposed. Re-walk
+// under ?world (no &debug) and assert the action hook is gone but a read hook remains.
+let actionHookGated = false;
+{
+  const wctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const wpage = await wctx.newPage();
+  watchPageErrors(wpage, fail);
+  await wpage.goto(base + '/?world=1', { waitUntil: 'commit' });
+  const { inJuke: wInJuke } = await walkToJukebox(wpage);
+  // Wait for the room's READ-ONLY hook to appear — that proves the JukeboxRoom
+  // actually mounted under ?world, so the action-hook absence below means "gated",
+  // not merely "not loaded yet" (the mount effect lands a beat after the room title).
+  const mounted = await wpage
+    .waitForFunction(() => Array.isArray(window.__sdpJukeboxVisible), null, { timeout: 5000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!wInJuke || !mounted) {
+    fail('?world containment check never mounted the jukebox room');
+  } else {
+    const action = await wpage.evaluate(() => typeof window.__sdpRollDice === 'function');
+    actionHookGated = !action;
+    if (action)
+      fail('__sdpRollDice is exposed on ?world — a durable-mutating hook must be ?debug-only');
+  }
+  await wctx.close();
+}
+
 await browser.close();
 console.log(
-  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} | errors=${errors}`,
+  `dice: shop=${startShop} hall=${inHall} juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} hookGated=${actionHookGated} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
