@@ -11,8 +11,8 @@ import { LOOP_OPTIONS } from '../data/music';
 import { hasLyrics, lyricFor } from '../data/lyrics';
 import { songMeaning } from '../data/songMeta';
 import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
-import { SPELLS, SPELL_SLOTS_MAX } from '../data/spells';
-import { castEquippedSpell } from '../lib/spellcast';
+import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
+import { castSpell, castEquippedSpell } from '../lib/spellcast';
 import { questStatus, QUESTS, completionPct, allQuestsDone } from '../data/quests';
 import { WorldMap } from './WorldMap';
 import { ObjectiveHud } from './ObjectiveHud';
@@ -119,9 +119,9 @@ export function WorldHud() {
   // Derived locals (used throughout the pause menu below).
   const radioUnlocked = progress.radioUnlocked;
   const luck = selectLuck(progress);
-  // The equipped spell (the first one you know) + current slots — drives the
-  // on-screen hotbar and the pause-menu grimoire row.
-  const equippedSpell = SPELLS.find((sp) => progress.knownSpells.includes(sp.id)) ?? null;
+  // The spells you've learned (book order) + current slots — drives the on-screen
+  // hotbar row and the pause-menu grimoire. Each known spell gets its own slot+key.
+  const learnedSpells = SPELLS.filter((sp) => progress.knownSpells.includes(sp.id));
   const spellSlots = selectSpellSlots(progress);
   const itemsHeld = progress.itemsHeld;
   const visitedRooms = progress.visitedRooms;
@@ -272,10 +272,11 @@ export function WorldHud() {
           useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
-      // F — cast the equipped spell (Fireball). Blocked in any modal/pause; a no-op
-      // (with a nudge) when you've learned nothing or are out of slots. Same path as
-      // clicking the hotbar slot, so keyboard + mouse stay in parity (like E).
-      if (e.key === 'f' || e.key === 'F') {
+      // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
+      // modal/pause; castSpell no-ops when the spell isn't learned, so an unbound
+      // key is harmless. Same path as clicking the hotbar slot (keyboard parity).
+      const spellForKey = SPELLS.find((sp) => sp.key === e.key.toLowerCase());
+      if (spellForKey) {
         if (
           st.paused ||
           st.openHotspot ||
@@ -285,17 +286,17 @@ export function WorldHud() {
           st.lyricsSong
         )
           return;
-        castEquippedSpell();
+        castSpell(spellForKey.id);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Test hook (?world / ?debug): cast deterministically from a smoke (clicking the
-  // bobbing hotbar through Playwright is fine, but a direct trigger is sturdier).
+  // Test hook (?world / ?debug): cast deterministically from a smoke. Optional id
+  // casts a specific spell (the smoke tests the Light cantrip); bare = first known.
   useEffect(() => {
-    exposeTestGlobal('__sdpCast', () => castEquippedSpell());
+    exposeTestGlobal('__sdpCast', (id?: string) => (id ? castSpell(id) : castEquippedSpell()));
     return () => exposeTestGlobal('__sdpCast', undefined);
   }, []);
 
@@ -422,32 +423,53 @@ export function WorldHud() {
         </div>
       )}
 
-      {/* The spell hotbar — shown only once you've LEARNED a spell (found the
-          scroll). A click or F casts; the pips show slots left. Hidden in any
-          modal/pause so it never overlaps a dialog. */}
-      {equippedSpell && !open && !paused && !pendingRoom && !tvVideo && !arcadeGame && !openNpc && (
-        <div className="hud-hotbar">
-          <button
-            type="button"
-            className={`hud-hotbar__slot${spellSlots > 0 ? '' : ' is-empty'}`}
-            onClick={() => castEquippedSpell()}
-            aria-label={`Cast ${equippedSpell.name} — ${spellSlots} of ${SPELL_SLOTS_MAX} slots (F)`}
-            title={`${equippedSpell.name} — press F`}
-          >
-            <span className="hud-hotbar__glyph" aria-hidden="true">
-              {equippedSpell.glyph}
-            </span>
-            <span className="hud-hotbar__pips" aria-hidden="true">
-              {Array.from({ length: SPELL_SLOTS_MAX }, (_, i) => (
-                <span key={i} className={`hud-hotbar__pip${i < spellSlots ? ' is-lit' : ''}`} />
-              ))}
-            </span>
-            <span className="hud-hotbar__key" aria-hidden="true">
-              F
-            </span>
-          </button>
-        </div>
-      )}
+      {/* The spell hotbar — one slot per LEARNED spell (found its scroll). A click
+          or the slot's mnemonic key (F / L) casts; slotted spells show pips, a
+          cantrip shows ∞ (free + unlimited). Hidden in any modal/pause. */}
+      {learnedSpells.length > 0 &&
+        !open &&
+        !paused &&
+        !pendingRoom &&
+        !tvVideo &&
+        !arcadeGame &&
+        !openNpc && (
+          <div className="hud-hotbar">
+            {learnedSpells.map((sp) => {
+              const cantrip = isCantrip(sp);
+              const usable = cantrip || spellSlots >= sp.slotCost;
+              const K = sp.key.toUpperCase();
+              return (
+                <button
+                  key={sp.id}
+                  type="button"
+                  className={`hud-hotbar__slot${usable ? '' : ' is-empty'}`}
+                  onClick={() => castSpell(sp.id)}
+                  aria-label={`Cast ${sp.name} — ${cantrip ? 'cantrip (free)' : `${spellSlots} of ${SPELL_SLOTS_MAX} slots`} (${K})`}
+                  title={`${sp.name} — press ${K}`}
+                >
+                  <span className="hud-hotbar__glyph" aria-hidden="true">
+                    {sp.glyph}
+                  </span>
+                  <span className="hud-hotbar__pips" aria-hidden="true">
+                    {cantrip ? (
+                      <span className="hud-hotbar__cantrip">∞</span>
+                    ) : (
+                      Array.from({ length: SPELL_SLOTS_MAX }, (_, i) => (
+                        <span
+                          key={i}
+                          className={`hud-hotbar__pip${i < spellSlots ? ' is-lit' : ''}`}
+                        />
+                      ))
+                    )}
+                  </span>
+                  <span className="hud-hotbar__key" aria-hidden="true">
+                    {K}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
       {nearDoor &&
         !open &&
@@ -612,17 +634,18 @@ export function WorldHud() {
               <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
                 <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
               </p>
-              {equippedSpell && (
+              {learnedSpells.map((sp) => (
                 <p
+                  key={sp.id}
                   className="hud-pause__luck"
-                  title={`${equippedSpell.school} · ${equippedSpell.blurb} — F to cast; rest to recharge`}
+                  title={`${sp.school} · ${sp.blurb} — press ${sp.key.toUpperCase()} to cast${
+                    isCantrip(sp) ? '' : '; rest to recharge'
+                  }`}
                 >
-                  <span aria-hidden="true">{equippedSpell.glyph}</span> {equippedSpell.name}{' '}
-                  <strong>
-                    {spellSlots}/{SPELL_SLOTS_MAX}
-                  </strong>
+                  <span aria-hidden="true">{sp.glyph}</span> {sp.name}{' '}
+                  <strong>{isCantrip(sp) ? '∞' : `${spellSlots}/${SPELL_SLOTS_MAX}`}</strong>
                 </p>
-              )}
+              ))}
               {itemsHeld.length > 0 && (
                 <div className="hud-pause__inventory">
                   <p className="hud-pause__invtitle">Pockets</p>

@@ -52,6 +52,7 @@ import { TvSet } from './TvSet';
 import { Controls } from './Controls';
 import { DreadVisuals } from './DreadVisuals';
 import { RoomFireball } from './RoomFireball';
+import { RoomLight } from './RoomLight';
 
 // Per-room background + fog. The world graph (rooms.ts) carries each room's
 // palette; this pushes it onto the scene whenever the current room changes, so
@@ -286,9 +287,10 @@ export default function World() {
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +
           bob/shake on top of the camera Controls just positioned. */}
       <DreadVisuals />
-      {/* The Fireball spell's AoE — mounted once, ignites on the cast nonce.
-          Reads the live room for its dims (how wide the fire spreads). */}
+      {/* The spell effects — mounted once, each ignites on the cast nonce (gated
+          on which spell). Read the live room for their dims (spread / mote height). */}
       <RoomFireball room={room} />
+      <RoomLight room={room} />
     </Canvas>
   );
 }

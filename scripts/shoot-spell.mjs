@@ -154,11 +154,74 @@ await page.waitForTimeout(300);
 const slotsRested = await readSlots();
 if (slotsRested !== 3) bad(`spell: the shrine clap should refill to 3, has ${slotsRested}`);
 
+// 6) The LIGHT cantrip: learn it from the scroll in the (dark) classified room,
+//    then cast it — it must ignite AND be FREE (a cantrip never spends a slot).
+const atClassified = await page
+  .waitForFunction(
+    () => {
+      const go = window.__sdpGoToRoom;
+      if (typeof go !== 'function') return false;
+      if (document.querySelector('.hud-room')?.textContent?.includes('Classified')) return true;
+      go('classified', 'default');
+      return false;
+    },
+    null,
+    { timeout: 15000, polling: 500 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!atClassified) bad('spell: could not reach the classified room for the light scroll');
+const hasLightPickup = await page
+  .waitForFunction(() => typeof window['__sdpPickup:light-scroll'] === 'function', null, {
+    timeout: 8000,
+  })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!hasLightPickup) bad('spell: the light-scroll pickup hook never appeared in classified');
+await page.evaluate(() => window['__sdpPickup:light-scroll']());
+const knowsLight = await page.evaluate(() => {
+  try {
+    return (JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').knownSpells || []).includes(
+      'light',
+    );
+  } catch {
+    return false;
+  }
+});
+if (!knowsLight) bad('spell: pocketing the light scroll did not learn light');
+// Two spells now → two hotbar slots.
+const slotCount = await page.$$eval('.hud-hotbar__slot', (els) => els.length);
+if (slotCount !== 2) bad(`spell: the hotbar should show 2 spell slots, shows ${slotCount}`);
+// A cantrip shows ∞, not pips.
+const hasCantripMark = (await page.$('.hud-hotbar__cantrip')) !== null;
+if (!hasCantripMark) bad('spell: the cantrip (Light) did not show its ∞ marker');
+
+const slotsBeforeLight = await readSlots();
+const ln0 = await page.evaluate(() => window.__sdpLight?.nonce ?? -1);
+await page.evaluate(() => window.__sdpCast('light'));
+const litUp = await page
+  .waitForFunction((prev) => (window.__sdpLight?.nonce ?? -1) > prev, ln0, { timeout: 4000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!litUp) bad('spell: casting Light did not raise the glow (no __sdpLight bump)');
+await page.waitForTimeout(600);
+await page.screenshot({ path: '.shots/spell-light.png' });
+const slotsAfterLight = await readSlots();
+if (slotsAfterLight !== slotsBeforeLight)
+  bad(`spell: Light (a cantrip) spent a slot (${slotsBeforeLight} → ${slotsAfterLight})`);
+
 await ctx.close();
 await browser.close();
 console.log(
   `spell: learned=${learned} hotbar=${!!hotbar} pipsLearned=${pipsLearned} ignited=${ignited} ` +
     `afterCast=${slotsAfter1} empty=${slotsEmpty} dryNoop=${nAfterDry === nBeforeDry} ` +
-    `rested=${slotsRested} | errors=${errors}`,
+    `rested=${slotsRested} | light: learned=${knowsLight} slots=${slotCount} lit=${litUp} ` +
+    `free=${slotsAfterLight === slotsBeforeLight} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

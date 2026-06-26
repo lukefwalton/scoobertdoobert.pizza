@@ -95,6 +95,15 @@ export const ITEMS: Item[] = [
     glyph: '📜',
     teachesSpell: 'fireball',
   },
+  {
+    id: 'light-scroll',
+    kind: 'tome',
+    label: 'Scroll of Light',
+    blurb:
+      'A water-stained index card from the file room. In faint pencil: “for the dark parts. press L”.',
+    glyph: '📜',
+    teachesSpell: 'light',
+  },
 ];
 
 /** The cassette-tape item ids, in find order — the "lost cassettes" collectathon. */

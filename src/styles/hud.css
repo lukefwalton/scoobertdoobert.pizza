@@ -197,6 +197,9 @@
   bottom: 14px;
   right: 14px;
   z-index: 70;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
 }
 .hud-hotbar__slot {
   display: flex;
@@ -236,6 +239,12 @@
 .hud-hotbar__pip.is-lit {
   background: #ff8a3a;
   border-color: #ffb06a;
+}
+/* a cantrip has no slots to spend — show the infinity instead of pips */
+.hud-hotbar__cantrip {
+  font-size: 0.7rem;
+  line-height: 6px;
+  color: #ffd9a6;
 }
 .hud-hotbar__key {
   font-size: 0.62rem;
