@@ -37,6 +37,13 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
         <p className="sb__sub">est. 1996 &middot; still online &middot; the {floor.era} edition</p>
       </header>
 
+      {/* a GeoCities rainbow <hr>, made by our own GIF encoder; decorative (alt=""),
+          with a still frame under reduced motion. */}
+      <picture>
+        <source srcSet="/gifs/rainbow-rule-static.gif" media="(prefers-reduced-motion: reduce)" />
+        <img className="sb__rule" src="/gifs/rainbow-rule.gif" width={168} height={8} alt="" />
+      </picture>
+
       <div className="sb__body">
         <nav className="sb__rail" aria-label="Main menu">
           <p className="sb__rail-h">&raquo; MAIN MENU &laquo;</p>

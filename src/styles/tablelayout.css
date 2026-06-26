@@ -167,6 +167,14 @@
   background: #cdd4dc;
   border: 3px ridge #eef1f5;
 }
+/* the GeoCities rainbow <hr> divider (our own animated GIF) */
+.tl__rule {
+  display: block;
+  width: min(560px, 90vw);
+  height: auto;
+  margin: 18px auto 0;
+  image-rendering: pixelated;
+}
 .tl__construction {
   flex-basis: 100%;
   display: flex;

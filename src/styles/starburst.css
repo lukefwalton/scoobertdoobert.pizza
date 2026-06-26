@@ -4,10 +4,21 @@
 
 .sb {
   min-height: 100vh;
-  background: repeating-linear-gradient(0deg, #1a3acc 0 2px, #1633b8 2px 4px), #1633b8;
+  /* the most GeoCities thing of all: a tiled starfield wallpaper (our own GIF). The
+     dark base means the floor's light text gains contrast over it (WCAG-friendly). */
+  background: #0a1024 url('/gifs/wallpaper.gif') repeat;
   color: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
   padding-bottom: 48px;
+}
+
+/* the GeoCities rainbow <hr> — a real animated GIF divider */
+.sb__rule {
+  display: block;
+  width: min(560px, 90vw);
+  height: auto;
+  margin: 10px auto 2px;
+  image-rendering: pixelated;
 }
 
 /* scrolling marquee */
