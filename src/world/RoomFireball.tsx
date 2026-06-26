@@ -76,6 +76,11 @@ export function RoomFireball({ room }: { room: Room }) {
   const igniteAt = useRef<number>(-1);
   const lastNonce = useRef<number>(castNonce); // don't fire on mount, only on bumps
   const active = useRef<boolean>(false);
+  // The room the burn was cast in — so it can't BLEED through a door: if you cast
+  // then walk out before it dies down, the fire stays in the room you lit, not the
+  // one you arrive in (RoomFireball is mounted once at world scope; this binds an
+  // active burn to its origin room).
+  const igniteRoom = useRef<string>(room.id);
 
   const tex = useMemo(() => makeFlameTexture(), []);
   const flameMat = useMemo(
@@ -156,6 +161,7 @@ export function RoomFireball({ room }: { room: Room }) {
     lastNonce.current = castNonce;
     if (castingSpell !== 'fireball') return;
     igniteAt.current = -1; // "stamp me at the next frame's clock time"
+    igniteRoom.current = room.id; // bind this burn to the room it was cast in
     active.current = true;
     // SFX: a low whoomph + a couple of bright crackles. Mute-aware + no-op
     // pre-gesture (spellcast already called audio.unlock on the cast gesture).
@@ -174,13 +180,20 @@ export function RoomFireball({ room }: { room: Room }) {
     const t = (now - igniteAt.current) / (BURN_MS / 1000);
     const env = envelope(t);
 
-    if (t >= 1) {
-      // burn done — zero everything out and go idle
+    // Done when the burn finishes OR you've left the room you cast it in (no
+    // bleed through a door). Either way: zero everything out and go idle.
+    const leftRoom = room.id !== igniteRoom.current;
+    if (t >= 1 || leftRoom) {
       active.current = false;
       if (light.current) light.current.intensity = 0;
       flameMat.opacity = 0;
       emberMat.opacity = 0;
-      exposeTestGlobal('__sdpFireball', { nonce: castNonce, room: room.id, done: true });
+      exposeTestGlobal('__sdpFireball', {
+        nonce: castNonce,
+        room: igniteRoom.current,
+        done: true,
+        aborted: leftRoom,
+      });
       return;
     }
 
