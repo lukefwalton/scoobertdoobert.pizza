@@ -137,4 +137,11 @@ describe('gif89a: file structure', () => {
       encodeGif({ width: 2, height: 2, palette, frames: [{ indices: [0, 1, 2] }] }),
     ).toThrow();
   });
+
+  it('rejects a palette index past the table (fail fast on a bad asset)', () => {
+    // palette has 4 colors → indices 0..3 valid; 4 references a non-existent color.
+    expect(() =>
+      encodeGif({ width: 2, height: 2, palette, frames: [{ indices: [0, 1, 2, 4] }] }),
+    ).toThrow(/out of range/);
+  });
 });

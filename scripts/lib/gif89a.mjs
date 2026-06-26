@@ -208,6 +208,15 @@ export function encodeGif({ width, height, palette, frames, loop = 0 }) {
     if (f.indices.length !== width * height) {
       throw new Error(`frame has ${f.indices.length} indices, expected ${width * height}`);
     }
+    // Fail fast on a bad palette index — a future asset bug is far easier to read
+    // here than as a mysteriously corrupt GIF (an index past the table decodes to
+    // garbage/black in a real viewer).
+    for (let i = 0; i < f.indices.length; i++) {
+      const v = f.indices[i];
+      if (!Number.isInteger(v) || v < 0 || v >= palette.length) {
+        throw new Error(`frame index ${v} at ${i} out of range 0..${palette.length - 1}`);
+      }
+    }
     // Graphic Control Extension (per-frame delay; disposal=1, no transparency).
     u8(0x21, 0xf9, 0x04, 0x04);
     u16(f.delay ?? 10);
