@@ -8,7 +8,16 @@ import { mkdirSync } from 'node:fs';
 import { watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
-const GAMES = ['pizza-run', 'poke', 'chimes', 'cultures'];
+// Fallback only — the smoke prefers the live __sdpArcadeIds the app exposes.
+const GAMES = [
+  'pizza-run',
+  'crusteroids',
+  'slice-breaker',
+  'jazz-snake',
+  'poke',
+  'chimes',
+  'cultures',
+];
 mkdirSync('.shots', { recursive: true });
 
 const browser = await chromium.launch();
@@ -80,8 +89,11 @@ if (prompted) {
   );
   if (!opened) fail('pressing E did not open the arcade game modal');
   const rolled = await page.evaluate(() => window.__sdpArcade);
-  rolledOk = GAMES.includes(rolled);
-  if (!rolledOk) fail(`rolled game was not a known game id: ${rolled}`);
+  // Validate against the LIVE registry the app exposes (so adding a cabinet never
+  // breaks this smoke); fall back to the static list if the global is missing.
+  const validIds = (await page.evaluate(() => window.__sdpArcadeIds)) || GAMES;
+  rolledOk = validIds.includes(rolled);
+  if (!rolledOk) fail(`rolled game "${rolled}" not in the live registry [${validIds.join(', ')}]`);
   await page.screenshot({ path: '.shots/cabinet-playable.png' });
 
   // Esc closes it.

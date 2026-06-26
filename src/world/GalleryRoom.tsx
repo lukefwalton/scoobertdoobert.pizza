@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
+import { GreekLyre } from './GreekLyre';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
 
@@ -93,6 +94,11 @@ export function GalleryRoom({ room }: { room: Room }) {
       <mesh material={plinthMat} position={[0, 0.25, -3.5]}>
         <boxGeometry args={[2.2, 0.5, 2.2]} />
       </mesh>
+
+      {/* the pluckable lyre — the "play it" rung, set among the statuary (it mirrors
+          the broken statue across the nave). Faces the entrance so you find it on
+          the way in; click its strings to play. */}
+      <GreekLyre position={[2.8, 0, 2.5]} rotationY={0.2} />
     </group>
   );
 }

@@ -100,8 +100,11 @@ export function Terminal() {
       ]);
       if (res.action?.type === 'close') window.setTimeout(() => setOpen(false), 250);
       if (res.action?.type === 'navigate') {
-        const href = res.action.href;
-        window.setTimeout(() => window.location.assign(href), 300);
+        const { href, external } = res.action;
+        // External destinations (Spotify/YouTube/LMM) open in a new tab so the
+        // terminal session isn't yanked off the site; internal routes navigate here.
+        if (external) window.open(href, '_blank', 'noopener,noreferrer');
+        else window.setTimeout(() => window.location.assign(href), 300);
       }
     },
     [history],

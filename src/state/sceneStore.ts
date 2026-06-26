@@ -66,10 +66,10 @@ type SceneState = {
     albumSlug?: string;
     requiresKey?: string;
   } | null;
-  /** the album-room TV the camera is standing in front of (its albumSlug), or null —
-   *  drives the "Press E to switch on the TV" prompt + the E action (openTv). The TV
-   *  is also clickable; this is the keyboard/proximity path, like doors/hotspots. */
-  nearTv: string | null;
+  /** the room TV the camera is standing in front of (its already-resolved clip), or
+   *  null — drives the "Press E to switch on the TV" prompt + the E action (openTv).
+   *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
+  nearTv: TvVideo | null;
   /** the camera is standing in front of an arcade CABINET — drives its "Press E to
    *  play" prompt + the E action (launchRandomArcade). Boolean, not an id: at most
    *  one cabinet per room. Cleared when the cabinet unmounts (you leave the room). */
@@ -102,6 +102,9 @@ type SceneState = {
   /** A cabinet was fired up: which game's modal is open (a random roll), or null.
    *  Same modal grammar as tvVideo — the far side of a cabinet is a real minigame. */
   arcadeGame: ArcadeGameId | null;
+  /** The lyric reader (pause-menu "read the words") is open on this jukebox slug,
+   *  or null. Same modal grammar as tvVideo — Esc closes it before the pause menu. */
+  lyricsSong: string | null;
   /** the rat has knocked the panel: the hidden classified door is now real. */
   secretRevealed: boolean;
   /** How many times you've looped the Möbius corridor this visit. Drives the
@@ -111,6 +114,12 @@ type SceneState = {
    *  room AND spawn id are unchanged — which is exactly the Möbius loop (re-enter
    *  the same room at the same spawn). Controls + MobiusRoom key off it. */
   roomNonce: number;
+  /** A spell was cast: the spell id + a bumping nonce, so the world's RoomFireball
+   *  fires a one-shot effect each time (the same pulse grammar as cheerNonce /
+   *  finaleNonce). Transient/ephemeral — the slot economy lives in progressStore;
+   *  this is just the visual trigger. */
+  castingSpell: string | null;
+  castNonce: number;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -131,6 +140,9 @@ type SceneState = {
   /** Fire up a cabinet (open its rolled game's modal) / close it. */
   openArcade: (id: ArcadeGameId) => void;
   closeArcade: () => void;
+  /** Open the lyric reader on a jukebox slug / close it. */
+  openLyrics: (slug: string) => void;
+  closeLyrics: () => void;
   setNearArcade: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
@@ -160,7 +172,7 @@ type SceneState = {
       requiresKey?: string;
     } | null,
   ) => void;
-  setNearTv: (albumSlug: string | null) => void;
+  setNearTv: (video: TvVideo | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
@@ -176,6 +188,9 @@ type SceneState = {
   loopMobius: () => void;
   /** Arrived fresh into the corridor (not via the loop) — reset the lap count. */
   resetMobius: () => void;
+  /** Fire a spell's world effect (RoomFireball watches castNonce). Pure visual
+   *  trigger — lib/spellcast already spent the slot + announced. */
+  triggerCastFx: (spellId: string) => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -204,10 +219,13 @@ export const useSceneStore = create<SceneState>((set) => ({
   divingTo: null,
   tvVideo: null,
   arcadeGame: null,
+  lyricsSong: null,
   nearArcade: false,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
+  castingSpell: null,
+  castNonce: 0,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
@@ -241,6 +259,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       arcadeGame: null,
+      lyricsSong: null,
     });
   },
   // Leaving the world drops you back at the storefront (floor 0), not the
@@ -261,6 +280,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       arcadeGame: null,
+      lyricsSong: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -280,6 +300,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeTv: () => set({ tvVideo: null }),
   openArcade: (id) => set({ arcadeGame: id }),
   closeArcade: () => set({ arcadeGame: null }),
+  openLyrics: (slug) => set({ lyricsSong: slug }),
+  closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near) => set({ nearArcade: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
@@ -354,7 +376,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
-  setNearTv: (albumSlug) => set({ nearTv: albumSlug }),
+  setNearTv: (video) => set({ nearTv: video }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
   triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),
@@ -365,4 +387,5 @@ export const useSceneStore = create<SceneState>((set) => ({
   revealSecret: () => set((s) => (s.secretRevealed ? {} : { secretRevealed: true })),
   loopMobius: () => set((s) => ({ mobiusLoops: s.mobiusLoops + 1 })),
   resetMobius: () => set((s) => (s.mobiusLoops === 0 ? {} : { mobiusLoops: 0 })),
+  triggerCastFx: (spellId) => set((s) => ({ castingSpell: spellId, castNonce: s.castNonce + 1 })),
 }));

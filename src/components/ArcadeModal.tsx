@@ -7,6 +7,9 @@ import { RunnerGame } from './RunnerGame';
 import { FaceStretch } from './FaceStretch';
 import { ChimesCabinet } from './ChimesCabinet';
 import { CulturesCabinet } from './CulturesCabinet';
+import { Crusteroids } from './Crusteroids';
+import { SliceBreaker } from './SliceBreaker';
+import { JazzSnake } from './JazzSnake';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -19,6 +22,9 @@ import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 // ───────────────────────────────────────────────────────────────────────────
 const GAME: Record<ArcadeGameId, ComponentType> = {
   'pizza-run': RunnerGame,
+  crusteroids: Crusteroids,
+  'slice-breaker': SliceBreaker,
+  'jazz-snake': JazzSnake,
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,

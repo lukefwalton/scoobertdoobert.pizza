@@ -71,9 +71,10 @@ export default function Arcade() {
         device.
       </p>
       <p className="arcade-foot">
-        &#9654; More cabinets: <a href="/poke">POKE SCOOBERT</a> &middot;{' '}
-        <a href="/chimes">PENDULUM CHIMES</a> &mdash; tap to ring the bells &middot;{' '}
-        <a href="/cultures">CULTURES</a> &mdash; stir the colony till it sings.
+        &#9654; More cabinets: <a href="/crusteroids">CRUSTEROIDS</a> &middot;{' '}
+        <a href="/slice-breaker">SLICE BREAKER</a> &middot; <a href="/jazz-snake">JAZZ SNAKE</a>{' '}
+        &middot; <a href="/poke">POKE SCOOBERT</a> &middot; <a href="/chimes">PENDULUM CHIMES</a>{' '}
+        &middot; <a href="/cultures">CULTURES</a>
       </p>
       <p className="arcade-foot arcade-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation

@@ -182,6 +182,57 @@
   background: #c43226;
 }
 
+/* ── Touch control pad (Crusteroids ◀▶▲◉, Jazz Snake dpad) — the buttons a
+   keyboard-less phone needs. Keyboard play uses arrows; these mirror them. ── */
+.arcade-pad {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  justify-content: center;
+  align-items: center;
+}
+.arcade-padbtn {
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 12px 0;
+  font:
+    bold 16px 'Courier New',
+    monospace;
+  color: #2a0606;
+  background: #e2a13b;
+  border: 4px outset #f2c476;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.arcade-padbtn:active {
+  border-style: inset;
+  background: #c4862a;
+}
+.arcade-padbtn--fire {
+  background: #e23b2e;
+  border-color: #f2766b;
+  color: #2a0606;
+}
+.arcade-padbtn--fire:active {
+  background: #c43226;
+}
+/* Jazz Snake's dpad stacks an up button over a left/down/right row. */
+.arcade-pad--dpad {
+  flex-direction: column;
+  gap: 5px;
+}
+.arcade-pad--dpad .arcade-padbtn {
+  flex: 0 0 auto;
+  width: 64px;
+}
+.arcade-pad__row {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
 .arcade-coinslot {
   margin: 0;
   text-align: center;

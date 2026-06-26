@@ -91,9 +91,11 @@ export function DreadConductor() {
           dwell = Math.max(0, dwell - DREAD.decayRatePerSec * dt);
         }
 
-        // Ease toward the zone's resting value (+dwell) from EITHER side. Decay
-        // out-paces dwell, so heading shallower / to the surface always calms it.
-        const target = Math.min(1, base + dwell);
+        // Ease toward the zone's resting value (+dwell, −spell relief) from EITHER
+        // side. Decay out-paces dwell, so heading shallower / to the surface always
+        // calms it; a Fireball/Light cast subtracts `relief` to briefly lift the
+        // dark, and that relief bleeds off below (so the dread creeps back).
+        const target = Math.max(0, Math.min(1, base + dwell) - dread.relief);
         if (u < target) u = Math.min(target, u + DREAD.riseRatePerSec * dt);
         else if (u > target) u = Math.max(target, u - DREAD.decayRatePerSec * dt);
 
@@ -107,6 +109,13 @@ export function DreadConductor() {
           lastRecorded = u;
           useProgressStore.getState().recordUnease(u);
         }
+      }
+
+      // Bleed off any active spell relief so the dark a cast pushed back creeps
+      // back over a few seconds. Runs regardless of the debug override.
+      if (dread.relief > 0) {
+        const nextRelief = Math.max(0, dread.relief - DREAD.reliefDecayPerSec * dt);
+        if (nextRelief !== dread.relief) dread.setRelief(nextRelief);
       }
 
       u = Math.min(1, Math.max(0, u));
