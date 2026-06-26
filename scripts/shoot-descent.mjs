@@ -93,7 +93,14 @@ if (exitToFloor0) {
 await ctx.close();
 
 // ── mobile / low-power handoff ─────────────────────────────────────────────
-const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+// A faithful phone: mobile viewport + TOUCH, so pointer:coarse matches — the
+// desktop-invite gag now requires a coarse pointer (so a narrow mouse-driven
+// desktop window doesn't get told to "try desktop").
+const mctx = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  isMobile: true,
+  hasTouch: true,
+});
 const mp = await mctx.newPage();
 mp.on('pageerror', (e) => fail(`mobile pageerror: ${e.message}`));
 await mp.goto(base + '/', { waitUntil: 'networkidle' });
@@ -109,6 +116,8 @@ const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.lengt
 // /text (never a dead end), so: gag appears → its text-only link → /text.
 await mp.click('.mr__install');
 let mobileGag = false;
+let gagEscapes = false;
+let focusReturned = false;
 let mobileToText = false;
 try {
   await mp.waitForSelector('.mr__gag', { timeout: 6000 });
@@ -117,6 +126,22 @@ try {
   fail('mobile install did not show the desktop-invite gag');
 }
 if (mobileGag) {
+  // a11y: Escape closes the modal AND returns focus to the Install button (the
+  // focus-trap/restore logic is JS, so without this it could regress unseen).
+  await mp.keyboard.press('Escape');
+  gagEscapes = await mp.waitForSelector('.mr__gag', { state: 'detached', timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!gagEscapes) fail('Escape did not close the gag');
+  focusReturned = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__install') ?? false,
+  );
+  if (!focusReturned) fail('focus did not return to the Install button after the gag closed');
+
+  // Re-open and take the real exit: the gag must still lead onward to /text.
+  await mp.click('.mr__install');
+  await mp.waitForSelector('.mr__gag', { timeout: 3000 }).catch(() => fail('gag did not re-open'));
   await mp.getByRole('link', { name: /text-only version/i }).click();
   try {
     await mp.waitForURL('**/text', { timeout: 6000 });
@@ -131,6 +156,6 @@ await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} esc=${gagEscapes} focus=${focusReturned} install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
