@@ -67,15 +67,31 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             {floor.copy && <p className="sb__copy">{floor.copy}</p>}
           </div>
 
-          <p className="sb__construction">
-            <span className="sb__cone" aria-hidden="true">
-              &#9888;
-            </span>{' '}
-            This site is under <b>eternal</b> construction.{' '}
+          <p className="sb__sparkles" aria-hidden="true">
+            <span>★</span>
+            <span>✦</span>
+            <span>✧</span>
+            <span>★</span>
+            <span>✦</span>
+            <span>✧</span>
+            <span>★</span>
+          </p>
+
+          <div
+            className="sb__construction"
+            role="img"
+            aria-label="This site is under eternal construction"
+          >
             <span className="sb__cone" aria-hidden="true">
               &#9888;
             </span>
-          </p>
+            <span className="sb__cc-plate">UNDER&nbsp;ETERNAL&nbsp;CONSTRUCTION</span>
+            <span className="sb__cone" aria-hidden="true">
+              &#9888;
+            </span>
+          </div>
+
+          <div className="sb__dancer" role="img" aria-label="A dancing slice of pizza" />
 
           <div className="sb__doors">
             <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
