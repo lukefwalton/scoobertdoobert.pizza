@@ -127,7 +127,10 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
               <span aria-hidden="true">&#9997;</span> Sign My Guestbook!
             </a>
             <picture className="sb__newblink">
-              <source srcSet="/gifs/new-badge-static.gif" media="(prefers-reduced-motion: reduce)" />
+              <source
+                srcSet="/gifs/new-badge-static.gif"
+                media="(prefers-reduced-motion: reduce)"
+              />
               <img src="/gifs/new-badge.gif" width={56} height={22} alt="New!" />
             </picture>
           </div>
