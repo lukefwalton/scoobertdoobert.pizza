@@ -209,9 +209,13 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // Stricter gate (isDebugEntrance), like __sdpGoToRoom / the force-lose hooks.
   useEffect(() => {
     if (!isDebugEntrance()) return;
-    exposeTestGlobal('__sdpRollDice', (face: number) =>
-      rollTo(face, face === 20 ? 'nat20' : face === 1 ? 'nat1' : null),
-    );
+    exposeTestGlobal('__sdpRollDice', (face: number) => {
+      // Untrusted entry point: a real d20 face is an integer 1..20. Reject anything
+      // else so a malformed debug call can't index an impossible track (e.g.
+      // tracks[-1].slug throws) or unlock/mutate music state off a junk "roll".
+      if (!Number.isInteger(face) || face < 1 || face > 20) return;
+      rollTo(face, face === 20 ? 'nat20' : face === 1 ? 'nat1' : null);
+    });
     return () => exposeTestGlobal('__sdpRollDice', undefined);
     // mount-once: rollTo closes over the room-stable `tracks` + stable setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -379,6 +379,9 @@ export function PizzaRadar() {
             if (!d || !d.moved) fire(); // a tap fires / starts
           }}
           onPointerCancel={() => (drag.current = null)} // a stolen gesture doesn't strand a drag
+          // belt-and-suspenders: if capture ends without a normal up/cancel (some
+          // browser-cancel paths), still clear the drag so it can't strand.
+          onLostPointerCapture={() => (drag.current = null)}
         />
         {phase === 'ready' && (
           <div className="arcade-overlay">
