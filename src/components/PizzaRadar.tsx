@@ -317,6 +317,18 @@ export function PizzaRadar() {
     return () => exposeTestGlobal('__sdpRadarForceLose', undefined);
   }, []);
 
+  // Test hook (READ-ONLY): report the held-movement flags so a smoke can verify the
+  // touch pad's hold behavior (press ◀/▶ → flag true; release → false) directly,
+  // instead of timing turret drift against the RAF loop. Read-only, so it rides the
+  // normal ?world/?debug test entrance (not the stricter ?debug-only action gate).
+  useEffect(() => {
+    exposeTestGlobal('__sdpRadarState', () => ({
+      moveL: game.current.moveL,
+      moveR: game.current.moveR,
+    }));
+    return () => exposeTestGlobal('__sdpRadarState', undefined);
+  }, []);
+
   // drag the turret along the canvas; a tap (no drag) fires.
   const drag = useRef<{ x: number; moved: boolean } | null>(null);
   const press = (clientX: number, rectLeft: number, rectW: number) => {
