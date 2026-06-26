@@ -31,3 +31,11 @@ export const useToastStore = create<ToastState>((set) => ({
 /** Non-React announce (for callers outside components — same single-toast slot). */
 export const announce = (msg: string, kind: ToastKind = 'info'): void =>
   useToastStore.getState().announce(msg, kind);
+
+/** How long a toast stays up, scaled to READING TIME so a long message (the spell-
+ *  learn line, the finale) lingers while a short "NAT 20!" keeps the snappy beat:
+ *  ~55ms/char over a base, FLOORED at 2800ms (no regression for short ones) and
+ *  CAPPED at 9000ms (never hangs). Pure + unit-tested; WorldHud drives the timer. */
+export function toastDurationMs(msg: string): number {
+  return Math.min(9000, Math.max(2800, 1800 + msg.length * 55));
+}

@@ -171,6 +171,14 @@ export function ItemPickup({
         gl.domElement.style.cursor = 'grab';
       }}
     >
+      {/* a generous INVISIBLE hit target so the thinner silhouettes (the key, the
+          scroll) stay as easy to click as the old box — the visible art sits on top.
+          A real (visible-to-the-raycaster) mesh at opacity 0, so it catches the
+          click/hover but draws nothing and never occludes. */}
+      <mesh>
+        <boxGeometry args={[0.46, 0.52, 0.46]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
       {art.node}
     </group>
   );
