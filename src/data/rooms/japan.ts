@@ -230,6 +230,13 @@ export const JAPAN_ROOMS: Room[] = [
     id: 'metro-tunnel',
     kind: 'metro',
     title: 'Metro Tunnel',
+    // The Japan song finds its home at the end of the Seikan line: you followed the
+    // tracks down to where the line goes UNDER the sea to Japan, so this is where
+    // "Gonna Go To Japan" plays — hidden on the jukebox dial until you reach it, and
+    // (being a deep room) curdling with depth, the music ladder's "hear it, then hear
+    // it haunted." The sweet shrine up top is the furin breather; the song is the
+    // deep beat. (Discovery is derived from Room.song — no second list to edit.)
+    song: 'gonna-go-to-japan',
     // Deeper than the sweet shrine breather: the country tracks run underground
     // into an abandoned transit tunnel — a real (wide-permission) GLB level,
     // crunched (46 MB → 1.4 MB) + lazy-loaded behind the loader minigame, like
