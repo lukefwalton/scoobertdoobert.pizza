@@ -67,8 +67,11 @@ export function ItemPickup({
       const spell = spellById(item.teachesSpell);
       audio.playChime(noteToFreq('C', 6), 0, 0.12, 0.7);
       audio.playChime(noteToFreq('G', 6), 0, 0.12, 0.9);
+      // Drive the cast-key hint off the spell's own metadata so a new spell can't
+      // desync the onboarding copy (Fireball = F, Light = L).
+      const key = spell?.key.toUpperCase() ?? '?';
       announce(
-        `${spell?.glyph ?? '✨'} You learned ${spell?.name ?? 'a spell'}! Press F to cast.`,
+        `${spell?.glyph ?? '✨'} You learned ${spell?.name ?? 'a spell'}! Press ${key} to cast.`,
         'crit-good',
       );
     } else if (item?.track) {

@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react';
+import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
@@ -117,7 +117,13 @@ function CasePlacard({
     });
   const titleMat = useMemo(() => glow(titleTex), [titleTex]);
   const statusMat = useMemo(() => glow(statusTex), [statusTex]);
-  useMemo(() => () => [titleTex, statusTex].forEach((t) => t.dispose()), [titleTex, statusTex]);
+  // Dispose the generated textures AND the materials on unmount — a useEffect
+  // cleanup actually runs (a useMemo factory only memoizes, never cleans up), so
+  // revisiting the file room doesn't leak a canvas texture + material each time.
+  useEffect(
+    () => () => [titleTex, statusTex, card, titleMat, statusMat].forEach((o) => o.dispose()),
+    [titleTex, statusTex, card, titleMat, statusMat],
+  );
   return (
     <group position={[x, 1.06, -2.3]} rotation-y={tilt}>
       <mesh material={card}>
@@ -154,7 +160,15 @@ function Cabinet({ x, z, ry, label }: { x: number; z: number; ry: number; label?
         : null,
     [labelTex],
   );
-  useMemo(() => () => labelTex?.dispose(), [labelTex]);
+  // Real unmount cleanup (not a memoized no-op): drop the label texture + its
+  // material when a cabinet leaves the scene.
+  useEffect(
+    () => () => {
+      labelTex?.dispose();
+      labelMat?.dispose();
+    },
+    [labelTex, labelMat],
+  );
   return (
     <group position={[x, 0, z]} rotation-y={ry}>
       <mesh material={bodyMat} position={[0, 1.05, 0]}>
