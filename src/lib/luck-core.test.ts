@@ -40,6 +40,15 @@ describe('luck-core: rollLuckyD20 (pure, seedable)', () => {
     expect(r.luckSpent).toBe(LUCK_PER_ADVANTAGE);
   });
 
+  it('under advantage the crit reads the KEPT face, not the discarded first die', () => {
+    // First die rolls a 1 (a nat 1 if it stood), second rolls 13; advantage keeps 13,
+    // so the crit must be null — the thrown-away first die does NOT crit-fail the roll.
+    const r = rollLuckyD20(1, seq(0, 0.6));
+    expect(r.face).toBe(13);
+    expect(r.crit).toBeNull();
+    expect(r.luckSpent).toBe(1);
+  });
+
   it('every face lands in 1..20', () => {
     for (let i = 0; i < 200; i++) {
       const r = rollLuckyD20(i % 2, Math.random);
