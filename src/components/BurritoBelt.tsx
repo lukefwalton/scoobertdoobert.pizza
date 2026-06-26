@@ -465,7 +465,8 @@ export function BurritoBelt() {
           </div>
         )}
       </div>
-      {/* ◀ ↻ ▼ ▶ — move / rotate / soft-drop for thumbs (space = hard drop) */}
+      {/* ◀ ↻ ▼ ⤓ ▶ — left / rotate / soft-drop (hold) / hard-drop / right.
+          Soft-drop mirrors the held ↓ key; hard-drop mirrors space. */}
       <div className="arcade-pad">
         <button
           type="button"
@@ -489,6 +490,23 @@ export function BurritoBelt() {
         >
           ↻
         </button>
+        {/* Soft-drop is a HOLD: speed the fall while pressed, like the held ↓ key.
+            Clear it on up/leave/cancel so a finger sliding off doesn't stick it on
+            (mirrors the keyboard blur guard). */}
+        <button
+          type="button"
+          className="arcade-padbtn"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            game.current.softDrop = true;
+          }}
+          onPointerUp={() => (game.current.softDrop = false)}
+          onPointerLeave={() => (game.current.softDrop = false)}
+          onPointerCancel={() => (game.current.softDrop = false)}
+          aria-label="soft drop"
+        >
+          ▼
+        </button>
         <button
           type="button"
           className="arcade-padbtn"
@@ -496,9 +514,9 @@ export function BurritoBelt() {
             e.preventDefault();
             hardDrop();
           }}
-          aria-label="drop"
+          aria-label="hard drop"
         >
-          ▼
+          ⤓
         </button>
         <button
           type="button"
