@@ -14,6 +14,8 @@ describe('spells', () => {
       expect(s.glyph.length).toBeGreaterThan(0);
       expect(s.slotCost).toBeGreaterThanOrEqual(0);
       expect(s.slotCost).toBeLessThanOrEqual(SPELL_SLOTS_MAX);
+      expect(s.relief).toBeGreaterThanOrEqual(0); // dread push-back is a 0..1 fraction
+      expect(s.relief).toBeLessThanOrEqual(1);
     }
   });
 

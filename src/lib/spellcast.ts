@@ -11,8 +11,10 @@
 
 import { useProgressStore, selectSpellSlots } from '../state/progressStore';
 import { useSceneStore } from '../state/sceneStore';
+import { useDreadStore } from '../state/dreadStore';
 import { announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
+import { exposeTestGlobal } from './testHooks';
 import { SPELLS, spellById, isCantrip, type Spell } from '../data/spells';
 
 /** The spells you've learned, in book order — drives the HUD hotbar row. */
@@ -35,6 +37,10 @@ export function castSpell(id: string): boolean {
   if (spell.slotCost > 0) prog.spendSpellSlot(spell.slotCost); // cantrips never touch the pool
   audio.unlock(); // we're on a user gesture (key / click), so this is allowed
   useSceneStore.getState().triggerCastFx(spell.id); // RoomFireball / RoomLight watch the nonce
+  // Push back the dark: the cast eases the room's dread for a few seconds (the
+  // conductor subtracts + bleeds off this relief). Capped, so the depths stay eerie.
+  useDreadStore.getState().addRelief(spell.relief);
+  exposeTestGlobal('__sdpRelief', useDreadStore.getState().relief); // re-read: set once per cast
   announce(`${spell.glyph} ${spell.name}!`, 'crit-good');
   return true;
 }

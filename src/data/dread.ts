@@ -27,6 +27,12 @@ export type DreadConfig = {
   /** Safe zones pull unease DOWN, per second — must out-pace dwell so a climb
    *  back toward the surface always calms you within a few beats. */
   decayRatePerSec: number;
+  /** SPELL RELIEF — casting a light/fire spell briefly pushes back the dark: it
+   *  subtracts from the unease target, then bleeds off so the dread creeps back.
+   *  reliefMax caps it (the depths stay eerie — relief is partial, never a switch);
+   *  reliefDecayPerSec is how fast the warmth fades. */
+  reliefMax: number;
+  reliefDecayPerSec: number;
   /** One-shot event deltas. Some are declared-dormant until their source ships
    *  (the terminal in Phase 4, the Möbius loop in Phase 6) — see DESIGN. */
   triggers: Record<string, number>;
@@ -67,6 +73,8 @@ export const DREAD: DreadConfig = {
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
   riseRatePerSec: 0.32, // entering a tense room ramps to its base in ~1–2s
   decayRatePerSec: 0.16, // safe zones calm faster than dwell raises
+  reliefMax: 0.45, // a cast can ease at most ~half the dark — the depths stay eerie
+  reliefDecayPerSec: 0.07, // the warmth fades over ~5–6s, then the dread creeps back
   triggers: {
     'enter-classified': 0.12, // a jolt on first slipping into the file room
     // dormant until their source exists (declared so they light up for free):

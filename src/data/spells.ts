@@ -35,6 +35,9 @@ export type Spell = {
   /** Shared spell slots one cast burns. 0 = a CANTRIP (D&D): free + unlimited, it
    *  never touches the pool. Fireball = 1 (a real spell); Light = 0 (a cantrip). */
   slotCost: number;
+  /** How much DREAD this cast pushes back (0..1, capped by DREAD.reliefMax): the
+   *  warmth/light briefly eases the dark in the depths, then it creeps back. */
+  relief: number;
   /** The item id whose pickup TEACHES this spell (items.ts) — how you earn it. */
   learnedFromItem: string;
   /** One-line storefront-voice blurb for the learn toast + the pause-menu grimoire. */
@@ -57,6 +60,7 @@ export const SPELLS: Spell[] = [
     glyph: '🔥',
     key: 'f',
     slotCost: 1,
+    relief: 0.4, // a big burst of warmth — the dark recoils hard for a beat
     learnedFromItem: 'fireball-scroll',
     blurb: 'A bead of flame blooms and the whole room catches. Warmth, for once, in the dark.',
   },
@@ -67,6 +71,7 @@ export const SPELLS: Spell[] = [
     glyph: '🕯️',
     key: 'l',
     slotCost: 0, // a cantrip — free + unlimited, so you can always push back the dark
+    relief: 0.3, // a steadier, gentler easing of the dark (it's free, so a bit less)
     learnedFromItem: 'light-scroll',
     blurb:
       'A mote of soft light lifts and the room remembers its corners. No slot — cast it freely.',
