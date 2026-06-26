@@ -60,6 +60,20 @@ for (const g of GAMES) {
     await ctx.close();
   }
 
+  // --- 1b. NORMAL session (JS on, NO ?debug): the ?debug-only force-lose hook must
+  //     be ABSENT at the real call site, not just no-op'd in the helper. ---
+  if (g.loseHook) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(`${base}/${g.slug}`, { waitUntil: 'networkidle' });
+    await page.waitForSelector('.arcade-canvas', { timeout: 12000 }).catch(() => {});
+    const leaked = await page.evaluate((h) => typeof window[h] === 'function', g.loseHook);
+    if (leaked)
+      bad(`${g.slug}: the ${g.loseHook} debug hook is exposed on a NORMAL (no-?debug) route`);
+    console.log(`${g.slug} no-dbg -> hookAbsent=${!leaked}`);
+    await ctx.close();
+  }
+
   // --- 2. JS ON: mounts, starts, no errors, per-game high score persists ---
   {
     const ctx = await browser.newContext({
