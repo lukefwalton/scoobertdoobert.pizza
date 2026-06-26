@@ -3,6 +3,7 @@ import { Leva } from 'leva';
 import { useMounted } from '../lib/useMounted';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
+import { PerceptionWhisper } from './PerceptionWhisper';
 import { DreadVignette } from './DreadVignette';
 import { LevelLoader } from './LevelLoader';
 import '../styles/world.css';
@@ -46,6 +47,7 @@ export function WorldMount() {
           <LevelLoader />
           <DreadVignette />
           <WorldHud />
+          <PerceptionWhisper />
           <button
             type="button"
             className="hud-menu-btn"
