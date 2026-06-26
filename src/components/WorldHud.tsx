@@ -222,13 +222,29 @@ export function WorldHud() {
     return () => exposeTestGlobal('__sdpCast', undefined);
   }, []);
 
-  // Auto-dismiss the announce toast after a beat (a gentle, non-flashing fade —
-  // the CSS handles the visual; WCAG-safe, no strobe).
+  // Auto-dismiss the announce toast after a READING-TIME-aware beat: long messages
+  // (the spell-learn line, the finale) linger so they can actually be read, while a
+  // short "NAT 20!" keeps the snappy ~2.8s. ~55ms/char over a base, floored so short
+  // ones don't regress and capped so nothing hangs. (Gentle fade via CSS; WCAG-safe,
+  // no strobe — and longer-on-screen is strictly friendlier for slow readers.)
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => clearToast(), 2800);
+    const ms = Math.min(9000, Math.max(2800, 1800 + toast.msg.length * 55));
+    const t = window.setTimeout(() => clearToast(), ms);
     return () => window.clearTimeout(t);
   }, [toast, clearToast]);
+
+  // Duck the RADIO (the user's music) while a SOUND-MAKER overlay is up — an arcade
+  // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
+  // music video, or the call-and-response rhythm game — so their audio doesn't fight
+  // the music. Restores the moment it closes; composes with music-room ducking.
+  const soundMakerActive = !!arcadeGame || !!tvVideo || rhythmActive;
+  useEffect(() => {
+    audio.suppressMusic(soundMakerActive);
+  }, [soundMakerActive]);
+  // Belt-and-suspenders: if the HUD unmounts (leaving the world) mid-sound-maker,
+  // lift the duck so the storefront/loop isn't left silenced.
+  useEffect(() => () => audio.suppressMusic(false), []);
 
   // Announce an objective the moment it ticks done (the Feedback pillar). Seed the
   // "already done" set on first run so re-entering the world doesn't replay old
