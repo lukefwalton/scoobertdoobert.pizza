@@ -38,6 +38,21 @@ await page.click('#order-form button[type="submit"]');
 const on1999 = await floor(page, 'y1999');
 await page.screenshot({ path: '.shots/descent-1999.png' });
 
+// The 1999 "Sign My Guestbook!" CTA must be a REAL anchor → the contact
+// destination (a mailto:), never the '#' placeholder or the TEXT_ONLY_PATH
+// ('/text') fallback. This guards the constitution's "real anchor, never #"
+// rule AND proves destById('contact') resolved rather than the ?? fallback firing.
+const guestbookOk = await page
+  .evaluate(() => {
+    const a = document.querySelector('.sb__gbook');
+    if (!(a instanceof HTMLAnchorElement)) return false;
+    const href = a.getAttribute('href') || '';
+    return href.startsWith('mailto:') && href !== '/text'; // contact is a mailto
+  })
+  .catch(() => false);
+if (!guestbookOk)
+  fail('the 1999 "Sign My Guestbook!" CTA is not a real contact anchor (fell back to # or /text?)');
+
 // Deeper via the era-floor doors.
 await page.click('.floor-door--down');
 const on2000 = await floor(page, 'y2000');
@@ -210,10 +225,44 @@ try {
 if (!narrowToText) fail('the gag leaked into a narrow fine-pointer (desktop) window');
 await nctx.close();
 
+// ── reduced-motion: the NEW! blinky must serve its STATIC twin ──────────────────
+// The <picture> swap IS the accessibility accommodation for our animated GIFs (a
+// GIF can't be CSS-paused), so prove the media query actually selects the still —
+// not just that both files exist (shoot:gifs covers existence). Reach the 1999
+// floor via the plain door (works regardless of low-power), confirm the animated
+// frame loads under normal motion, then emulate reduced motion and assert the
+// badge's currentSrc flips to the *-static twin.
+const rctx = await browser.newContext({ viewport: { width: 1100, height: 850 } });
+const rp = await rctx.newPage();
+rp.on('pageerror', (e) => fail(`reduced-motion pageerror: ${e.message}`));
+await rp.goto(base + '/', { waitUntil: 'networkidle' });
+await rp.click('.floor-door--plain');
+await floor(rp, 'y1999');
+const blinkySrc = () =>
+  rp.evaluate(() => document.querySelector('.sb__newblink img')?.currentSrc || '').catch(() => '');
+const rmAnimated = (await blinkySrc()).endsWith('/gifs/new-badge.gif');
+if (!rmAnimated) fail('the NEW! blinky did not load its animated frame under normal motion');
+await rp.emulateMedia({ reducedMotion: 'reduce' });
+const rmStatic = await rp
+  .waitForFunction(
+    () =>
+      (document.querySelector('.sb__newblink img')?.currentSrc || '').endsWith(
+        '/gifs/new-badge-static.gif',
+      ),
+    null,
+    { timeout: 3000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!rmStatic) fail('the NEW! blinky did not swap to its static twin under prefers-reduced-motion');
+await rctx.close();
+
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} | mobile: noCanvas=${mobileNoCanvas} ` +
     `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

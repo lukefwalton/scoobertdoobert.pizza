@@ -77,8 +77,22 @@ if (!prompted) fail('never got the "Press E to play" prompt walking up to the ca
 // Fire it up — E should roll a random game and open the modal.
 let opened = false;
 let rolledOk = false;
+let baselineQuiet = false;
 let closed = false;
+let duckedForGame = false;
+let restoredAfterGame = false;
 if (prompted) {
+  // Baseline: nothing is making sound yet, so the radio must NOT be suppressed.
+  // Asserting this BEFORE the game opens proves the full false→true→false
+  // lifecycle (not just true→false), so the duck can't pass on a stuck-true.
+  baselineQuiet = await page
+    .waitForFunction(() => window.__sdpMusicSuppressed === false, null, { timeout: 2500 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!baselineQuiet) fail('the radio was already suppressed before the arcade game opened');
+
   await page.evaluate(() => {
     window.__sdpArcade = undefined;
   });
@@ -96,6 +110,17 @@ if (prompted) {
   if (!rolledOk) fail(`rolled game "${rolled}" not in the live registry [${validIds.join(', ')}]`);
   await page.screenshot({ path: '.shots/cabinet-playable.png' });
 
+  // The arcade game makes its own sound — so the RADIO must DUCK while it's open.
+  // This is the second end-to-end example of the shared soundMakerActive union
+  // (besides the TV path in shoot:tv), proving the arcade lifecycle toggles it too.
+  duckedForGame = await page
+    .waitForFunction(() => window.__sdpMusicSuppressed === true, null, { timeout: 2000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!duckedForGame) fail('the radio did not duck while the arcade game was open');
+
   // Esc closes it.
   await page.keyboard.press('Escape');
   closed = await page
@@ -105,10 +130,22 @@ if (prompted) {
       () => false,
     );
   if (!closed) fail('Escape did not close the arcade modal');
+
+  // …and the radio RESTORES the moment the game closes.
+  if (closed) {
+    restoredAfterGame = await page
+      .waitForFunction(() => window.__sdpMusicSuppressed === false, null, { timeout: 2000 })
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!restoredAfterGame) fail('the radio did not restore after the arcade game closed');
+  }
 }
 
 await browser.close();
 console.log(
-  `cabinet: reached=${reached} prompted=${prompted} opened=${opened} rolledOk=${rolledOk} closed=${closed} | errors=${errors}`,
+  `cabinet: reached=${reached} prompted=${prompted} opened=${opened} rolledOk=${rolledOk} ` +
+    `baseline=${baselineQuiet} ducked=${duckedForGame} restored=${restoredAfterGame} closed=${closed} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
