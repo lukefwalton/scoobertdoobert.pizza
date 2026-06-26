@@ -166,20 +166,33 @@ let contained = false;
     .catch((e) => fail(`non-debug world did not mount: ${e.message}`));
   const cleanJuke = await sharedRoomIs(clean, 'The Jukebox', { fail });
   if (cleanJuke) {
-    // Settle past the mount tick before asserting ABSENCE: the jukebox's hooks (if
-    // they ever leaked) would attach a beat AFTER the room label renders — so an
-    // immediate read could false-pass on a future delayed leak. Wait first, so any
-    // leak has surfaced by the time we check (the ?world block proves the timing).
-    await clean.waitForTimeout(1200);
-    const types = await clean.evaluate(() => ({
-      roll: typeof window.__sdpRollDice,
-      dice: typeof window.__sdpDice,
-      juke: typeof window.__sdpJukebox,
-    }));
-    contained =
-      types.roll === 'undefined' && types.dice === 'undefined' && types.juke === 'undefined';
-    if (!contained)
+    // Assert ABSENCE with a bounded POLL, not one guessed delay: watch for any __sdp*
+    // hook to appear for up to 1.5s. A future leak would attach a beat after the room
+    // label (the ?world block proves that timing) — so polling catches a leak whenever
+    // it surfaces in the window and FAILS FAST, while a clean window confirms
+    // containment without being pinned to a single mount-delay guess.
+    const leaked = await clean
+      .waitForFunction(
+        () =>
+          typeof window.__sdpRollDice !== 'undefined' ||
+          typeof window.__sdpDice !== 'undefined' ||
+          typeof window.__sdpJukebox !== 'undefined',
+        null,
+        { timeout: 1500 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    contained = !leaked;
+    if (leaked) {
+      const types = await clean.evaluate(() => ({
+        roll: typeof window.__sdpRollDice,
+        dice: typeof window.__sdpDice,
+        juke: typeof window.__sdpJukebox,
+      }));
       fail(`__sdp* hooks leaked into a non-debug ?room=jukebox session: ${JSON.stringify(types)}`);
+    }
   }
   await cleanCtx.close();
 }
