@@ -77,10 +77,22 @@ if (!prompted) fail('never got the "Press E to play" prompt walking up to the ca
 // Fire it up — E should roll a random game and open the modal.
 let opened = false;
 let rolledOk = false;
+let baselineQuiet = false;
 let closed = false;
 let duckedForGame = false;
 let restoredAfterGame = false;
 if (prompted) {
+  // Baseline: nothing is making sound yet, so the radio must NOT be suppressed.
+  // Asserting this BEFORE the game opens proves the full false→true→false
+  // lifecycle (not just true→false), so the duck can't pass on a stuck-true.
+  baselineQuiet = await page
+    .waitForFunction(() => window.__sdpMusicSuppressed === false, null, { timeout: 2500 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!baselineQuiet) fail('the radio was already suppressed before the arcade game opened');
+
   await page.evaluate(() => {
     window.__sdpArcade = undefined;
   });
@@ -134,6 +146,6 @@ if (prompted) {
 await browser.close();
 console.log(
   `cabinet: reached=${reached} prompted=${prompted} opened=${opened} rolledOk=${rolledOk} ` +
-    `ducked=${duckedForGame} restored=${restoredAfterGame} closed=${closed} | errors=${errors}`,
+    `baseline=${baselineQuiet} ducked=${duckedForGame} restored=${restoredAfterGame} closed=${closed} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

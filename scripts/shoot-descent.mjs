@@ -38,6 +38,21 @@ await page.click('#order-form button[type="submit"]');
 const on1999 = await floor(page, 'y1999');
 await page.screenshot({ path: '.shots/descent-1999.png' });
 
+// The 1999 "Sign My Guestbook!" CTA must be a REAL anchor → the contact
+// destination (a mailto:), never the '#' placeholder or the TEXT_ONLY_PATH
+// ('/text') fallback. This guards the constitution's "real anchor, never #"
+// rule AND proves destById('contact') resolved rather than the ?? fallback firing.
+const guestbookOk = await page
+  .evaluate(() => {
+    const a = document.querySelector('.sb__gbook');
+    if (!(a instanceof HTMLAnchorElement)) return false;
+    const href = a.getAttribute('href') || '';
+    return href.startsWith('mailto:') && href !== '/text'; // contact is a mailto
+  })
+  .catch(() => false);
+if (!guestbookOk)
+  fail('the 1999 "Sign My Guestbook!" CTA is not a real contact anchor (fell back to # or /text?)');
+
 // Deeper via the era-floor doors.
 await page.click('.floor-door--down');
 const on2000 = await floor(page, 'y2000');
@@ -213,7 +228,7 @@ await nctx.close();
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} | mobile: noCanvas=${mobileNoCanvas} ` +
     `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
