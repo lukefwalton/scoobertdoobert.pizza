@@ -19,6 +19,9 @@ const GAMES = [
   // so it carries the real lose-path assertion: the GAME OVER overlay must render
   // (guards the "ref phase set but React setPhase missing" regression).
   { slug: 'jazz-snake', title: 'Jazz Snake', id: 'jazz-snake', forceLoss: true },
+  // pizza-radar's loss (a saucer reaching the floor) isn't keypress-forceable, so
+  // like crusteroids/slice-breaker it just verifies load → start → no errors → HI.
+  { slug: 'pizza-radar', title: 'Pizza Radar 1996', id: 'pizza-radar' },
 ];
 
 const browser = await chromium.launch();

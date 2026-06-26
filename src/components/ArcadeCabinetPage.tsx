@@ -22,6 +22,7 @@ const CABINETS: { slug: string; label: string }[] = [
   { slug: 'crusteroids', label: 'CRUSTEROIDS' },
   { slug: 'slice-breaker', label: 'SLICE BREAKER' },
   { slug: 'jazz-snake', label: 'JAZZ SNAKE' },
+  { slug: 'pizza-radar', label: 'PIZZA RADAR 1996' },
   { slug: 'poke', label: 'POKE SCOOBERT' },
   { slug: 'chimes', label: 'PENDULUM CHIMES' },
   { slug: 'cultures', label: 'CULTURES' },
