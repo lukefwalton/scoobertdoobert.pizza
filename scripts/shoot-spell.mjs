@@ -219,12 +219,30 @@ const slotsAfterLight = await readSlots();
 if (slotsAfterLight !== slotsBeforeLight)
   bad(`spell: Light (a cantrip) spent a slot (${slotsBeforeLight} → ${slotsAfterLight})`);
 
+// 7) No room-BLEED: cast fireball, then immediately take a door — the burn is
+//    bound to the room it was cast in, so it must ABORT on the room change rather
+//    than following you into the next room (the review bot's transition case).
+const bn0 = await page.evaluate(() => window.__sdpFireball?.nonce ?? -1);
+await page.evaluate(() => window.__sdpCast('fireball'));
+await page
+  .waitForFunction((p) => (window.__sdpFireball?.nonce ?? -1) > p, bn0, { timeout: 4000 })
+  .catch(() => {});
+await page.evaluate(() => window.__sdpGoToRoom('shrine', 'default')); // leave mid-burn
+const burnAborted = await page
+  .waitForFunction(() => window.__sdpFireball?.aborted === true, null, { timeout: 8000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!burnAborted) bad('spell: a burn bled through a door (FX did not abort on room change)');
+
 await ctx.close();
 await browser.close();
 console.log(
   `spell: learned=${learned} hotbar=${!!hotbar} pipsLearned=${pipsLearned} ignited=${ignited} ` +
     `afterCast=${slotsAfter1} empty=${slotsEmpty} dryNoop=${nAfterDry === nBeforeDry} ` +
     `rested=${slotsRested} relief=${relief.toFixed(2)} | light: learned=${knowsLight} ` +
-    `slots=${slotCount} lit=${litUp} free=${slotsAfterLight === slotsBeforeLight} | errors=${errors}`,
+    `slots=${slotCount} lit=${litUp} free=${slotsAfterLight === slotsBeforeLight} ` +
+    `noBleed=${burnAborted} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

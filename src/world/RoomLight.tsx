@@ -51,6 +51,9 @@ export function RoomLight({ room }: { room: Room }) {
   const igniteAt = useRef<number>(-1);
   const lastNonce = useRef<number>(castNonce);
   const active = useRef<boolean>(false);
+  // The room the glow was cast in — so it can't bleed through a door (RoomLight is
+  // mounted once at world scope; this binds an active glow to its origin room).
+  const igniteRoom = useRef<string>(room.id);
 
   const orbMat = useMemo(
     () =>
@@ -74,6 +77,7 @@ export function RoomLight({ room }: { room: Room }) {
     lastNonce.current = castNonce;
     if (castingSpell !== 'light') return;
     igniteAt.current = -1;
+    igniteRoom.current = room.id; // bind this glow to the room it was cast in
     active.current = true;
     // A soft, bright twin-chime — a "ting" of light (calm, not a whoomph).
     audio.playChime(noteToFreq('E', 6), 0, 0.12, 0.9);
@@ -89,12 +93,20 @@ export function RoomLight({ room }: { room: Room }) {
     const t = (now - igniteAt.current) / (LIGHT_MS / 1000);
     const env = holdEnvelope(t);
 
-    if (t >= 1) {
+    // Done when the glow finishes OR you've left the room you cast it in (no
+    // bleed through a door).
+    const leftRoom = room.id !== igniteRoom.current;
+    if (t >= 1 || leftRoom) {
       active.current = false;
       if (ambient.current) ambient.current.intensity = 0;
       if (point.current) point.current.intensity = 0;
       orbMat.opacity = 0;
-      exposeTestGlobal('__sdpLight', { nonce: castNonce, room: room.id, done: true });
+      exposeTestGlobal('__sdpLight', {
+        nonce: castNonce,
+        room: igniteRoom.current,
+        done: true,
+        aborted: leftRoom,
+      });
       return;
     }
 
