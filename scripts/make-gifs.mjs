@@ -45,6 +45,42 @@ function canvas(w, h, bg = 0) {
   };
 }
 
+// ── a tiny 5px bitmap font — only the glyphs our "NEW!" blinky needs ────────────
+// The encoder is otherwise deliberately font-free (words belong in accessible HTML,
+// not baked into pixels). A blinky badge is the one exception whose whole punch IS
+// the lettering — so we hand-set four glyphs. The accessible label still lives in
+// the <img alt>, never only here.
+const FONT = {
+  N: ['#..#', '##.#', '#.##', '#..#', '#..#'],
+  E: ['###', '#..', '###', '#..', '###'],
+  W: ['#...#', '#...#', '#.#.#', '##.##', '#...#'],
+  '!': ['#', '#', '#', '.', '#'],
+};
+// Blit `text` at (x0,y0) in `color`, `scale`× per pixel, with 1px(×scale) tracking.
+function drawText(c, text, x0, y0, color, scale = 1) {
+  let x = x0;
+  for (const ch of text) {
+    const g = FONT[ch];
+    if (!g) {
+      x += 4 * scale;
+      continue;
+    }
+    const w = g[0].length;
+    for (let ry = 0; ry < g.length; ry++)
+      for (let rx = 0; rx < w; rx++)
+        if (g[ry][rx] === '#')
+          c.rect(
+            x + rx * scale,
+            y0 + ry * scale,
+            x + (rx + 1) * scale - 1,
+            y0 + (ry + 1) * scale - 1,
+            color,
+          );
+    x += (w + 1) * scale;
+  }
+  return x;
+}
+
 // Self-check a finished file: signature + trailer + first-frame pixel count.
 function assertValid(name, bytes, w, h) {
   const sig = String.fromCharCode(...bytes.slice(0, 6));
@@ -360,5 +396,62 @@ write(
   48,
   48,
 );
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 5) new-badge.gif — the classic GeoCities "NEW!" blinky: a tiny double-bordered
+//    badge whose background + border colors alternate, flagging the freshest link
+//    (the new guestbook). WCAG 2.3.1: two frames at 0.45s ≈ 1.1 Hz (well under the
+//    3/s limit), a <0.1 relative-luminance swing (below the flash threshold), tiny
+//    area, and the lettering never blinks OUT (white throughout). A *-static twin
+//    serves under prefers-reduced-motion; "NEW!" is also the <img alt>.
+// ═══════════════════════════════════════════════════════════════════════════════
+const NEWB = [
+  [255, 0, 153], // 0 magenta bg (frame A)
+  [0, 102, 255], // 1 electric-blue bg (frame B)
+  [255, 255, 255], // 2 white lettering (constant)
+  [255, 230, 0], // 3 yellow border
+  [57, 204, 204], // 4 cyan border
+];
+function newBadgeFrame(alt) {
+  const W = 56;
+  const H = 22;
+  const c = canvas(W, H, alt ? 1 : 0);
+  const outer = alt ? 4 : 3; // the two border rings swap each frame for the shimmer
+  const inner = alt ? 3 : 4;
+  // outer ring (2px)
+  c.rect(0, 0, W - 1, 1, outer);
+  c.rect(0, H - 2, W - 1, H - 1, outer);
+  c.rect(0, 0, 1, H - 1, outer);
+  c.rect(W - 2, 0, W - 1, H - 1, outer);
+  // inner ring (1px), inset by 2
+  c.rect(2, 2, W - 3, 2, inner);
+  c.rect(2, H - 3, W - 3, H - 3, inner);
+  c.rect(2, 2, 2, H - 3, inner);
+  c.rect(W - 3, 2, W - 3, H - 3, inner);
+  // "NEW!" centered (2× → ~32px wide, 10px tall): x0=12, y0=6
+  drawText(c, 'NEW!', 12, 6, 2, 2);
+  return c.indices();
+}
+
+{
+  const W = 56;
+  const H = 22;
+  const frames = [
+    { indices: newBadgeFrame(false), delay: 45 },
+    { indices: newBadgeFrame(true), delay: 45 },
+  ];
+  write('new-badge.gif', encodeGif({ width: W, height: H, palette: NEWB, frames }), W, H);
+  write(
+    'new-badge-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: NEWB,
+      frames: [{ indices: newBadgeFrame(false), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
 
 console.log('done — original GIFs generated.');

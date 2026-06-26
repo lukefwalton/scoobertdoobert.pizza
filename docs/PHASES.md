@@ -344,6 +344,16 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   focus trap, Escape, backdrop dismiss, focus restore; a resized desktop window (fine
   pointer) skips it. `shoot:descent` covers both sides of the boundary + every
   dismissal path.
+- ✅ **"Sign My Guestbook!" — a real anchor, not décor (follow-up PR):** the 1999
+  marquee has teased "★ SIGN OUR GUESTBOOK ★" since launch with nowhere to go; the
+  starburst floor now carries a real **`<a>` → the `contact` destination** (the
+  webmaster who "reads every comment" = the guestbook contract), so the promise is
+  finally crawlable, never a `#`. Beside it, a **"NEW!" blinky** printed by our own
+  encoder — `new-badge.gif` from `make-gifs.mjs` (a 5px hand-set font, the encoder's
+  one non-font-free exception), 2 frames at ~1.1 Hz with a <0.1 luminance swing and a
+  `*-static` twin under reduced motion (triply WCAG 2.3.1-safe). `shoot:gifs` decodes
+  both new frames in real Chromium; navy-on-gold button ≈ 10:1 contrast; no 390px
+  overflow.
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
@@ -380,8 +390,9 @@ guardrail before anything that adds a place/NPC/system):
   `/text`, jukebox, the standalone arcade routes) for other letdowns like the
   install one — overflow, contrast, tap-target size, the descent flow — and fix
   them. Screenshot-driven; pairs naturally with a `shoot:*` mobile pass.
-- **More GeoCities fun.** A real **"Sign My Guestbook"** link (a genuine crawlable
-  anchor → `contact`), a spinning **@-mail** GIF, **"NEW!" blinkies** — extend the
+- **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`) and a
+  **"NEW!" blinky** GIF shipped (above). Still open: turning the 2000 floor's CSS
+  **@-mail** into a printed GIF, more **blinkies** on other surfaces — extend the
   retro furniture while adding real nav anchors, not just decoration. Reuses the
   GIF89a encoder (`make-gifs.mjs`) already in the repo.
 - **3D world delight.** Recent work was all surface floors; feed the "exploration's

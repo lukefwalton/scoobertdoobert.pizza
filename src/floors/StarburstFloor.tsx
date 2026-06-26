@@ -116,6 +116,25 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             />
           </picture>
 
+          {/* "Sign My Guestbook!" — a REAL crawlable anchor. The marquee up top has
+              promised a guestbook for years; this finally delivers one. It points at
+              the contact destination — the webmaster who "reads every comment" — so
+              signing the book IS mailing him, the exact 1999 guestbook contract (no
+              fake '#'; the constitution's hard rule). The NEW! blinky beside it is our
+              OWN GIF (make-gifs.mjs); <picture> serves a still under reduced motion. */}
+          <div className="sb__guestbook">
+            <a className="sb__gbook" href={destById('contact')?.href ?? TEXT_ONLY_PATH}>
+              <span aria-hidden="true">&#9997;</span> Sign My Guestbook!
+            </a>
+            <picture className="sb__newblink">
+              <source
+                srcSet="/gifs/new-badge-static.gif"
+                media="(prefers-reduced-motion: reduce)"
+              />
+              <img src="/gifs/new-badge.gif" width={56} height={22} alt="New!" />
+            </picture>
+          </div>
+
           <div className="sb__doors">
             <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
             <FloorDoor
