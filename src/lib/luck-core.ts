@@ -20,7 +20,14 @@ export type Roll = {
   face: number;
   /** nat20 (crit success) / nat1 (crit fail) / null, read off the landed face. */
   crit: Crit;
-  /** Luck the system consumed for this roll: 1 if it bought advantage, else 0. */
+  /**
+   * How much luck this roll cost: 1 if it bought advantage, else 0. DESCRIPTIVE
+   * only — the pure roll never touches save state. PERSISTING the debit is the
+   * store-bound caller's job (luck.ts `rollD20` writes it back); store-free
+   * consumers like the terminal `roll` read this purely to explain the roll and
+   * deliberately don't spend. So "spent" means "spent on THIS roll's math," never
+   * "already written to the save."
+   */
   luckSpent: number;
 };
 
