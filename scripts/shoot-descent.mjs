@@ -118,6 +118,7 @@ await mp.click('.mr__install');
 let mobileGag = false;
 let gagEscapes = false;
 let focusReturned = false;
+let backdropCloses = false;
 let mobileToText = false;
 try {
   await mp.waitForSelector('.mr__gag', { timeout: 6000 });
@@ -139,6 +140,18 @@ if (mobileGag) {
   );
   if (!focusReturned) fail('focus did not return to the Install button after the gag closed');
 
+  // Clicking the backdrop (outside the centered dialog) also dismisses it.
+  await mp.click('.mr__install');
+  await mp
+    .waitForSelector('.mr__gag', { timeout: 3000 })
+    .catch(() => fail('gag did not re-open for the backdrop check'));
+  await mp.click('.mr__gag-backdrop', { position: { x: 6, y: 6 } });
+  backdropCloses = await mp.waitForSelector('.mr__gag', { state: 'detached', timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!backdropCloses) fail('clicking the backdrop did not dismiss the gag');
+
   // Re-open and take the real exit: the gag must still lead onward to /text.
   await mp.click('.mr__install');
   await mp.waitForSelector('.mr__gag', { timeout: 3000 }).catch(() => fail('gag did not re-open'));
@@ -156,6 +169,6 @@ await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} esc=${gagEscapes} focus=${focusReturned} install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
