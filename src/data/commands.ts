@@ -18,6 +18,7 @@ import { SONG_META, songMeta } from './songMeta';
 import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
+import { spellById, isCantrip, SPELL_SLOTS_MAX, type Spell } from './spells';
 
 export type CommandCtx = {
   /** Args after the command name (already split on whitespace). */
@@ -153,6 +154,71 @@ export const COMMANDS: Command[] = [
           `  games cleared ....... ${progress.clearedGames.length}`,
           ' ',
           '(the machine keeps better records than it admits.)',
+        ],
+      };
+    },
+  },
+  {
+    name: 'luck',
+    help: 'how lucky the machine has you down as',
+    run: ({ progress }) => {
+      // Mirrors selectLuck — computed inline so commands.ts stays store-free (the
+      // Terminal hands us a progress snapshot; we never import the store here).
+      const luck = Math.max(0, progress.luckEarned - progress.luckSpent);
+      return {
+        output: [
+          'LUCK — the house edge, pointed your way',
+          `  banked .............. ${luck}`,
+          `  earned, all-time .... ${progress.luckEarned}`,
+          `  spent for you ....... ${progress.luckSpent}`,
+          ' ',
+          ...(luck > 0
+            ? [
+                'with luck banked, the machine rolls a SECOND die behind every stakes',
+                'roll and keeps the higher face — quietly, while it lasts. you never',
+                'spend it by hand. be lucky.',
+              ]
+            : [
+                'nothing banked. the dice are honest with you right now.',
+                'earn some at the shrine: find the offering box, clap twice. 二拍手.',
+              ]),
+        ],
+      };
+    },
+  },
+  {
+    name: 'spells',
+    help: 'the spells you have learned',
+    run: ({ progress }) => {
+      const known = progress.knownSpells
+        .map((id) => spellById(id))
+        .filter((s): s is Spell => Boolean(s));
+      if (known.length === 0) {
+        return {
+          output: [
+            'SPELLBOOK — empty.',
+            'you have learned nothing yet. a scroll is shelved in the dark somewhere',
+            'downstairs; read it and the words are yours.',
+          ],
+        };
+      }
+      // Mirrors selectSpellSlots — inline, same store-free reason as `luck`.
+      const slots = Math.max(
+        0,
+        Math.min(SPELL_SLOTS_MAX, progress.spellSlotsGained - progress.spellSlotsSpent),
+      );
+      const width = Math.max(...known.map((s) => s.name.length));
+      return {
+        output: [
+          'SPELLBOOK — what you can cast (the key casts it out in the world):',
+          ...known.map(
+            (s) =>
+              `  ${s.glyph}  ${s.name.padEnd(width + 2)}[${s.key}]  ${
+                isCantrip(s) ? 'cantrip · free' : `${s.slotCost} slot`
+              }`,
+          ),
+          ' ',
+          `spell slots ......... ${slots}/${SPELL_SLOTS_MAX}  (rest at a shrine to refill)`,
         ],
       };
     },
