@@ -240,3 +240,124 @@
     animation: none;
   }
 }
+
+/* ── The mobile desktop-invite gag — a period "Calzone Player Setup" error window.
+   Fires on phone-sized screens (MachineRoomFloor): the plug-in "can't install"
+   because pocket phones didn't exist in 1996. Cheeky, but never a dead end — it
+   links onward to the text-only version. Styled to match the workstation chrome. */
+.mr__gag-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2, 3, 15, 0.78);
+  animation: mr-gag-fade 0.18s ease-out;
+}
+.mr__gag {
+  width: min(360px, 92vw);
+  background: #0a1230;
+  color: #cfe0ff;
+  border: 2px solid #3a5288;
+  border-radius: 6px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  font-family: Verdana, Geneva, Arial, sans-serif;
+  overflow: hidden;
+  animation: mr-gag-pop 0.18s ease-out;
+}
+.mr__gag-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px 6px 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  color: #ffffff;
+  background: linear-gradient(180deg, #5b76a8 0%, #28406e 100%);
+  border-bottom: 1px solid #1a2a4d;
+}
+.mr__gag-x {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: #06122e;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  border: 2px solid #ffffff;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #eaf2ff 0%, #b7cdf2 50%, #6f93cf 100%);
+}
+.mr__gag-body {
+  padding: 14px 14px 16px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.mr__gag-body p {
+  margin: 0 0 8px;
+}
+.mr__gag-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: bold;
+  color: #ffe9a8;
+}
+.mr__gag-icon {
+  color: #ffd76b;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+.mr__gag-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.mr__gag-go {
+  flex: 1 1 auto;
+  text-align: center;
+  text-decoration: none;
+  font-weight: bold;
+  color: #06122e;
+  padding: 11px 14px;
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #eaf2ff 0%, #b7cdf2 45%, #6f93cf 55%, #cfe0ff 100%);
+  box-shadow: 0 2px 0 #24406e;
+}
+.mr__gag-back {
+  cursor: pointer;
+  color: #cfe0ff;
+  font-weight: bold;
+  padding: 11px 16px;
+  background: transparent;
+  border: 2px solid #3a5288;
+  border-radius: 4px;
+}
+.mr__gag-go:focus-visible,
+.mr__gag-back:focus-visible,
+.mr__gag-x:focus-visible {
+  outline: 3px solid #ffd76b;
+  outline-offset: 2px;
+}
+@keyframes mr-gag-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes mr-gag-pop {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mr__gag-backdrop,
+  .mr__gag {
+    animation: none;
+  }
+}

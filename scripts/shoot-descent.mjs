@@ -104,13 +104,26 @@ await floor(mp, 'y2000');
 await mp.click('.floor-door--down');
 await floor(mp, 'machine');
 const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.length)) === 0;
+// Mobile install now pops the cheeky "desktop only — phones didn't exist in 1996"
+// gag instead of silently redirecting. It must still offer a REAL path onward to
+// /text (never a dead end), so: gag appears → its text-only link → /text.
 await mp.click('.mr__install');
+let mobileGag = false;
 let mobileToText = false;
 try {
-  await mp.waitForURL('**/text', { timeout: 6000 });
-  mobileToText = true;
+  await mp.waitForSelector('.mr__gag', { timeout: 6000 });
+  mobileGag = true;
 } catch {
-  fail('mobile install never handed off to /text');
+  fail('mobile install did not show the desktop-invite gag');
+}
+if (mobileGag) {
+  await mp.getByRole('link', { name: /text-only version/i }).click();
+  try {
+    await mp.waitForURL('**/text', { timeout: 6000 });
+    mobileToText = true;
+  } catch {
+    fail('the desktop-invite gag did not lead onward to /text');
+  }
 }
 await mctx.close();
 
@@ -118,6 +131,6 @@ await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} install→text=${mobileToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
