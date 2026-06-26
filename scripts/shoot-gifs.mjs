@@ -8,9 +8,9 @@
 // Killer assertion: our GIFs are fully OPAQUE, so every pixel must read back alpha
 // 255 — the width-bump bug left the undecoded remainder transparent. We also check
 // every frame's pixels off disk, and — since headless can't animate a GIF and its
-// WebCodecs ImageDecoder is disabled — we still get Chromium to validate a LATER
+// WebCodecs ImageDecoder is disabled — we still get Chromium to validate EVERY later
 // frame by rewrapping that frame's VERBATIM bytes as a standalone single-frame GIF
-// and decoding THAT. Real browser, real later-frame bytes, no animation timing.
+// and decoding THAT. Real browser, real per-frame bytes, no animation timing.
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { lzwDecode } from './lib/gif89a.mjs';
@@ -157,22 +157,24 @@ for (const g of GIFS) {
   if (res.distinct < 3)
     fail(`${g.name}: only ${res.distinct} distinct colors — art did not decode (blank fill?)`);
 
-  // A LATER frame through the real browser decoder too: rewrap the last frame's
-  // verbatim bytes as a single-frame GIF and decode that. Closes the gap between
-  // "our decoder accepts later frames" and "a browser accepts them".
-  let lastFrameOk = g.frames === 1;
-  if (g.frames > 1) {
-    const wrapped = wrapFrame(parsed, g.w, g.h, frames[frames.length - 1].raw);
-    const dataUri = `data:image/gif;base64,${Buffer.from(wrapped).toString('base64')}`;
-    const lf = await decodeInBrowser(page, dataUri);
-    lastFrameOk =
+  // EVERY later frame through the real browser decoder too: rewrap each (frame 0 is
+  // already covered by the served file above) and decode it as a standalone GIF — so
+  // an interior frame with a browser-only decode quirk can't hide behind first+last.
+  let browserFrames = 1; // frame 0, via the served file
+  for (let i = 1; i < frames.length; i++) {
+    const wrapped = wrapFrame(parsed, g.w, g.h, frames[i].raw);
+    const lf = await decodeInBrowser(
+      page,
+      `data:image/gif;base64,${Buffer.from(wrapped).toString('base64')}`,
+    );
+    const ok =
       !lf.error && lf.w === g.w && lf.h === g.h && lf.transparent === 0 && lf.distinct >= 2;
-    if (!lastFrameOk)
-      fail(`${g.name}: last frame failed real-browser decode — ${JSON.stringify(lf)}`);
+    if (ok) browserFrames++;
+    else fail(`${g.name}: frame ${i} failed real-browser decode — ${JSON.stringify(lf)}`);
   }
 
   console.log(
-    `  ${g.name}: ${res.w}x${res.h}, ${frames.length}f, ${res.distinct} colors, ${res.transparent} transp, lastFrame=${lastFrameOk ? 'ok' : 'BAD'}`,
+    `  ${g.name}: ${res.w}x${res.h}, ${frames.length}f (${browserFrames} browser-ok), ${res.distinct} colors, ${res.transparent} transp`,
   );
 }
 

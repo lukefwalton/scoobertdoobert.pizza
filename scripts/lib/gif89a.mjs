@@ -187,7 +187,9 @@ export function encodeGif({ width, height, palette, frames, loop = 0 }) {
   str('GIF89a');
   u16(width);
   u16(height);
-  u8(0x80 | (sizeField << 4) | sizeField); // GCT present, color-res + GCT size
+  // packed: GCT present (0x80) | color-resolution bits 6-4 = 7 (our palette entries
+  // are full 8-bit-per-channel RGB, so bits/channel-1 = 7) | GCT-size bits 2-0.
+  u8(0x80 | (7 << 4) | sizeField);
   u8(0); // background color index
   u8(0); // pixel aspect ratio
 
