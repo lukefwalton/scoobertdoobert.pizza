@@ -25,6 +25,7 @@ unless the work is genuinely ambiguous.
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
 | 7+ | `fun/` instruments → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
 | 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
+| — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -313,6 +314,37 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   ids + the resolution chain + a room-CRT guard) and `shoot:tv`. "The reward for
   finding a song-room is its picture, too."
 
+## ✅ GifCities pass — our own GIFs + retro furniture + the mobile gag (2026-06-26)
+The surface floors got the gaudy late-90s/GeoCities energy they were missing — all
+ORIGINAL, no fetched artifacts (the agent proxy blocks archive.org / gifcities.org
+anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 GIFs.
+- ✅ **A hand-rolled GIF89a encoder, zero deps (`scripts/lib/gif89a.mjs`):** indexed
+  palette, animation frames w/ per-frame delay, NETSCAPE2.0 looping, and correct
+  variable-width LZW (the Weiner/omggif code-width timing — an off-by-one here
+  desyncs a real decoder at the first width bump, which a self-consistent test would
+  miss). `make-gifs.mjs` generates the assets; `gif89a.test.mjs` round-trips every
+  frame; **`shoot:gifs` decodes each GIF in real Chromium** (the spec oracle that
+  caught that width-bump bug) and rewraps every later frame's verbatim bytes to
+  validate them too. Fail-fast palette-index validation; spec-correct LSD color bits.
+- ✅ **Four original GIFs (`public/gifs/`):** a bopping **dancing-pizza** (the site's
+  "dancing baby"), a scrolling **construction** caution-bar, a shimmering **rainbow
+  `<hr>`**, and a tiled **starfield wallpaper** — each animated GIF paired with a
+  1-frame `*-static.gif` served under `prefers-reduced-motion` via `<picture>` (a
+  GIF can't be paused in CSS, so the still IS the WCAG 2.3.1 accommodation).
+- ✅ **Retro floor furniture (1999/2000, original CSS in the GifCities grammar):** a
+  twinkling sparkle divider, an animated under-construction barber-pole, a green-LCD
+  hit counter, "BEST VIEWED IN…" badges, a Pizza Webring (real prev/hub/next
+  anchors), a spinning @-mail. The 1999 floor wears the starfield wallpaper (dark →
+  the floor's light text gains contrast). Verified no horizontal overflow at 390px.
+- ✅ **Mobile "try desktop" gag (`MachineRoomFloor`, PR #77):** on a real handheld
+  (`isSmallScreen()` = `≤768px` + `pointer: coarse`), the Calzone Player install pops
+  a period "Setup" error — the plug-in needs a desktop, *pocket phones didn't exist
+  in 1996* — instead of silently dumping to `/text`. It still links onward to `/text`
+  (a real `<a>`, never a dead end — the constitution's rule holds). Accessible modal:
+  focus trap, Escape, backdrop dismiss, focus restore; a resized desktop window (fine
+  pointer) skips it. `shoot:descent` covers both sides of the boundary + every
+  dismissal path.
+
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-
@@ -338,4 +370,22 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   the file IS in `public/` → `dist/`. Ignore it.
 - **Self-verify with Playwright** before visual checkpoints: `npm run shoot`
   (incl. JS-disabled), `shoot:world`, `shoot:descent`, `shoot:rooms`,
-  `shoot:fallback`.
+  `shoot:fallback`, `shoot:gifs`.
+
+## What's next (planned)
+Candidate next chunks — no fixed order, pick by appetite (and re-check the SCOPE
+guardrail before anything that adds a place/NPC/system):
+- **Mobile polish sweep.** The era floors are universal, so phones are a first-class
+  surface. Audit every mobile view (storefront, 1999/2000 floors, machine room,
+  `/text`, jukebox, the standalone arcade routes) for other letdowns like the
+  install one — overflow, contrast, tap-target size, the descent flow — and fix
+  them. Screenshot-driven; pairs naturally with a `shoot:*` mobile pass.
+- **More GeoCities fun.** A real **"Sign My Guestbook"** link (a genuine crawlable
+  anchor → `contact`), a spinning **@-mail** GIF, **"NEW!" blinkies** — extend the
+  retro furniture while adding real nav anchors, not just decoration. Reuses the
+  GIF89a encoder (`make-gifs.mjs`) already in the repo.
+- **3D world delight.** Recent work was all surface floors; feed the "exploration's
+  reward is sound" spine on desktop — a new easter-egg, a room touch, or an NPC
+  beat. The biggest open backlog (Phase 8 tail) is **further album-themed wings.**
+- **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
+  instruments tail are the loose ends still flagged in the table above.
