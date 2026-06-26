@@ -10,6 +10,8 @@ import { CulturesCabinet } from './CulturesCabinet';
 import { Crusteroids } from './Crusteroids';
 import { SliceBreaker } from './SliceBreaker';
 import { JazzSnake } from './JazzSnake';
+import { PizzaRadar } from './PizzaRadar';
+import { BurritoBelt } from './BurritoBelt';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -25,6 +27,8 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
   crusteroids: Crusteroids,
   'slice-breaker': SliceBreaker,
   'jazz-snake': JazzSnake,
+  'pizza-radar': PizzaRadar,
+  'burrito-belt': BurritoBelt,
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,

@@ -14,19 +14,27 @@ export type ArcadeGameId =
   | 'cultures'
   | 'crusteroids'
   | 'slice-breaker'
-  | 'jazz-snake';
+  | 'jazz-snake'
+  | 'pizza-radar'
+  | 'burrito-belt';
 
-export type ArcadeGame = { id: ArcadeGameId; title: string };
+// `slug` is the cabinet's standalone route (no leading slash). It's the id for
+// every cabinet EXCEPT pizza-run, whose route predates the id and lives at
+// /arcade. Carrying it here lets the cross-link shelf + a route-parity test
+// derive from this one registry instead of re-listing the cabinets by hand.
+export type ArcadeGame = { id: ArcadeGameId; title: string; slug: string };
 
 // Order is just display order; the roll is uniform across all of them.
 export const ARCADE_GAMES: readonly ArcadeGame[] = [
-  { id: 'pizza-run', title: 'PIZZA RUN' },
-  { id: 'crusteroids', title: 'CRUSTEROIDS' },
-  { id: 'slice-breaker', title: 'SLICE BREAKER' },
-  { id: 'jazz-snake', title: 'JAZZ SNAKE' },
-  { id: 'poke', title: 'POKE SCOOBERT' },
-  { id: 'chimes', title: 'PENDULUM CHIMES' },
-  { id: 'cultures', title: 'CULTURES' },
+  { id: 'pizza-run', title: 'PIZZA RUN', slug: 'arcade' },
+  { id: 'crusteroids', title: 'CRUSTEROIDS', slug: 'crusteroids' },
+  { id: 'slice-breaker', title: 'SLICE BREAKER', slug: 'slice-breaker' },
+  { id: 'jazz-snake', title: 'JAZZ SNAKE', slug: 'jazz-snake' },
+  { id: 'pizza-radar', title: 'PIZZA RADAR 1996', slug: 'pizza-radar' },
+  { id: 'burrito-belt', title: 'BURRITO BELT', slug: 'burrito-belt' },
+  { id: 'poke', title: 'POKE SCOOBERT', slug: 'poke' },
+  { id: 'chimes', title: 'PENDULUM CHIMES', slug: 'chimes' },
+  { id: 'cultures', title: 'CULTURES', slug: 'cultures' },
 ];
 
 /** Roll a random cabinet game — the "what'll it be this time" surprise. */
