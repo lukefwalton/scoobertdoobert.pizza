@@ -79,10 +79,34 @@ describe('terminal `spells`', () => {
   });
 });
 
+describe('terminal `roll`', () => {
+  it('always rolls a d20 face in 1..20 (any luck)', () => {
+    for (let i = 0; i < 300; i++) {
+      const out = run('roll', { luckEarned: i % 4, luckSpent: 0 });
+      const m = out.match(/d20 → (\d+)/);
+      expect(m).toBeTruthy();
+      const face = Number(m![1]);
+      expect(face).toBeGreaterThanOrEqual(1);
+      expect(face).toBeLessThanOrEqual(20);
+    }
+  });
+
+  it('notes your luck as a free peek (nothing spent) when you have some', () => {
+    const outs = Array.from({ length: 40 }, () => run('roll', { luckEarned: 3, luckSpent: 0 }));
+    expect(outs.every((o) => /luck/i.test(o) && /nothing spent/i.test(o))).toBe(true);
+  });
+
+  it('does not invoke advantage when you have no luck', () => {
+    const outs = Array.from({ length: 40 }, () => run('roll'));
+    expect(outs.every((o) => !/second die/i.test(o))).toBe(true);
+  });
+});
+
 describe('terminal: the new readouts are discoverable', () => {
-  it('lists `luck` and `spells` in `help`', () => {
+  it('lists `luck`, `spells`, and `roll` in `help`', () => {
     const out = run('help');
     expect(out).toMatch(/\bluck\b/);
     expect(out).toMatch(/\bspells\b/);
+    expect(out).toMatch(/\broll\b/);
   });
 });
