@@ -22,6 +22,8 @@ const RAT_TIDBITS: string[] = [
   'He once got filed under “museum doppelgängers” by the Getty — a dead ringer for a guy in a Degas.',
   '“Gonna Go to Japan” is about wanting to go to Japan. He hadn’t been yet when he wrote it. He has now.',
   'He tracked a whole album alone in a bathrobe. I was there. I pay rent, remember.',
+  'There’s a singed sheet of paper backstage past the jukebox. Reads like a spell. Pick it up — see what your hands learn.',
+  'Someone left a water-stained card down in the cold file room. “For the dark parts,” it says. Take it before you go deeper.',
 ];
 
 export function ratDialogue(p: Progress): RatDialogue {
