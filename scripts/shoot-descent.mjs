@@ -93,7 +93,14 @@ if (exitToFloor0) {
 await ctx.close();
 
 // ── mobile / low-power handoff ─────────────────────────────────────────────
-const mctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true });
+// A faithful phone: mobile viewport + TOUCH, so pointer:coarse matches — the
+// desktop-invite gag now requires a coarse pointer (so a narrow mouse-driven
+// desktop window doesn't get told to "try desktop").
+const mctx = await browser.newContext({
+  viewport: { width: 390, height: 844 },
+  isMobile: true,
+  hasTouch: true,
+});
 const mp = await mctx.newPage();
 mp.on('pageerror', (e) => fail(`mobile pageerror: ${e.message}`));
 await mp.goto(base + '/', { waitUntil: 'networkidle' });
@@ -104,20 +111,109 @@ await floor(mp, 'y2000');
 await mp.click('.floor-door--down');
 await floor(mp, 'machine');
 const mobileNoCanvas = (await mp.$$eval('.mr__crt-screen canvas', (e) => e.length)) === 0;
+// Mobile install now pops the cheeky "desktop only — phones didn't exist in 1996"
+// gag instead of silently redirecting. It must still offer a REAL path onward to
+// /text (never a dead end), so: gag appears → its text-only link → /text.
 await mp.click('.mr__install');
+let mobileGag = false;
+let tabTraps = false;
+let gagEscapes = false;
+let focusReturned = false;
+let backdropCloses = false;
 let mobileToText = false;
 try {
-  await mp.waitForURL('**/text', { timeout: 6000 });
-  mobileToText = true;
+  await mp.waitForSelector('.mr__gag', { timeout: 6000 });
+  mobileGag = true;
 } catch {
-  fail('mobile install never handed off to /text');
+  fail('mobile install did not show the desktop-invite gag');
+}
+if (mobileGag) {
+  // Focus trap (the gag is open): Tab from the last control wraps to the first,
+  // and Shift+Tab from the first wraps to the last — focus can't leave the modal.
+  await mp.locator('.mr__gag-back').focus();
+  await mp.keyboard.press('Tab');
+  const wrapFwd = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__gag-x') ?? false,
+  );
+  await mp.locator('.mr__gag-x').focus();
+  await mp.keyboard.press('Shift+Tab');
+  const wrapBack = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__gag-back') ?? false,
+  );
+  tabTraps = wrapFwd && wrapBack;
+  if (!tabTraps)
+    fail(`focus did not trap within the gag (fwd→first=${wrapFwd}, back→last=${wrapBack})`);
+
+  // a11y: Escape closes the modal AND returns focus to the Install button (the
+  // focus-trap/restore logic is JS, so without this it could regress unseen).
+  await mp.keyboard.press('Escape');
+  gagEscapes = await mp.waitForSelector('.mr__gag', { state: 'detached', timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!gagEscapes) fail('Escape did not close the gag');
+  focusReturned = await mp.evaluate(
+    () => document.activeElement?.classList.contains('mr__install') ?? false,
+  );
+  if (!focusReturned) fail('focus did not return to the Install button after the gag closed');
+
+  // Clicking the backdrop (outside the centered dialog) also dismisses it.
+  await mp.click('.mr__install');
+  await mp
+    .waitForSelector('.mr__gag', { timeout: 3000 })
+    .catch(() => fail('gag did not re-open for the backdrop check'));
+  await mp.click('.mr__gag-backdrop', { position: { x: 6, y: 6 } });
+  backdropCloses = await mp.waitForSelector('.mr__gag', { state: 'detached', timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!backdropCloses) fail('clicking the backdrop did not dismiss the gag');
+
+  // Re-open and take the real exit: the gag must still lead onward to /text.
+  await mp.click('.mr__install');
+  await mp.waitForSelector('.mr__gag', { timeout: 3000 }).catch(() => fail('gag did not re-open'));
+  await mp.getByRole('link', { name: /text-only version/i }).click();
+  try {
+    await mp.waitForURL('**/text', { timeout: 6000 });
+    mobileToText = true;
+  } catch {
+    fail('the desktop-invite gag did not lead onward to /text');
+  }
 }
 await mctx.close();
+
+// ── narrow FINE-pointer window (a resized desktop) — the complement of the gag ──
+// isSmallScreen() requires a coarse pointer, so a small mouse-driven window must
+// SKIP the gag and hand off straight to /text (it's on a desktop already). This
+// locks the negative side of the boundary: a regression that broadened the gate
+// back to pure max-width would wrongly show the gag here and fail this assertion.
+const nctx = await browser.newContext({ viewport: { width: 500, height: 820 } }); // no touch → fine pointer
+const np = await nctx.newPage();
+np.on('pageerror', (e) => fail(`narrow-window pageerror: ${e.message}`));
+await np.goto(base + '/', { waitUntil: 'networkidle' });
+await np.click('.floor-door--plain');
+await floor(np, 'y1999');
+await np.click('.floor-door--down');
+await floor(np, 'y2000');
+await np.click('.floor-door--down');
+await floor(np, 'machine');
+await np.click('.mr__install');
+let narrowToText = false;
+try {
+  // Reaching /text IS the proof there was no gag — a wrongly-shown modal blocks
+  // navigation, so this wait would time out instead.
+  await np.waitForURL('**/text', { timeout: 6000 });
+  narrowToText = (await np.locator('.mr__gag').count()) === 0;
+} catch {
+  fail('a narrow fine-pointer window showed the gag instead of going straight to /text');
+}
+if (!narrowToText) fail('the gag leaked into a narrow fine-pointer (desktop) window');
+await nctx.close();
 
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

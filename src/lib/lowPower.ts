@@ -5,13 +5,28 @@ import { useEffect, useState } from 'react';
 // through the flat era floors but skip the 3D world (and the machine-room CRT),
 // handing off to the /text list instead. Centralized so the gate can't drift
 // between the descent entry (OrderForm), the install (MachineRoomFloor), etc.
-const LOW_POWER_QUERIES = ['(max-width: 768px)', '(prefers-reduced-motion: reduce)'] as const;
+const SMALL_SCREEN_QUERY = '(max-width: 768px)';
+const LOW_POWER_QUERIES = [SMALL_SCREEN_QUERY, '(prefers-reduced-motion: reduce)'] as const;
 
 /** Imperative read of the *current* state. Safe in event handlers and on the
  *  server (returns false where matchMedia is unavailable). */
 export function isLowPower(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
   return LOW_POWER_QUERIES.some((q) => window.matchMedia(q).matches);
+}
+
+/** True on a small TOUCH device — a phone/handheld, not merely a narrow viewport.
+ *  The machine-room install uses this to fire the "phones didn't exist in 1996"
+ *  desktop-invite gag on real handhelds only: the `pointer: coarse` half keeps a
+ *  RESIZED desktop window (narrow but mouse-driven) out of it — that user IS on a
+ *  desktop, so they get the plain /text handoff instead of a nonsensical "try
+ *  desktop." A handheld that somehow reports a fine pointer just falls back to that
+ *  same /text handoff (it's still low-power), so the gate degrades gracefully. */
+export function isSmallScreen(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return (
+    window.matchMedia(SMALL_SCREEN_QUERY).matches && window.matchMedia('(pointer: coarse)').matches
+  );
 }
 
 /** Reactive hook — re-renders when the viewport crosses the breakpoint or the

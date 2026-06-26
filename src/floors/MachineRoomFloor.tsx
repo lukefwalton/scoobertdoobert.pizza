@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import '../styles/machineroom.css';
 import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
-import { useLowPower } from '../lib/lowPower';
+import { useLowPower, isSmallScreen } from '../lib/lowPower';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
 import type { Floor } from '../data/floors';
@@ -34,14 +34,58 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   // after this floor has mounted, the CRT and the install behavior follow suit.
   const lowPower = useLowPower();
 
+  // The cheeky payoff for phones: instead of silently dumping a mobile visitor on
+  // the flat /text page (a letdown), the Calzone Player "install" pops a period
+  // setup-error — the plug-in needs a desktop, because pocket phones didn't exist
+  // in 1996. It still offers a real link onward to /text, so it never dead-ends.
+  const [gag, setGag] = useState(false);
+  const gagRef = useRef<HTMLDivElement>(null);
+  const installRef = useRef<HTMLButtonElement>(null);
+
   const install = () => {
+    if (isSmallScreen()) {
+      setGag(true); // mobile → the desktop-invite gag
+      return;
+    }
     if (lowPower) {
-      window.location.assign(TEXT_ONLY_PATH);
+      window.location.assign(TEXT_ONLY_PATH); // reduced-motion on a real desktop → flat handoff
       return;
     }
     audio.unlock();
     requestInstall();
   };
+
+  // Modal hygiene for the gag: focus the first control on open, trap Tab within the
+  // dialog, close on Escape, and restore focus to the Install button on close.
+  useEffect(() => {
+    if (!gag) return;
+    const root = gagRef.current;
+    const installBtn = installRef.current; // stable node — capture for the cleanup
+    const focusable = root ? Array.from(root.querySelectorAll<HTMLElement>('a[href],button')) : [];
+    focusable[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setGag(false);
+        return;
+      }
+      if (e.key === 'Tab' && focusable.length) {
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      installBtn?.focus();
+    };
+  }, [gag]);
 
   return (
     <div className="mr" data-floor={floor.id}>
@@ -64,7 +108,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
             This experience requires the <b>Calzone Player&trade;</b> VRML plug-in (v1.0b).
           </p>
           <p className="mr__fine">Navigable 3D worlds, in your browser. Finally.</p>
-          <button className="mr__install" type="button" onClick={install}>
+          <button className="mr__install" type="button" onClick={install} ref={installRef}>
             {floor.descendLabel}
           </button>
         </section>
@@ -102,6 +146,53 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
       <div className="mr__doors">
         <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
       </div>
+
+      {gag && (
+        <div className="mr__gag-backdrop" onClick={() => setGag(false)}>
+          <div
+            className="mr__gag"
+            ref={gagRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mr-gag-title"
+            aria-describedby="mr-gag-body"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mr__gag-bar">
+              <span id="mr-gag-title">Calzone Player&trade; Setup</span>
+              <button
+                className="mr__gag-x"
+                type="button"
+                aria-label="Close"
+                onClick={() => setGag(false)}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="mr__gag-body" id="mr-gag-body">
+              <p className="mr__gag-head">
+                <span className="mr__gag-icon" aria-hidden="true">
+                  &#9888;
+                </span>
+                Cannot download the Calzone Player&trade; plug-in.
+              </p>
+              <p>
+                Navigable 3D worlds require a <b>desktop computer</b>. Pocket telephones did not
+                exist in 1996. We checked.
+              </p>
+              <p className="mr__fine">Please revisit on a desktop to step through the screen.</p>
+              <div className="mr__gag-actions">
+                <a className="mr__gag-go" href={TEXT_ONLY_PATH}>
+                  View the text-only version &rarr;
+                </a>
+                <button className="mr__gag-back" type="button" onClick={() => setGag(false)}>
+                  Back
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
