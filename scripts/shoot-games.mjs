@@ -60,18 +60,22 @@ for (const g of GAMES) {
     await ctx.close();
   }
 
-  // --- 1b. NORMAL session (JS on, NO ?debug): the ?debug-only force-lose hook must
-  //     be ABSENT at the real call site, not just no-op'd in the helper. ---
+  // --- 1b. The force-lose globals are ACTION hooks → ?debug-ONLY (the stricter
+  //     gate, like __sdpGoToRoom). Confirm they're ABSENT at the real call site on a
+  //     normal route AND on the wider ?world entrance (which only gates read-only
+  //     state). Presence on ?debug is proven by the lose path working in block 2. ---
   if (g.loseHook) {
-    const ctx = await browser.newContext();
-    const page = await ctx.newPage();
-    await page.goto(`${base}/${g.slug}`, { waitUntil: 'networkidle' });
-    await page.waitForSelector('.arcade-canvas', { timeout: 12000 }).catch(() => {});
-    const leaked = await page.evaluate((h) => typeof window[h] === 'function', g.loseHook);
-    if (leaked)
-      bad(`${g.slug}: the ${g.loseHook} debug hook is exposed on a NORMAL (no-?debug) route`);
-    console.log(`${g.slug} no-dbg -> hookAbsent=${!leaked}`);
-    await ctx.close();
+    for (const q of ['', '?world=1']) {
+      const ctx = await browser.newContext();
+      const page = await ctx.newPage();
+      await page.goto(`${base}/${g.slug}${q}`, { waitUntil: 'networkidle' });
+      await page.waitForSelector('.arcade-canvas', { timeout: 12000 }).catch(() => {});
+      const leaked = await page.evaluate((h) => typeof window[h] === 'function', g.loseHook);
+      if (leaked)
+        bad(`${g.slug}: ${g.loseHook} is exposed on "${q || 'plain'}" — must be ?debug-only`);
+      console.log(`${g.slug} ${q || 'plain'} -> hookAbsent=${!leaked}`);
+      await ctx.close();
+    }
   }
 
   // --- 2. JS ON: mounts, starts, no errors, per-game high score persists ---

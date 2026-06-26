@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { exposeTestGlobal } from '../lib/testHooks';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PizzaRadar (PIZZA RADAR 1996) — the "alien shooter": a green-phosphor radar
@@ -291,11 +291,14 @@ export function PizzaRadar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Test hook (?debug): a DETERMINISTIC loss — drop the live formation onto the
-  // floor line and force a march, so the loop's OWN floor-breach check fires the
-  // real game-over branch (endGame). shoot:games asserts the GAME OVER overlay +
-  // the persisted high score off this, so the lose path isn't manual-only.
+  // Test hook: a DETERMINISTIC loss — drop the live formation onto the floor line
+  // and force a march, so the loop's OWN floor-breach check fires the real
+  // game-over branch (endGame). shoot:games asserts the GAME OVER overlay + the
+  // persisted high score off this. It's an ACTION hook (forces a loss), so — like
+  // __sdpGoToRoom — it rides the STRICTER ?debug-only gate, NOT the wider
+  // ?world/?debug test entrance, so a visitor on a guessable ?world can't call it.
   useEffect(() => {
+    if (!isDebugEntrance()) return;
     exposeTestGlobal('__sdpRadarForceLose', () => {
       const g = game.current;
       if (g.phase !== 'playing') return;
