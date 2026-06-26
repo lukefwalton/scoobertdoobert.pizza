@@ -145,14 +145,42 @@ if (inJuke) {
   await page.screenshot({ path: '.shots/dice-crit.png' });
 }
 
-// (The __sdpRollDice ?debug gate is proven by testHooks.test — the isDebugEntrance
-// unit — plus the visible `if (!isDebugEntrance()) return;` guard in JukeboxRoom and
-// shoot-games block 1b for the analogous force-lose action hooks. We don't re-prove it
-// with a second browser context here: it only added flake + needed ?room to be a test
-// entrance, which would expose read hooks in prod.)
+// Containment, end-to-end and FLAKE-FREE: the ?debug roll hook must never leak into
+// a real, non-debug session — even with the jukebox fully MOUNTED. Enter the SAME
+// room the deterministic ?room= way but WITHOUT &debug=1, confirm via the visible HUD
+// label (not a test hook) that the jukebox is genuinely live, then assert every __sdp*
+// hook is absent. __sdpRollDice is double-gated (isDebugEntrance + exposeTestGlobal)
+// and the read hooks ride exposeTestGlobal (isTestEntrance); ?room is neither, so ALL
+// must be undefined. This re-proves at RUNTIME — not only via the isDebugEntrance unit
+// — that a room mount can't attach the action hook in production. It's the determin-
+// istic replacement for the old corridor-walk containment (that WALK, not the
+// assertion, was the CI flake); ?room entry makes the check cheap and stable.
+let contained = false;
+{
+  const cleanCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const clean = await cleanCtx.newPage();
+  watchPageErrors(clean, fail);
+  await clean.goto(base + '/?room=jukebox', { waitUntil: 'commit' });
+  await clean
+    .waitForSelector('.hud-menu-btn', { timeout: 12000 })
+    .catch((e) => fail(`non-debug world did not mount: ${e.message}`));
+  const cleanJuke = await sharedRoomIs(clean, 'The Jukebox', { fail });
+  if (cleanJuke) {
+    const types = await clean.evaluate(() => ({
+      roll: typeof window.__sdpRollDice,
+      dice: typeof window.__sdpDice,
+      juke: typeof window.__sdpJukebox,
+    }));
+    contained =
+      types.roll === 'undefined' && types.dice === 'undefined' && types.juke === 'undefined';
+    if (!contained)
+      fail(`__sdp* hooks leaked into a non-debug ?room=jukebox session: ${JSON.stringify(types)}`);
+  }
+  await cleanCtx.close();
+}
 
 await browser.close();
 console.log(
-  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} | errors=${errors}`,
+  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
