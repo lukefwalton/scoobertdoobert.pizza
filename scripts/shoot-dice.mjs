@@ -198,15 +198,22 @@ let worldGated = false;
     .catch((e) => fail(`?world jukebox did not mount: ${e.message}`));
   const wJuke = await sharedRoomIs(wp, 'The Jukebox', { fail });
   if (wJuke) {
-    const types = await wp.evaluate(() => ({
-      roll: typeof window.__sdpRollDice, // action hook — must stay absent (needs ?debug)
-      juke: typeof window.__sdpJukebox, // read hook (an object) — present under ?world
-    }));
-    worldGated = types.roll === 'undefined' && types.juke === 'object';
-    if (!worldGated)
-      fail(
-        `?world gate wrong (action hook must be absent, read hook present): ${JSON.stringify(types)}`,
+    // WAIT for the read hook to appear — the jukebox exposes __sdpJukebox in its
+    // play effect a tick AFTER the room label renders, so reading it immediately
+    // races (the one-off flake). Once it's up, the test entrance is proven live.
+    const readShown = await wp
+      .waitForFunction(() => typeof window.__sdpJukebox === 'object', null, { timeout: 5000 })
+      .then(
+        () => true,
+        () => false,
       );
+    // The action hook is isDebugEntrance-gated, so under ?world it never mounts at
+    // all (the effect returns early) — checking once, after the read hook is up, is
+    // race-free: it can't appear later.
+    const rollType = await wp.evaluate(() => typeof window.__sdpRollDice);
+    worldGated = readShown && rollType === 'undefined';
+    if (!worldGated)
+      fail(`?world gate wrong (read hook present=${readShown}; action hook type=${rollType})`);
   }
   await wctx.close();
 }
