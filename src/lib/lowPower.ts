@@ -5,13 +5,23 @@ import { useEffect, useState } from 'react';
 // through the flat era floors but skip the 3D world (and the machine-room CRT),
 // handing off to the /text list instead. Centralized so the gate can't drift
 // between the descent entry (OrderForm), the install (MachineRoomFloor), etc.
-const LOW_POWER_QUERIES = ['(max-width: 768px)', '(prefers-reduced-motion: reduce)'] as const;
+const SMALL_SCREEN_QUERY = '(max-width: 768px)';
+const LOW_POWER_QUERIES = [SMALL_SCREEN_QUERY, '(prefers-reduced-motion: reduce)'] as const;
 
 /** Imperative read of the *current* state. Safe in event handlers and on the
  *  server (returns false where matchMedia is unavailable). */
 export function isLowPower(): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
   return LOW_POWER_QUERIES.some((q) => window.matchMedia(q).matches);
+}
+
+/** True specifically on a phone-sized screen — a SUBSET of low-power (which also
+ *  covers reduced-motion on a desktop). The machine-room install uses this to fire
+ *  the "phones didn't exist in 1996" desktop-invite gag on mobile only, while a
+ *  reduced-motion desktop user (who IS on a desktop) just gets the flat handoff. */
+export function isSmallScreen(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia(SMALL_SCREEN_QUERY).matches;
 }
 
 /** Reactive hook — re-renders when the viewport crosses the breakpoint or the
