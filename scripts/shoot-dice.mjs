@@ -2,8 +2,8 @@
 // Drop straight into the jukebox via the deterministic ?room= entrance (the shop →
 // hall → jukebox corridor walk is covered by shoot:rooms; THIS smoke is about the
 // DICE, and a fixed entry avoids the slow-CI walk-timing flake). Click the die and
-// assert it rolled (1..20) + the jukebox jumped; force the nat 1 / nat 20 crits
-// through the ?debug hook; and prove that durable-mutating hook is ?debug-gated.
+// assert it rolled (1..20) + the jukebox jumped, and force the nat 1 / nat 20 crits
+// through the ?debug hook.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
@@ -145,38 +145,14 @@ if (inJuke) {
   await page.screenshot({ path: '.shots/dice-crit.png' });
 }
 
-// Containment: __sdpRollDice mutates DURABLE progress (unlockRadio), so it must ride
-// the ?debug gate. Enter the jukebox via a PLAIN ?room= entrance (no &debug) — the
-// room still mounts (the HUD names it), but the action hook must be ABSENT.
-let actionHookGated = false;
-{
-  const wctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-  const wpage = await wctx.newPage();
-  watchPageErrors(wpage, fail);
-  const wInJuke = await enterJukebox(wpage, { debug: false });
-  // ?room is a test entrance, so the room's READ-ONLY hook (__sdpJukeboxVisible)
-  // exposes — wait for it as a POSITIVE "the JukeboxRoom mount effect has run" signal,
-  // so the action hook's absence below means the ?debug gate held, not merely that the
-  // room hadn't finished mounting yet.
-  const mounted = await wpage
-    .waitForFunction(() => Array.isArray(window.__sdpJukeboxVisible), null, { timeout: 5000 })
-    .then(
-      () => true,
-      () => false,
-    );
-  if (!wInJuke || !mounted) {
-    fail('containment check never mounted the jukebox room');
-  } else {
-    const action = await wpage.evaluate(() => typeof window.__sdpRollDice === 'function');
-    actionHookGated = !action;
-    if (action)
-      fail('__sdpRollDice is exposed without ?debug — a durable-mutating hook must be ?debug-only');
-  }
-  await wctx.close();
-}
+// (The __sdpRollDice ?debug gate is proven by testHooks.test — the isDebugEntrance
+// unit — plus the visible `if (!isDebugEntrance()) return;` guard in JukeboxRoom and
+// shoot-games block 1b for the analogous force-lose action hooks. We don't re-prove it
+// with a second browser context here: it only added flake + needed ?room to be a test
+// entrance, which would expose read hooks in prod.)
 
 await browser.close();
 console.log(
-  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} hookGated=${actionHookGated} | errors=${errors}`,
+  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

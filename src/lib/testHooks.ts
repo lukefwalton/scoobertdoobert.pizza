@@ -1,17 +1,17 @@
 // Test-entrance hooks. Several components/the engine expose internal state on
 // `window.__sdp*` so the Playwright smokes can assert on real runtime state — but
-// ONLY under the ?world / ?debug / ?room test entrances, so it's never part of the
-// normal runtime surface. This centralizes that gate so each consumer doesn't
-// re-spell the regex + the window cast.
+// ONLY under the ?world / ?debug test entrances, so it's never part of the normal
+// runtime surface. This centralizes that gate so each consumer doesn't re-spell
+// the regex + the window cast.
+//
+// NOTE: ?room=ID (WorldMount's deterministic room entry) is intentionally NOT a test
+// entrance — it works in production builds, so exposing __sdp* hooks under it would
+// be real prod surface. Smokes that need the hooks while in a specific room pass
+// &debug=1 alongside ?room (e.g. ?room=jukebox&debug=1).
 
-/** True on the ?world / ?debug / ?room test entrances (where smoke globals are
- *  allowed). `?room=ID` is a deterministic smoke entry (WorldMount drops straight
- *  into that room) — a real visitor never lands on it, so its read-only state
- *  globals are fine to expose, the same as ?world. */
+/** True on the ?world / ?debug test entrances (where smoke globals are allowed). */
 export function isTestEntrance(): boolean {
-  return (
-    typeof window !== 'undefined' && /[?&](world|debug|room)(=|&|$)/.test(window.location.search)
-  );
+  return typeof window !== 'undefined' && /[?&](world|debug)(=|&|$)/.test(window.location.search);
 }
 
 /** True only on the ?debug entrance — the NARROWER gate. Read-only state globals
