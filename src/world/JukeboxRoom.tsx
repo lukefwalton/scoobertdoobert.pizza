@@ -3,12 +3,14 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
-import { exposeTestGlobal } from '../lib/testHooks';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
 import { visibleJukeboxTracks, jukeboxTrackUrl } from '../data/jukebox';
 import { loopIndexForUrl } from '../data/music';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { type Crit } from '../lib/luck';
+import { announce } from '../state/toastStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore } from '../state/progressStore';
 import { D20 } from './D20';
@@ -143,6 +145,27 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
   );
 }
 
+// The d20's crits land an OUTCOME, the music way (DESIGN: "I rolled a 1 and got
+// the cursed one"). nat 20 = the pristine pressing — a bright ascending sparkle;
+// nat 1 = the cursed pressing — a low, detuned "bad-luck" womp. Goofy-uncanny but
+// sweet (the jukebox stays a safe room — taste guardrail), and juicy SOUND either
+// way ("dice are juicy sound too"). Both one-shots are mute-aware + brickwall-limited.
+function playCritFlavor(crit: Crit) {
+  if (crit === 'nat20') {
+    announce('🎲 NAT 20 — the pristine pressing!', 'crit-good');
+    ['E', 'G', 'B', 'E'].forEach((n, k) =>
+      window.setTimeout(
+        () => audio.playChime(noteToFreq(n, k === 3 ? 6 : 5), 0.15, 0.1, 0.6),
+        k * 80,
+      ),
+    );
+  } else if (crit === 'nat1') {
+    announce('🎲 CRIT FAIL — you got the cursed pressing…', 'crit-bad');
+    audio.playTone(noteToFreq('C', 3), 240, 0.1);
+    window.setTimeout(() => audio.playTone(noteToFreq('G', 2), 360, 0.1), 150);
+  }
+}
+
 export function JukeboxRoom({ room }: { room: Room }) {
   const fog = fogFor(room);
 
@@ -170,14 +193,29 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // hands it back on exit instead of the boot loop). We map the chosen track to
   // its STABLE LOOP_OPTIONS index by slug, so filtering the dial never desyncs the
   // engine's loop-voice indices.
-  const rollTo = (face: number) => {
+  const rollTo = (face: number, crit: Crit) => {
     setRoll(face);
     const i = (face - 1) % tracks.length;
     setIndex(i);
     useProgressStore.getState().unlockRadio();
     useMusicStore.getState().setPreferred(loopIndexForUrl(jukeboxTrackUrl(tracks[i].slug)));
+    playCritFlavor(crit); // nat 20 → pristine, nat 1 → cursed (the gamble payoff)
     exposeTestGlobal('__sdpDice', face);
+    exposeTestGlobal('__sdpDiceCrit', crit);
   };
+
+  // ?debug-only ACTION hook: force a specific d20 face (+ its crit) so a smoke can
+  // drive the nat 20 / nat 1 payoffs deterministically (the real die is random).
+  // Stricter gate (isDebugEntrance), like __sdpGoToRoom / the force-lose hooks.
+  useEffect(() => {
+    if (!isDebugEntrance()) return;
+    exposeTestGlobal('__sdpRollDice', (face: number) =>
+      rollTo(face, face === 20 ? 'nat20' : face === 1 ? 'nat1' : null),
+    );
+    return () => exposeTestGlobal('__sdpRollDice', undefined);
+    // mount-once: rollTo closes over the room-stable `tracks` + stable setters.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Entering: warm the whole catalog so cycling is instant. Leaving: hand the
   // loop voice back to the ambient boot loop and clear the test selection global
@@ -187,6 +225,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   useEffect(() => {
     audio.preloadJukebox(tracks.map((t) => jukeboxTrackUrl(t.slug)));
     exposeTestGlobal('__sdpDice', undefined);
+    exposeTestGlobal('__sdpDiceCrit', undefined);
     // The dial the player can actually see this visit (seed + discovered) — for the
     // discovery smoke to assert "hidden until found".
     exposeTestGlobal(
@@ -200,6 +239,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
       exposeTestGlobal('__sdpJukebox', undefined);
       exposeTestGlobal('__sdpJukeboxVisible', undefined);
       exposeTestGlobal('__sdpDice', undefined);
+      exposeTestGlobal('__sdpDiceCrit', undefined);
     };
     // mount-once: preload the visible catalog + manage the test globals for this
     // visit. `tracks` is stable for the room's lifetime (re-entry remounts).

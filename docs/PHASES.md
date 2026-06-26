@@ -252,9 +252,15 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   (two monotonic counters in `progressStore`), **rest restores slots** (shrine clap
   / breather rooms), and a cast feeds the dread-**relief** pool — a sanctioned way
   to push the unease back. Multi-spell hotbar in the HUD. `shoot:spell`.
-- ✅ **Perception whispers (2026-06-26):** each room entry rolls a luck-biased d20
-  **perception check** (DC 12); on a hit you catch a room-specific whisper (lore
-  mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **Perception whispers (2026-06-26):** each room entry rolls a **plain d20
+  perception check** (DC 12; luck stays reserved for the stakes rolls, so a
+  high-frequency check never drains it); on a hit you catch a room-specific whisper
+  (lore mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **The jukebox dice crits — the "gamble for it" payoff (2026-06-26):** the music
+  ladder's top rung lands its crits. The cabinet d20 (`rollD20(false)`) already
+  jumped the dial to the rolled track; now a **nat 20 = "the pristine pressing"**
+  (sparkle) and a **nat 1 = "the cursed pressing"** (a detuned womp + `crit-bad`
+  toast) — DESIGN's share-fuel beat, goofy-sweet (taste). `shoot:dice` forces both.
 - ✅ **The grass encounter (in DESIGN, now shipped):** a **rare Pokémon-style
   grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
   to a battle room, and winning the d20 roll-off opens the grove + records the
