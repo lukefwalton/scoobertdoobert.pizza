@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // BurritoBelt (BURRITO BELT) — the "falling blocks" cabinet: stacks of burrito
@@ -208,6 +209,14 @@ export function BurritoBelt() {
     } else {
       audio.playTone(noteToFreq('A', 3), 70, 0.08); // a soft thunk on lock
     }
+    spawnOrEnd();
+  };
+
+  // Spawn the next piece, or — if it can't be placed (the belt's jammed) — run the
+  // real game-over branch. Factored out so the test force-lose hook drives the SAME
+  // code path the smoke asserts on, not a copy of it.
+  const spawnOrEnd = () => {
+    const g = game.current;
     g.active = null;
     if (!spawn()) {
       g.phase = 'over';
@@ -374,6 +383,21 @@ export function BurritoBelt() {
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Test hook (?debug): a DETERMINISTIC loss — jam the spawn lanes (without
+  // completing a row, so nothing clears) then run spawnOrEnd, so the next spawn
+  // fails and the REAL game-over branch fires. shoot:games asserts the GAME OVER
+  // overlay + the persisted high score off this.
+  useEffect(() => {
+    exposeTestGlobal('__sdpBeltForceLose', () => {
+      const g = game.current;
+      if (g.phase !== 'playing') return;
+      for (let c = 3; c <= 6; c++) g.board[0][c] = '#555'; // block the centre spawn lanes
+      spawnOrEnd();
+    });
+    return () => exposeTestGlobal('__sdpBeltForceLose', undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

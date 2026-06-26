@@ -19,11 +19,21 @@ const GAMES = [
   // so it carries the real lose-path assertion: the GAME OVER overlay must render
   // (guards the "ref phase set but React setPhase missing" regression).
   { slug: 'jazz-snake', title: 'Jazz Snake', id: 'jazz-snake', forceLoss: true },
-  // pizza-radar's loss (a saucer reaching the floor) isn't keypress-forceable, so
-  // like crusteroids/slice-breaker it just verifies load → start → no errors → HI.
-  { slug: 'pizza-radar', title: 'Pizza Radar 1996', id: 'pizza-radar' },
-  // burrito-belt's loss (stack to the top) isn't quickly forceable either.
-  { slug: 'burrito-belt', title: 'Burrito Belt', id: 'burrito-belt' },
+  // pizza-radar + burrito-belt losses (a saucer to the floor / a jammed belt) aren't
+  // keypress-forceable, so each exposes a ?debug force-lose hook that drives its REAL
+  // game-over branch; the smoke calls it and asserts the GAME OVER overlay renders.
+  {
+    slug: 'pizza-radar',
+    title: 'Pizza Radar 1996',
+    id: 'pizza-radar',
+    loseHook: '__sdpRadarForceLose',
+  },
+  {
+    slug: 'burrito-belt',
+    title: 'Burrito Belt',
+    id: 'burrito-belt',
+    loseHook: '__sdpBeltForceLose',
+  },
 ];
 
 const browser = await chromium.launch();
@@ -91,6 +101,30 @@ for (const g of GAMES) {
           await page.waitForTimeout(110);
         }
         if (!gameOver) bad(`${g.slug} JS: a real loss never surfaced the GAME OVER overlay`);
+        console.log(`${g.slug} loss  -> gameover=${gameOver}`);
+      }
+
+      // Hook-driven lose path: call the game's ?debug force-lose hook (it drives the
+      // REAL game-over branch) and assert the over overlay renders. Asserts on the
+      // shared "PLAY AGAIN" blink, so it works whether the card says GAME OVER or a
+      // flavour title (e.g. burrito-belt's "BELT JAMMED").
+      if (g.loseHook) {
+        const fired = await page.evaluate((h) => {
+          if (typeof window[h] !== 'function') return false;
+          window[h]();
+          return true;
+        }, g.loseHook);
+        if (!fired) bad(`${g.slug} JS: the force-lose hook ${g.loseHook} was not exposed`);
+        let gameOver = false;
+        for (let t = 0; t < 30 && !gameOver; t++) {
+          gameOver = await page
+            .$eval('.arcade-overlay', (el) => /PLAY AGAIN/i.test(el.textContent || ''))
+            .catch(() => false);
+          if (gameOver) break;
+          await page.waitForTimeout(100);
+        }
+        if (!gameOver)
+          bad(`${g.slug} JS: the force-lose hook never surfaced the game-over overlay`);
         console.log(`${g.slug} loss  -> gameover=${gameOver}`);
       }
 

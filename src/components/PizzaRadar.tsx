@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PizzaRadar (PIZZA RADAR 1996) — the "alien shooter": a green-phosphor radar
@@ -282,6 +283,20 @@ export function PizzaRadar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Test hook (?debug): a DETERMINISTIC loss — drop the live formation onto the
+  // floor line and force a march, so the loop's OWN floor-breach check fires the
+  // real game-over branch (endGame). shoot:games asserts the GAME OVER overlay +
+  // the persisted high score off this, so the lose path isn't manual-only.
+  useEffect(() => {
+    exposeTestGlobal('__sdpRadarForceLose', () => {
+      const g = game.current;
+      if (g.phase !== 'playing') return;
+      for (const b of g.blips) if (b.alive) b.cy = LOSE_Y;
+      g.march = 999; // force a march next frame → the floor-breach check ends it
+    });
+    return () => exposeTestGlobal('__sdpRadarForceLose', undefined);
+  }, []);
+
   // drag the turret along the canvas; a tap (no drag) fires.
   const drag = useRef<{ x: number; moved: boolean } | null>(null);
   const press = (clientX: number, rectLeft: number, rectW: number) => {
@@ -318,6 +333,7 @@ export function PizzaRadar() {
             drag.current = null;
             if (!d || !d.moved) fire(); // a tap fires / starts
           }}
+          onPointerCancel={() => (drag.current = null)} // a stolen gesture doesn't strand a drag
         />
         {phase === 'ready' && (
           <div className="arcade-overlay">
@@ -347,6 +363,7 @@ export function PizzaRadar() {
           }}
           onPointerUp={() => (game.current.moveL = false)}
           onPointerLeave={() => (game.current.moveL = false)}
+          onPointerCancel={() => (game.current.moveL = false)}
           aria-label="left"
         >
           ◀
@@ -371,6 +388,7 @@ export function PizzaRadar() {
           }}
           onPointerUp={() => (game.current.moveR = false)}
           onPointerLeave={() => (game.current.moveR = false)}
+          onPointerCancel={() => (game.current.moveR = false)}
           aria-label="right"
         >
           ▶
