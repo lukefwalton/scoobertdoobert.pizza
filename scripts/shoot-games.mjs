@@ -36,6 +36,9 @@ const GAMES = [
         { button: 'right', field: 'moveR' },
       ],
     },
+    // A canvas drag RELEASED off-canvas must still clear drag state (pointer capture),
+    // so a later hover isn't mistaken for an active drag. Probe reads `dragging`.
+    dragProbe: { stateHook: '__sdpRadarState', field: 'dragging' },
   },
   {
     slug: 'burrito-belt',
@@ -150,6 +153,27 @@ for (const g of GAMES) {
             bad(`${g.slug} JS: releasing "${button}" left ${field} stuck (got ${released})`);
           console.log(`${g.slug} hold "${button}" -> down=${held} up=${released}`);
         }
+      }
+
+      // Drag-strand guard (the review's yellow flag): press on the canvas, drag UP
+      // and OUT of its bounds, and release the pointer outside it. With pointer
+      // capture the canvas still gets that pointerup and clears drag state; without
+      // it, `dragging` would stay stuck true and a later hover would sweep the turret.
+      if (g.dragProbe) {
+        const cb = await canvas.boundingBox();
+        await page.mouse.move(cb.x + cb.width / 2, cb.y + cb.height / 2);
+        await page.mouse.down();
+        await page.mouse.move(cb.x + cb.width / 2, Math.max(2, cb.y - 40)); // above the canvas
+        await page.mouse.up(); // released OUTSIDE the canvas bounds
+        const dragging = await page.evaluate(
+          (h) => (typeof window[h] === 'function' ? !!window[h]().dragging : null),
+          g.dragProbe.stateHook,
+        );
+        if (dragging !== false)
+          bad(
+            `${g.slug} JS: a drag released off-canvas left drag state stranded (dragging=${dragging})`,
+          );
+        console.log(`${g.slug} drag-off-canvas-release -> dragging=${dragging}`);
       }
 
       // The real lose path: drive a deterministic loss and assert the GAME OVER
