@@ -74,6 +74,20 @@ if (prompted) {
   }
 }
 
+// The video has its own audio, so the RADIO (the user's music) must DUCK while it
+// plays — the WorldHud sound-maker effect → audio.suppressMusic(true). (Exposed via
+// __sdpMusicSuppressed under the ?debug entrance.)
+let duckedForVideo = false;
+if (modalOpen) {
+  duckedForVideo = await page
+    .waitForFunction(() => window.__sdpMusicSuppressed === true, null, { timeout: 2000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!duckedForVideo) fail('the radio did not duck while the TV video played (suppressMusic)');
+}
+
 // Esc closes the TV first (before the pause menu) — the modal must dismiss.
 let closed = false;
 if (modalOpen) {
@@ -87,9 +101,22 @@ if (modalOpen) {
   if (!closed) fail('Esc did not close the TV modal');
 }
 
+// …and the radio RESTORES the moment the video closes (suppress lifted).
+let musicRestored = false;
+if (closed) {
+  musicRestored = await page
+    .waitForFunction(() => window.__sdpMusicSuppressed === false, null, { timeout: 2000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!musicRestored) fail('the radio did not restore after the TV video closed');
+}
+
 await browser.close();
 console.log(
   `tv: frutiger=${inFrutiger} noPromptAtSpawn=${noPromptAtSpawn} prompted=${prompted} ` +
-    `modalOpen=${modalOpen} albumTitled=${titledForAlbum} escClosed=${closed} | errors=${errors}`,
+    `modalOpen=${modalOpen} albumTitled=${titledForAlbum} escClosed=${closed} ` +
+    `ducked=${duckedForVideo} restored=${musicRestored} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

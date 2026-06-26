@@ -8,9 +8,74 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
-import { itemById } from '../data/items';
+import { itemById, type ItemKind } from '../data/items';
 import { spellById } from '../data/spells';
 import { jukeboxTrackUrl, loopIndexForUrl } from '../data/music';
+
+// Per-KIND art so a key, a cassette, and a scroll never read as the same gold box
+// (they used to). Cheap PS1 primitives + flat materials; each gets a faint emissive
+// glint so it pops "pick me up" in a dim room. Built once per pickup, disposed on
+// unmount. The parent group does the bob + spin, so each shape can pose freely.
+function useItemArt(kind: ItemKind | undefined) {
+  return useMemo(() => {
+    const mats: THREE.Material[] = [];
+    const mk = (color: string, emissive: string) => {
+      const m = flatMat(color);
+      m.emissive.set(emissive);
+      mats.push(m);
+      return m;
+    };
+    const build = () => {
+      if (kind === 'trinket') {
+        // a cassette tape — a WIDE, FLAT dark shell with a cream label (nothing
+        // like the tall gold key).
+        const shell = mk('#2b2733', '#15131c');
+        const label = mk('#d8d2c0', '#3a382f');
+        return (
+          <group>
+            <mesh material={shell}>
+              <boxGeometry args={[0.4, 0.26, 0.07]} />
+            </mesh>
+            <mesh material={label} position={[0, 0.02, 0.037]}>
+              <boxGeometry args={[0.3, 0.12, 0.012]} />
+            </mesh>
+          </group>
+        );
+      }
+      if (kind === 'tome') {
+        // a rolled scroll — a parchment cylinder on its side, darker end caps.
+        const paper = mk('#d8c89a', '#4a4024');
+        const cap = mk('#9a7b46', '#332813');
+        return (
+          <group rotation={[0, 0, Math.PI / 2]}>
+            <mesh material={paper}>
+              <cylinderGeometry args={[0.08, 0.08, 0.4, 12]} />
+            </mesh>
+            <mesh material={cap} position={[0, 0.205, 0]}>
+              <cylinderGeometry args={[0.086, 0.086, 0.03, 12]} />
+            </mesh>
+            <mesh material={cap} position={[0, -0.205, 0]}>
+              <cylinderGeometry args={[0.086, 0.086, 0.03, 12]} />
+            </mesh>
+          </group>
+        );
+      }
+      // a key (default) — a tall gold shaft with a ring bow on top.
+      const gold = mk('#e8c66a', '#5a4410');
+      return (
+        <group>
+          <mesh material={gold} position={[0, -0.05, 0]}>
+            <boxGeometry args={[0.13, 0.34, 0.13]} />
+          </mesh>
+          <mesh material={gold} position={[0, 0.21, 0]} rotation={[Math.PI / 2, 0, 0]}>
+            <torusGeometry args={[0.1, 0.035, 8, 16]} />
+          </mesh>
+        </group>
+      );
+    };
+    return { node: build(), mats };
+  }, [kind]);
+}
 
 // A collectible lying in a room (Room.pickups). Click it to pocket it: a bright
 // coin chime, a toast, and it goes into the durable inventory (progressStore).
@@ -26,23 +91,18 @@ export function ItemPickup({
 }) {
   const { gl } = useThree();
   const held = useProgressStore((s) => s.itemsHeld.includes(itemId));
-  const mesh = useRef<THREE.Mesh>(null);
+  const group = useRef<THREE.Group>(null);
   const item = itemById(itemId);
 
-  // A small warm glint so a key reads as "pick me up" against a flat room.
-  const mat = useMemo(() => {
-    const m = flatMat('#e8c66a');
-    m.emissive.set('#5a4410'); // self-lit a touch so it pops in a dim room
-    return m;
-  }, []);
-  useEffect(() => () => mat.dispose(), [mat]);
+  const art = useItemArt(item?.kind);
+  useEffect(() => () => art.mats.forEach((m) => m.dispose()), [art]);
 
   // Idle bob + slow spin — the universal "this is an item" language.
   useFrame((state) => {
-    if (!mesh.current) return;
+    if (!group.current) return;
     const t = state.clock.elapsedTime;
-    mesh.current.position.y = position[1] + Math.sin(t * 2) * 0.12;
-    mesh.current.rotation.y = t * 1.1;
+    group.current.position.y = position[1] + Math.sin(t * 2) * 0.12;
+    group.current.rotation.y = t * 1.1;
   });
 
   useEffect(
@@ -97,9 +157,8 @@ export function ItemPickup({
   if (held) return null;
 
   return (
-    <mesh
-      ref={mesh}
-      material={mat}
+    <group
+      ref={group}
       position={position}
       onClick={(e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
@@ -112,8 +171,7 @@ export function ItemPickup({
         gl.domElement.style.cursor = 'grab';
       }}
     >
-      {/* a stubby key-ish prism — small, readable, cheap */}
-      <boxGeometry args={[0.18, 0.42, 0.18]} />
-    </mesh>
+      {art.node}
+    </group>
   );
 }
