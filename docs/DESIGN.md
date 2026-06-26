@@ -190,6 +190,15 @@ rat, the music, recurrence, even the loaders all flip the same way.
   chaotic music selector — roll picks *which* demo or *how* degraded the variant
   is. Chaos = replayability = share fuel ("I rolled a 1 and got the cursed one").
   Dice are juicy *sound* too (clatter, tumble).
+  - **SHIPPED — the jukebox d20 + its crits.** The die beside the cabinet
+    (`JukeboxRoom` → `D20`, `rollD20(false)` — a low-stakes roll that never burns
+    your luck) jumps the dial to the rolled track; and now its CRITS land an
+    outcome the music way: a **nat 20 = "the pristine pressing"** (a bright
+    ascending sparkle) and a **nat 1 = "the cursed pressing"** (a low detuned
+    "bad-luck" womp + a `crit-bad` toast) — the share-fuel beat, kept goofy-sweet
+    (the jukebox stays a safe room — taste guardrail). A real per-track *curdle*
+    variant (how-degraded as actual audio, not just flavour) is the future
+    deepening on this rung. Covered by `shoot:dice` (forces the nat 1 / nat 20).
 
 ### The game layer — LUCK & the universal d20 (SHIPPED; the RPG spine)
 The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
