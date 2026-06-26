@@ -182,10 +182,38 @@ if (mobileGag) {
 }
 await mctx.close();
 
+// ── narrow FINE-pointer window (a resized desktop) — the complement of the gag ──
+// isSmallScreen() requires a coarse pointer, so a small mouse-driven window must
+// SKIP the gag and hand off straight to /text (it's on a desktop already). This
+// locks the negative side of the boundary: a regression that broadened the gate
+// back to pure max-width would wrongly show the gag here and fail this assertion.
+const nctx = await browser.newContext({ viewport: { width: 500, height: 820 } }); // no touch → fine pointer
+const np = await nctx.newPage();
+np.on('pageerror', (e) => fail(`narrow-window pageerror: ${e.message}`));
+await np.goto(base + '/', { waitUntil: 'networkidle' });
+await np.click('.floor-door--plain');
+await floor(np, 'y1999');
+await np.click('.floor-door--down');
+await floor(np, 'y2000');
+await np.click('.floor-door--down');
+await floor(np, 'machine');
+await np.click('.mr__install');
+let narrowToText = false;
+try {
+  // Reaching /text IS the proof there was no gag — a wrongly-shown modal blocks
+  // navigation, so this wait would time out instead.
+  await np.waitForURL('**/text', { timeout: 6000 });
+  narrowToText = (await np.locator('.mr__gag').count()) === 0;
+} catch {
+  fail('a narrow fine-pointer window showed the gag instead of going straight to /text');
+}
+if (!narrowToText) fail('the gag leaked into a narrow fine-pointer (desktop) window');
+await nctx.close();
+
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | errors=${errors}`,
+    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
