@@ -252,4 +252,113 @@ function consFrame(offset) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3) rainbow-rule.gif — the GeoCities rainbow <hr>: a glossy 7-band rainbow bar
+//    with a slow horizontal shimmer. Decorative divider, no text. Seamless loop
+//    (7 frames × 6px = one full 42px band period).
+// ═══════════════════════════════════════════════════════════════════════════════
+const RAIN = [
+  [255, 43, 43], // 0 red
+  [255, 140, 0], // 1 orange
+  [255, 230, 0], // 2 yellow
+  [46, 204, 64], // 3 green
+  [57, 204, 204], // 4 cyan
+  [43, 111, 214], // 5 blue
+  [177, 13, 201], // 6 violet
+  [255, 255, 255], // 7 top highlight
+  [26, 26, 42], // 8 bottom shadow
+];
+const R = { WHITE: 7, DARK: 8 };
+
+function rainbowFrame(offset) {
+  const W = 168;
+  const H = 8;
+  const bandW = 6;
+  const period = bandW * 7;
+  const c = canvas(W, H, R.DARK);
+  for (let x = 0; x < W; x++) {
+    const band = Math.floor(((((x + offset) % period) + period) % period) / bandW); // 0..6
+    for (let y = 1; y < H - 1; y++) c.set(x, y, band);
+    c.set(x, 0, R.WHITE); // glossy top edge
+    c.set(x, H - 1, R.DARK); // shadowed bottom edge
+  }
+  return c.indices();
+}
+
+{
+  const W = 168;
+  const H = 8;
+  const N = 7;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: rainbowFrame(i * 6), // 7×6 = 42 = one band period → seamless shimmer
+    delay: 12,
+  }));
+  write('rainbow-rule.gif', encodeGif({ width: W, height: H, palette: RAIN, frames }), W, H);
+  write(
+    'rainbow-rule-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: RAIN,
+      frames: [{ indices: rainbowFrame(0), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 4) wallpaper.gif — the single most GeoCities thing of all: a tiled background.
+//    A sparse dark-navy starfield, 48×48, seamless (no star within 1px of an edge).
+//    DARK on purpose: the floor's light text gains contrast over it (WCAG-friendly),
+//    and the busy era reads instantly. One frame — it's a texture, not an animation.
+// ═══════════════════════════════════════════════════════════════════════════════
+const WALL = [
+  [10, 16, 36], // 0 deep navy base
+  [205, 214, 255], // 1 bright star
+  [58, 74, 128], // 2 dim star arm
+  [106, 58, 106], // 3 faint magenta speck
+];
+const T = { BG: 0, STAR: 1, DIM: 2, ACCENT: 3 };
+
+function wallpaperTile() {
+  const c = canvas(48, 48, T.BG);
+  const stars = [
+    [6, 8],
+    [20, 30],
+    [38, 12],
+    [14, 40],
+    [30, 44],
+    [44, 28],
+    [10, 22],
+    [34, 34],
+  ];
+  for (const [x, y] of stars) {
+    c.set(x - 1, y, T.DIM);
+    c.set(x + 1, y, T.DIM);
+    c.set(x, y - 1, T.DIM);
+    c.set(x, y + 1, T.DIM);
+    c.set(x, y, T.STAR); // bright core over the dim cross
+  }
+  for (const [x, y] of [
+    [24, 10],
+    [8, 36],
+    [40, 44],
+  ])
+    c.set(x, y, T.ACCENT);
+  return c.indices();
+}
+
+write(
+  'wallpaper.gif',
+  encodeGif({
+    width: 48,
+    height: 48,
+    palette: WALL,
+    frames: [{ indices: wallpaperTile(), delay: 100 }],
+  }),
+  48,
+  48,
+);
+
 console.log('done — original GIFs generated.');

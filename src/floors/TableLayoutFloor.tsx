@@ -129,6 +129,12 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
         </tbody>
       </table>
 
+      {/* a GeoCities rainbow <hr> divider (our own GIF), decorative + reduced-motion still */}
+      <picture>
+        <source srcSet="/gifs/rainbow-rule-static.gif" media="(prefers-reduced-motion: reduce)" />
+        <img className="tl__rule" src="/gifs/rainbow-rule.gif" width={168} height={8} alt="" />
+      </picture>
+
       <div className="tl__furniture">
         {/* a REAL under-construction GIF (our own GIF89a encoder, not a lifted one);
             <picture> serves a still frame under prefers-reduced-motion. */}
