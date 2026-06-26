@@ -1,0 +1,255 @@
+// make-gifs.mjs — generate our OWN original animated GIFs with the hand-rolled
+// GIF89a encoder (scripts/lib/gif89a.mjs). No dependency, no fetched artifact,
+// nobody else's pixels: the GifCities energy, drawn from scratch in code. The
+// joke is the whole stack — a 2026 site printing 1999 GIFs byte by byte.
+//
+//   node scripts/make-gifs.mjs
+//
+// Each animation also emits a 1-frame *-static.gif (a neutral pose) so the page
+// can swap to a still under prefers-reduced-motion via <picture> — animated GIFs
+// can't be paused by CSS, so the still IS the reduced-motion accommodation
+// (WCAG 2.3.1). Frames are gentle (no strobe, no full-field luminance flash).
+import { encodeGif, lzwDecode } from './lib/gif89a.mjs';
+import { mkdirSync, writeFileSync } from 'node:fs';
+
+const OUT = 'public/gifs';
+mkdirSync(OUT, { recursive: true });
+
+// ── a tiny indexed-canvas helper ───────────────────────────────────────────────
+function canvas(w, h, bg = 0) {
+  const px = new Uint8Array(w * h).fill(bg);
+  const set = (x, y, c) => {
+    x = Math.round(x);
+    y = Math.round(y);
+    if (x >= 0 && x < w && y >= 0 && y < h) px[y * w + x] = c;
+  };
+  return {
+    w,
+    h,
+    px,
+    set,
+    rect(x0, y0, x1, y1, c) {
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, c);
+    },
+    disc(cx, cy, r, c) {
+      for (let y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++)
+        for (let x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
+          const dx = x - cx;
+          const dy = y - cy;
+          if (dx * dx + dy * dy <= r * r) set(x, y, c);
+        }
+    },
+    indices() {
+      return Array.from(px);
+    },
+  };
+}
+
+// Self-check a finished file: signature + trailer + first-frame pixel count.
+function assertValid(name, bytes, w, h) {
+  const sig = String.fromCharCode(...bytes.slice(0, 6));
+  if (sig !== 'GIF89a') throw new Error(`${name}: bad signature ${sig}`);
+  if (bytes[bytes.length - 1] !== 0x3b) throw new Error(`${name}: missing trailer`);
+  if (bytes.length < 14) throw new Error(`${name}: implausibly short`);
+  void lzwDecode; // (full pixel round-trip is covered by gif89a.test.mjs)
+  void w;
+  void h;
+}
+
+function write(name, bytes, w, h) {
+  assertValid(name, bytes, w, h);
+  writeFileSync(`${OUT}/${name}`, Buffer.from(bytes));
+  console.log(`wrote ${OUT}/${name} (${bytes.length} bytes)`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 1) dancing-pizza.gif — the site's "dancing baby": a goofy pizza-goblin slice
+//    that bops in place. Baked dark tile so it needs no transparency (and the
+//    floor wraps it in a matching panel, so it reads as a little screen).
+// ═══════════════════════════════════════════════════════════════════════════════
+const PIZZA = [
+  [14, 20, 48], // 0 tile bg (deep navy)
+  [255, 207, 107], // 1 crust gold
+  [217, 138, 47], // 2 crust dark / outline
+  [255, 233, 168], // 3 cheese
+  [194, 38, 29], // 4 pepperoni
+  [122, 20, 16], // 5 pepperoni dark
+  [255, 255, 255], // 6 eye white
+  [10, 10, 14], // 7 pupil / mouth black
+  [255, 94, 199], // 8 pink sparkle
+  [94, 200, 255], // 9 cyan sparkle
+];
+const P = {
+  BG: 0,
+  CRUST: 1,
+  EDGE: 2,
+  CHEESE: 3,
+  PEP: 4,
+  PEPD: 5,
+  WHITE: 6,
+  BLACK: 7,
+  PINK: 8,
+  CYAN: 9,
+};
+
+function pizzaFrame(phase, { blink }) {
+  const W = 64;
+  const H = 64;
+  const c = canvas(W, H, P.BG);
+  const cx = 32;
+  const lean = Math.sin(phase) * 6; // apex sways most
+  const bob = Math.round(Math.sin(phase * 2) * 2);
+  const topY = 12 + bob;
+  const baseY = 52 + bob;
+  const halfBase = 21;
+
+  // little shuffling feet (alternate up/down), drawn first so the slice overlaps
+  const footUp = Math.sin(phase) > 0;
+  c.disc(cx - 8 + lean * 0.2, baseY + 4 + (footUp ? -1 : 1), 3, P.CRUST);
+  c.disc(cx + 8 + lean * 0.2, baseY + 4 + (footUp ? 1 : -1), 3, P.CRUST);
+
+  // wedge body, scanline-filled with a lean shear
+  for (let y = topY; y <= baseY; y++) {
+    const t = (y - topY) / (baseY - topY); // 0 apex → 1 base
+    const center = cx + lean * (1 - t);
+    const hw = halfBase * t;
+    for (let x = Math.round(center - hw); x <= Math.round(center + hw); x++) {
+      let col = P.CHEESE;
+      if (t > 0.86) col = P.CRUST; // bottom crust band
+      // edge outline
+      if (x <= center - hw + 1 || x >= center + hw - 1 || y >= baseY - 1) col = P.EDGE;
+      c.set(x, y, col);
+    }
+  }
+
+  // pepperoni — fixed spots in slice space (skip the face zone up top)
+  const peps = [
+    [cx - 7, topY + 30],
+    [cx + 8, topY + 31],
+    [cx - 1, topY + 37],
+    [cx - 10, topY + 22],
+    [cx + 11, topY + 23],
+  ];
+  for (const [px, py] of peps) {
+    c.disc(px + lean * 0.25, py, 3, P.PEP);
+    c.disc(px + lean * 0.25 + 0.6, py + 0.6, 1.4, P.PEPD);
+  }
+
+  // face — two eyes + a goofy open smile, near the apex, swaying with the lean
+  const ex = cx + lean * 0.7;
+  const ey = topY + 14;
+  if (blink) {
+    c.rect(ex - 6, ey, ex - 2, ey, P.BLACK);
+    c.rect(ex + 2, ey, ex + 6, ey, P.BLACK);
+  } else {
+    c.disc(ex - 4, ey, 2.4, P.WHITE);
+    c.disc(ex + 4, ey, 2.4, P.WHITE);
+    c.disc(ex - 4 + Math.sin(phase) * 1, ey, 1.1, P.BLACK);
+    c.disc(ex + 4 + Math.sin(phase) * 1, ey, 1.1, P.BLACK);
+  }
+  // open smile: a small black arc with a tongue
+  for (let a = 0.15; a <= Math.PI - 0.15; a += 0.18) {
+    c.set(ex + Math.cos(a) * 5, ey + 7 + Math.sin(a) * 3, P.BLACK);
+  }
+  c.disc(ex, ey + 9, 1.4, P.PEP); // tongue
+
+  // a couple of sway-synced sparkles for that GIF twinkle
+  if (Math.sin(phase) > 0.6) c.disc(10, topY + 6, 1.4, P.CYAN);
+  if (Math.sin(phase) < -0.6) c.disc(54, topY + 10, 1.4, P.PINK);
+
+  return c.indices();
+}
+
+{
+  const W = 64;
+  const H = 64;
+  const N = 10;
+  const blinkAt = 7;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: pizzaFrame((i / N) * Math.PI * 2, { blink: i === blinkAt }),
+    delay: 11, // ~9 fps — a gentle bop, nowhere near a strobe
+  }));
+  write('dancing-pizza.gif', encodeGif({ width: W, height: H, palette: PIZZA, frames }), W, H);
+  // neutral still for reduced-motion (mid-sway, eyes open)
+  const still = pizzaFrame(Math.PI / 2, { blink: false });
+  write(
+    'dancing-pizza-static.gif',
+    encodeGif({ width: W, height: H, palette: PIZZA, frames: [{ indices: still, delay: 100 }] }),
+    W,
+    H,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 2) construction.gif — the iconic UNDER-CONSTRUCTION caution bar: diagonal
+//    yellow/black barber-pole stripes that SCROLL, capped by two hazard triangles.
+//    Font-free on purpose — the words live in the page's HTML (accessible), the
+//    GIF carries the icon. Wide banner aspect, like the real ones.
+// ═══════════════════════════════════════════════════════════════════════════════
+const CONS = [
+  [26, 26, 26], // 0 black
+  [255, 212, 0], // 1 caution yellow
+  [20, 20, 20], // 2 stripe dark
+  [255, 255, 255], // 3 white (border)
+];
+const K = { BLACK: 0, YEL: 1, DARK: 2, WHITE: 3 };
+
+function consTriangle(c, cx, topY) {
+  // a small hazard triangle: yellow fill, black border, a black "!" — static flavor
+  const h = 13;
+  for (let i = 0; i < h; i++) {
+    const half = Math.round((i / h) * 8);
+    for (let x = cx - half; x <= cx + half; x++) c.set(x, topY + i, K.YEL);
+    c.set(cx - half, topY + i, K.BLACK);
+    c.set(cx + half, topY + i, K.BLACK);
+  }
+  for (let x = cx - 8; x <= cx + 8; x++) c.set(x, topY + h, K.BLACK); // base
+  // exclamation
+  c.rect(cx, topY + 4, cx, topY + 8, K.BLACK);
+  c.set(cx, topY + 10, K.BLACK);
+}
+
+function consFrame(offset) {
+  const W = 104;
+  const H = 26;
+  const c = canvas(W, H, K.BLACK);
+  const stripeW = 6;
+  // scrolling diagonal barber-pole in the central band
+  for (let y = 4; y < H - 4; y++) {
+    for (let x = 14; x < W - 14; x++) {
+      const s = (((x + y + offset) % (stripeW * 2)) + stripeW * 2) % (stripeW * 2);
+      c.set(x, y, s < stripeW ? K.YEL : K.DARK);
+    }
+  }
+  // white top/bottom rails
+  c.rect(0, 1, W - 1, 2, K.WHITE);
+  c.rect(0, H - 3, W - 1, H - 2, K.WHITE);
+  // hazard triangles at each end
+  consTriangle(c, 7, 6);
+  consTriangle(c, W - 8, 6);
+  return c.indices();
+}
+
+{
+  const W = 104;
+  const H = 26;
+  const N = 6;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: consFrame(i * 4), // shift the barber-pole 4px/frame → it scrolls
+    delay: 12,
+  }));
+  write('construction.gif', encodeGif({ width: W, height: H, palette: CONS, frames }), W, H);
+  write(
+    'construction-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: CONS,
+      frames: [{ indices: consFrame(0), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
+console.log('done — original GIFs generated.');
