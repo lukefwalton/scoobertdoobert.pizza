@@ -2,13 +2,15 @@
 // a hub LIVE ROOM you can play (a 3-piece band: drums + bass + keys), branching to
 // the CONTROL ROOM (mix desk, faders down) → the TAPE VAULT (collectible master
 // tapes), and a sweet LOUNGE breather. Drops in via ?world=1&debug=1 + __sdpGoToRoom,
-// plays all three instruments, collects a master tape, then walks every door back the
-// way it came (clean single-axis 's' holds). Proves: the 4 rooms mount + their spawns
-// place you clear of the doors, the three instruments register strikes (the reward),
-// a master tape collects + plays its track, the doors wire both ways with no
-// spawn-prompt flash, and the two "playing" rooms (live, lounge) take the loop voice
-// while the two "working" rooms (control, vault) stay hushed. Asserts on the quiet
-// `.hud-room` label + the engine's active jukebox url, not on animation timing.
+// plays all three instruments, collects a master tape, tucks in the rat (a secret),
+// and WALKS every internal door — each at least once, with the three deeper edges
+// (live→lounge, live→control, control→vault) traversed FORWARD, not teleported past.
+// Proves: the 4 rooms mount + their spawns place you clear of the doors, the three
+// instruments register strikes (the reward), a master tape collects + plays its
+// track, every door's prompt/radius fires both ways, the two "playing" rooms (live,
+// lounge) take the loop voice while the two "working" rooms (control, vault) stay
+// hushed yet preserve a pocketed station. Asserts on the quiet `.hud-room` label +
+// the engine's active jukebox url, not on animation timing.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
@@ -179,8 +181,16 @@ const bassOk = !!bass && bass.i === 0 && bass.note === 'C' && bass.octave === 2;
 if (!bassOk) fail(`plucking the low C string did not register (got ${JSON.stringify(bass)})`);
 await page.screenshot({ path: '.shots/studio-live.png' });
 
-// 2) Back UP to the practice room (the wing entrance), then straight back DOWN —
-//    proves the basement door wires both ways and the live song re-arms.
+// Every studio spawn faces INTO its room, so the arrival door is BEHIND it — a
+// backward 's' walks back out the way you came. To WALK a door in its FORWARD
+// (deeper) direction, you have to arrive at a spawn whose facing points AT a
+// *different* wall's door, then 'w' forward into it. The tour below chains rooms so
+// every internal door is traversed by a real player walk (prompt + radius), incl.
+// the three forward edges a teleport would otherwise skip.
+
+// 2) Both directions of the basement door, WALKED. live → practice (the door is
+//    behind the -Z-facing spawn → 's'), then practice → live ('s' again, fromStudio
+//    faces +X so the basement door is behind it). The live song re-arms on return.
 if (await through('s', 'live → practice')) {
   const inPractice = await roomIs('The Practice Room');
   if (!inPractice) fail('live → practice did not land in the practice room');
@@ -191,11 +201,12 @@ if (await through('s', 'practice → live')) {
   if (!liveResumes) fail('the live room song did not resume coming back down from practice');
 }
 
-// 3) The CONTROL ROOM: drop in (a WORKING room — no forced song; it must NOT take
-//    the loop voice), then walk back into the live room (control→live door).
+// 3) Teleport into the CONTROL ROOM once (no spawn lets us WALK here from the live
+//    default), assert it's hushed, then WALK control → live — which lands us at the
+//    live room's fromControl spawn (facing +X), set up to forward-walk the lounge.
 const inControl = await goTo('controlroom', 'default', 'The Control Room');
 await noPromptNow('control room');
-const controlHushed = await noForcedSong('the control room');
+const controlHushed = await noForcedSong('the control room'); // a working room: no forced song
 await page.screenshot({ path: '.shots/studio-control.png' });
 if (await through('s', 'control → live')) {
   await roomIs('The Live Room');
@@ -203,9 +214,50 @@ if (await through('s', 'control → live')) {
   if (!liveResumes2) fail('the live room song did not resume coming back from the control room');
 }
 
-// 4) The TAPE VAULT (behind the control room): collect a MASTER TAPE — it plays its
-//    track + drops into Pockets (the music ladder's "find it = hear it"). Like the
-//    control room, the vault forces no song. Then walk back up to the control room.
+// 4) FORWARD-walk live → lounge: at fromControl (facing +X), 'w' crosses the room to
+//    the +X lounge door. The lounge IS a playing room ("jolly-roger-bay") and hides
+//    the rat secret — the wing's "discover" rung.
+let forwardLounge = false;
+let loungeSong = false;
+let ratSecret = false;
+if (await through('w', 'live → lounge (forward)')) {
+  forwardLounge = await roomIs('The Lounge');
+  if (!forwardLounge) fail('live → lounge (forward) did not land in the lounge');
+  await noPromptNow('lounge');
+  loungeSong = await songIs('jolly-roger-bay');
+  if (!loungeSong) fail('the lounge did not take the loop voice with "jolly-roger-bay"');
+  await page.screenshot({ path: '.shots/studio-lounge.png' });
+  const hasPet = await page
+    .waitForFunction(() => typeof window.__sdpPetRat === 'function', null, { timeout: 5000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hasPet) fail('lounge: the pet-the-rat hook never appeared');
+  if (hasPet) {
+    await page.evaluate(() => window.__sdpPetRat());
+    const afterPet = await prog();
+    ratSecret = (afterPet.secretsFound || []).includes('lounge-rat');
+    if (!ratSecret) fail('tucking in the sleeping rat did not record the lounge-rat secret');
+  }
+}
+
+// 5) WALK lounge → live (lands at fromLounge, facing -X), then FORWARD-walk
+//    live → control: 'w' crosses to the -X control door. Song re-arms between.
+if (await through('s', 'lounge → live')) {
+  await roomIs('The Live Room');
+  const liveResumes3 = await songIs('mystery-machine');
+  if (!liveResumes3) fail('the live room song did not resume coming back from the lounge');
+}
+let forwardControl = false;
+if (await through('w', 'live → control (forward)')) {
+  forwardControl = await roomIs('The Control Room');
+  if (!forwardControl) fail('live → control (forward) did not land in the control room');
+}
+
+// 6) Teleport into the TAPE VAULT (no -Z-facing control spawn to walk from), assert
+//    it's hushed, collect a MASTER TAPE (plays + Pockets), then WALK both vault↔control
+//    doors — including the FORWARD control → vault, the last internal edge.
 const inVault = await goTo('tapevault', 'default', 'The Tape Vault');
 await noPromptNow('tape vault');
 const vaultHushed = await noForcedSong('the tape vault'); // hushed BEFORE we pocket a tape
@@ -230,42 +282,27 @@ if (hasPickup) {
   tapeHeld = (after.itemsHeld || []).includes(TAPE);
   if (!tapeHeld) fail('the master tape did not drop into itemsHeld (Pockets)');
 }
+
+// WALK vault → control: now that a cassette is pocketed, the working room must
+// PRESERVE the carried station ("information" keeps playing) — the positive half of
+// the hushed contract ("monitor what you carried in"), not a reset to silence.
+let stationThruControl = false;
 if (await through('s', 'vault → control')) {
   const backControl = await roomIs('The Control Room');
   if (!backControl) fail('vault → control did not land back in the control room');
+  stationThruControl = await songIs('information');
+  if (!stationThruControl)
+    fail('the control room dropped the pocketed station (it should monitor what you carried in)');
+}
+// FORWARD-walk control → vault (the -Z door is behind the +Z-facing fromVault spawn
+// → 's' into it). The final internal edge, walked toward the vault.
+let forwardVault = false;
+if (await through('s', 'control → vault (forward)')) {
+  forwardVault = await roomIs('The Tape Vault');
+  if (!forwardVault) fail('control → vault (forward) did not land in the tape vault');
 }
 
-// 5) The LOUNGE breather (off the live room). It IS a playing room —
-//    "jolly-roger-bay" takes the loop voice. Then walk back into the live room.
-const inLounge = await goTo('lounge', 'default', 'The Lounge');
-await noPromptNow('lounge');
-const loungeSong = await songIs('jolly-roger-bay');
-if (!loungeSong) fail('the lounge did not take the loop voice with "jolly-roger-bay"');
-await page.screenshot({ path: '.shots/studio-lounge.png' });
-
-// The wing's "discover" rung: tuck in the sleeping rat (a one-time secret + luck).
-let ratSecret = false;
-const hasPet = await page
-  .waitForFunction(() => typeof window.__sdpPetRat === 'function', null, { timeout: 5000 })
-  .then(
-    () => true,
-    () => false,
-  );
-if (!hasPet) fail('lounge: the pet-the-rat hook never appeared');
-if (hasPet) {
-  await page.evaluate(() => window.__sdpPetRat());
-  const afterPet = await prog();
-  ratSecret = (afterPet.secretsFound || []).includes('lounge-rat');
-  if (!ratSecret) fail('tucking in the sleeping rat did not record the lounge-rat secret');
-}
-let backLive = false;
-if (await through('s', 'lounge → live')) {
-  backLive = await roomIs('The Live Room');
-  const liveResumes3 = await songIs('mystery-machine');
-  if (!liveResumes3) fail('the live room song did not resume coming back from the lounge');
-}
-
-// 6) Exit the world back to the storefront from deep in the wing — the teardown
+// 7) Exit the world back to the storefront from deep in the wing — the teardown
 //    must not crash, and the cassette you pocketed set your preferred station, so
 //    leaving restores IT (not the live room's mystery-machine): "Information"
 //    follows you out. Proves the radio choice survives a full world teardown.
@@ -288,9 +325,9 @@ await ctx.close();
 await browser.close();
 console.log(
   `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} bass=${bassOk} ` +
-    `control=${inControl} controlHushed=${controlHushed} vault=${inVault} vaultHushed=${vaultHushed} ` +
-    `tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
-    `lounge=${inLounge} loungeSong=${loungeSong} ratSecret=${ratSecret} backLive=${backLive} ` +
+    `control=${inControl} controlHushed=${controlHushed} fwdLounge=${forwardLounge} loungeSong=${loungeSong} ratSecret=${ratSecret} ` +
+    `fwdControl=${forwardControl} vault=${inVault} vaultHushed=${vaultHushed} tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
+    `stationThruControl=${stationThruControl} fwdVault=${forwardVault} ` +
     `storefront=${backStorefront} stationCarries=${stationCarries} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
