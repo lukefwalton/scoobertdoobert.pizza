@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { audio } from '../audio/engine';
@@ -47,7 +47,6 @@ export function PizzaPanChimes({
   // Per-pan strike energy (0..1), decayed each frame → the swing + glow.
   const energy = useRef<number[]>(PANS.map(() => 0));
   const panRefs = useRef<(THREE.Group | null)[]>([]);
-  const [, force] = useState(0); // nudge a render while a pan is ringing
 
   const frameMat = useMemo(() => flatMat('#6b4a2c'), []); // wooden stall rack
   const wireMat = useMemo(() => flatMat('#3a3a3a'), []); // dark hang wire
@@ -70,6 +69,15 @@ export function PizzaPanChimes({
       [frameMat, wireMat, ...panMats, ...rimMats].forEach((m) => m.dispose());
     },
     [frameMat, wireMat, panMats, rimMats],
+  );
+
+  // Restore the canvas cursor on teardown so a room exit mid-hover can't leave the
+  // pizza cursor stuck on the chimes (cf. ItemPickup).
+  useEffect(
+    () => () => {
+      gl.domElement.style.cursor = 'grab';
+    },
+    [gl],
   );
 
   // A deterministic strike-by-index hook (?world / ?debug): clicking a pan in 3D
@@ -96,14 +104,14 @@ export function PizzaPanChimes({
     exposeTestGlobal('__sdpPans', { i, note: PANS[i].note, octave: PANS[i].octave });
   };
 
+  // r3f renders every frame (default frameloop), so these imperative mutations
+  // animate on their own — no per-frame React re-render needed to drive them.
   useFrame((_, dt) => {
-    let any = false;
     for (let i = 0; i < N; i++) {
       const e = energy.current[i];
       const g = panRefs.current[i];
       if (e > 0.001) {
         energy.current[i] = Math.max(0, e - dt * 1.6);
-        any = true;
         // swing about the hang point, damped by the remaining energy
         if (g) g.rotation.z = Math.sin(performance.now() * 0.012 + i) * 0.22 * energy.current[i];
         // brighten the struck pan from its aluminium base toward white
@@ -117,7 +125,6 @@ export function PizzaPanChimes({
         (panMats[i].emissive as THREE.Color).setRGB(0.48, 0.49, 0.53);
       }
     }
-    if (any) force((n) => (n + 1) & 1023);
   });
 
   return (
