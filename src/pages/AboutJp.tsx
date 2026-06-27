@@ -46,6 +46,7 @@ export default function AboutJp() {
     three: 'https://www.toos.co.jp/3/',
     otomachiFlyer: 'https://www.instagram.com/p/C-vnLOVSPq-/',
     threeFlyer: 'https://www.instagram.com/p/DBIowJ9SM2s/',
+    grizzardGraphics: 'https://lukebrogoitti.myportfolio.com/scoobert-doobert',
   };
 
   const jsonLd = {
@@ -263,7 +264,8 @@ export default function AboutJp() {
           <a href={listen} target="_blank" rel="noopener noreferrer">
             聴いてみること
           </a>
-          です。
+          です。アルバムのカバーアートとプロジェクト全体のビジュアル・アイデンティティは{' '}
+          <Ext href={ext.grizzardGraphics}>Grizzard Graphics</Ext> が手がけています。
         </p>
 
         <h2>Love Music More</h2>
