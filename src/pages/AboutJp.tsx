@@ -83,6 +83,46 @@ export default function AboutJp() {
         ],
       },
       {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-otomachi-2024',
+        name: 'The Otomachi Festival 2024',
+        startDate: '2024-10-14',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'Place',
+          name: 'Renzō-ji (蓮蔵寺)',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Zaō',
+            addressRegion: 'Miyagi',
+            addressCountry: 'JP',
+          },
+        },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-three-2024',
+        name: 'Scoobert Doobert at Shimokitazawa THREE (LOSS × beformer)',
+        startDate: '2024-10-18',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'MusicVenue',
+          name: 'Shimokitazawa THREE',
+          sameAs: 'https://www.toos.co.jp/3/',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Setagaya',
+            addressRegion: 'Tokyo',
+            addressCountry: 'JP',
+          },
+        },
+        organizer: { '@id': 'https://lukefwalton.com/#beformer' },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
         '@type': 'Person',
         '@id': 'https://lukefwalton.com/#person',
         name: 'Luke Francis Walton',
@@ -179,11 +219,11 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>し、東京・下北沢のライブハウス{' '}
-          <Ext href={ext.three}>下北沢THREE</Ext>
-          での LOSS × beformer のオールナイト・イベントや、宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
+          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>し、2か所でライブを行いました。宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
           <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>
-          に出演しました。
+          （10月14日、いとうせいこう・村松邦男・DJ 小西康陽らと共演）と、東京・下北沢のライブハウス{' '}
+          <Ext href={ext.three}>下北沢THREE</Ext>
+          での LOSS × beformer のオールナイト・イベント（10月18日）です。
         </p>
         <p>
           日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
