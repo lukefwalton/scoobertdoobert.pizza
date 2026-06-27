@@ -54,6 +54,8 @@ export default function About() {
     otomachi:
       'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
     three: 'https://www.toos.co.jp/3/',
+    otomachiFlyer: 'https://www.instagram.com/p/C-vnLOVSPq-/',
+    threeFlyer: 'https://www.instagram.com/p/DBIowJ9SM2s/',
     kerriMedders: 'https://en.wikipedia.org/wiki/Kerri_Medders',
     ninaFrancis: 'https://ninafrancismusic.com/',
     louRoy: 'https://www.singlouroy.com/',
@@ -276,8 +278,9 @@ export default function About() {
           band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
           alongside the language-learning, a two-date run in October 2024 —{' '}
           <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi
-          (Oct 14), then an all-night LOSS × beformer party at{' '}
-          <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo (Oct 18) — and the general belief
+          (<Ext href={ext.otomachiFlyer}>Oct 14</Ext>), then an all-night LOSS × beformer party at{' '}
+          <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo (
+          <Ext href={ext.threeFlyer}>Oct 18</Ext>) — and the general belief
           that a good melody can travel farther than your passport.
         </p>
         <p>
