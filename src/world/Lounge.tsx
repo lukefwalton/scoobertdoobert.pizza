@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
+import { announce } from '../state/toastStore';
+import { useProgressStore } from '../state/progressStore';
+import { exposeTestGlobal } from '../lib/testHooks';
 
 // The Lounge — the sweet breather off the live room: a couch, a coffee table, a
 // softly bobbing lava lamp, and the rat fast asleep in the good armchair (paying
 // its rent in dreams). The CRT (room.tv) plays a "Finding SD" session clip via the
 // shared TV layer. Warm, low, restful — the relief beat of the basement, taste-safe
-// (a gentle bob on the lamp, never a flash; WCAG 2.3.1 holds).
+// (a gentle bob on the lamp, never a flash; WCAG 2.3.1 holds). The wing's "discover"
+// rung: tuck the blanket over the sleeping rat for a sweet one-time secret (+luck) —
+// the rat motif the storefront teases ("RAT SPOTTED IN WALL"), finally paid off.
 
 // The napping rat: a curled grey body, two ears, a tail, breathing slowly.
 function SleepingRat({ mat, pink }: { mat: THREE.Material; pink: THREE.Material }) {
@@ -43,6 +48,36 @@ function SleepingRat({ mat, pink }: { mat: THREE.Material; pink: THREE.Material 
 
 export function Lounge({ room }: { room: Room }) {
   const fog = fogFor(room);
+  const { gl } = useThree();
+
+  // Tuck the blanket over the sleeping rat — a sweet, one-time secret (taste: you
+  // never wake or disturb it; it just keeps dreaming). Records the secret + tips a
+  // little luck. A deterministic hook drives it from the smoke (clicking a 3D mesh
+  // through Playwright is camera-fragile).
+  const petRat = () => {
+    const prog = useProgressStore.getState();
+    if (prog.secretsFound.includes('lounge-rat')) {
+      announce('🐀 The rat doesn’t stir — still paying its rent in dreams.', 'info');
+      return;
+    }
+    prog.findSecret('lounge-rat');
+    prog.gainLuck(1);
+    announce(
+      '🐀 You tuck the blanket over the sleeping rat — rent paid, in dreams · +1 luck',
+      'luck',
+    );
+  };
+
+  useEffect(() => {
+    exposeTestGlobal('__sdpPetRat', petRat);
+    return () => exposeTestGlobal('__sdpPetRat', undefined);
+  }, []);
+  useEffect(
+    () => () => {
+      gl.domElement.style.cursor = 'grab';
+    },
+    [gl],
+  );
 
   const floorTex = useMemo(() => {
     const t = makeCheckerTexture(8, '#221710', '#2c1f14');
@@ -121,6 +156,19 @@ export function Lounge({ room }: { room: Room }) {
         </mesh>
         <group position={[0, 0.78, 0.1]}>
           <SleepingRat mat={ratMat} pink={ratPink} />
+          {/* invisible hit-target over the rat — click to tuck it in (the secret) */}
+          <mesh
+            position={[0.05, 0.02, 0.04]}
+            onClick={(e: ThreeEvent<MouseEvent>) => {
+              e.stopPropagation();
+              petRat();
+            }}
+            onPointerOver={() => (gl.domElement.style.cursor = "url('/cursor.cur'), pointer")}
+            onPointerOut={() => (gl.domElement.style.cursor = 'grab')}
+          >
+            <sphereGeometry args={[0.34, 8, 6]} />
+            <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+          </mesh>
         </group>
       </group>
 
