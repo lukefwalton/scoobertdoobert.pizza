@@ -4,6 +4,7 @@ import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { DrumKit } from './DrumKit';
 import { StudioKeys } from './StudioKeys';
+import { StudioBass } from './StudioBass';
 import { fogFor, type Room } from '../data/rooms';
 
 // The Live Room — the head of the Basement Sessions wing: a cosy, dim tracking
@@ -101,9 +102,11 @@ export function LiveRoom({ room }: { room: Room }) {
         </mesh>
       </group>
 
-      {/* the playable pair: rhythm (left) + melody (right), facing the player who
-          arrives looking -Z. The reward for finding the basement: you can jam. */}
+      {/* the playable BAND: rhythm (left) + low end (back-centre) + melody (right),
+          arced to face the player who arrives looking -Z. The reward for finding the
+          basement: you can jam — drums, bass and keys all lock to one C tonality. */}
       <DrumKit position={[-2.2, 0, -3.4]} rotationY={0.32} />
+      <StudioBass position={[0.5, 0, -5.0]} rotationY={0.08} />
       <StudioKeys position={[2.6, 0, -2.6]} rotationY={-0.34} />
     </group>
   );
