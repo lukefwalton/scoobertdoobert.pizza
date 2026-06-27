@@ -63,6 +63,7 @@ export default function About() {
     limonLimon: 'https://limonlimonmusic.bandcamp.com/',
     victorMarc: 'https://victormarc.com/',
     joshShpak: 'https://joshoo.com/',
+    grizzardGraphics: 'https://lukebrogoitti.myportfolio.com/scoobert-doobert',
   };
 
   const jsonLd = {
@@ -304,7 +305,9 @@ export default function About() {
           </a>{' '}
           is large, strange, and still expanding: close to 300 registered compositions across
           singles, remixes, collaborations, demos, visual releases, alternate identities, and songs
-          that may or may not exist because the burrito demanded it.
+          that may or may not exist because the burrito demanded it. The cover art across the
+          catalog — and the project’s visual identity — is the work of{' '}
+          <Ext href={ext.grizzardGraphics}>Grizzard Graphics</Ext>.
         </p>
         <p>
           The music has circulated through official playlists, indie and{' '}
