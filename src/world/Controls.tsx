@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useHeadingStore } from '../state/headingStore';
+import { useScoreStore } from '../state/scoreStore';
 import { isTestEntrance } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 
@@ -141,7 +142,10 @@ export function Controls() {
     const d = dims.current;
     camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
-    camera.position.y = d.eye;
+    // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
+    // clamped under THIS room's ceiling so you never poke through the roof.
+    const grow = Math.min(useScoreStore.getState().tallness, Math.max(0, d.height - d.eye - 0.4));
+    camera.position.y = d.eye + grow;
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

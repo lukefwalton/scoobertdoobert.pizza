@@ -19,6 +19,8 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
 import { collectInventoryItem } from '../lib/pickups';
+import { collectLootById } from '../lib/loot';
+import { ScoreHud } from './ScoreHud';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
@@ -76,6 +78,7 @@ export function WorldHud() {
       clearedGames: s.clearedGames,
       arcadeHigh: s.arcadeHigh,
       arcadeHighs: s.arcadeHighs,
+      pizzaPointsBest: s.pizzaPointsBest,
       radioUnlocked: s.radioUnlocked,
       luckEarned: s.luckEarned,
       luckSpent: s.luckSpent,
@@ -201,7 +204,10 @@ export function WorldHud() {
       if (e.key === 'p' || e.key === 'P') {
         if (st.paused || st.openHotspot || st.tvVideo || st.arcadeGame || st.openNpc || st.lyricsSong)
           return;
-        if (st.nearPickup) collectInventoryItem(st.nearPickup.id);
+        if (st.nearPickup) {
+          if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);
+          else collectInventoryItem(st.nearPickup.id);
+        }
         return;
       }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
@@ -320,6 +326,7 @@ export function WorldHud() {
         currentRoom={currentRoom}
         hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
       />
+      <ScoreHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
       <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>

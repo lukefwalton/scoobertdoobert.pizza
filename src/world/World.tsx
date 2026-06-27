@@ -1,8 +1,10 @@
-import { Suspense, useEffect, type ReactElement } from 'react';
+import { Suspense, useEffect, useMemo, type ReactElement } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { PS1 } from './constants';
 import { roomById, ROOMS, type Room, type RoomKind } from '../data/rooms';
+import { lootDropsForRoom } from '../data/loot';
+import { useScoreStore } from '../state/scoreStore';
 import { jukeboxTrackUrl } from '../data/music';
 import { jukeboxTitle } from '../data/jukebox';
 import { useSceneStore } from '../state/sceneStore';
@@ -45,6 +47,7 @@ import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
 import { Lounge } from './Lounge';
 import { ItemPickup } from './ItemPickup';
+import { LootPickup } from './LootPickup';
 import { Wanderer } from './Wanderer';
 import { MetroTunnelFx } from './MetroTunnelFx';
 import { GlbRoom } from './GlbRoom';
@@ -207,6 +210,22 @@ function RoomPickups({ room }: { room: Room }) {
   );
 }
 
+// Loot drops scattered in the current room (loot.ts) — the pizza-points
+// collectathon. Each LootPickup renders nothing once taken (this run); the next
+// descent restocks (the taken set is ephemeral). Sibling of RoomPickups; loot.ts
+// returns [] for GLB levels, so this is a no-op there.
+function RoomLoot({ room }: { room: Room }) {
+  const drops = useMemo(() => lootDropsForRoom(room), [room]);
+  if (!drops.length) return null;
+  return (
+    <>
+      {drops.map((d) => (
+        <LootPickup key={d.id} id={d.id} type={d.type} position={d.position} />
+      ))}
+    </>
+  );
+}
+
 // Wandering, dancing entities for the current room (room.entities) — GLB levels
 // only, by data. A sibling of RoomScene (like RoomProps), so they overlay GLB
 // geometry. Gated to desktop + motion-OK for free: the whole World only mounts
@@ -252,6 +271,13 @@ export default function World() {
   // whole subtree on exitWorld, so this runs exactly once on the way out.
   useEffect(() => () => audio.setSongLevel(1), []);
 
+  // Each descent is a fresh arcade RUN: zero the score / combo / height and restock
+  // loot (the taken set is ephemeral). Runs once on mount (entering the world); the
+  // durable best (progressStore.pizzaPointsBest) survives, recorded as you climb.
+  useEffect(() => {
+    useScoreStore.getState().resetRun();
+  }, []);
+
   // The North Park "too many beers" gag: a gentle, gradual full-frame blur (no
   // strobe, no flash — WCAG-safe) layered on the canvas via CSS, fading back on
   // its own after a few seconds (see tipsyStore). Off everywhere else.
@@ -289,6 +315,7 @@ export default function World() {
       </Suspense>
       <RoomProps room={room} />
       <RoomPickups room={room} />
+      <RoomLoot room={room} />
       <Entities room={room} />
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
