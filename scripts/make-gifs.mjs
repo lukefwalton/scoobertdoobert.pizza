@@ -463,7 +463,7 @@ function newBadgeFrame(alt) {
 //    prefers-reduced-motion. The "Email the webmaster" label lives on the <a>.
 // ═══════════════════════════════════════════════════════════════════════════════
 const MAIL = [
-  [205, 212, 220], // 0 bg (matches .tl__furniture so the frame is seamless)
+  [205, 212, 220], // 0 bg = #cdd4dc — keep in sync with .tl__mail/.tl__furniture (tablelayout.css)
   [247, 241, 226], // 1 envelope cream
   [90, 74, 42], // 2 outline / flap seam
   [226, 59, 43], // 3 "new mail" red badge
