@@ -66,7 +66,9 @@ export const QUESTS: Quest[] = [
   {
     id: 'collect-tapes',
     label: 'Find the lost cassettes',
-    hint: 'Four tapes hide around the place — pocket each to hear it and tune the radio.',
+    // Count derived from CASSETTE_IDS so it never drifts when a `track` item is
+    // added (the Basement Sessions master tapes grew this from 4 to 7).
+    hint: `${CASSETTE_IDS.length} tapes hide around the place — pocket each to hear it and tune the radio.`,
     done: (p) => CASSETTE_IDS.every((id) => p.itemsHeld.includes(id)),
   },
   {
