@@ -21,6 +21,7 @@ import { WATER_ROOMS } from './rooms/water';
 import { JAPAN_ROOMS } from './rooms/japan';
 import { SURFACE_ROOMS } from './rooms/surface';
 import { MEMORYLANE_ROOMS } from './rooms/memorylane';
+import { STUDIO_ROOMS } from './rooms/studio';
 
 // Re-export the types + shared constants so '../data/rooms' stays the one public
 // module for the world graph (RoomKind, Room, RoomDoor, MOBIUS_BREAK, ROOM_FADE_MS,
@@ -35,6 +36,7 @@ export const ROOMS: Room[] = [
   ...JAPAN_ROOMS,
   ...SURFACE_ROOMS,
   ...MEMORYLANE_ROOMS,
+  ...STUDIO_ROOMS,
 ];
 
 // ── Trap doors (the storefront's d20 random-drop) ──────────────────────────
@@ -196,6 +198,12 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   memorylane: { x: 1.5, y: 1.4 },
   internet: { x: 0.3, y: 1.9 },
   practice: { x: 3, y: 2.8 },
+  // basement sessions wing — the recording studio down off the practice room
+  // (west-and-deeper: backstage, where the records actually get made).
+  liveroom: { x: 1.5, y: 3.6 },
+  controlroom: { x: 0.2, y: 3.5 },
+  tapevault: { x: 0.2, y: 4.7 },
+  lounge: { x: 1.3, y: 4.8 },
   poolrooms: { x: 5, y: 3.6 },
   // sunken gallery wing — a side branch off the poolrooms (right), dipping then
   // rising into the pastel daydream.

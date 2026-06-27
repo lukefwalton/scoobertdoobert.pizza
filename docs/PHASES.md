@@ -170,7 +170,8 @@ descent, each covered by a `shoot:*` smoke:
   `shoot:monster`): roll-off; lose → it grows → walk around it.
 - ✅ **The practice room** (`PracticeRoom`, `shoot:practice`): a door-game +
   instrument room — the first "play it" rung; clearing it promotes a demo to your
-  preferred jukebox track.
+  preferred jukebox track. (Also the junction down to the **Basement Sessions**
+  studio wing — Phase 8.)
 - ✅ **Poke Scoobert** (`FaceStretch`, `/poke`): the face-stretch instrument —
   pull-and-hold warps his own sample live (touch-first).
 
@@ -251,6 +252,32 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   engine (mute-aware + limited) and swings/glows the pan. Self-lit emissive so the
   metal reads against the behind-it sun; original parody geometry. `shoot:boardwalk`
   now strikes a pan (asserts the E4 note via `__sdpPans`).
+- ✅ **The Basement Sessions wing — a 4-room recording studio (2026-06-27):** the
+  biggest album-themed wing yet, down off the **practice room** ("backstage, where
+  the records get MADE"). A hub **Live Room** (warm tracking room) branches to the
+  **Control Room** (slanted mixing desk + reel-to-reel decks + a window onto the live
+  room) → the **Tape Vault** (a hushed archive of shelved reels), and a sweet
+  **Lounge** breather (couch, bobbing lava lamp, the rat asleep in the good armchair,
+  a CRT playing "Finding SD"). The play-it ladder's biggest beat: the Live Room mounts
+  a **playable 3-piece band** — a 6-piece **DrumKit** (rhythm), a 4-string
+  **StudioBass** (a low C-arpeggio bottom end), and an 8-key C-pentatonic
+  **StudioKeys** (melody), all locked to one C tonality (no wrong notes) and rung
+  through the shared bell engine (mute-aware + limited), original parody geometry,
+  deterministic strike hooks. **Song
+  design (a real studio breathes):** the two "playing" rooms sing (`Room.song`: live =
+  `mystery-machine`, lounge = `jolly-roger-bay`); the two "working" rooms stay hushed
+  so `information` + `1101` stay jukebox SEEDS — and their **master tapes** are
+  collectible in the vault (3 `trinket` items + `Room.pickups`, each plays its track on
+  pickup + feeds the lost-cassettes quest). Lore-true: he tracked a whole LP alone (the
+  bathrobe slung on the mic stand) and Finding SD was written/recorded/mixed/mastered
+  in a single day (the framed gold record = every fader his own hand). The wing's
+  **"discover" rung:** tuck the blanket over the sleeping rat for a sweet one-time
+  secret (`lounge-rat` + luck) — the storefront's "RAT SPOTTED IN WALL" tease finally
+  paid off (taste: you never wake it). 4 mined whispers, pause-menu minimap coords,
+  `shoot:studio` (tours all 4 rooms, plays all three instruments, collects a master
+  tape, tucks in the rat, asserts the working rooms stay hushed, walks every door both
+  ways, proves the pocketed station carries back to the storefront); `rooms.test` /
+  `music.test` / `jukebox.test` guards.
 - ✅ **D&D mechanics — the trap-door luck-d20 (2026-06-26):** the chute is a real
   luck-biased d20 (`rollD20(true)` + `trapDropForRoll`): the face ordinally picks
   WHERE you drop (unluckiest → luckiest room), a nat 20 drops you somewhere sweet
@@ -274,7 +301,8 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
   to a battle room, and winning the d20 roll-off opens the grove + records the
   unlock. `shoot:grass`.
-- ⬜ **Tail / backlog (in DESIGN):** further album-themed wings. (Trap-door d20,
+- ⬜ **Tail / backlog (in DESIGN):** further album-themed wings (the **Basement
+  Sessions** studio wing is the first big one — shipped above). (Trap-door d20,
   spells, perception whispers, the grass encounter, storefront reactivity, the greek
   lyre, and the full arcade are all shipped.)
 - ✅ **The arcade grew — three reskinned cabinets (2026-06-25):** **Crusteroids**
