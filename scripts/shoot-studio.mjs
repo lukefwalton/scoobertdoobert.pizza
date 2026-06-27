@@ -220,6 +220,7 @@ if (await through('s', 'control → live')) {
 let forwardLounge = false;
 let loungeSong = false;
 let ratSecret = false;
+let ratLuck = false;
 if (await through('w', 'live → lounge (forward)')) {
   forwardLounge = await roomIs('The Lounge');
   if (!forwardLounge) fail('live → lounge (forward) did not land in the lounge');
@@ -235,10 +236,16 @@ if (await through('w', 'live → lounge (forward)')) {
     );
   if (!hasPet) fail('lounge: the pet-the-rat hook never appeared');
   if (hasPet) {
+    const luckBefore = (await prog()).luckEarned || 0; // measured here: tapes (also +luck) come later
     await page.evaluate(() => window.__sdpPetRat());
     const afterPet = await prog();
     ratSecret = (afterPet.secretsFound || []).includes('lounge-rat');
     if (!ratSecret) fail('tucking in the sleeping rat did not record the lounge-rat secret');
+    ratLuck = (afterPet.luckEarned || 0) === luckBefore + 1;
+    if (!ratLuck)
+      fail(
+        `the rat secret did not tip +1 luck (before ${luckBefore}, after ${afterPet.luckEarned})`,
+      );
   }
 }
 
@@ -262,25 +269,36 @@ const inVault = await goTo('tapevault', 'default', 'The Tape Vault');
 await noPromptNow('tape vault');
 const vaultHushed = await noForcedSong('the tape vault'); // hushed BEFORE we pocket a tape
 await page.screenshot({ path: '.shots/studio-vault.png' });
-let tapePlays = false;
-let tapeHeld = false;
-const TAPE = 'tape-information';
-const hasPickup = await page
-  .waitForFunction((t) => typeof window[`__sdpPickup:${t}`] === 'function', TAPE, {
-    timeout: 8000,
-  })
-  .then(
-    () => true,
-    () => false,
-  );
-if (!hasPickup) fail('tape vault: master-tape pickup hook never appeared');
-if (hasPickup) {
-  await page.evaluate((t) => window[`__sdpPickup:${t}`](), TAPE);
-  tapePlays = await songIs('information'); // the cassette's track takes the voice
-  if (!tapePlays) fail('the master tape did not start playing its track on pickup');
-  const after = await prog();
-  tapeHeld = (after.itemsHeld || []).includes(TAPE);
-  if (!tapeHeld) fail('the master tape did not drop into itemsHeld (Pockets)');
+// Collect ALL THREE master tapes — each must play its OWN track + land in Pockets,
+// so every new item/track path is exercised end to end (not just one). Picked in an
+// order that leaves "information" LAST, so it's the preferred station we then trace
+// through the control room and out to the storefront.
+const TAPES = [
+  { id: 'tape-1101', track: '1101' },
+  { id: 'tape-jolly-roger-bay', track: 'jolly-roger-bay' },
+  { id: 'tape-information', track: 'information' }, // last → the carried station
+];
+let tapesPlayed = 0;
+let tapesHeld = 0;
+for (const t of TAPES) {
+  const hasPickup = await page
+    .waitForFunction((id) => typeof window[`__sdpPickup:${id}`] === 'function', t.id, {
+      timeout: 8000,
+    })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hasPickup) {
+    fail(`tape vault: pickup hook never appeared for ${t.id}`);
+    continue;
+  }
+  await page.evaluate((id) => window[`__sdpPickup:${id}`](), t.id);
+  if (await songIs(t.track)) tapesPlayed++;
+  else fail(`${t.id} did not start playing its track "${t.track}" on pickup`);
+  const held = (await prog()).itemsHeld || [];
+  if (held.includes(t.id)) tapesHeld++;
+  else fail(`${t.id} did not drop into itemsHeld (Pockets)`);
 }
 
 // WALK vault → control: now that a cassette is pocketed, the working room must
@@ -325,8 +343,8 @@ await ctx.close();
 await browser.close();
 console.log(
   `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} bass=${bassOk} ` +
-    `control=${inControl} controlHushed=${controlHushed} fwdLounge=${forwardLounge} loungeSong=${loungeSong} ratSecret=${ratSecret} ` +
-    `fwdControl=${forwardControl} vault=${inVault} vaultHushed=${vaultHushed} tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
+    `control=${inControl} controlHushed=${controlHushed} fwdLounge=${forwardLounge} loungeSong=${loungeSong} ratSecret=${ratSecret} ratLuck=${ratLuck} ` +
+    `fwdControl=${forwardControl} vault=${inVault} vaultHushed=${vaultHushed} tapes=${tapesPlayed}/${TAPES.length}play,${tapesHeld}/${TAPES.length}held ` +
     `stationThruControl=${stationThruControl} fwdVault=${forwardVault} ` +
     `storefront=${backStorefront} stationCarries=${stationCarries} | errors=${errors}`,
 );
