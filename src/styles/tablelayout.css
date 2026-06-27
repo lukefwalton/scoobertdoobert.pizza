@@ -245,30 +245,26 @@
   color: #0a2f8f;
   font-weight: bold;
 }
+/* the "@-mail" — now a real printed envelope GIF (see TableLayoutFloor). A small
+   stamp frame on the floor's furniture color; reduced-motion is handled by the
+   <picture> still, not CSS. */
 .tl__mail {
-  display: inline-grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 34%, #ffe27a, #e6a52f);
-  border: 2px solid #8a5a13;
-  color: #5a3a08;
-  font-weight: bold;
-  font-size: 1.4rem;
+  display: inline-block;
+  line-height: 0;
   text-decoration: none;
-  animation: tl-spin 3s linear infinite;
+  padding: 2px;
+  background: #cdd4dc; /* matches the GIF's baked tile → the frame reads seamless */
+  border: 2px ridge #eef1f5;
 }
-@keyframes tl-spin {
-  to {
-    transform: rotate(360deg);
-  }
+.tl__mail img {
+  display: block;
+  width: 44px;
+  height: 34px;
+  image-rendering: pixelated; /* keep the little envelope crunchy */
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .tl__mail {
-    animation: none;
-  }
+.tl__mail:focus-visible {
+  outline: 2px solid #11203a;
+  outline-offset: 2px;
 }
 
 @media (max-width: 520px) {

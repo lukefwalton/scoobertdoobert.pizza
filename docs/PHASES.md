@@ -354,6 +354,11 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   `*-static` twin under reduced motion (triply WCAG 2.3.1-safe). `shoot:gifs` decodes
   both new frames in real Chromium; navy-on-gold button ≈ 10:1 contrast; no 390px
   overflow.
+- ✅ **The 2000-floor @-mail is now a printed GIF (follow-up PR):** the CSS-spun "@"
+  is replaced by `atmail.gif` from our own encoder — a little envelope that bobs with
+  a pulsing red "1" badge (you've got mail), still wrapping the real `mailto` anchor.
+  WCAG 2.3.1: a 1–2px bob + 1px badge pulse (no flash/blink), `*-static` twin under
+  reduced motion. `shoot:gifs` validates all 6 frames in Chromium; no 390px overflow.
 
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
@@ -390,11 +395,11 @@ guardrail before anything that adds a place/NPC/system):
   `/text`, jukebox, the standalone arcade routes) for other letdowns like the
   install one — overflow, contrast, tap-target size, the descent flow — and fix
   them. Screenshot-driven; pairs naturally with a `shoot:*` mobile pass.
-- **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`) and a
-  **"NEW!" blinky** GIF shipped (above). Still open: turning the 2000 floor's CSS
-  **@-mail** into a printed GIF, more **blinkies** on other surfaces — extend the
-  retro furniture while adding real nav anchors, not just decoration. Reuses the
-  GIF89a encoder (`make-gifs.mjs`) already in the repo.
+- **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`), the
+  **"NEW!" blinky**, and the printed **@-mail envelope** GIF all shipped (above).
+  Still open: more **blinkies** on other surfaces, a spinning-globe / flame divider —
+  extend the retro furniture while adding real nav anchors, not just decoration.
+  Reuses the GIF89a encoder (`make-gifs.mjs`) already in the repo.
 - **3D world delight.** Recent work was all surface floors; feed the "exploration's
   reward is sound" spine on desktop — a new easter-egg, a room touch, or an NPC
   beat. The biggest open backlog (Phase 8 tail) is **further album-themed wings.**
