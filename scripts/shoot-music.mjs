@@ -116,12 +116,45 @@ if (flipReady) {
     );
   if (!flipped) bad('flipping ▶ did not swap the engine loop voice to another track');
 }
+// ── 4. Same-URL no-op guard: replaying the CURRENT track must NOT restart the loop
+//      voice (the "song stepping over itself" fix); a genuine swap still must. The
+//      engine bumps __sdpLoopStarts on every ACTUAL (re)start, so the count holding
+//      across a same-URL replay proves the guard short-circuited. ──
+let guardHeld = false;
+let swapBumped = false;
+if (flipped) {
+  const before = await page.evaluate(() => ({
+    url: window.__sdpJukeboxUrl ?? null,
+    starts: window.__sdpLoopStarts ?? 0,
+  }));
+  // Replay the SAME url straight through the engine — the guard should short-circuit.
+  await page.evaluate((u) => window.__sdpAudio?.playJukeboxTrack(u), before.url);
+  await page.waitForTimeout(200);
+  const afterSame = await page.evaluate(() => ({
+    url: window.__sdpJukeboxUrl ?? null,
+    starts: window.__sdpLoopStarts ?? 0,
+  }));
+  guardHeld = afterSame.starts === before.starts && afterSame.url === before.url;
+  if (!guardHeld) bad('replaying the CURRENT track restarted the loop (same-URL guard failed)');
+
+  // A genuine flip to another track must still (re)start the loop voice (counter up).
+  await page.getByRole('button', { name: 'next song' }).click();
+  swapBumped = await page
+    .waitForFunction((s) => (window.__sdpLoopStarts ?? 0) > s, before.starts, { timeout: 12000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!swapBumped) bad('a genuine track swap did not (re)start the loop voice');
+}
+
 if (errors.length) bad(`page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 await browser.close();
 console.log(
   `radio -> lockedHint=${lockedHint} noFlipLocked=${noFlipWhenLocked} rolled=${rolled} ` +
-    `unlocked=${unlocked} flipped=${flipped} errors=${errors.length}`,
+    `unlocked=${unlocked} flipped=${flipped} guardHeld=${guardHeld} swapBumped=${swapBumped} ` +
+    `errors=${errors.length}`,
 );
 console.log(fail ? `\n${fail} radio check(s) FAILED` : '\nradio checks passed.');
 process.exit(fail ? 1 : 0);
