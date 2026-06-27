@@ -85,6 +85,33 @@ export const ITEMS: Item[] = [
     glyph: '📼',
     track: 'all-my-friends-live-on-the-internet',
   },
+  // ── Master tapes — the unreleased demos in the studio's Tape Vault. Pocket one
+  // and the master plays (the music ladder's "find it = hear it"); they extend the
+  // lost-cassettes collectathon to the basement sessions.
+  {
+    id: 'tape-information',
+    kind: 'trinket',
+    label: 'Master: “Information”',
+    blurb: 'A reel-to-reel box, “INFORMATION — MASTER” in grease pencil. Heavy.',
+    glyph: '📼',
+    track: 'information',
+  },
+  {
+    id: 'tape-1101',
+    kind: 'trinket',
+    label: 'Master: “1101”',
+    blurb: 'A cassette labeled only 1101. Seven-bit ASCII, sung — it decodes to a URL.',
+    glyph: '📼',
+    track: '1101',
+  },
+  {
+    id: 'tape-jolly-roger-bay',
+    kind: 'trinket',
+    label: 'Master: “Jolly Roger Bay”',
+    blurb: 'A water-warped shell with a doodled pirate flag. Side B is just tape hiss.',
+    glyph: '📼',
+    track: 'jolly-roger-bay',
+  },
   // ── Tomes — the spell scrolls (the RPG layer's magic, earned by finding them).
   {
     id: 'fireball-scroll',

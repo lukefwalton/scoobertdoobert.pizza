@@ -42,6 +42,9 @@ await page.addInitScript(() => {
       luckEarned: 0,
       luckSpent: 0,
       radioUnlocked: true,
+      // Every cassette in CASSETTE_IDS (the 4 original lost tapes + the 3 Basement
+      // Sessions master reels) so the collect-tapes objective is DONE — keep this in
+      // sync with items.ts whenever a music-item (anything with a `track`) is added.
       itemsHeld: [
         'pool-locker-key',
         'hall-closet-key',
@@ -49,6 +52,9 @@ await page.addInitScript(() => {
         'tape-moonlight',
         'tape-japan',
         'tape-internet',
+        'tape-information',
+        'tape-1101',
+        'tape-jolly-roger-bay',
       ],
       secretsFound: ['dice-monster', 'grass-cleared', 'danced:seed'],
       visitedRooms: ['shop', 'hallway', 'jukebox', 'poolrooms', 'shrine', 'terminus'],
@@ -66,6 +72,25 @@ const hasClap = await page
     () => false,
   );
 if (!hasClap) bad('finale: shrine clap hook never appeared');
+
+// Guard the hardcoded tape seed against drift: the seed above must cover the LIVE
+// CASSETTE_IDS set (read from the app via __sdpCassetteIds), or the collect-tapes
+// objective silently won't complete and the finale "mysteriously" never fires.
+// Surface a missing tape by NAME instead, so a future `track` item is obvious.
+const missingTapes = await page.evaluate(() => {
+  const ids = window.__sdpCassetteIds || [];
+  let held = [];
+  try {
+    held = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').itemsHeld || [];
+  } catch {
+    held = [];
+  }
+  return ids.filter((id) => !held.includes(id));
+});
+if (missingTapes.length)
+  bad(
+    `finale: seed is missing cassette(s) ${missingTapes.join(', ')} — update itemsHeld in this file`,
+  );
 await page.waitForTimeout(600);
 
 let finaleToast = false;

@@ -18,6 +18,15 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a chart cutting tacked to the wall: “Don’t Worry” hit #1 on Munich’s egoFM in 2021. Muso.AI files him Top 1% songwriter — near 300 compositions.',
   practice:
     'a bathrobe slung over an amp. He tracked the whole 2018 LP $WAMI$ alone in one, minus a few drum-and-bass moments played by Louis Cole.',
+  // ── the basement sessions (the studio wing — warm, where it's all made) ──
+  liveroom:
+    'amps stacked three deep and a kit set for one. He plays the drums, the keys, the bass — a whole band tracked after dark by one guy in a basement.',
+  controlroom:
+    'the desk, every fader his own hand. Before any of this he interned at Surfdog Records, packing Brian Setzer CDs into mailers down the coast.',
+  tapevault:
+    'shelves of reels, hundreds of them. Every song on his debut LP “Finding SD” was written, recorded, mixed and mastered in a single day.',
+  lounge:
+    'the rat fast asleep in the good armchair, paying its rent in dreams. A lava lamp, a TV warming up — the one room he lets himself rest.',
   // ── the deep / wrong rooms (still sweet things to notice) ──
   classified:
     'a stamped file: DERRIDA MAKES A DIFFÉRANCE. Its verdict on whether any of this matters — “we do not matter much, if at all.”',

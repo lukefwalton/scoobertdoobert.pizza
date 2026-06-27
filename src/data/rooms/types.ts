@@ -66,7 +66,17 @@ export type RoomKind =
   // and the screen goes goofily blurry). Pure surface goof (taste-safe). Each
   // plays its own song (Room.song).
   | 'zoo'
-  | 'northpark';
+  | 'northpark'
+  // The Basement Sessions — a recording-studio wing off the practice room (deeper
+  // backstage, where the music actually gets MADE). A live room you can PLAY (a
+  // drum kit + a keyboard), the control room's mixing desk + tape machines, a tape
+  // vault of collectible master demos, and a sweet lounge breather (the rat naps
+  // here). Each room plays its own Scoobert track (Room.song). Surface-sweet,
+  // taste-safe — the warm heart of a musician's site.
+  | 'liveroom'
+  | 'controlroom'
+  | 'tapevault'
+  | 'lounge';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
