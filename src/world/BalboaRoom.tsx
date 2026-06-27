@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { PizzaPanChimes } from './PizzaPanChimes';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -131,6 +132,12 @@ export function BalboaRoom({ room }: { room: Room }) {
       {/* benches facing the fountain from either side of the path */}
       <Bench x={-3.4} z={-1} rotationY={Math.PI / 2} mat={benchMat} />
       <Bench x={3.4} z={-1} rotationY={-Math.PI / 2} mat={benchMat} />
+
+      {/* the "play it" beat: a park-busker rack of tuned pizza pans you strike for
+          Scoobert's pentatonic — the surface, sweet counterpart to the gallery's
+          lyre, and the site's pizza→music thesis made playable ("the stroll is the
+          music"). Left of the path, facing the walk up from the boardwalk. */}
+      <PizzaPanChimes position={[-2.6, 0, 2.0]} rotationY={0.3} />
     </group>
   );
 }
