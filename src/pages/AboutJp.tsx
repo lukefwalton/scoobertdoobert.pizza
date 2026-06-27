@@ -41,6 +41,8 @@ export default function AboutJp() {
     komagome: 'https://www.komagomefc.com/',
     bed: 'https://bed2052.com/',
     tamtam: 'https://www.youtube.com/channel/UCoMxi0h7K5WQIVRyxh2TZXg',
+    otomachi:
+      'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
   };
 
   const jsonLd = {
@@ -100,7 +102,7 @@ export default function AboutJp() {
         <link rel="alternate" hrefLang="x-default" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
-          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載など。"
+          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年の来日ライブ（東京・宮城）など。"
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -110,7 +112,7 @@ export default function AboutJp() {
         <meta property="og:title" content="スクーバート・ドゥーバートについて" />
         <meta
           property="og:description"
-          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載。サンディエゴ発の自主制作音楽プロジェクト。"
+          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年の来日ライブ。サンディエゴ発の自主制作音楽プロジェクト。"
         />
         <meta
           property="og:image"
@@ -176,7 +178,13 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          日本語学習、現地でのライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
+          活動は制作だけにとどまりません。2024年には<strong>来日</strong>し、
+          <strong>東京</strong>でのライブのほか、宮城・蔵王で開かれた音楽フェスティバル{' '}
+          <Ext href={ext.otomachi}>The Otomachi Festival 2024（おとま地）</Ext>{' '}
+          に出演しました。
+        </p>
+        <p>
+          日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
         </p>
 
         <h2>音楽</h2>

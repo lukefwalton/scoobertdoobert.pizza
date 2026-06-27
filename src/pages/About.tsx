@@ -51,6 +51,8 @@ export default function About() {
     bed: 'https://bed2052.com/',
     germanRadio: 'https://www.egofm.de/',
     tamtam: 'https://www.youtube.com/channel/UCoMxi0h7K5WQIVRyxh2TZXg',
+    otomachi:
+      'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
     kerriMedders: 'https://en.wikipedia.org/wiki/Kerri_Medders',
     ninaFrancis: 'https://ninafrancismusic.com/',
     louRoy: 'https://www.singlouroy.com/',
@@ -231,8 +233,9 @@ export default function About() {
           Japan thread runs all the way through: the collaborations kept going — CHAI, then{' '}
           <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and the Tokyo
           band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
-          alongside the language-learning, the live shows, and the general belief that a good melody
-          can travel farther than your passport.
+          alongside the language-learning, live dates in Japan in 2024 (Tokyo, plus{' '}
+          <Ext href={ext.otomachi}>The Otomachi Festival 2024</Ext> in Miyagi), and the general
+          belief that a good melody can travel farther than your passport.
         </p>
         <p>
           Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award nominee),{' '}
