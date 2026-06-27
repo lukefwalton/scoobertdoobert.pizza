@@ -72,6 +72,25 @@ const hasClap = await page
     () => false,
   );
 if (!hasClap) bad('finale: shrine clap hook never appeared');
+
+// Guard the hardcoded tape seed against drift: the seed above must cover the LIVE
+// CASSETTE_IDS set (read from the app via __sdpCassetteIds), or the collect-tapes
+// objective silently won't complete and the finale "mysteriously" never fires.
+// Surface a missing tape by NAME instead, so a future `track` item is obvious.
+const missingTapes = await page.evaluate(() => {
+  const ids = window.__sdpCassetteIds || [];
+  let held = [];
+  try {
+    held = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').itemsHeld || [];
+  } catch {
+    held = [];
+  }
+  return ids.filter((id) => !held.includes(id));
+});
+if (missingTapes.length)
+  bad(
+    `finale: seed is missing cassette(s) ${missingTapes.join(', ')} — update itemsHeld in this file`,
+  );
 await page.waitForTimeout(600);
 
 let finaleToast = false;

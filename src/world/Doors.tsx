@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { roomById, MOBIUS_BREAK, type RoomDoor } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
+import { CASSETTE_IDS } from '../data/items';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { FramedCover } from './CoverArt';
@@ -142,6 +143,15 @@ export function Doors() {
       useSceneStore.getState().goToRoom(to, spawn ?? 'default'),
     );
     return () => exposeTestGlobal('__sdpGoToRoom', undefined);
+  }, []);
+
+  // Read-only data hook (?world / ?debug): the live CASSETTE_IDS set, so the
+  // plain-node smokes (shoot:tapes / shoot:finale) can assert the collectathon
+  // total + seed-completeness against the source of truth instead of a frozen
+  // count — drift surfaces with a clear message, not a generic "no finale fired".
+  useEffect(() => {
+    exposeTestGlobal('__sdpCassetteIds', CASSETTE_IDS);
+    return () => exposeTestGlobal('__sdpCassetteIds', undefined);
   }, []);
 
   useFrame(() => {
