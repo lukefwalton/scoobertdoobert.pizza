@@ -141,6 +141,46 @@ export default function About() {
         ],
       },
       {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-otomachi-2024',
+        name: 'The Otomachi Festival 2024',
+        startDate: '2024-10-14',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'Place',
+          name: 'Renzō-ji (蓮蔵寺)',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Zaō',
+            addressRegion: 'Miyagi',
+            addressCountry: 'JP',
+          },
+        },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-three-2024',
+        name: 'Scoobert Doobert at Shimokitazawa THREE (LOSS × beformer)',
+        startDate: '2024-10-18',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'MusicVenue',
+          name: 'Shimokitazawa THREE',
+          sameAs: 'https://www.toos.co.jp/3/',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Setagaya',
+            addressRegion: 'Tokyo',
+            addressCountry: 'JP',
+          },
+        },
+        organizer: { '@id': 'https://lukefwalton.com/#beformer' },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
         '@type': 'Person',
         '@id': 'https://lukefwalton.com/#person',
         name: 'Luke Francis Walton',
@@ -234,10 +274,11 @@ export default function About() {
           Japan thread runs all the way through: the collaborations kept going — CHAI, then{' '}
           <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and the Tokyo
           band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
-          alongside the language-learning, two live dates in October 2024 — an all-night LOSS ×
-          beformer party at <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo, and{' '}
-          <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi —
-          and the general belief that a good melody can travel farther than your passport.
+          alongside the language-learning, a two-date run in October 2024 —{' '}
+          <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi
+          (Oct 14), then an all-night LOSS × beformer party at{' '}
+          <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo (Oct 18) — and the general belief
+          that a good melody can travel farther than your passport.
         </p>
         <p>
           Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award nominee),{' '}
