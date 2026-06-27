@@ -57,6 +57,17 @@ if (!guestbookOk)
 await page.click('.floor-door--down');
 const on2000 = await floor(page, 'y2000');
 
+// The @-mail envelope serves its ANIMATED frame under normal motion here; the
+// reduced-motion still-swap is asserted in the reduced-motion pass at the end —
+// together they cover the <picture> in BOTH directions.
+const atmailAnimated = await page
+  .evaluate(() =>
+    (document.querySelector('.tl__mail img')?.currentSrc || '').endsWith('/gifs/atmail.gif'),
+  )
+  .catch(() => false);
+if (!atmailAnimated)
+  fail('the @-mail did not serve its animated frame (atmail.gif) under normal motion');
+
 await page.click('.floor-door--down');
 const onMachine = await floor(page, 'machine');
 await page.screenshot({ path: '.shots/descent-machine.png' });
@@ -257,12 +268,41 @@ const rmStatic = await rp
     () => false,
   );
 if (!rmStatic) fail('the NEW! blinky did not swap to its static twin under prefers-reduced-motion');
+
+// Same reduced-motion context: descend to the 2000 floor and prove the @-mail
+// envelope ALSO swaps to its static twin while the anchor keeps its mailto href +
+// accessible name — the markup-level contract the binary GIF check can't see.
+await rp.click('.floor-door--down');
+await floor(rp, 'y2000');
+const atmailRm = await rp
+  .waitForFunction(
+    () => {
+      const a = document.querySelector('.tl__mail');
+      const img = a?.querySelector('img');
+      return (
+        !!img &&
+        (img.currentSrc || '').endsWith('/gifs/atmail-static.gif') &&
+        a.getAttribute('href') === 'mailto:webmaster@scoobertdoobert.pizza' &&
+        a.getAttribute('aria-label') === 'Email the webmaster'
+      );
+    },
+    null,
+    { timeout: 3000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!atmailRm)
+  fail(
+    'the @-mail envelope did not swap to its static twin, or its exact mailto/aria-label contract changed, under reduced motion',
+  );
 await rctx.close();
 
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} | mobile: noCanvas=${mobileNoCanvas} ` +
     `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
