@@ -44,6 +44,8 @@ export default function AboutJp() {
     otomachi:
       'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
     three: 'https://www.toos.co.jp/3/',
+    otomachiFlyer: 'https://www.instagram.com/p/C-vnLOVSPq-/',
+    threeFlyer: 'https://www.instagram.com/p/DBIowJ9SM2s/',
   };
 
   const jsonLd = {
@@ -221,9 +223,9 @@ export default function AboutJp() {
         <p>
           活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>し、2か所でライブを行いました。宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
           <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>
-          （10月14日、いとうせいこう・村松邦男・DJ 小西康陽らと共演）と、東京・下北沢のライブハウス{' '}
+          （<Ext href={ext.otomachiFlyer}>10月14日</Ext>、いとうせいこう・村松邦男・DJ 小西康陽らと共演）と、東京・下北沢のライブハウス{' '}
           <Ext href={ext.three}>下北沢THREE</Ext>
-          での LOSS × beformer のオールナイト・イベント（10月18日）です。
+          での LOSS × beformer のオールナイト・イベント（<Ext href={ext.threeFlyer}>10月18日</Ext>）です。
         </p>
         <p>
           日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
