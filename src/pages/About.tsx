@@ -277,11 +277,11 @@ export default function About() {
           <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and the Tokyo
           band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
           alongside the language-learning, a two-date run in October 2024 —{' '}
-          <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi
-          (<Ext href={ext.otomachiFlyer}>Oct 14</Ext>), then an all-night LOSS × beformer party at{' '}
+          <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi (
+          <Ext href={ext.otomachiFlyer}>Oct 14</Ext>), then an all-night LOSS × beformer party at{' '}
           <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo (
-          <Ext href={ext.threeFlyer}>Oct 18</Ext>) — and the general belief
-          that a good melody can travel farther than your passport.
+          <Ext href={ext.threeFlyer}>Oct 18</Ext>) — and the general belief that a good melody can
+          travel farther than your passport.
         </p>
         <figure className="about__portrait">
           <img

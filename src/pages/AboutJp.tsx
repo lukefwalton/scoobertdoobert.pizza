@@ -221,11 +221,13 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>し、2か所でライブを行いました。宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
-          <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>
-          （<Ext href={ext.otomachiFlyer}>10月14日</Ext>、いとうせいこう・村松邦男・DJ 小西康陽らと共演）と、東京・下北沢のライブハウス{' '}
-          <Ext href={ext.three}>下北沢THREE</Ext>
-          での LOSS × beformer のオールナイト・イベント（<Ext href={ext.threeFlyer}>10月18日</Ext>）です。
+          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>
+          し、2か所でライブを行いました。宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
+          <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>（
+          <Ext href={ext.otomachiFlyer}>10月14日</Ext>、いとうせいこう・村松邦男・DJ
+          小西康陽らと共演）と、東京・下北沢のライブハウス <Ext href={ext.three}>下北沢THREE</Ext>
+          での LOSS × beformer のオールナイト・イベント（<Ext href={ext.threeFlyer}>10月18日</Ext>
+          ）です。
         </p>
         <figure className="about__portrait">
           <img
