@@ -45,6 +45,20 @@ const noPromptNow = async (where) => {
   if ((await page.$('.hud-prompt--door')) !== null)
     fail(`a door prompt flashed at the ${where} spawn (arrival sits in a door radius)`);
 };
+// The negative audio contract: a WORKING room (control / vault) forces NO song — it
+// must NOT seize the loop voice with a jukebox track (you monitor what you carried
+// in; with nothing pocketed yet that's the boot loop, so __sdpJukeboxActive is false).
+// Guards against a stray Room.song creeping onto a working room unnoticed.
+const noForcedSong = async (where) => {
+  const hushed = await page
+    .waitForFunction(() => window.__sdpJukeboxActive === false, null, { timeout: 5000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hushed) fail(`${where} seized the loop voice with a song (a working room must stay hushed)`);
+  return hushed;
+};
 // Hold a key until the door prompts, then step through with E. Every studio spawn
 // faces INTO its room, so the arrival door sits behind it: a backward 's' hold
 // walks straight back through the door you came in by.
@@ -181,6 +195,7 @@ if (await through('s', 'practice → live')) {
 //    the loop voice), then walk back into the live room (control→live door).
 const inControl = await goTo('controlroom', 'default', 'The Control Room');
 await noPromptNow('control room');
+const controlHushed = await noForcedSong('the control room');
 await page.screenshot({ path: '.shots/studio-control.png' });
 if (await through('s', 'control → live')) {
   await roomIs('The Live Room');
@@ -193,6 +208,7 @@ if (await through('s', 'control → live')) {
 //    control room, the vault forces no song. Then walk back up to the control room.
 const inVault = await goTo('tapevault', 'default', 'The Tape Vault');
 await noPromptNow('tape vault');
+const vaultHushed = await noForcedSong('the tape vault'); // hushed BEFORE we pocket a tape
 await page.screenshot({ path: '.shots/studio-vault.png' });
 let tapePlays = false;
 let tapeHeld = false;
@@ -256,7 +272,8 @@ await ctx.close();
 await browser.close();
 console.log(
   `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} bass=${bassOk} ` +
-    `control=${inControl} vault=${inVault} tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
+    `control=${inControl} controlHushed=${controlHushed} vault=${inVault} vaultHushed=${vaultHushed} ` +
+    `tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
     `lounge=${inLounge} loungeSong=${loungeSong} backLive=${backLive} ` +
     `storefront=${backStorefront} stationCarries=${stationCarries} | errors=${errors}`,
 );
