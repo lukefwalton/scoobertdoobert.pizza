@@ -103,7 +103,7 @@ export default function AboutJp() {
         <link rel="alternate" hrefLang="x-default" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
-          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年の来日ライブ（東京・宮城）など。"
+          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ（東京・宮城）など。"
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -113,7 +113,7 @@ export default function AboutJp() {
         <meta property="og:title" content="スクーバート・ドゥーバートについて" />
         <meta
           property="og:description"
-          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年の来日ライブ。サンディエゴ発の自主制作音楽プロジェクト。"
+          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ。サンディエゴ発の自主制作音楽プロジェクト。"
         />
         <meta
           property="og:image"
@@ -179,10 +179,10 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          活動は制作だけにとどまりません。2024年には<strong>来日</strong>し、東京・下北沢のライブハウス{' '}
+          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>し、東京・下北沢のライブハウス{' '}
           <Ext href={ext.three}>下北沢THREE</Ext>
-          でのライブのほか、宮城・蔵王で開かれた音楽フェスティバル{' '}
-          <Ext href={ext.otomachi}>The Otomachi Festival 2024（おとま地）</Ext>{' '}
+          での LOSS × beformer のオールナイト・イベントや、宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
+          <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>
           に出演しました。
         </p>
         <p>
