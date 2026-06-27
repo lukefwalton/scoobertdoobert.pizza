@@ -172,12 +172,18 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
           </a>
         </nav>
 
+        {/* the GeoCities "@-mail" — a real printed envelope GIF (our own encoder),
+            still a real mailto anchor. <picture> serves a still under reduced motion;
+            the accessible label is on the <a>, so the img is decorative (alt=""). */}
         <a
           className="tl__mail"
           href="mailto:webmaster@scoobertdoobert.pizza"
           aria-label="Email the webmaster"
         >
-          @
+          <picture>
+            <source srcSet="/gifs/atmail-static.gif" media="(prefers-reduced-motion: reduce)" />
+            <img src="/gifs/atmail.gif" width={44} height={34} alt="" />
+          </picture>
         </a>
       </div>
 

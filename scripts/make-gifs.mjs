@@ -454,4 +454,66 @@ function newBadgeFrame(alt) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6) atmail.gif — the GeoCities "@-mail" envelope: a little email envelope that
+//    gently bobs with a pulsing red "1" notification badge (you've got mail!).
+//    Replaces the 2000-floor's CSS-spun "@" with a real printed GIF. Baked on the
+//    floor's furniture color so it frames seamlessly. WCAG 2.3.1: a 1–2px bob and
+//    a 1px badge pulse (no flash, no on/off blink), with a *-static twin under
+//    prefers-reduced-motion. The "Email the webmaster" label lives on the <a>.
+// ═══════════════════════════════════════════════════════════════════════════════
+const MAIL = [
+  [205, 212, 220], // 0 tile bg — the stamp's own backing behind the envelope (self-contained; framed by .tl__mail)
+  [247, 241, 226], // 1 envelope cream
+  [90, 74, 42], // 2 outline / flap seam
+  [226, 59, 43], // 3 "new mail" red badge
+  [255, 255, 255], // 4 white ("1" + highlight)
+];
+const M = { BG: 0, CREAM: 1, DARK: 2, RED: 3, WHITE: 4 };
+
+function mailFrame(bob, badgeR) {
+  const W = 44;
+  const H = 34;
+  const c = canvas(W, H, M.BG);
+  const x0 = 6;
+  const x1 = 37;
+  const yTop = 9 + bob;
+  const yBot = yTop + 16;
+  c.rect(x0, yTop, x1, yBot, M.CREAM); // body
+  c.rect(x0, yTop, x1, yTop, M.DARK); // top edge
+  c.rect(x0, yBot, x1, yBot, M.DARK); // bottom edge
+  c.rect(x0, yTop, x0, yBot, M.DARK); // left edge
+  c.rect(x1, yTop, x1, yBot, M.DARK); // right edge
+  // the flap: two diagonals from the top corners down to a center apex
+  const cxm = 21;
+  const lN = cxm - x0;
+  const rN = x1 - cxm;
+  for (let i = 0; i <= lN; i++) c.set(x0 + i, yTop + Math.round((i / lN) * 9), M.DARK);
+  for (let i = 0; i <= rN; i++) c.set(x1 - i, yTop + Math.round((i / rN) * 9), M.DARK);
+  // the "you've got mail" badge: a red disc with a white "1"
+  c.disc(x1 - 1, yTop - 1, badgeR, M.RED);
+  c.rect(x1 - 1, yTop - 3, x1 - 1, yTop + 1, M.WHITE);
+  return c.indices();
+}
+
+{
+  const W = 44;
+  const H = 34;
+  const bobs = [0, 1, 2, 2, 1, 0];
+  const radii = [3, 4, 4, 3, 3, 4];
+  const frames = bobs.map((b, i) => ({ indices: mailFrame(b, radii[i]), delay: 13 }));
+  write('atmail.gif', encodeGif({ width: W, height: H, palette: MAIL, frames }), W, H);
+  write(
+    'atmail-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: MAIL,
+      frames: [{ indices: mailFrame(1, 4), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
 console.log('done — original GIFs generated.');

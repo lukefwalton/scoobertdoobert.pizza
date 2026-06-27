@@ -28,6 +28,8 @@ const GIFS = [
   { name: 'wallpaper.gif', w: 48, h: 48, frames: 1 },
   { name: 'new-badge.gif', w: 56, h: 22, frames: 2 },
   { name: 'new-badge-static.gif', w: 56, h: 22, frames: 1 },
+  { name: 'atmail.gif', w: 44, h: 34, frames: 6 },
+  { name: 'atmail-static.gif', w: 44, h: 34, frames: 1 },
 ];
 
 // Pull a GIF apart into its header / LSD / global color table and each frame's
