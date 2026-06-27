@@ -54,6 +54,7 @@ import { Doors } from './Doors';
 import { Paintings } from './CoverArt';
 import { TvSet } from './TvSet';
 import { Controls } from './Controls';
+import { PickupController } from './PickupController';
 import { DreadVisuals } from './DreadVisuals';
 import { RoomFireball } from './RoomFireball';
 import { RoomLight } from './RoomLight';
@@ -292,6 +293,9 @@ export default function World() {
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
       <Doors />
+      {/* Proximity pickups: publishes the "Press P to grab" prompt + auto-grabs on
+          walk-over (the meshes themselves are RoomPickups; this is the controller). */}
+      <PickupController />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +
           bob/shake on top of the camera Controls just positioned. */}

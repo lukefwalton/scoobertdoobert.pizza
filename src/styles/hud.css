@@ -36,6 +36,11 @@
   border-color: rgba(120, 220, 255, 0.85);
   color: #d6f4ff;
 }
+/* grab-this-collectible cue — pizza-gold, the loot/inventory color. */
+.hud-prompt--pickup {
+  border-color: rgba(255, 196, 92, 0.9);
+  color: #ffe6b0;
+}
 
 /* the always-on objective chip + compass — top-center, subtle, never in the way. */
 .hud-objective {

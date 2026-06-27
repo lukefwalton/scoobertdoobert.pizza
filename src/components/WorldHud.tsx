@@ -18,6 +18,7 @@ import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
+import { collectInventoryItem } from '../lib/pickups';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
@@ -36,6 +37,7 @@ export function WorldHud() {
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
+  const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const rhythmActive = useRhythmStore((s) => s.active);
@@ -194,6 +196,14 @@ export function WorldHud() {
           useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
+      // P grabs the nearest collectible (the keyboard path; walking onto it also
+      // auto-grabs, and clicking still works). collectInventoryItem is idempotent.
+      if (e.key === 'p' || e.key === 'P') {
+        if (st.paused || st.openHotspot || st.tvVideo || st.arcadeGame || st.openNpc || st.lyricsSong)
+          return;
+        if (st.nearPickup) collectInventoryItem(st.nearPickup.id);
+        return;
+      }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
       // modal/pause; castSpell no-ops when the spell isn't learned, so an unbound
       // key is harmless. Same path as clicking the hotbar slot (keyboard parity).
@@ -339,20 +349,32 @@ export function WorldHud() {
           <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
         ))}
 
-      {nearTv && !nearDoor && !open && !paused && !pendingRoom && (
+      {nearPickup && !nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--pickup">
+          Press P to grab {nearPickup.glyph} {nearPickup.label}
+        </div>
+      )}
+
+      {nearTv && !nearDoor && !nearPickup && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
       )}
 
-      {nearArcade && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
+      {nearArcade && !nearDoor && !nearPickup && !nearTv && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--arcade">Press E to play</div>
       )}
 
-      {nearHs && !nearDoor && !nearTv && !nearArcade && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt">{nearHs.prompt}</div>
-      )}
+      {nearHs &&
+        !nearDoor &&
+        !nearPickup &&
+        !nearTv &&
+        !nearArcade &&
+        !open &&
+        !paused &&
+        !pendingRoom && <div className="hud-prompt">{nearHs.prompt}</div>}
 
       {nearNpc &&
         !nearDoor &&
+        !nearPickup &&
         !nearTv &&
         !nearHs &&
         !open &&
@@ -364,6 +386,7 @@ export function WorldHud() {
 
       {nearEntity &&
         !nearDoor &&
+        !nearPickup &&
         !nearTv &&
         !nearHs &&
         !nearNpc &&
