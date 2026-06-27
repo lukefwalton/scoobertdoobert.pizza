@@ -219,6 +219,9 @@ export const CORE_ROOMS: Room[] = [
       // Just inside the +Z door, clear of its radius, facing the pad wall (-Z).
       default: { position: [0, EYE, 2.5], yaw: Math.PI },
       fromJuke: { position: [0, EYE, 2.5], yaw: Math.PI },
+      // Back UP from the basement sessions (the -X studio door): by that wall,
+      // facing +X into the room, a step clear of the door radius (3.0).
+      fromStudio: { position: [-2.8, EYE, 0], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -229,6 +232,18 @@ export const CORE_ROOMS: Room[] = [
         rotationY: 0,
         label: 'back to the jukebox',
         radius: 3.2,
+      },
+      {
+        id: 'practice-to-studio',
+        to: 'liveroom',
+        toSpawn: 'fromPractice',
+        // A stairwell DOWN in the -X wall — deeper backstage, into the basement
+        // sessions where the records get tracked. A side branch off the music room,
+        // never the main descent (no key, no gate).
+        position: [-5.95, 0, 0],
+        rotationY: Math.PI / 2, // -X wall, opening faces +X into the room
+        label: 'down to the basement sessions',
+        radius: 3.0,
       },
     ],
   },

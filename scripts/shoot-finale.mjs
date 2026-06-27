@@ -42,6 +42,9 @@ await page.addInitScript(() => {
       luckEarned: 0,
       luckSpent: 0,
       radioUnlocked: true,
+      // Every cassette in CASSETTE_IDS (the 4 original lost tapes + the 3 Basement
+      // Sessions master reels) so the collect-tapes objective is DONE — keep this in
+      // sync with items.ts whenever a music-item (anything with a `track`) is added.
       itemsHeld: [
         'pool-locker-key',
         'hall-closet-key',
@@ -49,6 +52,9 @@ await page.addInitScript(() => {
         'tape-moonlight',
         'tape-japan',
         'tape-internet',
+        'tape-information',
+        'tape-1101',
+        'tape-jolly-roger-bay',
       ],
       secretsFound: ['dice-monster', 'grass-cleared', 'danced:seed'],
       visitedRooms: ['shop', 'hallway', 'jukebox', 'poolrooms', 'shrine', 'terminus'],
