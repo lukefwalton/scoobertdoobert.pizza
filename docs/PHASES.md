@@ -259,9 +259,11 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   room) → the **Tape Vault** (a hushed archive of shelved reels), and a sweet
   **Lounge** breather (couch, bobbing lava lamp, the rat asleep in the good armchair,
   a CRT playing "Finding SD"). The play-it ladder's biggest beat: the Live Room mounts
-  **two new playable instruments** — a 6-piece **DrumKit** (rhythm) + an 8-key
-  C-pentatonic **StudioKeys** (melody), each rung through the shared bell engine
-  (mute-aware + limited), original parody geometry, deterministic strike hooks. **Song
+  a **playable 3-piece band** — a 6-piece **DrumKit** (rhythm), a 4-string
+  **StudioBass** (a low C-arpeggio bottom end), and an 8-key C-pentatonic
+  **StudioKeys** (melody), all locked to one C tonality (no wrong notes) and rung
+  through the shared bell engine (mute-aware + limited), original parody geometry,
+  deterministic strike hooks. **Song
   design (a real studio breathes):** the two "playing" rooms sing (`Room.song`: live =
   `mystery-machine`, lounge = `jolly-roger-bay`); the two "working" rooms stay hushed
   so `information` + `1101` stay jukebox SEEDS — and their **master tapes** are
@@ -269,8 +271,8 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   pickup + feeds the lost-cassettes quest). Lore-true: he tracked a whole LP alone (the
   bathrobe slung on the mic stand) and Finding SD was written/recorded/mixed/mastered
   in a single day (the framed gold record = every fader his own hand). 4 mined
-  whispers, pause-menu minimap coords, `shoot:studio` (tours all 4 rooms, plays both
-  instruments, collects a master tape, walks every door both ways, proves the pocketed
+  whispers, pause-menu minimap coords, `shoot:studio` (tours all 4 rooms, plays all
+  three instruments, collects a master tape, walks every door both ways, proves the pocketed
   station carries back to the storefront); `rooms.test` / `music.test` / `jukebox.test`
   guards.
 - ✅ **D&D mechanics — the trap-door luck-d20 (2026-06-26):** the chute is a real

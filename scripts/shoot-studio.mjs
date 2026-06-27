@@ -1,10 +1,10 @@
 // Basement-Sessions-wing smoke: the recording-studio wing off the practice room —
-// a hub LIVE ROOM you can play (drum kit + keys), branching to the CONTROL ROOM
-// (mix desk, faders down) → the TAPE VAULT (collectible master tapes), and a sweet
-// LOUNGE breather. Drops in via ?world=1&debug=1 + __sdpGoToRoom, plays both
-// instruments, collects a master tape, then walks every door back the way it came
-// (clean single-axis 's' holds). Proves: the 4 rooms mount + their spawns place you
-// clear of the doors, the two instruments register strikes (the "play it" reward),
+// a hub LIVE ROOM you can play (a 3-piece band: drums + bass + keys), branching to
+// the CONTROL ROOM (mix desk, faders down) → the TAPE VAULT (collectible master
+// tapes), and a sweet LOUNGE breather. Drops in via ?world=1&debug=1 + __sdpGoToRoom,
+// plays all three instruments, collects a master tape, then walks every door back the
+// way it came (clean single-axis 's' holds). Proves: the 4 rooms mount + their spawns
+// place you clear of the doors, the three instruments register strikes (the reward),
 // a master tape collects + plays its track, the doors wire both ways with no
 // spawn-prompt flash, and the two "playing" rooms (live, lounge) take the loop voice
 // while the two "working" rooms (control, vault) stay hushed. Asserts on the quiet
@@ -125,7 +125,10 @@ if (!liveSong) fail('the live room did not take the loop voice with "mystery-mac
 
 const haveInstruments = await page
   .waitForFunction(
-    () => typeof window.__sdpHitDrum === 'function' && typeof window.__sdpPlayKey === 'function',
+    () =>
+      typeof window.__sdpHitDrum === 'function' &&
+      typeof window.__sdpPlayKey === 'function' &&
+      typeof window.__sdpPluckBass === 'function',
     null,
     { timeout: 8000 },
   )
@@ -133,7 +136,7 @@ const haveInstruments = await page
     () => true,
     () => false,
   );
-if (!haveInstruments) fail('live room instrument strike hooks never appeared (drums/keys)');
+if (!haveInstruments) fail('live room instrument strike hooks never appeared (drums/keys/bass)');
 
 // Strike the kick (drum 0) and the low C (key 0) — the "play it" reward. The hooks
 // report the last strike so we assert the right piece/note registered.
@@ -152,6 +155,14 @@ const key = await page.evaluate(() => {
 });
 const keyOk = !!key && key.i === 0 && key.note === 'C' && key.octave === 4;
 if (!keyOk) fail(`playing the low C did not register (got ${JSON.stringify(key)})`);
+
+const bass = await page.evaluate(() => {
+  if (typeof window.__sdpPluckBass !== 'function') return { err: 'no bass hook' };
+  window.__sdpPluckBass(0);
+  return window.__sdpBass ?? { err: 'no __sdpBass after pluck' };
+});
+const bassOk = !!bass && bass.i === 0 && bass.note === 'C' && bass.octave === 2;
+if (!bassOk) fail(`plucking the low C string did not register (got ${JSON.stringify(bass)})`);
 await page.screenshot({ path: '.shots/studio-live.png' });
 
 // 2) Back UP to the practice room (the wing entrance), then straight back DOWN —
@@ -244,7 +255,7 @@ try {
 await ctx.close();
 await browser.close();
 console.log(
-  `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} ` +
+  `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} bass=${bassOk} ` +
     `control=${inControl} vault=${inVault} tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
     `lounge=${inLounge} loungeSong=${loungeSong} backLive=${backLive} ` +
     `storefront=${backStorefront} stationCarries=${stationCarries} | errors=${errors}`,
