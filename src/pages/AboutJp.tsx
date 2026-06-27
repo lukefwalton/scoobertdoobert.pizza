@@ -43,6 +43,7 @@ export default function AboutJp() {
     tamtam: 'https://www.youtube.com/channel/UCoMxi0h7K5WQIVRyxh2TZXg',
     otomachi:
       'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
+    three: 'https://www.toos.co.jp/3/',
   };
 
   const jsonLd = {
@@ -178,8 +179,9 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          活動は制作だけにとどまりません。2024年には<strong>来日</strong>し、
-          <strong>東京</strong>でのライブのほか、宮城・蔵王で開かれた音楽フェスティバル{' '}
+          活動は制作だけにとどまりません。2024年には<strong>来日</strong>し、東京・下北沢のライブハウス{' '}
+          <Ext href={ext.three}>下北沢THREE</Ext>
+          でのライブのほか、宮城・蔵王で開かれた音楽フェスティバル{' '}
           <Ext href={ext.otomachi}>The Otomachi Festival 2024（おとま地）</Ext>{' '}
           に出演しました。
         </p>
