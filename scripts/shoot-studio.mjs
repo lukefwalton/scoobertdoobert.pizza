@@ -242,6 +242,22 @@ await noPromptNow('lounge');
 const loungeSong = await songIs('jolly-roger-bay');
 if (!loungeSong) fail('the lounge did not take the loop voice with "jolly-roger-bay"');
 await page.screenshot({ path: '.shots/studio-lounge.png' });
+
+// The wing's "discover" rung: tuck in the sleeping rat (a one-time secret + luck).
+let ratSecret = false;
+const hasPet = await page
+  .waitForFunction(() => typeof window.__sdpPetRat === 'function', null, { timeout: 5000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!hasPet) fail('lounge: the pet-the-rat hook never appeared');
+if (hasPet) {
+  await page.evaluate(() => window.__sdpPetRat());
+  const afterPet = await prog();
+  ratSecret = (afterPet.secretsFound || []).includes('lounge-rat');
+  if (!ratSecret) fail('tucking in the sleeping rat did not record the lounge-rat secret');
+}
 let backLive = false;
 if (await through('s', 'lounge → live')) {
   backLive = await roomIs('The Live Room');
@@ -274,7 +290,7 @@ console.log(
   `studio: bootReady=${bootReady} live=${inLive} liveSong=${liveSong} drum=${drumOk} key=${keyOk} bass=${bassOk} ` +
     `control=${inControl} controlHushed=${controlHushed} vault=${inVault} vaultHushed=${vaultHushed} ` +
     `tapePlays=${tapePlays} tapeHeld=${tapeHeld} ` +
-    `lounge=${inLounge} loungeSong=${loungeSong} backLive=${backLive} ` +
+    `lounge=${inLounge} loungeSong=${loungeSong} ratSecret=${ratSecret} backLive=${backLive} ` +
     `storefront=${backStorefront} stationCarries=${stationCarries} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);

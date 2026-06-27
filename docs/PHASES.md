@@ -270,11 +270,14 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   collectible in the vault (3 `trinket` items + `Room.pickups`, each plays its track on
   pickup + feeds the lost-cassettes quest). Lore-true: he tracked a whole LP alone (the
   bathrobe slung on the mic stand) and Finding SD was written/recorded/mixed/mastered
-  in a single day (the framed gold record = every fader his own hand). 4 mined
-  whispers, pause-menu minimap coords, `shoot:studio` (tours all 4 rooms, plays all
-  three instruments, collects a master tape, walks every door both ways, proves the pocketed
-  station carries back to the storefront); `rooms.test` / `music.test` / `jukebox.test`
-  guards.
+  in a single day (the framed gold record = every fader his own hand). The wing's
+  **"discover" rung:** tuck the blanket over the sleeping rat for a sweet one-time
+  secret (`lounge-rat` + luck) — the storefront's "RAT SPOTTED IN WALL" tease finally
+  paid off (taste: you never wake it). 4 mined whispers, pause-menu minimap coords,
+  `shoot:studio` (tours all 4 rooms, plays all three instruments, collects a master
+  tape, tucks in the rat, asserts the working rooms stay hushed, walks every door both
+  ways, proves the pocketed station carries back to the storefront); `rooms.test` /
+  `music.test` / `jukebox.test` guards.
 - ✅ **D&D mechanics — the trap-door luck-d20 (2026-06-26):** the chute is a real
   luck-biased d20 (`rollD20(true)` + `trapDropForRoll`): the face ordinally picks
   WHERE you drop (unluckiest → luckiest room), a nat 20 drops you somewhere sweet
