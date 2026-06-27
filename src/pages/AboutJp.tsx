@@ -41,6 +41,11 @@ export default function AboutJp() {
     komagome: 'https://www.komagomefc.com/',
     bed: 'https://bed2052.com/',
     tamtam: 'https://www.youtube.com/channel/UCoMxi0h7K5WQIVRyxh2TZXg',
+    otomachi:
+      'https://www.songkick.com/festivals/3687082-zaotomati-the-otomachi/id/42121412--the-otomachi-festival-2024',
+    three: 'https://www.toos.co.jp/3/',
+    otomachiFlyer: 'https://www.instagram.com/p/C-vnLOVSPq-/',
+    threeFlyer: 'https://www.instagram.com/p/DBIowJ9SM2s/',
   };
 
   const jsonLd = {
@@ -80,6 +85,46 @@ export default function AboutJp() {
         ],
       },
       {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-otomachi-2024',
+        name: 'The Otomachi Festival 2024',
+        startDate: '2024-10-14',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'Place',
+          name: 'Renzō-ji (蓮蔵寺)',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Zaō',
+            addressRegion: 'Miyagi',
+            addressCountry: 'JP',
+          },
+        },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
+        '@type': 'MusicEvent',
+        '@id': 'https://www.scoobertdoobert.pizza/#event-three-2024',
+        name: 'Scoobert Doobert at Shimokitazawa THREE (LOSS × beformer)',
+        startDate: '2024-10-18',
+        eventStatus: 'https://schema.org/EventScheduled',
+        eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+        location: {
+          '@type': 'MusicVenue',
+          name: 'Shimokitazawa THREE',
+          sameAs: 'https://www.toos.co.jp/3/',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: 'Setagaya',
+            addressRegion: 'Tokyo',
+            addressCountry: 'JP',
+          },
+        },
+        organizer: { '@id': 'https://lukefwalton.com/#beformer' },
+        performer: { '@id': 'https://lukefwalton.com/#scoobert' },
+      },
+      {
         '@type': 'Person',
         '@id': 'https://lukefwalton.com/#person',
         name: 'Luke Francis Walton',
@@ -100,7 +145,7 @@ export default function AboutJp() {
         <link rel="alternate" hrefLang="x-default" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
-          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載など。"
+          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ（東京・宮城）など。"
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -110,7 +155,7 @@ export default function AboutJp() {
         <meta property="og:title" content="スクーバート・ドゥーバートについて" />
         <meta
           property="og:description"
-          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載。サンディエゴ発の自主制作音楽プロジェクト。"
+          content="CHAI のリミックス／プロデュース（Sub Pop / Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ。サンディエゴ発の自主制作音楽プロジェクト。"
         />
         <meta
           property="og:image"
@@ -176,7 +221,26 @@ export default function AboutJp() {
           を通じて日本でも配信中です。
         </p>
         <p>
-          日本語学習、現地でのライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
+          活動は制作だけにとどまりません。2024年10月には<strong>来日</strong>
+          し、2か所でライブを行いました。宮城・蔵王の蓮蔵寺で開かれた音楽フェスティバル{' '}
+          <Ext href={ext.otomachi}>ザ・オトマチ（The Otomachi Festival 2024）</Ext>（
+          <Ext href={ext.otomachiFlyer}>10月14日</Ext>、いとうせいこう・村松邦男・DJ
+          小西康陽らと共演）と、東京・下北沢のライブハウス <Ext href={ext.three}>下北沢THREE</Ext>
+          での LOSS × beformer のオールナイト・イベント（<Ext href={ext.threeFlyer}>10月18日</Ext>
+          ）です。
+        </p>
+        <figure className="about__portrait">
+          <img
+            src="/press/scoobert-tokyo-2024.jpg"
+            alt="2024年10月、東京のスクーバート・ドゥーバート。"
+            width="1000"
+            height="666"
+            loading="lazy"
+          />
+          <figcaption>東京、2024年10月</figcaption>
+        </figure>
+        <p>
+          日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
         </p>
 
         <h2>音楽</h2>
