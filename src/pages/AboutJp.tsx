@@ -227,6 +227,16 @@ export default function AboutJp() {
           <Ext href={ext.three}>下北沢THREE</Ext>
           での LOSS × beformer のオールナイト・イベント（<Ext href={ext.threeFlyer}>10月18日</Ext>）です。
         </p>
+        <figure className="about__portrait">
+          <img
+            src="/press/scoobert-tokyo-2024.jpg"
+            alt="2024年10月、東京。ギグバッグを肩にかけたスクーバート・ドゥーバート。"
+            width="720"
+            height="1080"
+            loading="lazy"
+          />
+          <figcaption>東京、2024年10月</figcaption>
+        </figure>
         <p>
           日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
         </p>

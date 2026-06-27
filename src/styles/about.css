@@ -53,6 +53,11 @@
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
+.about__portrait figcaption {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #777;
+}
 
 .about__lede {
   font-size: 1.22rem;
