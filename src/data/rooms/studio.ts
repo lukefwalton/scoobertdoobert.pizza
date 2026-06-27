@@ -1,0 +1,173 @@
+// src/data/rooms/studio.ts — THE BASEMENT SESSIONS: a recording-studio wing off
+// the practice room (deeper backstage, where the music actually gets MADE). A hub
+// LIVE ROOM you can play (a drum kit + a keyboard), branching to the CONTROL ROOM
+// (mixing desk + tape machines) → the TAPE VAULT (collectible master demos), and a
+// sweet LOUNGE breather off the live room. Surface-sweet, taste-safe. The two
+// "playing" rooms ring with music (Room.song); the two "working" rooms (mix desk
+// + archive) stay hushed so their tracks remain jukebox seeds you collect as
+// master tapes. The entrance door is added to the practice room in core.ts
+// (practice-to-studio + a fromStudio spawn).
+import { EYE, type Room } from './types';
+
+export const STUDIO_ROOMS: Room[] = [
+  {
+    id: 'liveroom',
+    kind: 'liveroom',
+    title: 'The Live Room',
+    // The biggest studio room — headroom + floor for the kit and the keys.
+    dims: { halfW: 7, halfD: 7, height: 4.5, eye: EYE },
+    // Cosy basement dark, warm amber from a couple of practice lamps — a sibling to
+    // the jukebox womb, deliberately sweet (it's where the records are tracked).
+    palette: { background: '#140f0a', fog: '#1d150d', fogNear: 5, fogFar: 30 },
+    // "Mystery Machine" tracked here — the band's van made into a song.
+    song: 'mystery-machine',
+    spawns: {
+      // Step down from the practice room at the +Z door, facing -Z into the room
+      // (the kit + keys are along the far -Z wall). Clear of the +Z door (r3.2).
+      default: { position: [0, EYE, 3.5], yaw: Math.PI },
+      fromPractice: { position: [0, EYE, 3.5], yaw: Math.PI },
+      // Back in from the control room (-X door): by that wall, facing +X into the
+      // room, a step clear of the door radius (3.0).
+      fromControl: { position: [-3.5, EYE, 0], yaw: Math.PI / 2 },
+      // Back in from the lounge (+X door): by that wall, facing -X into the room.
+      fromLounge: { position: [3.5, EYE, 0], yaw: -Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'liveroom-to-practice',
+        to: 'practice',
+        toSpawn: 'fromStudio',
+        position: [0, 0, 6.95], // +Z — back up to the practice room
+        rotationY: 0,
+        label: 'back up to the practice room',
+        radius: 3.2,
+      },
+      {
+        id: 'liveroom-to-control',
+        to: 'controlroom',
+        toSpawn: 'fromLive',
+        position: [-6.95, 0, 0], // -X wall, opening faces +X into the room
+        rotationY: Math.PI / 2,
+        label: 'into the control room',
+        radius: 3.0,
+      },
+      {
+        id: 'liveroom-to-lounge',
+        to: 'lounge',
+        toSpawn: 'fromLive',
+        position: [6.95, 0, 0], // +X wall, opening faces -X into the room
+        rotationY: -Math.PI / 2,
+        label: 'into the lounge',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'controlroom',
+    kind: 'controlroom',
+    title: 'The Control Room',
+    // Narrower — a console room, a window through to the live room.
+    dims: { halfW: 6, halfD: 5, height: 3.6, eye: EYE },
+    // Cool console dark washed in meter-glow — bluish, dim, focused.
+    palette: { background: '#0c1016', fog: '#121823', fogNear: 4, fogFar: 26 },
+    // No forced Room.song: this is the MIXING room — faders down, you monitor
+    // whatever you carried in. "Information" stays a jukebox seed (always on the
+    // dial); its master tape is collectible next door in the vault.
+    spawns: {
+      // In from the live room (+X door): by that wall, facing -X toward the desk on
+      // the far -X side. Clear of the +X door (r3.0).
+      default: { position: [2.5, EYE, 0], yaw: -Math.PI / 2 },
+      fromLive: { position: [2.5, EYE, 0], yaw: -Math.PI / 2 },
+      // Back up from the tape vault (-Z door): facing +Z into the room, clear of the
+      // door radius (2.8).
+      fromVault: { position: [0, EYE, -2], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'control-to-liveroom',
+        to: 'liveroom',
+        toSpawn: 'fromControl',
+        position: [5.95, 0, 0], // +X wall, opening faces -X into the room
+        rotationY: -Math.PI / 2,
+        label: 'back into the live room',
+        radius: 3.0,
+      },
+      {
+        id: 'control-to-vault',
+        to: 'tapevault',
+        toSpawn: 'fromControl',
+        position: [0, 0, -4.95], // -Z wall — into the archive
+        rotationY: Math.PI,
+        label: 'into the tape vault',
+        radius: 2.8,
+      },
+    ],
+  },
+  {
+    id: 'tapevault',
+    kind: 'tapevault',
+    title: 'The Tape Vault',
+    // Small, dusty, archival — shelves of reels and the master demos.
+    dims: { halfW: 5, halfD: 5, height: 3.4, eye: EYE },
+    // Dim amber-brown, motes in the lamp — a warm archive, not a cold one.
+    palette: { background: '#100c08', fog: '#1a140c', fogNear: 4, fogFar: 22 },
+    // No forced Room.song: a hushed archive (just the shelves + the lamp-hum) — the
+    // contrast against the ringing live room. The music here is what you COLLECT:
+    // "1101" stays a jukebox seed, and its master tape sits on these very shelves.
+    // The MASTER TAPES: pocket one and the unreleased demo plays (the music ladder's
+    // "find it = hear it" reward) + it joins the lost-cassettes collectathon.
+    pickups: [
+      { itemId: 'tape-information', position: [-3.2, 0.9, -1.5] },
+      { itemId: 'tape-1101', position: [0, 0.9, -3.2] },
+      { itemId: 'tape-jolly-roger-bay', position: [3.2, 0.9, -1.5] },
+    ],
+    spawns: {
+      // In from the control room (+Z door), facing -Z down the shelves. Clear of the
+      // door radius (2.8).
+      default: { position: [0, EYE, 2], yaw: Math.PI },
+      fromControl: { position: [0, EYE, 2], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'vault-to-control',
+        to: 'controlroom',
+        toSpawn: 'fromVault',
+        position: [0, 0, 4.95], // +Z — back to the control room
+        rotationY: 0,
+        label: 'back to the control room',
+        radius: 2.8,
+      },
+    ],
+  },
+  {
+    id: 'lounge',
+    kind: 'lounge',
+    title: 'The Lounge',
+    // A sweet breather off the live room: couch, lava lamp, a CRT, the napping rat.
+    dims: { halfW: 5, halfD: 5, height: 3.4, eye: EYE },
+    // Warm, soft, cosy — the most relaxed room in the building (a relief beat).
+    palette: { background: '#16100c', fog: '#231811', fogNear: 5, fogFar: 26 },
+    // "Jolly Roger Bay" — a chill, watery deep cut for the put-your-feet-up room.
+    song: 'jolly-roger-bay',
+    // The lounge TV plays a SESSION clip: "Finding SD" (the album written, recorded,
+    // mixed + mastered in a single day) — the studio's own mythology on the screen.
+    tv: { albumSlug: 'finding-sd', position: [4.7, 0, -2], rotationY: -Math.PI / 2 },
+    spawns: {
+      // In from the live room (-X door): by that wall, facing +X into the lounge.
+      // Clear of the door radius (2.8).
+      default: { position: [-2, EYE, 0], yaw: Math.PI / 2 },
+      fromLive: { position: [-2, EYE, 0], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'lounge-to-liveroom',
+        to: 'liveroom',
+        toSpawn: 'fromLounge',
+        position: [-4.95, 0, 0], // -X wall, opening faces +X into the room
+        rotationY: Math.PI / 2,
+        label: 'back into the live room',
+        radius: 2.8,
+      },
+    ],
+  },
+];

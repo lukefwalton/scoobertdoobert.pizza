@@ -105,8 +105,11 @@ if (hasHook) {
   const prog2 = await page.$$eval('.hud-pause__progress span', (els) =>
     els.map((e) => e.textContent || '').join(' | '),
   );
-  tapesCount = /Tapes\s*1\/4/.test(prog2);
-  if (!tapesCount) bad(`tapes: Tapes counter not 1/4 (saw ${JSON.stringify(prog2)})`);
+  // 7 cassettes now: the 4 original lost tapes + the 3 studio master reels (the
+  // Basement Sessions vault). The counter is derived from CASSETTE_IDS, so it grows
+  // as music-items are added — assert the live total, not a frozen 4.
+  tapesCount = /Tapes\s*1\/7/.test(prog2);
+  if (!tapesCount) bad(`tapes: Tapes counter not 1/7 (saw ${JSON.stringify(prog2)})`);
   radioFlip = !!(await page.$('button[aria-label="next song"]'));
   if (!radioFlip) bad('tapes: radio flip controls not shown after unlock');
   await page.screenshot({ path: '.shots/tapes.png' });
