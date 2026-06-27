@@ -230,9 +230,9 @@ export default function AboutJp() {
         <figure className="about__portrait">
           <img
             src="/press/scoobert-tokyo-2024.jpg"
-            alt="2024年10月、東京。ギグバッグを肩にかけたスクーバート・ドゥーバート。"
-            width="720"
-            height="1080"
+            alt="2024年10月、東京のスクーバート・ドゥーバート。"
+            width="1000"
+            height="666"
             loading="lazy"
           />
           <figcaption>東京、2024年10月</figcaption>

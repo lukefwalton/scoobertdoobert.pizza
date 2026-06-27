@@ -286,9 +286,9 @@ export default function About() {
         <figure className="about__portrait">
           <img
             src="/press/scoobert-tokyo-2024.jpg"
-            alt="Scoobert Doobert in Tokyo, October 2024, a gig bag slung over one shoulder."
-            width="720"
-            height="1080"
+            alt="Scoobert Doobert in Tokyo, October 2024."
+            width="1000"
+            height="666"
             loading="lazy"
           />
           <figcaption>Tokyo, October 2024</figcaption>
