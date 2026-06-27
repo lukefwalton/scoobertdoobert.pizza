@@ -463,7 +463,7 @@ function newBadgeFrame(alt) {
 //    prefers-reduced-motion. The "Email the webmaster" label lives on the <a>.
 // ═══════════════════════════════════════════════════════════════════════════════
 const MAIL = [
-  [205, 212, 220], // 0 bg = #cdd4dc — keep in sync with .tl__mail/.tl__furniture (tablelayout.css)
+  [205, 212, 220], // 0 tile bg — the stamp's own backing behind the envelope (self-contained; framed by .tl__mail)
   [247, 241, 226], // 1 envelope cream
   [90, 74, 42], // 2 outline / flap seam
   [226, 59, 43], // 3 "new mail" red badge

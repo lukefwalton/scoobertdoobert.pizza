@@ -271,8 +271,8 @@ const atmailRm = await rp
       return (
         !!img &&
         (img.currentSrc || '').endsWith('/gifs/atmail-static.gif') &&
-        (a.getAttribute('href') || '').startsWith('mailto:') &&
-        !!a.getAttribute('aria-label')
+        a.getAttribute('href') === 'mailto:webmaster@scoobertdoobert.pizza' &&
+        a.getAttribute('aria-label') === 'Email the webmaster'
       );
     },
     null,
@@ -284,7 +284,7 @@ const atmailRm = await rp
   );
 if (!atmailRm)
   fail(
-    'the @-mail envelope did not swap to its static twin (or lost mailto/aria) under reduced motion',
+    'the @-mail envelope did not swap to its static twin, or its exact mailto/aria-label contract changed, under reduced motion',
   );
 await rctx.close();
 
