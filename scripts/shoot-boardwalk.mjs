@@ -109,6 +109,18 @@ const balboaSong = await songIs('walking-balboa');
 if (!balboaSong) fail('the park path did not take over the loop voice with "walking-balboa"');
 await page.screenshot({ path: '.shots/boardwalk-balboa.png' });
 
+// 5b) The "play it" beat lives in the park: strike a pizza pan. Clicking a 3D pan
+//     through Playwright is camera-fragile, so drive the deterministic strike hook
+//     (exposed under ?world); __sdpPans carries the last strike's note.
+const panStruck = await page.evaluate(() => {
+  if (typeof window.__sdpStrikePan !== 'function') return { err: 'no strike hook' };
+  window.__sdpStrikePan(2); // index 2 = the E4 pan
+  return window.__sdpPans ?? { err: 'no __sdpPans after strike' };
+});
+const panOk = !!panStruck && panStruck.note === 'E' && panStruck.octave === 4;
+if (!panOk)
+  fail(`striking a pizza pan did not register the right note (got ${JSON.stringify(panStruck)})`);
+
 // 6) Exit the world from a song-room (full teardown): leaving must hand the voice
 //    back to the boot loop, not strand the park's track playing in the storefront.
 let exitClean = false;
@@ -127,7 +139,7 @@ await ctx.close();
 await browser.close();
 console.log(
   `boardwalk: shop=${startShop} bootReady=${bootReady} noSpawnPrompt=${noSpawnPrompt} ` +
-    `boardwalk=${inBoardwalk} boardwalkSong=${boardwalkSong} ocean=${inOcean} oceanSong=${oceanSong} ` +
+    `boardwalk=${inBoardwalk} boardwalkSong=${boardwalkSong} pan=${panOk} ocean=${inOcean} oceanSong=${oceanSong} ` +
     `backBoardwalk=${backBoardwalk} boardwalkResumes=${boardwalkResumes} balboa=${inBalboa} ` +
     `balboaSong=${balboaSong} exitClean=${exitClean} | errors=${errors}`,
 );
