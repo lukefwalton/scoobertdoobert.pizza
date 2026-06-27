@@ -283,6 +283,16 @@ export default function About() {
           <Ext href={ext.threeFlyer}>Oct 18</Ext>) — and the general belief
           that a good melody can travel farther than your passport.
         </p>
+        <figure className="about__portrait">
+          <img
+            src="/press/scoobert-tokyo-2024.jpg"
+            alt="Scoobert Doobert in Tokyo, October 2024, a gig bag slung over one shoulder."
+            width="720"
+            height="1080"
+            loading="lazy"
+          />
+          <figcaption>Tokyo, October 2024</figcaption>
+        </figure>
         <p>
           Scoobert Doobert albums include <em>Big Hug</em> (a San Diego Music Award nominee),{' '}
           <em>KŌAN</em>, <em>Moonlight Beach</em>, <em>MÖB</em>, and <em>I</em>. <em>MÖB</em> and{' '}
