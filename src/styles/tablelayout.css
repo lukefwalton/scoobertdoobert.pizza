@@ -249,11 +249,11 @@
    stamp frame on the floor's furniture color; reduced-motion is handled by the
    <picture> still, not CSS. */
 .tl__mail {
+  /* the framed envelope is self-contained: the GIF bakes its own margin, so the
+     anchor just frames the img — no background to keep in sync with the floor color. */
   display: inline-block;
   line-height: 0;
   text-decoration: none;
-  padding: 2px;
-  background: #cdd4dc; /* = atmail.gif's baked tile (make-gifs.mjs MAIL[0]); keep in sync → seamless */
   border: 2px ridge #eef1f5;
 }
 .tl__mail img {
