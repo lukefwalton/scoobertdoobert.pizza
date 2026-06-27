@@ -243,6 +243,14 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   played through the shared bell engine (mute-aware + limited); original parody
   geometry, no sourced model. Advances the music ladder's "play it" rung in a deep
   room. `shoot:gallery` now plucks a string.
+- ✅ **The pizza pan chimes — a "play it" instrument in the park (2026-06-27):** the
+  SURFACE, sweet counterpart to the gallery lyre — a busker rack of tuned PIZZA PANS
+  (`PizzaPanChimes.tsx`) in the Park Path (`balboa`), the site's pizza→music thesis
+  made playable. Six pans, a C-pentatonic ladder (naturals → no wrong notes), each
+  struck (click or the `__sdpStrikePan` hook) rings a bell-pluck through the shared
+  engine (mute-aware + limited) and swings/glows the pan. Self-lit emissive so the
+  metal reads against the behind-it sun; original parody geometry. `shoot:boardwalk`
+  now strikes a pan (asserts the E4 note via `__sdpPans`).
 - ✅ **D&D mechanics — the trap-door luck-d20 (2026-06-26):** the chute is a real
   luck-biased d20 (`rollD20(true)` + `trapDropForRoll`): the face ordinally picks
   WHERE you drop (unluckiest → luckiest room), a nat 20 drops you somewhere sweet
@@ -400,8 +408,9 @@ guardrail before anything that adds a place/NPC/system):
   Still open: more **blinkies** on other surfaces, a spinning-globe / flame divider —
   extend the retro furniture while adding real nav anchors, not just decoration.
   Reuses the GIF89a encoder (`make-gifs.mjs`) already in the repo.
-- **3D world delight.** Recent work was all surface floors; feed the "exploration's
-  reward is sound" spine on desktop — a new easter-egg, a room touch, or an NPC
-  beat. The biggest open backlog (Phase 8 tail) is **further album-themed wings.**
+- **3D world delight.** ✅ First beat shipped — the **pizza pan chimes** "play it"
+  instrument in the park (above). More to feed the "exploration's reward is sound"
+  spine on desktop — another easter-egg, a room touch, or an NPC beat. The biggest
+  open backlog (Phase 8 tail) is **further album-themed wings.**
 - **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
   instruments tail are the loose ends still flagged in the table above.
