@@ -80,7 +80,10 @@ export function PizzaPanChimes({
       const k = Number(i) | 0;
       if (k >= 0 && k < N) strike(k);
     });
-    return () => exposeTestGlobal('__sdpStrikePan', undefined);
+    return () => {
+      exposeTestGlobal('__sdpStrikePan', undefined);
+      exposeTestGlobal('__sdpPans', undefined); // clear last-strike state on teardown
+    };
   }, []);
 
   const panX = (i: number) => -SPAN / 2 + (i / (N - 1)) * SPAN;
