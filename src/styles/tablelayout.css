@@ -252,10 +252,13 @@
    <picture> still, not CSS. */
 .tl__mail {
   /* the framed envelope is self-contained: the GIF bakes its own margin, so the
-     anchor just frames the img — no background to keep in sync with the floor color. */
+     anchor just frames the img — no background to keep in sync with the floor color.
+     The padding keeps the touch target ≥44px tall (the img is only 34) for fat
+     fingers (WCAG 2.5.5); it's transparent, so it doesn't re-couple to the floor. */
   display: inline-block;
   line-height: 0;
   text-decoration: none;
+  padding: 6px 8px;
   border: 2px ridge #eef1f5;
 }
 .tl__mail img {
