@@ -257,12 +257,41 @@ const rmStatic = await rp
     () => false,
   );
 if (!rmStatic) fail('the NEW! blinky did not swap to its static twin under prefers-reduced-motion');
+
+// Same reduced-motion context: descend to the 2000 floor and prove the @-mail
+// envelope ALSO swaps to its static twin while the anchor keeps its mailto href +
+// accessible name — the markup-level contract the binary GIF check can't see.
+await rp.click('.floor-door--down');
+await floor(rp, 'y2000');
+const atmailRm = await rp
+  .waitForFunction(
+    () => {
+      const a = document.querySelector('.tl__mail');
+      const img = a?.querySelector('img');
+      return (
+        !!img &&
+        (img.currentSrc || '').endsWith('/gifs/atmail-static.gif') &&
+        (a.getAttribute('href') || '').startsWith('mailto:') &&
+        !!a.getAttribute('aria-label')
+      );
+    },
+    null,
+    { timeout: 3000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!atmailRm)
+  fail(
+    'the @-mail envelope did not swap to its static twin (or lost mailto/aria) under reduced motion',
+  );
 await rctx.close();
 
 await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmail=${atmailRm} | mobile: noCanvas=${mobileNoCanvas} ` +
     `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
 );
 process.exit(errors ? 1 : 0);
