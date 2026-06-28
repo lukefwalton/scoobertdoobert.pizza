@@ -12,6 +12,7 @@ import { SliceBreaker } from './SliceBreaker';
 import { JazzSnake } from './JazzSnake';
 import { PizzaRadar } from './PizzaRadar';
 import { BurritoBelt } from './BurritoBelt';
+import { GhostKartBattle } from './GhostKartBattle';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,
+  'ghost-kart': GhostKartBattle,
 };
 
 export function ArcadeModal({ id, onClose }: { id: ArcadeGameId; onClose: () => void }) {
