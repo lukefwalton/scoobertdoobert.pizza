@@ -121,6 +121,7 @@ shows. Aggregated 2026-06-20.
 - [StereoFox — Scoobert Doobert — My Scoobert Snack](https://www.stereofox.com/scoobert-doobert-my-scoobert-snack/)
 - [Note.com — Event Sendai](https://note.com/event_sendai/n/n2db736fa205b)
 - [Getty Images — News photo](https://www.gettyimages.com/detail/news-photo/bassist-nick-petrou-drummer-brandon-woodward-vocalist-news-photo/175810142)
+- [koookooorooo — Scoobert Doobert](https://koookooorooo.com/scoobert-doobert)
 
 ## Releases & live
 
