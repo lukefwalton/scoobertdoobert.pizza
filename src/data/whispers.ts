@@ -44,7 +44,7 @@ export const ROOM_WHISPERS: Record<string, string> = {
   grove:
     'a stick half-sunk in the water, looking bent at the surface. His whole philosophy is that stick: it only looks bent. So is language.',
   grassrooms:
-    'the carpet gave up and the lawn moved in — 草の間, the grass room. The ceiling broke open to a sky that is far too blue, and a furin rings for the breeze it lets in.',
+    '草の間 means “the grass room” — but online 草 = “lol” (laughter sprouts like grass: www → 草), so really you’re standing in the LOL room. The too-blue ceiling agrees.',
   // ── the digital-nostalgia branch ──
   memorylane:
     'an old cartridge labeled 1101. It’s nothing but 7-bit ASCII binary — decoded: “scoobertdoobert dot pizza / slash save san diego.” A website, sung.',
