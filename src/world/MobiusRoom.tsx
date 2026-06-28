@@ -7,6 +7,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useDreadStore } from '../state/dreadStore';
 import { DREAD } from '../data/dread';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 
 // ───────────────────────────────────────────────────────────────────────────
 // MobiusRoom — Phase 6. The Scooby-Doo hallway gag / the "Mobius" motif: walk to
@@ -104,7 +105,7 @@ export function MobiusRoom({ room }: { room: Room }) {
     [signText, broken],
   );
   const signMat = useMemo(() => new THREE.MeshBasicMaterial({ map: signTex }), [signTex]);
-  useEffect(() => () => signTex.dispose(), [signTex]);
+  useDispose(signTex);
 
   // Dual register, made literal: OVER-lit + even when calm (comic), dimming
   // toward oppressive as unease rises. Bright is the default the bitter contrasts.

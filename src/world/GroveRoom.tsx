@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { flatMat } from './ps1';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useDispose } from '../lib/useDispose';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -59,13 +60,7 @@ function Bloom({
   const freq = useMemo(() => noteToFreq(note, octave), [note, octave]);
   const stemMat = useMemo(() => flatMat('#37564a'), []);
   const budMat = useMemo(() => new THREE.MeshBasicMaterial({ color }), [color]);
-  useEffect(
-    () => () => {
-      stemMat.dispose();
-      budMat.dispose();
-    },
-    [stemMat, budMat],
-  );
+  useDispose(stemMat, budMat);
 
   useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
@@ -109,14 +104,7 @@ export function GroveRoom({ room }: { room: Room }) {
   const groundMat = useMemo(() => flatMat('#2f4a44'), []);
   const stoneMat = useMemo(() => flatMat('#566a64'), []);
   const orbMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#c6f0e0' }), []); // unlit glow
-  useEffect(
-    () => () => {
-      groundMat.dispose();
-      stoneMat.dispose();
-      orbMat.dispose();
-    },
-    [groundMat, stoneMat, orbMat],
-  );
+  useDispose(groundMat, stoneMat, orbMat);
 
   // A soft arrival chord + the first root note, so the garden's drone bed is
   // already humming as you step in — the grove's reward is sound.

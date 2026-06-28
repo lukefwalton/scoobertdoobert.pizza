@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { flatMat } from './ps1';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -64,12 +65,7 @@ export function PizzaPanChimes({
   );
   const rimMats = useMemo(() => PANS.map(() => flatMat('#9aa0aa')), []); // darker rim
 
-  useEffect(
-    () => () => {
-      [frameMat, wireMat, ...panMats, ...rimMats].forEach((m) => m.dispose());
-    },
-    [frameMat, wireMat, panMats, rimMats],
-  );
+  useDispose(frameMat, wireMat, ...panMats, ...rimMats);
 
   // Restore the canvas cursor on teardown so a room exit mid-hover can't leave the
   // pizza cursor stuck on the chimes (cf. ItemPickup).

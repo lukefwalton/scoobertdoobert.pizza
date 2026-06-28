@@ -3,6 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useDispose } from '../lib/useDispose';
 
 // ───────────────────────────────────────────────────────────────────────────
 // FrutigerRoom — the Frutiger Aero pocket (Luke, 2026-06-22: "frutiger levels").
@@ -73,7 +74,7 @@ function Cloud({
     () => new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0.95, fog: false }),
     [tex],
   );
-  useEffect(() => () => mat.dispose(), [mat]);
+  useDispose(mat);
   const puffs = useMemo(
     () =>
       [
@@ -117,7 +118,7 @@ function Bubble({ x, y, z, r }: { x: number; y: number; z: number; r: number }) 
       }),
     [],
   );
-  useEffect(() => () => mat.dispose(), [mat]);
+  useDispose(mat);
   useFrame((state) => {
     const m = ref.current;
     if (!m) return;
@@ -153,14 +154,7 @@ function GelCreature({ pos }: { pos: [number, number, number] }) {
     () => new THREE.MeshPhongMaterial({ color: '#bff0ff', emissive: '#2a6f8a', shininess: 120 }),
     [],
   );
-  useEffect(
-    () => () => {
-      bodyMat.dispose();
-      darkMat.dispose();
-      screenMat.dispose();
-    },
-    [bodyMat, darkMat, screenMat],
-  );
+  useDispose(bodyMat, darkMat, screenMat);
   useFrame((state) => {
     const g = ref.current;
     if (!g) return;
@@ -280,33 +274,18 @@ export function FrutigerRoom() {
       }),
     [],
   );
-  useEffect(
-    () => () => {
-      skyTex.dispose();
-      puffTex.dispose();
-      sunGlowTex.dispose();
-      flareTex.dispose();
-      skyMat.dispose();
-      sunMat.dispose();
-      sunDiscMat.dispose();
-      flareMat.dispose();
-      groundMat.dispose();
-      hillMat.dispose();
-      waterMat.dispose();
-    },
-    [
-      skyTex,
-      puffTex,
-      sunGlowTex,
-      flareTex,
-      skyMat,
-      sunMat,
-      sunDiscMat,
-      flareMat,
-      groundMat,
-      hillMat,
-      waterMat,
-    ],
+  useDispose(
+    skyTex,
+    puffTex,
+    sunGlowTex,
+    flareTex,
+    skyMat,
+    sunMat,
+    sunDiscMat,
+    flareMat,
+    groundMat,
+    hillMat,
+    waterMat,
   );
 
   // The sun's world position (up + far, off to one side) — disc, glow, and a

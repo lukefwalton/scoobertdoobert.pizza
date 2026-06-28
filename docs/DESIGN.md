@@ -159,8 +159,8 @@ rat, the music, recurrence, even the loaders all flip the same way.
     the boot loop, the `Room.song` override, and the engine's loop indices are
     untouched. The set of "find-it-in-its-room" songs is **derived from the room
     graph** (`ROOM_SONG_SLUGS`), so adding a song-room needs no second list.
-- **Play it.** Instrument rooms (borrowed/adapted from the `fun/` submodule's
-  generative-synth toys) where *you* make the sound. They're discovered
+- **Play it.** Instrument rooms (borrowed/adapted from Luke's own `fun`
+  instrument playground) where *you* make the sound. They're discovered
   **exhale-valves found by going deep**, not surface toys — bright goofy rooms
   that double as dread relief. Seed *one* light "you can make sound here" touch
   near the surface so the idea's planted early; the real instrument rooms pay off
@@ -171,9 +171,9 @@ rat, the music, recurrence, even the loaders all flip the same way.
     SWEET relief beat. It also hosts the first **door-game**: a 4-track that calls
     a growing phrase to play back; clearing four rounds fires the (previously
     unused) `clearGame('practice')` unlock + plays a sealed demo — the "earn
-    sound" turn of the ladder. `fun/` isn't needed for this one; it's procedural.
-  - **SHIPPED — the instrument cabinets** (`fun/` borrowed by VENDORING, never
-    submoduled — see `fun/README.md`). The two pure-synthesis toys from Luke's
+    sound" turn of the ladder. The `fun` toys aren't needed for this one; it's procedural.
+  - **SHIPPED — the instrument cabinets** (vendored from Luke's `fun` playground,
+    never submoduled — provenance in the `src/lib/chimes.ts` header). The two pure-synthesis toys from Luke's
     `fun` playground, re-homed as our own standalone files and surfaced as
     touch-first arcade cabinets beside Poke/Run: **`/chimes`** (Pendulum Chimes —
     a tap-to-play pendulum-wave bell instrument) and **`/cultures`** (a stir-to-

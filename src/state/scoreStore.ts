@@ -112,6 +112,3 @@ export const useScoreStore = create<ScoreState>((set, get) => ({
     });
   },
 }));
-
-/** Current bonus height (read each frame by Controls). */
-export const selectTallness = (s: ScoreState): number => s.tallness;

@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { Water } from './Water';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ function StringLights({ count = 14 }: { count?: number }) {
     mats[1].opacity = 0.7 + 0.3 * Math.sin(t * 1.9 + 1.3);
     mats[2].opacity = 0.7 + 0.3 * Math.sin(t * 2.2 + 2.6);
   });
-  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats]);
+  useDispose(...mats);
   return (
     <group>
       {/* the wire */}
@@ -99,12 +100,7 @@ export function MoonlightRoom({ room }: { room: Room }) {
 
   const moonMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#eef1ff' }), []);
 
-  useEffect(() => {
-    return () => {
-      plankTex.dispose();
-      floorTex.dispose();
-    };
-  }, [plankTex, floorTex]);
+  useDispose(plankTex, floorTex);
 
   return (
     <group>

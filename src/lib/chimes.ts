@@ -5,7 +5,8 @@
 // playground (the `fun` project) and RE-HOMED here as this project's own
 // standalone file — scoobertdoobert.pizza never imports from, submodules, or
 // otherwise depends on that repo (it may be deleted), exactly like the water /
-// boids technique. Original synthesis + sim, no third-party assets.
+// boids technique. Original synthesis + sim, no third-party assets. (The `fun`
+// project was referenced at commit 067385f4; its breadcrumb dir was removed here.)
 //
 // The physics: N pendulums hang from a shared pivot, each a simple harmonic
 // oscillator θ(t) = swingAmp · cos(ω·t). Pendulum i completes (baseCycles + i)

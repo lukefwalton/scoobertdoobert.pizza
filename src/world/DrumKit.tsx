@@ -3,6 +3,7 @@ import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { audio } from '../audio/engine';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { flatMat } from './ps1';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -158,12 +159,7 @@ export function DrumKit({
   const shellMat = useMemo(() => flatMat('#241a12'), []); // drum shells / stands
   const standMat = useMemo(() => flatMat('#1a1a1e'), []); // chrome-dark hardware
 
-  useEffect(
-    () => () => {
-      [shellMat, standMat, ...headMats, ...rimMats].forEach((m) => m.dispose());
-    },
-    [shellMat, standMat, headMats, rimMats],
-  );
+  useDispose(shellMat, standMat, ...headMats, ...rimMats);
 
   const hit = (i: number) => {
     energy.current[i] = 1;

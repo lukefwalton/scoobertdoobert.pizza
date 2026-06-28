@@ -7,6 +7,7 @@ import { fogFor, type Room } from '../data/rooms';
 import { announce } from '../state/toastStore';
 import { useProgressStore } from '../state/progressStore';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 
 // The Lounge — the sweet breather off the live room: a couch, a coffee table, a
 // softly bobbing lava lamp, and the rat fast asleep in the good armchair (paying
@@ -115,7 +116,7 @@ export function Lounge({ room }: { room: Room }) {
     if (lava2.current) lava2.current.position.y = 1.0 + Math.sin(t * 0.5 + 2) * 0.1;
   });
 
-  useEffect(() => () => floorTex.dispose(), [floorTex]);
+  useDispose(floorTex);
 
   return (
     <group>

@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeAffineTexturedMaterial, makeCheckerTexture, flatMat } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -108,14 +109,7 @@ function Motes({ count = 40 }: { count?: number }) {
     }
     attr.needsUpdate = true;
   });
-  useEffect(
-    () => () => {
-      geom.dispose();
-      mat.dispose();
-      sprite.dispose();
-    },
-    [geom, mat, sprite],
-  );
+  useDispose(geom, mat, sprite);
   return <points ref={ref} geometry={geom} material={mat} />;
 }
 
@@ -137,7 +131,7 @@ export function DaydreamRoom({ room }: { room: Room }) {
   const cloudPink = useMemo(() => flatMat('#f7dcef', { side: THREE.DoubleSide }), []);
   const sunMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#fff1d6' }), []);
 
-  useEffect(() => () => deckTex.dispose(), [deckTex]);
+  useDispose(deckTex);
 
   return (
     <group>

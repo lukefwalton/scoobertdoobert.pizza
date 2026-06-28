@@ -103,6 +103,7 @@ main.lb-page {
   background: #07102a url('/gifs/wallpaper.gif') repeat;
   image-rendering: pixelated; /* keep the 48px tile crunchy, not blurred */
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
 }
