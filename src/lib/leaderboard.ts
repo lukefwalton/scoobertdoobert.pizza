@@ -28,8 +28,7 @@ export function sanitizeInitials(s: string): string {
 function asEntries(v: unknown): ScoreEntry[] {
   if (!Array.isArray(v)) return [];
   return v.filter(
-    (e): e is ScoreEntry =>
-      !!e && typeof e.initials === 'string' && typeof e.score === 'number',
+    (e): e is ScoreEntry => !!e && typeof e.initials === 'string' && typeof e.score === 'number',
   );
 }
 
@@ -61,7 +60,12 @@ export async function submitScore(initials: string, score: number): Promise<Subm
       body: JSON.stringify({ initials: ini, score: Math.floor(score), website: '' }),
     });
     if (!res.ok) return { ok: false, reason: 'offline' };
-    const data = (await res.json()) as { ok?: boolean; rank?: number; error?: string; entries?: unknown };
+    const data = (await res.json()) as {
+      ok?: boolean;
+      rank?: number;
+      error?: string;
+      entries?: unknown;
+    };
     if (!data?.ok) return { ok: false, reason: data?.error ?? 'error' };
     return { ok: true, rank: data.rank, entries: asEntries(data.entries) };
   } catch {

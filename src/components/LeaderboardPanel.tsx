@@ -100,7 +100,9 @@ export function LeaderboardPanel({
       {status === 'offline' && (
         <p className="hud-board__msg">Couldn&rsquo;t reach the board — your best is saved here.</p>
       )}
-      {status === 'err' && <p className="hud-board__msg">Those initials didn&rsquo;t take — try three letters.</p>}
+      {status === 'err' && (
+        <p className="hud-board__msg">Those initials didn&rsquo;t take — try three letters.</p>
+      )}
 
       {loadBoard && entries === undefined && <p className="hud-board__msg">loading…</p>}
       {loadBoard && entries === null && status !== 'offline' && (

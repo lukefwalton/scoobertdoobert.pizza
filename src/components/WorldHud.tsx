@@ -202,7 +202,14 @@ export function WorldHud() {
       // P grabs the nearest collectible (the keyboard path; walking onto it also
       // auto-grabs, and clicking still works). collectInventoryItem is idempotent.
       if (e.key === 'p' || e.key === 'P') {
-        if (st.paused || st.openHotspot || st.tvVideo || st.arcadeGame || st.openNpc || st.lyricsSong)
+        if (
+          st.paused ||
+          st.openHotspot ||
+          st.tvVideo ||
+          st.arcadeGame ||
+          st.openNpc ||
+          st.lyricsSong
+        )
           return;
         if (st.nearPickup) {
           if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);

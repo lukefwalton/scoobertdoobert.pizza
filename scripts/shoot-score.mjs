@@ -31,7 +31,9 @@ const score = () => page.evaluate(() => window.__sdpScore?.() ?? null);
 await page.goto(base + '/?room=shop&debug=1', { waitUntil: 'commit' });
 await page.evaluate(() => localStorage.clear());
 await page.goto(base + '/?room=shop&debug=1', { waitUntil: 'networkidle' });
-await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => bad('world canvas never mounted'));
+await page
+  .waitForSelector('canvas', { timeout: 15000 })
+  .catch(() => bad('world canvas never mounted'));
 
 // Hooks present?
 const hooksReady = await page
@@ -79,9 +81,13 @@ if (hooksReady) {
 
     // HUD chips
     hudPts = await page
-      .waitForFunction(() => /\d/.test(document.querySelector('.hud-score__pts')?.textContent || ''), null, {
-        timeout: 4000,
-      })
+      .waitForFunction(
+        () => /\d/.test(document.querySelector('.hud-score__pts')?.textContent || ''),
+        null,
+        {
+          timeout: 4000,
+        },
+      )
       .then(
         () => true,
         () => false,

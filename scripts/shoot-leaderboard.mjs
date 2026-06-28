@@ -70,9 +70,13 @@ if (!coinRain) bad('leaderboard: the coin-rain margins are missing');
 
 // graceful GET degrade: no backend → "offline" notice (not a crash)
 const offlineOnMount = await page
-  .waitForFunction(() => /offline/i.test(document.querySelector('.hud-board')?.textContent || ''), null, {
-    timeout: 6000,
-  })
+  .waitForFunction(
+    () => /offline/i.test(document.querySelector('.hud-board')?.textContent || ''),
+    null,
+    {
+      timeout: 6000,
+    },
+  )
   .then(
     () => true,
     () => false,
@@ -91,7 +95,10 @@ else {
   await go.click();
   submitGraceful = await page
     .waitForFunction(
-      () => /saved here|you're #|made the board/i.test(document.querySelector('.hud-board')?.textContent || ''),
+      () =>
+        /saved here|you're #|made the board/i.test(
+          document.querySelector('.hud-board')?.textContent || '',
+        ),
       null,
       { timeout: 6000 },
     )
@@ -106,13 +113,18 @@ await page.screenshot({ path: '.shots/leaderboard.png' });
 
 // ── 3. the same board is in the in-world pause menu ───────────────────────────
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
-await page.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => bad('world never mounted'));
+await page
+  .waitForSelector('.hud-menu-btn', { timeout: 12000 })
+  .catch(() => bad('world never mounted'));
 await page.keyboard.press('Escape');
-await page.waitForSelector('.hud-pause', { timeout: 6000 }).catch(() => bad('pause menu did not open'));
+await page
+  .waitForSelector('.hud-pause', { timeout: 6000 })
+  .catch(() => bad('pause menu did not open'));
 const inPause = await page.$('.hud-pause .hud-board').then((e) => !!e);
 if (!inPause) bad('leaderboard: the board is not wired into the pause menu');
 
-if (errors.length) bad(`leaderboard: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
+if (errors.length)
+  bad(`leaderboard: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
   `leaderboard -> crawl(marquee=${crawlMarquee} cold=${crawlCold} back=${crawlBack}) ` +
     `gifs(trophy=${gifTrophy} flames=${gifFlames} pizza=${gifPizza} coins=${coinRain}) ` +
