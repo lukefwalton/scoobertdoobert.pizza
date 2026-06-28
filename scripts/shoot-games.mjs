@@ -74,6 +74,9 @@ const GAMES = [
 const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 for (const g of GAMES) {
+  // Snapshot the failure count at the top of each game so the per-game log below
+  // reports THIS game's failures, not the cumulative total across earlier games.
+  const gErr0 = failures();
   // --- 1. JS-DISABLED: a real prerendered page, no canvas ---
   {
     const ctx = await browser.newContext({ javaScriptEnabled: false });
@@ -293,7 +296,7 @@ for (const g of GAMES) {
       if (!hud.includes('777'))
         bad(`${g.slug} JS: high score 777 did not persist -> ${hud.trim()}`);
       console.log(
-        `${g.slug} JS    -> canvas=${!!canvas} started=${started} errors=${failures()} hi="${hud.trim()}"`,
+        `${g.slug} JS    -> canvas=${!!canvas} started=${started} errors=${failures() - gErr0} hi="${hud.trim()}"`,
       );
       await page.screenshot({ path: `.shots/game-${g.slug}.png` });
     }
