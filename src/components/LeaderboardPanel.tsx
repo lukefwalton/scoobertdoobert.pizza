@@ -16,10 +16,17 @@ export function LeaderboardPanel({
   score,
   rows = 10,
   showFullLink = false,
+  loadBoard = true,
 }: {
   score: number;
   rows?: number;
   showFullLink?: boolean;
+  /** Auto-GET the board on mount + render the ranked list. The pause menu passes
+   *  false (submit-only + a "full board" link), so just OPENING the menu never hits
+   *  /api/score — important offline (and so a 404 in local preview / CI isn't logged
+   *  as a console error by every pause-opening smoke). The /leaderboard page keeps it
+   *  true to show the full board. */
+  loadBoard?: boolean;
 }) {
   const [entries, setEntries] = useState<ScoreEntry[] | null | undefined>(undefined);
   const [initials, setInitials] = useState('');
@@ -27,6 +34,7 @@ export function LeaderboardPanel({
   const [rank, setRank] = useState<number | undefined>(undefined);
 
   useEffect(() => {
+    if (!loadBoard) return;
     let live = true;
     fetchLeaderboard(rows).then((e) => {
       if (live) setEntries(e);
@@ -34,7 +42,7 @@ export function LeaderboardPanel({
     return () => {
       live = false;
     };
-  }, [rows]);
+  }, [rows, loadBoard]);
 
   const canSubmit = score > 0 && sanitizeInitials(initials).length === 3 && status !== 'submitting';
 
@@ -94,11 +102,12 @@ export function LeaderboardPanel({
       )}
       {status === 'err' && <p className="hud-board__msg">Those initials didn&rsquo;t take — try three letters.</p>}
 
-      {entries === undefined && <p className="hud-board__msg">loading…</p>}
-      {entries === null && status !== 'offline' && (
+      {loadBoard && entries === undefined && <p className="hud-board__msg">loading…</p>}
+      {loadBoard && entries === null && status !== 'offline' && (
         <p className="hud-board__msg">The leaderboard is offline right now.</p>
       )}
-      {Array.isArray(entries) &&
+      {loadBoard &&
+        Array.isArray(entries) &&
         (entries.length === 0 ? (
           <p className="hud-board__msg">No scores yet — be the first.</p>
         ) : (

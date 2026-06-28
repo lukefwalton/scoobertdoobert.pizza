@@ -180,8 +180,9 @@ export function PauseMenu() {
           </div>
           <WorldMap visited={visitedRooms} current={currentRoom} />
           {/* The arcade leaderboard — sign your best PIZZA POINTS with three letters.
-              Degrades gracefully if the board's offline (local preview / no backend). */}
-          <LeaderboardPanel score={progress.pizzaPointsBest} rows={8} showFullLink />
+              Submit-only here (loadBoard={false}): opening the menu never hits the
+              backend; the full ranked board is one tap away on /leaderboard. */}
+          <LeaderboardPanel score={progress.pizzaPointsBest} showFullLink loadBoard={false} />
           <ul className="hud-pause__list">
             {MENU_DESTINATIONS.map((d) => (
               <li key={d.id}>

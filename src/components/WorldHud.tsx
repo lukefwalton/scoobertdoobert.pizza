@@ -356,32 +356,20 @@ export function WorldHud() {
           <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
         ))}
 
-      {nearPickup && !nearDoor && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt hud-prompt--pickup">
-          Press P to grab {nearPickup.glyph} {nearPickup.label}
-        </div>
-      )}
-
-      {nearTv && !nearDoor && !nearPickup && !open && !paused && !pendingRoom && (
+      {nearTv && !nearDoor && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
       )}
 
-      {nearArcade && !nearDoor && !nearPickup && !nearTv && !open && !paused && !pendingRoom && (
+      {nearArcade && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--arcade">Press E to play</div>
       )}
 
-      {nearHs &&
-        !nearDoor &&
-        !nearPickup &&
-        !nearTv &&
-        !nearArcade &&
-        !open &&
-        !paused &&
-        !pendingRoom && <div className="hud-prompt">{nearHs.prompt}</div>}
+      {nearHs && !nearDoor && !nearTv && !nearArcade && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt">{nearHs.prompt}</div>
+      )}
 
       {nearNpc &&
         !nearDoor &&
-        !nearPickup &&
         !nearTv &&
         !nearHs &&
         !open &&
@@ -393,7 +381,6 @@ export function WorldHud() {
 
       {nearEntity &&
         !nearDoor &&
-        !nearPickup &&
         !nearTv &&
         !nearHs &&
         !nearNpc &&
@@ -403,6 +390,26 @@ export function WorldHud() {
         !rhythmActive && (
           <div className="hud-prompt hud-prompt--dance">
             Press E to dance along with {nearEntity.label}
+          </div>
+        )}
+
+      {/* Pickups are ambient + everywhere, so the grab prompt is the LOWEST priority:
+          a fixed fixture (door / TV / cabinet / hotspot / NPC / dance) always shows
+          its own prompt first. Grabbing still works regardless — P reads nearPickup
+          directly and walk-over auto-grabs — so a suppressed prompt never blocks a
+          pickup. */}
+      {nearPickup &&
+        !nearDoor &&
+        !nearTv &&
+        !nearArcade &&
+        !nearHs &&
+        !nearNpc &&
+        !nearEntity &&
+        !open &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--pickup">
+            Press P to grab {nearPickup.glyph} {nearPickup.label}
           </div>
         )}
 
