@@ -4,24 +4,13 @@
 // run the pool dry (a cast with no slots is a no-op that nudges, never a crash),
 // then REST at the shrine (the clap refills the pool). Asserts on the durable
 // store + the hotbar DOM + the ignition test hook, not on animation timing.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { watchPageErrors } from './lib/smoke.mjs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const bad = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail: bad, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, bad);
 
 // Read the durable spell-slot count (gained − spent, clamped to the pool max=3)
@@ -237,12 +226,11 @@ const burnAborted = await page
 if (!burnAborted) bad('spell: a burn bled through a door (FX did not abort on room change)');
 
 await ctx.close();
-await browser.close();
 console.log(
   `spell: learned=${learned} hotbar=${!!hotbar} pipsLearned=${pipsLearned} ignited=${ignited} ` +
     `afterCast=${slotsAfter1} empty=${slotsEmpty} dryNoop=${nAfterDry === nBeforeDry} ` +
     `rested=${slotsRested} relief=${relief.toFixed(2)} | light: learned=${knowsLight} ` +
     `slots=${slotCount} lit=${litUp} free=${slotsAfterLight === slotsBeforeLight} ` +
-    `noBleed=${burnAborted} | errors=${errors}`,
+    `noBleed=${burnAborted} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

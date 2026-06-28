@@ -3,21 +3,13 @@
 // corridor) and assert each room's crunched prop GLB actually loads (200) and
 // nothing errors. Proves the GlbProp load path end-to-end; exact placement is a
 // visual call left to the preview.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import { roomIs as sharedRoomIs, startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 // Record the HTTP status of every shipped model fetch (node-side for the log,
@@ -99,9 +91,8 @@ const crt = others['crt-tv.glb'] === 200;
 if (!arcade) fail('arcade-cabinet.glb is not served (200)');
 if (!crt) fail('crt-tv.glb is not served (200)');
 
-await browser.close();
 console.log(
   `props: shop=${startShop} palm=${palm} pool=${inPool} statue=${statue} corridor=${inCorr} ` +
-    `mobius=${mobius} arcade=${arcade} crt=${crt} models=${JSON.stringify(modelStatus)} | errors=${errors}`,
+    `mobius=${mobius} arcade=${arcade} crt=${crt} models=${JSON.stringify(modelStatus)} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

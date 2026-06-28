@@ -2,24 +2,18 @@
 // summoned by backtick, runs commands (help / the new persistence-aware status /
 // echo / a forbidden one), closes again — and that it's a pure JS enhancement,
 // ABSENT from the prerendered / JS-off storefront (crawlable surface untouched).
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // ── JS-ON: the terminal works ──────────────────────────────────────────────
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 
@@ -65,7 +59,6 @@ if (term) {
   if (await page.$('[aria-label="Terminal"]')) bad('backtick did not close the terminal');
 }
 
-if (errors.length) bad(`page error(s): ${errors.slice(0, 2).join(' | ')}`);
 await ctx.close();
 
 // ── JS-OFF: the crawlable storefront has no terminal ───────────────────────
@@ -78,7 +71,5 @@ if (await page2.$('[aria-label="Terminal"]'))
   bad('terminal present in the JS-off / prerendered DOM');
 await ctx2.close();
 
-await browser.close();
-console.log(`terminal -> errors=${errors.length}`);
-console.log(fail ? `\n${fail} terminal check(s) FAILED` : '\nterminal checks passed.');
-process.exit(fail ? 1 : 0);
+console.log(`terminal -> errors=${failures()}`);
+await finish('\nterminal checks passed.', `\n${failures()} terminal check(s) FAILED`);

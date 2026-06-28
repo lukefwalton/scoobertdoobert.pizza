@@ -5,24 +5,18 @@
 // loop voice with its OWN Scoobert song (Room.song), restoring it on the hop to
 // the next song-room. Asserts on the quiet `.hud-room` label + the engine's
 // active jukebox url, not on animation timing.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  holdUntilDoorPrompt,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -136,11 +130,10 @@ try {
 }
 
 await ctx.close();
-await browser.close();
 console.log(
   `boardwalk: shop=${startShop} bootReady=${bootReady} noSpawnPrompt=${noSpawnPrompt} ` +
     `boardwalk=${inBoardwalk} boardwalkSong=${boardwalkSong} pan=${panOk} ocean=${inOcean} oceanSong=${oceanSong} ` +
     `backBoardwalk=${backBoardwalk} boardwalkResumes=${boardwalkResumes} balboa=${inBalboa} ` +
-    `balboaSong=${balboaSong} exitClean=${exitClean} | errors=${errors}`,
+    `balboaSong=${balboaSong} exitClean=${exitClean} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

@@ -3,11 +3,11 @@
 // tracks to their far end, masked by the loader. Drops in, asserts the loader
 // reaches ready and the room renders, then round-trips the wiring back up the
 // line to the tunnel.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 import {
   makeLoaderHelpers,
   roomIs as sharedRoomIs,
+  startSmoke,
   walkToDoor,
   watchPageErrors,
 } from './lib/smoke.mjs';
@@ -15,14 +15,7 @@ import {
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -67,8 +60,7 @@ if ((await enterLoadedLevel('end of the line')) && (inEnd = await roomIs('End of
   }
 }
 
-await browser.close();
 console.log(
-  `terminus: end=${inEnd} backInTunnel=${backInTunnel} endAgain=${inEndAgain} | errors=${errors}`,
+  `terminus: end=${inEnd} backInTunnel=${backInTunnel} endAgain=${inEndAgain} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

@@ -143,6 +143,12 @@ export async function launchSmoke() {
 // a 1280×800 desktop; override or extend via `opts` (it spreads into newContext) —
 // e.g. { javaScriptEnabled: false } for the JS-off pass, or a mobile
 // { isMobile, hasTouch, deviceScaleFactor } for a phone viewport.
+//
+// The page is created eagerly. Calling ctx.addInitScript() AFTER this still works
+// (init scripts apply on the next navigation), so the common "set a sessionStorage
+// flag, then goto" pattern is fine. If a smoke needs per-context setup BEFORE any
+// page exists — or creates a fresh context per call — use launchSmoke() and build
+// the context/page yourself.
 export async function startSmoke(opts = {}) {
   const h = await launchSmoke();
   const ctx = await h.browser.newContext({ viewport: { width: 1280, height: 800 }, ...opts });

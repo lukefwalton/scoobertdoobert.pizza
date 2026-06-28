@@ -4,23 +4,14 @@
 // round and playing it back — then asserts the clearGame('practice') unlock
 // actually persisted to localStorage. (The hook is exposed under ?world/?debug,
 // so we enter with &debug.)
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
 
 await page.goto(base + '/?room=practice&debug', { waitUntil: 'commit' });
 
@@ -92,8 +83,6 @@ else {
 }
 
 await page.screenshot({ path: '.shots/practice.png' });
-if (errors.length)
-  bad(`practice: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 // Companion guard: the test hook must NOT leak onto a normal (non-debug) load —
 // it's gated to the ?world / ?debug test entrances only.
@@ -103,9 +92,7 @@ if (await page.evaluate(() => !!window.__sdpPractice))
   bad('practice: __sdpPractice hook present on a normal (non-debug) load');
 
 console.log(
-  `practice -> canvas=${!!canvas} room=${JSON.stringify(title)} cleared=${result.cleared} stored=${result.stored} errors=${errors.length}`,
+  `practice -> canvas=${!!canvas} room=${JSON.stringify(title)} cleared=${result.cleared} stored=${result.stored} errors=${failures()}`,
 );
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} practice check(s) FAILED` : '\npractice checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\npractice checks passed.', `\n${failures()} practice check(s) FAILED`);

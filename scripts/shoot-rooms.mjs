@@ -4,24 +4,23 @@
 // long-corridor traversal, the new jukebox room, the held-E no-bounce guard, and
 // click-to-enter. Asserts on the quiet `.hud-room` label + door prompts, not on
 // animation timing.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  holdUntilDoorPrompt,
+  launchSmoke,
+  roomIs as sharedRoomIs,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
+const { browser, fail, finish, failures } = await launchSmoke();
 const ctx = await browser.newContext({
   viewport: { width: 1280, height: 800 },
   deviceScaleFactor: 1,
 });
 const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -384,7 +383,6 @@ let sanityPlays = false;
   await sCtx.close();
 }
 
-await browser.close();
 console.log(
   `rooms: shop=${startShop} bootReady=${bootReady} noFirstFrame=${noFirstFramePrompt} noSpawnPrompt=${noSpawnPrompt} doorPrompt=${doorPrompt} ` +
     `noPauseMidWipe=${noPauseMidWipe} hall=${inHall} secret=${secretOpened} ` +
@@ -392,6 +390,6 @@ console.log(
     `jukebox=${inJuke} ducked=${duckedInJuke} engineActive=${jukeEngineActive} autoPlay=${jukeAutoPlay} cycles=${jukeCycles} heldNoBounce=${heldNoBounce} ` +
     `clickEnter=${clickEnter} pauseResume=${pauseResumeNearDoor} audioRestored=${audioRestored} ` +
     `exitAudioReset=${exitAudioReset} rmDoor=${rmDoor} distanceClick=${distanceClick} ` +
-    `strafeRight=${strafeRight} turnWorks=${turnWorks} noStaleVoice=${noStaleVoice} sanityPlays=${sanityPlays} | errors=${errors}`,
+    `strafeRight=${strafeRight} turnWorks=${turnWorks} noStaleVoice=${noStaleVoice} sanityPlays=${sanityPlays} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();
