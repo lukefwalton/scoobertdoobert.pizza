@@ -102,6 +102,37 @@ console.log(
 );
 
 await ctx.close();
+
+// ── the LOSS → auto-rematch path (fresh context) ────────────────────────────────
+// Force a loss and confirm the race lands in 'lost', then auto-resets to 'idle' a
+// few beats later — exercising the in-frame (pause-aware) rematch timer, the path
+// the win flow doesn't cover.
+const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+const page2 = await ctx2.newPage();
+const errors2 = [];
+page2.on('pageerror', (e) => errors2.push(e.message));
+await page2.goto(base + '/?room=grassrooms&debug=1', { waitUntil: 'networkidle' });
+await page2.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
+await page2.waitForTimeout(1500);
+await page2.evaluate(() => window.__sdpRaceForce && window.__sdpRaceForce('ghost'));
+await page2.waitForTimeout(300);
+const lost = await page2.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
+if (lost?.phase !== 'lost')
+  bad(`grassrooms: force-loss phase is ${JSON.stringify(lost?.phase)}, expected "lost"`);
+// the in-frame auto-rematch should return to idle within ~4.5s (not a setTimeout).
+await page2.waitForTimeout(6000);
+const rematch = await page2.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
+if (rematch?.phase !== 'idle')
+  bad(
+    `grassrooms: after a loss the race should auto-reset to idle (got ${JSON.stringify(rematch?.phase)})`,
+  );
+if (errors2.length)
+  bad(`grassrooms(loss): ${errors2.length} page error(s): ${errors2.slice(0, 2).join(' | ')}`);
+console.log(
+  `grassrooms(loss) -> lost=${lost?.phase} rematch=${rematch?.phase} errors=${errors2.length}`,
+);
+await ctx2.close();
+
 await browser.close();
 console.log(fail ? `\n${fail} grassrooms check(s) FAILED` : '\ngrassrooms checks passed.');
 process.exit(fail ? 1 : 0);
