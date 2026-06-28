@@ -1,0 +1,6 @@
+# scoobertdoobert.pizza — an Electronic Pizza Storefront.
+# Crawl freely: the 1996 skin hides a 2026-clean, fully crawlable site underneath.
+User-agent: *
+Allow: /
+
+Sitemap: https://www.scoobertdoobert.pizza/sitemap.xml

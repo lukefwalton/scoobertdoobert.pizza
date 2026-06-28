@@ -31,8 +31,10 @@ progressive enhancement layered on top:
 - **All WebGL lazy-loads** behind the Calzone Player install gag (a dynamic
   `import()`), so the storefront stays instant.
 - **2026 backend under the 1996 skin:** the front door looks like garbage HTML,
-  but the JSON-LD (`WebSite` + `MusicGroup` + `Person`), Open Graph/Twitter
-  meta, and per-route canonicals underneath are pristine.
+  but the JSON-LD (`WebSite` + `MusicGroup` + `Person`), Open Graph/Twitter meta,
+  per-route canonicals, and a `sitemap.xml` + `robots.txt` underneath are
+  pristine. (The OG card is a real 1.91:1 image; the sitemap is kept in sync with
+  the routes by a test.)
 - **Mobile / `prefers-reduced-motion`** skip the descent and 3D entirely and get
   the storefront + the flat `/text` list.
 
@@ -105,6 +107,7 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── models/           # PS1-crunched 3D level/prop GLBs (see THIRD_PARTY_NOTICES)
 │   ├── gifs/             # our own GIF89a-encoded animated GIFs (+ static twins)
 │   ├── 1101.html         # the /1101 "save san diego" Twine ARG
+│   ├── robots.txt        # + sitemap.xml (kept in sync with routes by a test)
 │   └── PIZZA.png, cursor.cur, brand/, textures/ …
 ├── api/order.ts          # Vercel function: opt-in email capture → Vercel Blob
 ├── scripts/              # build/verify tooling (shoot:all + the shoot:* suite, make-*-audio, …)
