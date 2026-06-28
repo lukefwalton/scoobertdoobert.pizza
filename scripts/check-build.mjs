@@ -19,6 +19,11 @@ const cases = [
     files: ['dist/text.html', 'dist/text/index.html'],
     needle: 'Text-Only Menu',
   },
+  {
+    label: 'leaderboard (/leaderboard)',
+    files: ['dist/leaderboard.html', 'dist/leaderboard/index.html'],
+    needle: 'HIGH SCORES',
+  },
 ];
 
 let failed = 0;

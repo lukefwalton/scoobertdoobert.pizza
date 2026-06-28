@@ -15,6 +15,7 @@ import { questStatus, completionPct, allQuestsDone } from '../data/quests';
 import { dancedCount } from '../lib/danceAlong';
 import { audio } from '../audio/engine';
 import { WorldMap } from './WorldMap';
+import { LeaderboardPanel } from './LeaderboardPanel';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PauseMenu — the game-style pause overlay (Esc): the always-reachable nav (every
@@ -178,6 +179,9 @@ export function PauseMenu() {
             </ul>
           </div>
           <WorldMap visited={visitedRooms} current={currentRoom} />
+          {/* The arcade leaderboard — sign your best PIZZA POINTS with three letters.
+              Degrades gracefully if the board's offline (local preview / no backend). */}
+          <LeaderboardPanel score={progress.pizzaPointsBest} rows={8} showFullLink />
           <ul className="hud-pause__list">
             {MENU_DESTINATIONS.map((d) => (
               <li key={d.id}>

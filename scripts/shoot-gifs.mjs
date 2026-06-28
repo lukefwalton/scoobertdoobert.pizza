@@ -30,6 +30,12 @@ const GIFS = [
   { name: 'new-badge-static.gif', w: 56, h: 22, frames: 1 },
   { name: 'atmail.gif', w: 44, h: 34, frames: 6 },
   { name: 'atmail-static.gif', w: 44, h: 34, frames: 1 },
+  { name: 'trophy.gif', w: 48, h: 56, frames: 10 },
+  { name: 'trophy-static.gif', w: 48, h: 56, frames: 1 },
+  { name: 'flames.gif', w: 120, h: 28, frames: 8 },
+  { name: 'flames-static.gif', w: 120, h: 28, frames: 1 },
+  { name: 'coins.gif', w: 64, h: 48, frames: 8 },
+  { name: 'coins-static.gif', w: 64, h: 48, frames: 1 },
 ];
 
 // Pull a GIF apart into its header / LSD / global color table and each frame's

@@ -52,5 +52,12 @@ export function collectLootById(id: string): boolean {
 
   const comboTag = res.combo > 1 ? ` ·  combo ×${res.combo}` : '';
   announce(`${type.glyph} +${res.awarded}${comboTag}`, res.combo >= 5 ? 'crit-good' : 'luck');
+  // One-time-per-run nudge the moment you beat your record: go put your initials up.
+  if (res.newBest) {
+    window.setTimeout(
+      () => announce('🏆 New best! Open the menu (Esc) to sign the leaderboard.', 'crit-good'),
+      900,
+    );
+  }
   return true;
 }

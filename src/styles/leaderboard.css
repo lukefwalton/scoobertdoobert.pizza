@@ -1,0 +1,199 @@
+/* leaderboard.css — the arcade high-score board, shared by the pause-menu panel
+   and the /leaderboard page. Period CRT/arcade voice (gold on dark, monospace). */
+
+.hud-board {
+  font-family: 'Courier New', Courier, monospace;
+  color: #ffe6b0;
+  text-align: left;
+}
+.hud-board__title {
+  margin: 0 0 6px;
+  font-weight: bold;
+  letter-spacing: 0.06em;
+}
+.hud-board__hint,
+.hud-board__msg {
+  margin: 4px 0;
+  font-size: 0.85em;
+  opacity: 0.85;
+}
+.hud-board__msg--ok {
+  color: #b6f2b0;
+  opacity: 1;
+}
+
+/* sign-your-score row */
+.hud-board__submit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+.hud-board__lbl {
+  font-size: 0.9em;
+}
+.hud-board__entry {
+  display: inline-flex;
+  gap: 6px;
+}
+.hud-board__initials {
+  width: 4ch;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.25em;
+  font-family: inherit;
+  font-size: 1.05em;
+  font-weight: bold;
+  padding: 3px 4px;
+  background: #120c08;
+  color: #ffe24a;
+  border: 1px solid rgba(255, 196, 92, 0.9);
+}
+.hud-board__go {
+  font-family: inherit;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  background: #2a1c0a;
+  color: #ffe6b0;
+  border: 1px solid rgba(255, 196, 92, 0.9);
+  cursor: pointer;
+}
+.hud-board__go:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* the ranked list */
+.hud-board__list {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+.hud-board__list li {
+  display: grid;
+  grid-template-columns: 2.5ch 4ch 1fr;
+  gap: 10px;
+  padding: 2px 0;
+  border-bottom: 1px dotted rgba(255, 230, 176, 0.18);
+  font-size: 0.95em;
+}
+.hud-board__rank {
+  opacity: 0.6;
+  text-align: right;
+}
+.hud-board__ini {
+  font-weight: bold;
+  letter-spacing: 0.15em;
+}
+.hud-board__sc {
+  text-align: right;
+  color: #fff3d6;
+}
+.hud-board__full {
+  margin: 8px 0 0;
+  font-size: 0.85em;
+}
+
+/* ── the /leaderboard PAGE: a riot of our own GIFs (GeoCities energy) ────────── */
+/* Starfield wallpaper behind it all (gold coins + flames + trophies pop on dark,
+   like a hall of fame). `main.lb-page` outranks the shared `.arcade-page` checker. */
+main.lb-page {
+  background: #07102a url('/gifs/wallpaper.gif') repeat;
+  image-rendering: pixelated; /* keep the 48px tile crunchy, not blurred */
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+/* coin-rain down both margins (hidden on narrow screens so it never crowds) */
+.lb-coins {
+  position: fixed;
+  top: 0;
+  width: 64px;
+  height: 100vh;
+  background: url('/gifs/coins.gif') repeat-y center top;
+  image-rendering: pixelated;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 0;
+}
+.lb-coins--l {
+  left: 0;
+}
+.lb-coins--r {
+  right: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* a still column of coins — the CSS accommodation for a background GIF */
+  .lb-coins {
+    background-image: url('/gifs/coins-static.gif');
+  }
+}
+@media (max-width: 720px) {
+  .lb-coins {
+    display: none;
+  }
+}
+/* keep the content above the coin margins */
+.lb-page .arcade-util,
+.lb-page .arcade-cabinet,
+.lb-page .lb-flames,
+.lb-page .lb-dancers,
+.lb-page .lb-rule,
+.lb-page .arcade-foot {
+  position: relative;
+  z-index: 1;
+}
+/* the flame banner over the cabinet */
+.lb-flames {
+  display: block;
+  text-align: center;
+  margin: 6px auto 0;
+}
+.lb-flames img {
+  display: block;
+  margin: 0 auto;
+  width: 240px;
+  max-width: 80%;
+  height: auto;
+  image-rendering: pixelated;
+}
+/* trophies flanking the marquee title */
+.lb-marquee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.lb-trophy img {
+  display: block;
+  width: 40px;
+  height: auto;
+  image-rendering: pixelated;
+}
+/* the dancing-pizza pair under the cabinet */
+.lb-dancers {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin: 12px 0 4px;
+}
+.lb-dancers img {
+  display: block;
+  width: 72px;
+  height: 72px;
+  image-rendering: pixelated;
+}
+.lb-rule {
+  display: block;
+  text-align: center;
+}
+.lb-rule img {
+  display: block;
+  margin: 6px auto;
+  width: 320px;
+  max-width: 90%;
+  height: 10px;
+  image-rendering: pixelated;
+}

@@ -516,4 +516,217 @@ function mailFrame(bob, badgeR) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 7) trophy.gif — the leaderboard centerpiece: a gold winner's cup that bobs while
+//    a white GLEAM sweeps across the bowl and little sparkles pop at the corners.
+//    A baked dark tile (the page frames it on a dark panel). WCAG-safe: a 1–2px bob
+//    + a moving highlight, no flash. *-static twin for reduced motion.
+// ═══════════════════════════════════════════════════════════════════════════════
+const TROPHY = [
+  [14, 20, 48], // 0 bg navy tile
+  [255, 214, 92], // 1 gold light
+  [214, 160, 38], // 2 gold mid
+  [150, 104, 20], // 3 gold dark
+  [120, 78, 40], // 4 base brown
+  [255, 255, 255], // 5 white gleam / "1"
+  [94, 200, 255], // 6 cyan sparkle
+  [255, 94, 199], // 7 pink sparkle
+];
+const TR = { BG: 0, GL: 1, GM: 2, GD: 3, BASE: 4, WHITE: 5, CY: 6, PK: 7 };
+
+function trophyFrame(phase, gleamX, sparkle) {
+  const W = 48;
+  const H = 56;
+  const c = canvas(W, H, TR.BG);
+  const bob = Math.round(Math.sin(phase) * 1.5);
+  const cx = 24;
+  // bowl: a rounded cup narrowing downward
+  for (let y = 11 + bob; y <= 30 + bob; y++) {
+    const t = (y - (11 + bob)) / 19;
+    const hw = Math.round(13 - t * 7);
+    for (let x = cx - hw; x <= cx + hw; x++) {
+      let col = TR.GM;
+      if (x < cx - hw + 4) col = TR.GL;
+      else if (x > cx + hw - 3) col = TR.GD;
+      c.set(x, y, col);
+    }
+  }
+  c.rect(cx - 13, 9 + bob, cx + 13, 10 + bob, TR.GL); // rim
+  // handles (open arcs at each side)
+  for (let a = -Math.PI / 2; a <= Math.PI / 2; a += 0.2) {
+    c.set(cx - 13 - Math.cos(a) * 4, 17 + bob + Math.sin(a) * 6, TR.GM);
+    c.set(cx + 13 + Math.cos(a) * 4, 17 + bob + Math.sin(a) * 6, TR.GM);
+  }
+  c.rect(cx - 2, 30 + bob, cx + 2, 38 + bob, TR.GD); // stem
+  c.rect(cx - 8, 38 + bob, cx + 8, 41 + bob, TR.GM); // plinth
+  c.rect(cx - 11, 42 + bob, cx + 11, 46 + bob, TR.BASE); // base
+  // gleam sweep across the bowl
+  for (let y = 12 + bob; y <= 29 + bob; y++) {
+    if (gleamX >= cx - 12 && gleamX <= cx + 12) {
+      c.set(gleamX, y, TR.WHITE);
+      c.set(gleamX + 1, y, TR.GL);
+    }
+  }
+  c.rect(cx, 16 + bob, cx, 24 + bob, TR.WHITE); // a "1" on the cup
+  // corner sparkles (4-point twinkle)
+  const star = (sx, sy, col) => {
+    c.set(sx, sy, TR.WHITE);
+    c.set(sx - 1, sy, col);
+    c.set(sx + 1, sy, col);
+    c.set(sx, sy - 1, col);
+    c.set(sx, sy + 1, col);
+  };
+  if (sparkle === 1) star(8, 12, TR.CY);
+  if (sparkle === 2) star(40, 20, TR.PK);
+  return c.indices();
+}
+
+{
+  const W = 48;
+  const H = 56;
+  const N = 10;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: trophyFrame(
+      (i / N) * Math.PI * 2,
+      12 + Math.round((i / N) * 24),
+      i % 4 === 0 ? 1 : i % 4 === 2 ? 2 : 0,
+    ),
+    delay: 11,
+  }));
+  write('trophy.gif', encodeGif({ width: W, height: H, palette: TROPHY, frames }), W, H);
+  write(
+    'trophy-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: TROPHY,
+      frames: [{ indices: trophyFrame(Math.PI / 2, 20, 0), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 8) flames.gif — a "your score is ON FIRE" banner: tongues of flame licking upward
+//    along a wide strip, flickering. WCAG: the bright (yellow) area is small + at the
+//    tips, the band is short, and motion is localized tongues — not a full-field
+//    light/dark flash. *-static twin for reduced motion.
+// ═══════════════════════════════════════════════════════════════════════════════
+const FLAME = [
+  [12, 8, 20], // 0 bg dark
+  [255, 232, 120], // 1 hot yellow (tips)
+  [255, 150, 30], // 2 orange
+  [220, 50, 20], // 3 red
+  [120, 20, 10], // 4 deep red (base)
+];
+const FL = { BG: 0, Y: 1, O: 2, R: 3, D: 4 };
+
+function flameFrame(t) {
+  const W = 120;
+  const H = 28;
+  const c = canvas(W, H, FL.BG);
+  for (let x = 0; x < W; x++) {
+    const lick =
+      18 + Math.sin(x * 0.5 + t * 1.3) * 5 + Math.sin(x * 0.21 - t * 2.1) * 4 + Math.sin(t * 3 + x) * 2;
+    const top = Math.max(2, Math.round(H - lick));
+    for (let y = H - 1; y >= top; y--) {
+      const f = (H - 1 - y) / (H - 1 - top + 0.001); // 0 base → 1 tip
+      c.set(x, y, f > 0.8 ? FL.Y : f > 0.55 ? FL.O : f > 0.3 ? FL.R : FL.D);
+    }
+  }
+  return c.indices();
+}
+
+{
+  const W = 120;
+  const H = 28;
+  const N = 8;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: flameFrame((i / N) * Math.PI * 2),
+    delay: 9,
+  }));
+  write('flames.gif', encodeGif({ width: W, height: H, palette: FLAME, frames }), W, H);
+  write(
+    'flames-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: FLAME,
+      frames: [{ indices: flameFrame(0), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9) coins.gif — falling gold coins ($$$), spinning as they drop. Seamless loop
+//    (each coin travels exactly one column-period over the frame set). A baked dark
+//    tile. WCAG: small moving sprites, no flash. *-static twin for reduced motion.
+// ═══════════════════════════════════════════════════════════════════════════════
+const COIN = [
+  [14, 20, 48], // 0 bg navy tile
+  [255, 214, 92], // 1 gold light
+  [214, 160, 38], // 2 gold mid
+  [150, 104, 20], // 3 gold dark / "$"
+  [255, 255, 255], // 4 shine
+];
+const CO = { BG: 0, GL: 1, GM: 2, GD: 3, SH: 4 };
+
+function coinAt(c, cx, cy, squash) {
+  const rx = Math.max(1, Math.round(6 * squash)); // edge-on when squashed (spin)
+  const ry = 6;
+  for (let y = -ry; y <= ry; y++)
+    for (let x = -rx; x <= rx; x++) {
+      if ((x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1) {
+        let col = CO.GM;
+        if (x < -rx * 0.3) col = CO.GL;
+        else if (x > rx * 0.4) col = CO.GD;
+        c.set(cx + x, cy + y, col);
+      }
+    }
+  if (rx > 2) {
+    c.set(cx - Math.round(rx * 0.3), cy - 2, CO.SH); // shine glint
+    c.rect(cx, cy - 3, cx, cy + 3, CO.GD); // a "$" stroke
+  }
+}
+
+function coinsFrame(p) {
+  const W = 64;
+  const H = 48;
+  const period = H + 12;
+  const c = canvas(W, H, CO.BG);
+  const cols = [
+    [12, 0],
+    [32, 22],
+    [52, 40],
+  ];
+  for (const [x, off] of cols) {
+    const y = (((p * period + off) % period) + period) % period;
+    const squash = 0.35 + 0.65 * Math.abs(Math.sin(p * Math.PI * 4 + x * 0.1));
+    coinAt(c, x, Math.round(y) - 6, squash);
+  }
+  return c.indices();
+}
+
+{
+  const W = 64;
+  const H = 48;
+  const N = 8;
+  const frames = Array.from({ length: N }, (_, i) => ({ indices: coinsFrame(i / N), delay: 10 }));
+  write('coins.gif', encodeGif({ width: W, height: H, palette: COIN, frames }), W, H);
+  write(
+    'coins-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: COIN,
+      frames: [{ indices: coinsFrame(0.15), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
 console.log('done — original GIFs generated.');
