@@ -43,6 +43,9 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
 // --- 3. JS ON: the canvas mounts, the sim strikes bells, and a tap starts audio.
 //        ?debug exposes window.__sdpChimes = { strikes, started, muted }. ---
 {
+  // Snapshot so the play-phase log reports only this phase's failures, not the
+  // cumulative total (the JS-off phases ran first).
+  const playErr0 = failures();
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
     isMobile: true,
@@ -88,7 +91,7 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
       bad(`JS: chimes did not mute — master gain ${gainMuted} (ringing bells continue)`);
   }
   console.log(
-    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} gain=${gainLive}->${gainMuted} errors=${failures()}`,
+    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} gain=${gainLive}->${gainMuted} errors=${failures() - playErr0}`,
   );
   await ctx.close();
 }

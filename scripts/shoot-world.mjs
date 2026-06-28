@@ -86,6 +86,6 @@ if (
 }
 
 await finish(
-  'world shots done (no page errors).',
-  `world shots done with ${failures()} page error(s) — failing.`,
+  'world shots done (no failures).',
+  `world shots done with ${failures()} failure(s) — failing.`,
 );

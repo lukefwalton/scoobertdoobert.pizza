@@ -46,6 +46,9 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
 //        the actual pointerType:'touch' path + setPointerCapture on a phone.
 //        ?debug exposes window.__sdpPokeStretch (max node displacement, px). ---
 {
+  // Snapshot so the play-phase log reports only this phase's failures, not the
+  // cumulative total (the JS-off phases ran first).
+  const playErr0 = failures();
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
     isMobile: true,
@@ -106,7 +109,7 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
       );
   }
   console.log(
-    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${failures()}`,
+    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${failures() - playErr0}`,
   );
   await ctx.close();
 }
