@@ -9,7 +9,7 @@ import { lyricFor } from '../data/lyrics';
 import { useProgressStore } from '../state/progressStore';
 import { SPELLS } from '../data/spells';
 import { castSpell, castEquippedSpell } from '../lib/spellcast';
-import { QUESTS, allQuestsDone, questStatus } from '../data/quests';
+import { QUESTS, allQuestsDone, objectiveChipVisible } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { SpellHotbar } from './SpellHotbar';
@@ -333,8 +333,10 @@ export function WorldHud() {
   // (a modifier class) instead of letting them overlap. Mirror ObjectiveHud's own
   // visibility test so the toast only moves when the chip is really there.
   const objectiveHidden = paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame;
-  const objectiveShowing =
-    objectiveHudOn && !objectiveHidden && questStatus(progress).some((q) => !q.done);
+  const objectiveShowing = objectiveChipVisible(progress, {
+    on: objectiveHudOn,
+    hidden: objectiveHidden,
+  });
 
   return (
     <>

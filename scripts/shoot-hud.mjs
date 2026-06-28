@@ -43,19 +43,37 @@ await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 await page
   .waitForSelector('.hud-menu-btn', { timeout: 15000 })
   .catch(() => bad('world never mounted'));
-await page.waitForTimeout(1500);
+// Dismiss the intro overlay if it's up (wait on the button, not a fixed sleep).
 await page
   .getByRole('button', { name: 'dismiss intro' })
-  .click({ timeout: 4000 })
+  .click({ timeout: 8000 })
   .catch(() => {});
-await page.waitForTimeout(300);
 
-// 1) The objective chip shows the collect-tapes hint with the LIVE count (not "Four").
-let countOk = false;
-const chipText = await page.$eval('.hud-objective', (e) => e.textContent || '').catch(() => '');
+// The cassette-id debug hook (Doors.tsx) is exposed once the world mounts — wait
+// for it rather than a fixed sleep, then read the live count.
+await page
+  .waitForFunction(() => (window.__sdpCassetteIds || []).length > 0, { timeout: 10000 })
+  .catch(() => {});
 const liveCount = await page.evaluate(() => (window.__sdpCassetteIds || []).length);
-if (!/Find the lost cassettes/i.test(chipText)) {
-  bad(`hud: collect-tapes chip not showing (saw ${JSON.stringify(chipText)})`);
+
+// 1) Wait for the objective chip to actually show the collect-tapes hint with the
+//    LIVE count (not "Four") — wait on the concrete DOM state, not a timed guess.
+let countOk = false;
+const chipReady = await page
+  .waitForFunction(
+    (n) => {
+      const t = document.querySelector('.hud-objective')?.textContent || '';
+      return /Find the lost cassettes/i.test(t) && t.includes(`${n} tapes`);
+    },
+    liveCount,
+    { timeout: 10000 },
+  )
+  .catch(() => null);
+const chipText = await page.$eval('.hud-objective', (e) => e.textContent || '').catch(() => '');
+if (!chipReady) {
+  bad(
+    `hud: collect-tapes chip never showed the live ${liveCount}-tape hint (saw ${JSON.stringify(chipText)})`,
+  );
 } else {
   countOk =
     liveCount > 0 && chipText.includes(`${liveCount} tapes`) && !/Four tapes/i.test(chipText);
@@ -69,7 +87,20 @@ await page.evaluate(() => window['__sdpPickup:tape-mystery-machine']?.());
 const toast = await page.waitForSelector('.hud-toast', { timeout: 5000 }).catch(() => null);
 if (!toast) bad('hud: no toast appeared after pocketing a tape');
 else {
-  await page.waitForTimeout(150);
+  // Wait for the toast's entrance animation to FINISH before measuring, so the
+  // position is final (not mid-transform) — robust to slow runners.
+  await page
+    .waitForFunction(
+      () => {
+        const t = document.querySelector('.hud-toast');
+        return (
+          !!t &&
+          t.getAnimations().every((a) => a.playState === 'finished' || a.playState === 'idle')
+        );
+      },
+      { timeout: 3000 },
+    )
+    .catch(() => {});
   const box = await page.evaluate(() => {
     const o = document.querySelector('.hud-objective')?.getBoundingClientRect();
     const t = document.querySelector('.hud-toast')?.getBoundingClientRect();
