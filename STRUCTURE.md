@@ -49,6 +49,7 @@ scoobertdoobert.pizza/
 │   ├── brand/             # logos used on the site
 │   ├── press/             # OG card + inline period photos (web-sized)
 │   ├── 1101.html           # ARG / Twine page (/savesandiego rewrites here, see vercel.json)
+│   ├── robots.txt · sitemap.xml  # crawl directives (sitemap kept in sync by src/sitemap.test.ts)
 │   └── PIZZA.png · cursor.cur · logo-sd.jpg
 │
 └── media/                 # ── SOURCE ORIGINALS (NOT shipped) ── see media/README.md

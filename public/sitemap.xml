@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The prerendered, crawlable routes. Kept in sync with src/routes.tsx by
+     src/sitemap.test.ts (source-text parity). robots.txt points here. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.scoobertdoobert.pizza/</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/text</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/links</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/about</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/about/jp</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/arcade</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/crusteroids</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/slice-breaker</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/jazz-snake</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/pizza-radar</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/burrito-belt</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/delivery-dash</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/poke</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/chimes</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/cultures</loc></url>
+  <url><loc>https://www.scoobertdoobert.pizza/leaderboard</loc></url>
+</urlset>
