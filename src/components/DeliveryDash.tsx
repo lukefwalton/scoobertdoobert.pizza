@@ -275,6 +275,36 @@ export function DeliveryDash() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Test hook: drive the REAL successful-delivery branch (reach the door → +100,
+  // reset to the curb, rebuild faster lanes) so the speed-up/reset logic has
+  // deterministic coverage, not just manual play. ACTION hook → ?debug-only.
+  useEffect(() => {
+    if (!isDebugEntrance()) return;
+    exposeTestGlobal('__sdpDashDeliver', () => {
+      if (game.current.phase === 'playing') deliver();
+    });
+    return () => exposeTestGlobal('__sdpDashDeliver', undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Test hook (READ-ONLY): report the run state so the smoke can assert the
+  // delivery branch (score +100, row reset to the curb, lane speed bumped). `speed`
+  // is lane 0's current speed (34 + delivered*8 by construction) — a deterministic
+  // witness for the speed-up. Read-only → the wider ?world/?debug entrance.
+  useEffect(() => {
+    exposeTestGlobal('__sdpDashState', () => {
+      const g = game.current;
+      return {
+        phase: g.phase,
+        score: g.score,
+        row: g.row,
+        delivered: g.delivered,
+        speed: g.lanes[0]?.speed ?? 0,
+      };
+    });
+    return () => exposeTestGlobal('__sdpDashState', undefined);
+  }, []);
+
   return (
     <div className="arcade-screen">
       <div className="arcade-hud">
