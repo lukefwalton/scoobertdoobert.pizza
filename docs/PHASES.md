@@ -396,6 +396,42 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   WCAG 2.3.1: a 1–2px bob + 1px badge pulse (no flash/blink), `*-static` twin under
   reduced motion. `shoot:gifs` validates all 6 frames in Chromium; no 390px overflow.
 
+## ✅ Arcade gameplay pass — interactive music, walk-over pickups, PIZZA POINTS + a leaderboard (2026-06-28)
+The "make it a fun game you come back to" pass (Luke). Four chunks, each its own
+commit + smoke:
+- ✅ **Music never steps on itself** (`audio/engine.ts`): every loop-voice swap now
+  CROSSFADES (per-source gains; the outgoing source fades + frees itself, the
+  incoming fades up) instead of hard-cutting, and `playJukeboxTrack` short-circuits
+  when the requested url is already the live voice (no restart-from-top when a
+  song-room's song == your pick, or RoomMusic races `restorePreferred`). `shoot:music`
+  asserts the same-URL guard via a `__sdpLoopStarts` counter.
+- ✅ **Walk-up + press-P pickups** (`world/PickupController.tsx`, `lib/pickups.ts`):
+  one per-frame scan (like Doors) publishes the nearest collectible to
+  `sceneStore.nearPickup` → a "Press P to grab …" prompt, and auto-grabs on
+  walk-over once you've stepped off the spawn. Clicking still works; KEYS are
+  excluded from auto-grab (intentional/puzzle items). The collect effect is shared
+  (`collectInventoryItem`) so click / walk / P / the smoke hook can't double-collect.
+- ✅ **PIZZA POINTS — the collectathon** (`data/loot.ts`, `state/scoreStore.ts`,
+  `lib/loot.ts`, `world/LootPickup.tsx`): goofy loot (🍕🌯🍣🛹🏄) scattered
+  DETERMINISTICALLY across every procedural room (seeded, inside the clamp, off
+  spawns/doors; GLB levels skipped), respawning each descent. Grabbing one scores
+  points × a combo (grabs inside a 2.5s window multiply, capped ×9), grows your eye
+  height (`Controls` adds capped `tallness` — "lol taller"), and rings the next note
+  of a climbing pentatonic scale (interactive music — collecting IS a melody). A
+  top-right `ScoreHud` (points · live combo · % tall) + the per-grab toast; the
+  durable best is `progressStore.pizzaPointsBest` (monotonic). `shoot:score` +
+  `loot.test`/`scoreStore.test`.
+- ✅ **The arcade leaderboard** (`api/score.ts`, `lib/leaderboard.ts`,
+  `LeaderboardPanel`, `/leaderboard`): sign your best with three letters, no login,
+  backed by **Vercel Blob** (one route, GET board + POST submit; honeypot +
+  validation + a profanity blocklist; mirrors `api/order.ts`). Fully graceful — no
+  serverless runtime in local preview just reads as "offline," never an error; your
+  best is always kept locally. In the pause menu + a crawlable `/leaderboard` route
+  (JS-off shell, postbuild-guarded). Dressed in **CRAZY original gifs** (a gleaming
+  trophy, licking flames, raining coins — new in `make-gifs.mjs`/`shoot:gifs`, each
+  with a reduced-motion `*-static` twin) over a starfield hall-of-fame.
+  `shoot:leaderboard`.
+
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-

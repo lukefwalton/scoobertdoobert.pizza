@@ -220,6 +220,38 @@ The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
   voice); the clap is `audio.playClap`. The shrine is a SWEET room, so its luck
   faucet stays a relief beat.
 
+### PIZZA POINTS — the collectathon + the leaderboard (SHIPPED, Luke 2026-06-28)
+The arcade-score layer that makes a run *replayable* and *shareable*. Goofy loot —
+🍕 pizza, 🌯 burritos, 🍣 sushi, 🛹 skateboards, 🏄 surfboards — is scattered across
+the world; you hoover it up by **walking over it** (auto-grab) or **pressing P**
+(clicking still works). Each grab scores points, and quick grabs **combo** (a 2.5s
+window, multiplying up to ×9). Three deliberate hooks:
+- **Exploration's reward is sound, made literal.** Each grab rings the next note of
+  a climbing pentatonic scale (`lib/loot.ts`), so a combo plays an ascending melody
+  and a broken combo drops to the root — the "hear it" rung as a *verb*.
+- **"Lol, taller."** Collecting grows your eye height (capped under the room
+  ceiling); the surfboard lifts you more than a slice. Pure goofy feedback (Luke).
+- **Each descent is a fresh RUN.** The score + the "taken" set are ephemeral
+  (`state/scoreStore.ts`), so loot restocks every time you go down — but the **best
+  is durable** (`progressStore.pizzaPointsBest`) and feeds the leaderboard.
+
+**The leaderboard (no login).** Sign your best with **three letters**, classic-arcade
+style, stored in **Vercel Blob** (`api/score.ts` — one route, GET board + POST
+submit; honeypot + validation + a small profanity blocklist; the score blobs are
+public since initials+score aren't PII). Storage is **append-per-submission, race-
+free**: each score is its own blob with the value encoded in the pathname (pure
+logic in `src/lib/leaderboardCore.ts`, unit-tested), so concurrent submits can't
+overwrite each other and a read is one `list()` — no read-modify-write. Backend
+states stay distinct end-to-end (`unavailable` / not-ranked / `bad_initials`) so the
+UI never shows an outage as user error. It's the one sanctioned backend beyond the
+localStorage spine (Luke asked for it explicitly), and it **degrades gracefully** —
+no backend just reads as "offline," never blocking the UI; your best is always kept
+locally. Lives in the pause menu + a crawlable `/leaderboard` route, dressed as a
+**hall of fame** with our own CRAZY gifs (trophy, flames, raining coins, over a
+starfield). Surface-safe + sweet (taste guardrail): the whole layer is goofy, never
+dread. Placement stays inside the camera clamp and off spawns/doors (friction
+budget — never a drop in a wall or blocking a door).
+
 ### A grass level — a rare, dumb-fun Pokémon battle (BACKLOG, Luke)
 A level with **tall GRASS**; walk through it and you may **encounter a wild
 "pokémon" that's the big-eyed dice-goblin** (`DiceMonster`). The fight is

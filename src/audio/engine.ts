@@ -29,6 +29,11 @@ const TRACK_URL = '/audio/boot.mp3';
 // low — it's meant to be FELT, a pressure change, not heard as a tone.
 const DREAD_BED_MAX = 0.16;
 
+// Crossfade time (seconds) for swapping the single loop voice — boot↔jukebox and
+// jukebox↔jukebox. Short: a smooth blend that hides the seam so one song never
+// "steps over" another with a hard cut, but not a slow DJ mix.
+const XFADE = 0.28;
+
 class PizzaAudio {
   private ctx?: AudioContext;
   private master?: GainNode;
@@ -60,6 +65,15 @@ class PizzaAudio {
   private jukeboxLoads = new Map<string, Promise<AudioBuffer | undefined>>();
   private jukeboxGen = 0; // cancels stale selections: only the latest one wins
   private source?: AudioBufferSourceNode;
+  // The current loop source's OWN gain (source → sourceGain → songGain → lowpass),
+  // so a voice swap can CROSSFADE: the outgoing source fades down on this gain
+  // while the incoming source fades up on a fresh one. Distinct from songGain (the
+  // shared music-room duck) and master (mute/proximity).
+  private sourceGain?: GainNode;
+  // Count of ACTUAL loop-source (re)creations. Exposed as __sdpLoopStarts on test
+  // entrances so the music smoke can prove the same-URL guard skips a restart (the
+  // count holds) while a real swap bumps it. Purely instrumentation.
+  private loopStarts = 0;
   private started = false;
   private unlocked = false;
   private preloadPromise?: Promise<boolean>;
@@ -212,19 +226,40 @@ class PizzaAudio {
     return this.activeBuffer ?? this.trackBuffer;
   }
 
-  /** (Re)create the loop source from whichever buffer is current. */
+  /** Swap the loop voice to whichever buffer is current, CROSSFADING from the old
+   *  source instead of hard-cutting — so changing the song (cycling the jukebox,
+   *  stepping into a song-room, restoring your pick on the way out) is a quick
+   *  smooth blend, never an abrupt "one song stepping over another." Each source
+   *  carries its own gain: the outgoing one fades down (then stops + frees itself
+   *  on `onended`) while the incoming one fades up from silence. */
   private restartLoop(): void {
     const buf = this.currentBuffer();
     if (!this.ctx || !this.lowpass || !buf) return;
-    if (this.source) {
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    // Retire the current source: ramp its OWN gain to silence, schedule a stop, and
+    // free both nodes when it actually ends (so the tail rings out, no click).
+    if (this.source && this.sourceGain) {
+      const os = this.source;
+      const og = this.sourceGain;
+      og.gain.cancelScheduledValues(now);
+      og.gain.setValueAtTime(Math.max(0.0001, og.gain.value), now);
+      og.gain.linearRampToValueAtTime(0.0001, now + XFADE);
       try {
-        this.source.stop();
+        os.stop(now + XFADE + 0.03);
       } catch {
         /* already stopped */
       }
-      this.source.disconnect();
+      os.onended = () => {
+        try {
+          os.disconnect();
+        } catch {
+          /* already disconnected */
+        }
+        og.disconnect();
+      };
     }
-    const src = this.ctx.createBufferSource();
+    const src = ctx.createBufferSource();
     src.buffer = buf;
     src.loop = true;
     // MP3 decode adds ~100ms of encoder/decoder-delay silence at the head (and a
@@ -234,9 +269,19 @@ class PizzaAudio {
     const { start, end } = this.loopPoints(buf);
     src.loopStart = start;
     src.loopEnd = end;
-    src.connect(this.songGain ?? this.lowpass); // through the song duck, then the lowpass
+    // The incoming half of the crossfade: a fresh per-source gain faded up from
+    // silence (also a clean fade-IN for the very first start, when there's no old
+    // source to retire).
+    const sg = ctx.createGain();
+    sg.gain.setValueAtTime(0.0001, now);
+    sg.gain.linearRampToValueAtTime(1, now + XFADE);
+    src.connect(sg);
+    sg.connect(this.songGain ?? this.lowpass); // per-source gain → song duck → lowpass
     src.start(0, start);
     this.source = src;
+    this.sourceGain = sg;
+    this.loopStarts++;
+    exposeTestGlobal('__sdpLoopStarts', this.loopStarts);
   }
 
   // Real-content loop points for a decoded buffer: trim leading/trailing near-
@@ -273,6 +318,10 @@ class PizzaAudio {
       }
       this.source.disconnect();
       this.source = undefined;
+    }
+    if (this.sourceGain) {
+      this.sourceGain.disconnect();
+      this.sourceGain = undefined;
     }
     this.started = false;
   }
@@ -315,6 +364,16 @@ class PizzaAudio {
   async playJukeboxTrack(url: string): Promise<void> {
     this.unlock(); // ctx + resume (clicking the cabinet is the gesture)
     if (!this.ctx || !this.lowpass) return;
+    // Same-URL no-op: this track is ALREADY the loop voice and audibly running, so
+    // re-playing it (a song-room whose song == the current track, RoomMusic racing
+    // restorePreferred on a door, a double cabinet click) would needlessly restart
+    // it from the top — the "song stepping over itself" glitch. Bump the generation
+    // anyway so any in-flight select for a *different* url can't swap in behind us
+    // (last-intent-wins: the latest ask is "keep playing what's playing").
+    if (this.jukeboxActive && this.activeJukeboxUrl === url && this.started && this.source) {
+      this.jukeboxGen++;
+      return;
+    }
     const gen = ++this.jukeboxGen;
     const buf = await this.decodeJukebox(url);
     if (!buf) return; // couldn't load — leave whatever's playing

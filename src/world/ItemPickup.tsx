@@ -2,15 +2,10 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useProgressStore } from '../state/progressStore';
-import { useMusicStore } from '../state/musicStore';
-import { announce } from '../state/toastStore';
-import { audio } from '../audio/engine';
-import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { itemById, type ItemKind } from '../data/items';
-import { spellById } from '../data/spells';
-import { jukeboxTrackUrl, loopIndexForUrl } from '../data/music';
+import { collectInventoryItem } from '../lib/pickups';
 
 // Per-KIND art so a key, a cassette, and a scroll never read as the same gold box
 // (they used to). Cheap PS1 primitives + flat materials; each gets a faint emissive
@@ -112,37 +107,11 @@ export function ItemPickup({
     [gl],
   );
 
+  // Pocket it (the reward + announce live in the shared collect, so click /
+  // walk-over / press-P / the smoke hook all behave identically). Restore the
+  // resting cursor afterward — the mesh is about to unmount.
   const doPickup = () => {
-    const prog = useProgressStore.getState();
-    if (prog.itemsHeld.includes(itemId)) return;
-    audio.unlock();
-    audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.6); // a bright little pickup ring
-    prog.collectItem(itemId);
-    // Trinkets (the cassettes) tip a little luck; keys' reward is the door.
-    if (item?.kind === 'trinket') prog.gainLuck(1);
-    // A TOME (spell scroll): learn its spell — the reward IS the magic. A short
-    // arcane flourish over the pickup ring, then point them at the cast key.
-    if (item?.teachesSpell) {
-      prog.learnSpell(item.teachesSpell);
-      const spell = spellById(item.teachesSpell);
-      audio.playChime(noteToFreq('C', 6), 0, 0.12, 0.7);
-      audio.playChime(noteToFreq('G', 6), 0, 0.12, 0.9);
-      // Drive the cast-key hint off the spell's own metadata so a new spell can't
-      // desync the onboarding copy (Fireball = F, Light = L).
-      const key = spell?.key.toUpperCase() ?? '?';
-      announce(
-        `${spell?.glyph ?? '✨'} You learned ${spell?.name ?? 'a spell'}! Press ${key} to cast.`,
-        'crit-good',
-      );
-    } else if (item?.track) {
-      const url = jukeboxTrackUrl(item.track);
-      void audio.playJukeboxTrack(url);
-      useMusicStore.getState().setPreferred(loopIndexForUrl(url));
-      prog.unlockRadio();
-      announce(`${item.glyph} ${item.label} — give it a spin · +1 luck`, 'luck');
-    } else {
-      announce(`${item?.glyph ?? '🎒'} You pocket the ${item?.label ?? 'item'}`, 'luck');
-    }
+    collectInventoryItem(itemId);
     gl.domElement.style.cursor = 'grab';
   };
 

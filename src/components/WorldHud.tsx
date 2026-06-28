@@ -18,6 +18,9 @@ import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { enterDoor } from '../lib/doorTravel';
+import { collectInventoryItem } from '../lib/pickups';
+import { collectLootById } from '../lib/loot';
+import { ScoreHud } from './ScoreHud';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
@@ -36,6 +39,7 @@ export function WorldHud() {
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
   const nearDoor = useSceneStore((s) => s.nearDoor);
+  const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const rhythmActive = useRhythmStore((s) => s.active);
@@ -74,6 +78,7 @@ export function WorldHud() {
       clearedGames: s.clearedGames,
       arcadeHigh: s.arcadeHigh,
       arcadeHighs: s.arcadeHighs,
+      pizzaPointsBest: s.pizzaPointsBest,
       radioUnlocked: s.radioUnlocked,
       luckEarned: s.luckEarned,
       luckSpent: s.luckSpent,
@@ -194,6 +199,24 @@ export function WorldHud() {
           useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
         }
       }
+      // P grabs the nearest collectible (the keyboard path; walking onto it also
+      // auto-grabs, and clicking still works). collectInventoryItem is idempotent.
+      if (e.key === 'p' || e.key === 'P') {
+        if (
+          st.paused ||
+          st.openHotspot ||
+          st.tvVideo ||
+          st.arcadeGame ||
+          st.openNpc ||
+          st.lyricsSong
+        )
+          return;
+        if (st.nearPickup) {
+          if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);
+          else collectInventoryItem(st.nearPickup.id);
+        }
+        return;
+      }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
       // modal/pause; castSpell no-ops when the spell isn't learned, so an unbound
       // key is harmless. Same path as clicking the hotbar slot (keyboard parity).
@@ -310,6 +333,7 @@ export function WorldHud() {
         currentRoom={currentRoom}
         hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
       />
+      <ScoreHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
       <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
@@ -373,6 +397,26 @@ export function WorldHud() {
         !rhythmActive && (
           <div className="hud-prompt hud-prompt--dance">
             Press E to dance along with {nearEntity.label}
+          </div>
+        )}
+
+      {/* Pickups are ambient + everywhere, so the grab prompt is the LOWEST priority:
+          a fixed fixture (door / TV / cabinet / hotspot / NPC / dance) always shows
+          its own prompt first. Grabbing still works regardless — P reads nearPickup
+          directly and walk-over auto-grabs — so a suppressed prompt never blocks a
+          pickup. */}
+      {nearPickup &&
+        !nearDoor &&
+        !nearTv &&
+        !nearArcade &&
+        !nearHs &&
+        !nearNpc &&
+        !nearEntity &&
+        !open &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--pickup">
+            Press P to grab {nearPickup.glyph} {nearPickup.label}
           </div>
         )}
 

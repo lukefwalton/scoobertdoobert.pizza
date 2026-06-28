@@ -3,6 +3,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
+import { useScoreStore } from '../state/scoreStore';
 import { LOOP_OPTIONS } from '../data/music';
 import { MENU_DESTINATIONS } from '../data/links';
 import { ROOMS } from '../data/rooms';
@@ -14,6 +15,7 @@ import { questStatus, completionPct, allQuestsDone } from '../data/quests';
 import { dancedCount } from '../lib/danceAlong';
 import { audio } from '../audio/engine';
 import { WorldMap } from './WorldMap';
+import { LeaderboardPanel } from './LeaderboardPanel';
 
 // ───────────────────────────────────────────────────────────────────────────
 // PauseMenu — the game-style pause overlay (Esc): the always-reachable nav (every
@@ -39,6 +41,9 @@ export function PauseMenu() {
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
   const toggleMute = useAudioStore((s) => s.toggleMute);
+  // The arcade run score (ephemeral) + this-session combo, alongside the durable best.
+  const runScore = useScoreStore((s) => s.score);
+  const bestCombo = useScoreStore((s) => s.bestCombo);
   const nowPlaying = useMusicStore((s) => s.title);
   const musicIndex = useMusicStore((s) => s.index);
   const shiftSong = useMusicStore((s) => s.shift);
@@ -57,6 +62,7 @@ export function PauseMenu() {
       clearedGames: s.clearedGames,
       arcadeHigh: s.arcadeHigh,
       arcadeHighs: s.arcadeHighs,
+      pizzaPointsBest: s.pizzaPointsBest,
       radioUnlocked: s.radioUnlocked,
       luckEarned: s.luckEarned,
       luckSpent: s.luckSpent,
@@ -88,6 +94,17 @@ export function PauseMenu() {
           <p className="hud-pause__hint">Every destination, always one keypress away.</p>
           <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
             <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
+          </p>
+          <p
+            className="hud-pause__luck"
+            title="Points from hoovering loot this descent — pizza, surfboards, sushi… Your best is saved for the leaderboard."
+          >
+            <span aria-hidden="true">🍕</span> Pizza Points{' '}
+            <strong>{runScore.toLocaleString()}</strong>{' '}
+            <span className="hud-pause__best">
+              (best {progress.pizzaPointsBest.toLocaleString()}
+              {bestCombo > 1 ? ` · ×${bestCombo} combo` : ''})
+            </span>
           </p>
           {learnedSpells.map((sp) => (
             <p
@@ -163,6 +180,10 @@ export function PauseMenu() {
             </ul>
           </div>
           <WorldMap visited={visitedRooms} current={currentRoom} />
+          {/* The arcade leaderboard — sign your best PIZZA POINTS with three letters.
+              Submit-only here (loadBoard={false}): opening the menu never hits the
+              backend; the full ranked board is one tap away on /leaderboard. */}
+          <LeaderboardPanel score={progress.pizzaPointsBest} showFullLink loadBoard={false} />
           <ul className="hud-pause__list">
             {MENU_DESTINATIONS.map((d) => (
               <li key={d.id}>

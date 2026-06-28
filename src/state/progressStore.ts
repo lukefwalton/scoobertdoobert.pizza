@@ -50,6 +50,9 @@ export type Progress = {
    *  so each keeps its own high — `arcadeHigh` stays Pizza Run's. Monotonic per
    *  key (only ever rises), so the multi-tab max-merge holds. */
   arcadeHighs: Record<string, number>;
+  /** Best PIZZA POINTS run ever — the loot-collectathon high score. Monotonic; the
+   *  leaderboard submits it and the storefront can wink at it. */
+  pizzaPointsBest: number;
   /** Has the player rolled the jukebox d20 to UNLOCK the flip-through radio?
    *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
    *  the pick follows you across the site. Monotonic (only ever goes true). */
@@ -88,6 +91,7 @@ const DEFAULTS: Progress = {
   clearedGames: [],
   arcadeHigh: 0,
   arcadeHighs: {},
+  pizzaPointsBest: 0,
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,
@@ -129,6 +133,7 @@ function read(): Progress {
       clearedGames: strArr(p.clearedGames),
       arcadeHigh: num(p.arcadeHigh, 0),
       arcadeHighs: numMap(p.arcadeHighs),
+      pizzaPointsBest: num(p.pizzaPointsBest, 0),
       radioUnlocked: bool(p.radioUnlocked, false),
       luckEarned: num(p.luckEarned, 0),
       luckSpent: num(p.luckSpent, 0),
@@ -183,6 +188,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     clearedGames: uniq(a.clearedGames, b.clearedGames),
     arcadeHigh: Math.max(a.arcadeHigh, b.arcadeHigh),
     arcadeHighs: mergeNumMap(a.arcadeHighs, b.arcadeHighs),
+    pizzaPointsBest: Math.max(a.pizzaPointsBest, b.pizzaPointsBest),
     radioUnlocked: a.radioUnlocked || b.radioUnlocked,
     luckEarned: Math.max(a.luckEarned, b.luckEarned),
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
@@ -206,6 +212,8 @@ type ProgressState = Progress & {
   recordArcadeScore: (n: number) => void;
   /** Record a per-cabinet-game high score (id → best), monotonic per id. */
   recordArcadeHigh: (id: string, n: number) => void;
+  /** Record a PIZZA POINTS run total → keeps the best (monotonic). */
+  recordPizzaScore: (n: number) => void;
   /** Roll the jukebox d20 → unlock the flip-through radio (idempotent). */
   unlockRadio: () => void;
   /** Earn luck (a ritual paid off — the shrine clap). Announced by the caller. */
@@ -242,6 +250,7 @@ const snapshot = (s: ProgressState): Progress => ({
   clearedGames: s.clearedGames,
   arcadeHigh: s.arcadeHigh,
   arcadeHighs: s.arcadeHighs,
+  pizzaPointsBest: s.pizzaPointsBest,
   radioUnlocked: s.radioUnlocked,
   luckEarned: s.luckEarned,
   luckSpent: s.luckSpent,
@@ -302,6 +311,10 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       const cur = get().arcadeHighs[id] ?? 0;
       if (n <= cur) return;
       apply({ arcadeHighs: { ...get().arcadeHighs, [id]: n } });
+    },
+    recordPizzaScore: (n) => {
+      if (n <= get().pizzaPointsBest) return;
+      apply({ pizzaPointsBest: n });
     },
     unlockRadio: () => {
       if (get().radioUnlocked) return;
