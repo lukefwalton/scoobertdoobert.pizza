@@ -6,11 +6,17 @@
 //   npm run build && npm run preview &   # serve dist/ on :4173
 //   node scripts/make-readme-shots.mjs
 import { chromium } from 'playwright';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, copyFileSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const OUT = '.github/media';
 mkdirSync(OUT, { recursive: true });
+// Capture into a throwaway staging dir and only promote into the committed
+// .github/media/ on a fully clean run — so a late failure is all-or-nothing and
+// can never leave a mixed old/new asset set behind.
+const STAGE = mkdtempSync(join(tmpdir(), 'sdp-readme-shots-'));
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext({
@@ -27,7 +33,7 @@ await ctx.addInitScript(() => {
 });
 const page = await ctx.newPage();
 const shot = async (name) => {
-  await page.screenshot({ path: `${OUT}/${name}.png` });
+  await page.screenshot({ path: join(STAGE, `${name}.png`) });
   console.log(`shot ${name}`);
 };
 // These assets get committed as the canonical README media, so a capture that ran
@@ -136,8 +142,15 @@ await shot('10-arcade');
 await browser.close();
 if (errors) {
   console.error(
-    `\n${errors} capture(s) failed — see CAPTURE FAIL above. No partial assets trusted.`,
+    `\n${errors} capture(s) failed — see CAPTURE FAIL above. Nothing promoted; ${OUT} is unchanged.`,
   );
+  rmSync(STAGE, { recursive: true, force: true });
   process.exit(1);
 }
-console.log('readme shots done.');
+// Clean run: promote the staged shots into the committed media folder. Every file
+// is known-good (we got here only with zero failures), so this can't publish a
+// half-captured set.
+const promoted = readdirSync(STAGE);
+for (const f of promoted) copyFileSync(join(STAGE, f), join(OUT, f));
+rmSync(STAGE, { recursive: true, force: true });
+console.log(`readme shots done — promoted ${promoted.length} file(s) into ${OUT}.`);
