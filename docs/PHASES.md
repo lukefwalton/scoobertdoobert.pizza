@@ -480,17 +480,29 @@ commit + smoke:
   the bilingual sign factory (`makeBilingualSign`) are single exports in `ps1.ts`,
   and a `useDispose(...resources)` hook (`src/lib/useDispose.ts`) replaces the
   hand-spelled `useEffect(() => () => […].dispose())` cleanup across the world
-  components (rolling out file-by-file).
+  components (now rolled out — 41 effects across 29 components; store/mixed/
+  setup-bearing effects are deliberately left as real `useEffect`s).
 - **Mobile audit (shipped):** `shoot:mobile` loads every URL-addressable surface
   (storefront, `/text`, `/links`, `/about`(+`/jp`), `/leaderboard`, all the arcade
   cabinets) at a 390×844 phone viewport and fails on horizontal overflow, with a
   full-page screenshot each for eyeballing. The descent era-floors stay covered by
   `shoot:descent`'s mobile pass. (Audit found the routable surfaces already clean —
   the dead-plain storefront's small inline links are intentional, per the
-  constitution — so this locks that in as a regression guard.)
+  constitution — so this locks that in as a regression guard.) The guard also
+  covers the `/chimes` + `/cultures` instrument buttons (now a 44px min-height tap
+  target — WCAG 2.5.5), and every full-height surface carries a `100dvh` fallback
+  so the iOS dynamic toolbar doesn't leave a seam at the fold.
 - **Component decomposition (shipped):** the 825-line `WorldHud` was split into
   self-sufficient children — `WelcomeOverlay`, `SpellHotbar`, `PauseMenu` — each
   reading its own store slices, so the HUD is no longer a monolith.
+- **Repo cleanup pass (shipped):** refreshed the stale docs (the README Status now
+  defers to this file instead of re-rotting; `boot.wav`→`boot.mp3`; the copyright
+  note reflects that third-party GLBs ship with `THIRD_PARTY_NOTICES` rows);
+  deleted the empty `fun/` breadcrumb dir (instruments long since vendored —
+  provenance kept in the `chimes.ts` header); added a real 1.91:1 **OG card**
+  (`scripts/make-og-card.mjs` → `scoobert-og-card.jpg`) so social unfurls stop
+  cropping the square photo; added a **`sitemap.xml` + `robots.txt`** guarded in
+  sync with `routes.tsx` (`src/sitemap.test.ts`); removed two dead store selectors.
 - **Media reorg (done on `main`, 2026-06-20):** source media now nests under
   `media/` (`media/masters`, `media/music/<year>`, `media/photos`, `media/sfx`,
   and the GLB troves under `media/models/<category>`). Old loose root folders are
@@ -523,3 +535,10 @@ guardrail before anything that adds a place/NPC/system):
   open backlog (Phase 8 tail) is **further album-themed wings.**
 - **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
   instruments tail are the loose ends still flagged in the table above.
+- **Tooling DRY — the smoke harness.** The ~53 `shoot-*.mjs` scripts each repeat
+  the Playwright bootstrap (`chromium.launch` / `newContext` / the `fail` counter)
+  and the `process.exit` teardown; only the *domain* helpers are shared (in
+  `scripts/lib/smoke.mjs`). Extracting `setupSmoke({ viewport })` + `finishSmoke()`
+  would cut ~10–15 lines × ~53 files. Deferred deliberately: it's a big,
+  tooling-only blast radius best landed as its own chunk and verified with one
+  full `shoot:all` run.
