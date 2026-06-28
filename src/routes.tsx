@@ -10,6 +10,7 @@ import SliceBreaker from './pages/SliceBreaker';
 import JazzSnake from './pages/JazzSnake';
 import PizzaRadar from './pages/PizzaRadar';
 import BurritoBelt from './pages/BurritoBelt';
+import DeliveryDash from './pages/DeliveryDash';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
@@ -44,6 +45,8 @@ export const routes: RouteRecord[] = [
   { path: '/pizza-radar', element: <PizzaRadar /> },
   // /burrito-belt -> "Burrito Belt," the falling-blocks stacker.
   { path: '/burrito-belt', element: <BurritoBelt /> },
+  // /delivery-dash -> "Delivery Dash," the cross-the-traffic pizza-courier game.
+  { path: '/delivery-dash', element: <DeliveryDash /> },
   // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
   { path: '/poke', element: <Poke /> },
   // /chimes -> "Pendulum Chimes," a tap-to-play bell instrument (a third cabinet,

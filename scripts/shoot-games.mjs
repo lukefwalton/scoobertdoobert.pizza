@@ -52,6 +52,16 @@ const GAMES = [
       holds: [{ button: 'soft drop', field: 'softDrop' }],
     },
   },
+  // delivery-dash's loss (clipped by a car) isn't keypress-forceable, so it exposes
+  // a ?debug force-lose hook that drives its REAL game-over branch (the smoke calls
+  // it + asserts the over overlay + the persisted high score). Hops are discrete, so
+  // there's no held-control parity to probe.
+  {
+    slug: 'delivery-dash',
+    title: 'Delivery Dash',
+    id: 'delivery-dash',
+    loseHook: '__sdpDashForceLose',
+  },
 ];
 
 const browser = await chromium.launch();

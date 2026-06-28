@@ -337,6 +337,13 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   force-lose hooks in `shoot:games`. The cross-link shelf is now DERIVED from the
   registry and a route-parity test (`routes.test.ts`) guards `routes.tsx`, so the
   cabinet set can't drift across its parallel lists.
+- ✅ **…and a sixth — Delivery Dash (2026-06-28):** a cross-the-traffic pizza-courier
+  cabinet (Frogger grammar, original code/art/audio): hop the scooter up through five
+  lanes of traffic to the door, deliver, and start again a notch faster; a clip ends
+  the run. Same plumbing as the others — registry + `ArcadeModal` + the in-world roll
+  + a standalone `/delivery-dash` route through `ArcadeCabinetPage`, a per-cabinet
+  high score (`arcadeHighs['delivery-dash']`), and a `?debug`-only `__sdpDashForceLose`
+  hook driving the real game-over branch in `shoot:games`.
 - ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
   catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
