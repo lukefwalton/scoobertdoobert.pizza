@@ -45,9 +45,13 @@ const ctx = await browser.newContext({
 });
 const page = await ctx.newPage();
 const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+let currentRoute = '(init)';
+// Tag each page error with the route it fired on, so a failure points straight at
+// the broken surface instead of a context-free message at the end.
+page.on('pageerror', (e) => errors.push(`${currentRoute}: ${e.message}`));
 
 for (const route of ROUTES) {
+  currentRoute = route;
   await page.goto(base + route, { waitUntil: 'networkidle' });
   await page.waitForTimeout(700); // let fonts + any hydration settle
 
@@ -73,9 +77,30 @@ for (const route of ROUTES) {
     );
   }
 
+  // 2) Tap targets: the on-screen GAME CONTROLS (the arcade pad + start/jump
+  //    buttons) must stay finger-sized (>= 40px each way). The dead-plain
+  //    storefront's tiny inline links are intentionally small (the constitution's
+  //    "barely-designed is the joke"), so only the real touch controls are checked
+  //    — pages without them simply report none.
+  const tooSmall = await page.evaluate(() => {
+    const MIN = 40;
+    const out = [];
+    for (const el of document.querySelectorAll('.arcade-padbtn, .arcade-jump')) {
+      const r = el.getBoundingClientRect();
+      if (r.width < MIN || r.height < MIN)
+        out.push(
+          `${String(el.className).split(' ')[0]} ${Math.round(r.width)}x${Math.round(r.height)}`,
+        );
+    }
+    return out;
+  });
+  if (tooSmall.length) bad(`${route}: tap target(s) under 40px — ${tooSmall.join(', ')}`);
+
   const slug = route === '/' ? 'home' : route.replace(/\//g, '_').replace(/^_/, '');
   await page.screenshot({ path: `.shots/mobile/${slug}.png`, fullPage: true });
-  console.log(`${route} -> overflow=${overflow ? 'YES' : 'no'}`);
+  console.log(
+    `${route} -> overflow=${overflow ? 'YES' : 'no'} controls=${tooSmall.length === 0 ? 'ok' : 'SMALL'}`,
+  );
 }
 
 if (errors.length) bad(`mobile: ${errors.length} page error(s): ${errors.slice(0, 3).join(' | ')}`);
