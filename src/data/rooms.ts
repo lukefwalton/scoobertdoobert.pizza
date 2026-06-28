@@ -189,6 +189,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   northpark: { x: 1.6, y: -2.6 },
   // water / main descent (centre)
   shop: { x: 5, y: 0 },
+  // The Kitchen — a sweet back-of-house side room off the shop (left of the lobby).
+  kitchen: { x: 3.4, y: -0.4 },
   hallway: { x: 5, y: 1.2 },
   closet: { x: 6.6, y: 1.5 },
   classified: { x: 3, y: 1.6 },

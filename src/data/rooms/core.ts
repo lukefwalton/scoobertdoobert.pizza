@@ -27,6 +27,9 @@ export const CORE_ROOMS: Room[] = [
       // its radius, facing into the shop (-X). The wing is a LATERAL surface exit
       // (out to the beach), not a way down — the descent rule is untouched.
       fromBoardwalk: { position: [ROOM.halfW - 4.5, EYE, 3], yaw: -Math.PI / 2 },
+      // Stepping back out of the kitchen: by the -X "EMPLOYEES ONLY" door, a step
+      // clear of its radius, facing into the shop (+X).
+      fromKitchen: { position: [-(ROOM.halfW - 4.5), EYE, 3], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -53,6 +56,44 @@ export const CORE_ROOMS: Room[] = [
         rotationY: -Math.PI / 2, // +X wall, opening faces -X into the shop
         label: 'step out onto the boardwalk',
         radius: 3,
+      },
+      {
+        id: 'shop-to-kitchen',
+        to: 'kitchen',
+        toSpawn: 'fromShop',
+        // An "EMPLOYEES ONLY" door in the -X wall, behind the counter — back-of-
+        // house. A sweet SURFACE side room (the pizza→music thesis at its source),
+        // never the way down; the descent rule is untouched.
+        position: [-(ROOM.halfW - 0.05), 0, 3],
+        rotationY: Math.PI / 2, // -X wall, opening faces +X into the shop
+        label: 'duck into the kitchen',
+        radius: 3,
+      },
+    ],
+  },
+  {
+    id: 'kitchen',
+    kind: 'kitchen',
+    title: 'The Kitchen',
+    // A cozy back-of-house off the shop. Smaller + warm; enclosed, so the fog just
+    // softens the corners.
+    dims: { halfW: 7, halfD: 6, height: 4, eye: EYE },
+    palette: { background: '#c8a877', fog: '#c8a877', fogNear: 7, fogFar: 34 },
+    spawns: {
+      // Arrive at the +X "EMPLOYEES ONLY" door, a clear stride in, facing -X into
+      // the kitchen (the oven + the pan rack ahead).
+      default: { position: [3.5, EYE, 0], yaw: -Math.PI / 2 },
+      fromShop: { position: [3.5, EYE, 0], yaw: -Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'kitchen-to-shop',
+        to: 'shop',
+        toSpawn: 'fromKitchen',
+        position: [6.95, 0, 0], // +X wall (halfW - 0.05) — back out to the shop
+        rotationY: -Math.PI / 2,
+        label: 'back out to the shop',
+        radius: 3.0,
       },
     ],
   },
