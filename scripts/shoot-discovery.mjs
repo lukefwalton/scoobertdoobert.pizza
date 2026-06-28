@@ -6,25 +6,14 @@
 //   3) jukebox AFTER — the boardwalk song is now on the dial
 // Uses __sdpGoToRoom + __sdpJukeboxVisible (debug entrance) + the sdp_progress_v1
 // localStorage blob.
-import { chromium } from 'playwright';
-import { watchPageErrors } from './lib/smoke.mjs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const ROOM_SONG = 'boardwalk'; // a room-song (boardwalk room owns it)
 const SEED_SONG = 'information'; // a non-room seed song (always on the dial)
 const UNVISITED_SONG = 'underwater'; // a room-song we never visit (stays hidden)
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, fail);
 
 const goTo = async (id, label) => {
@@ -92,10 +81,9 @@ if (!roomShownAfter) fail(`"${ROOM_SONG}" should appear on the dial AFTER visiti
 if (!stillHidden) fail(`"${UNVISITED_SONG}" should still be hidden (never visited)`);
 
 await ctx.close();
-await browser.close();
 console.log(
   `discovery: seedShown=${seedShown} roomHiddenBefore=${roomHiddenBefore} ` +
     `persisted=${persisted} roomShownAfter=${roomShownAfter} stillHidden=${stillHidden} ` +
-    `| before=${before.length} after=${after.length} | errors=${errors}`,
+    `| before=${before.length} after=${after.length} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

@@ -3,20 +3,11 @@
 // (a read-out + a hint, no ◀/▶); (2) rolling the jukebox d20 UNLOCKS it durably
 // (persisted to the progress spine); (3) once unlocked the ◀/▶ flip the catalog
 // and the engine's loop voice actually follows — read off the gated __sdp* globals.
-import { chromium } from 'playwright';
+import { startSmoke } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+const { page, fail: bad, finish, failures } = await startSmoke();
+page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
 
 // ── 1. LOCKED before the upgrade: a read-out + a hint, and NO flip buttons ──
 await page.goto(base + '/?world=1', { waitUntil: 'commit' });
@@ -148,13 +139,9 @@ if (flipped) {
   if (!swapBumped) bad('a genuine track swap did not (re)start the loop voice');
 }
 
-if (errors.length) bad(`page error(s): ${errors.slice(0, 2).join(' | ')}`);
-
-await browser.close();
 console.log(
   `radio -> lockedHint=${lockedHint} noFlipLocked=${noFlipWhenLocked} rolled=${rolled} ` +
     `unlocked=${unlocked} flipped=${flipped} guardHeld=${guardHeld} swapBumped=${swapBumped} ` +
-    `errors=${errors.length}`,
+    `errors=${failures()}`,
 );
-console.log(fail ? `\n${fail} radio check(s) FAILED` : '\nradio checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nradio checks passed.', `\n${failures()} radio check(s) FAILED`);

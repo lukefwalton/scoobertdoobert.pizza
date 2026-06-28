@@ -5,18 +5,13 @@
 //      a high score that PERSISTS across reloads via the progress spine.
 //   3. The storefront carries a real <a href="/arcade"> callout (crawlable
 //      entry point, not a JS-only affordance).
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (msg) => {
-  fail++;
-  console.log('FAIL:', msg);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // --- 1. JS-DISABLED: the prerendered cabinet is a real page with a real link ---
 {
@@ -109,6 +104,4 @@ const bad = (msg) => {
   await ctx.close();
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} arcade check(s) FAILED` : '\narcade checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\narcade checks passed.', `\n${failures()} arcade check(s) FAILED`);

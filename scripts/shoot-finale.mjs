@@ -2,26 +2,14 @@
 // completing that last one flips completion to 100% and fires the finale once — a
 // celebratory toast, a durable 'finale' secret, and the pause-menu "★ 100%" badge.
 // We complete the last objective deterministically via the shrine clap hook.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 const secrets = () =>
   page.evaluate(() => {
@@ -132,12 +120,9 @@ if (hasClap) {
   await page.screenshot({ path: '.shots/finale.png' });
 }
 
-if (errors.length) bad(`finale: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} badge=${badge} errors=${errors.length}`,
+  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} badge=${badge} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} finale check(s) FAILED` : '\nfinale checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nfinale checks passed.', `\n${failures()} finale check(s) FAILED`);

@@ -5,18 +5,13 @@
 // up-door round-trip, the relocated install (machine room → installer → 3D
 // world), and exiting the world rewinding to floor 0. Then a mobile pass: the
 // machine room skips the WebGL CRT and Install hands off to /text.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let errors = 0;
-const fail = (msg) => {
-  errors++;
-  console.log('FAIL:', msg);
-};
+const { browser, fail, finish, failures } = await launchSmoke();
 const floor = (p, id, timeout = 8000) =>
   p.waitForSelector(`[data-floor="${id}"]`, { timeout }).then(
     () => true,
@@ -299,10 +294,9 @@ if (!atmailRm)
   );
 await rctx.close();
 
-await browser.close();
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
     `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${errors}`,
+    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

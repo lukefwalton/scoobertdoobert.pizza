@@ -5,23 +5,17 @@
 //  - starting the race rolls through the countdown into racing (the state machine);
 //  - the race HUD (LAP / standing) shows while racing;
 //  - forcing a WIN flips to 'won' and records the clear in the progress store.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
+page.on('pageerror', (e) => bad(`grassrooms(win) pageerror: ${e.message}`));
 
 // ?room=grassrooms drops straight in (it's otherwise a side door off the liminal).
 // &debug=1 exposes the race test hooks.
@@ -93,12 +87,11 @@ if (luckAfter !== luckBefore + 3)
     `grassrooms: first ghost-race win should grant +3 luck (before ${luckBefore}, after ${luckAfter})`,
   );
 
-// Any uncaught error from the procedural geometry / audio ambient / the race.
-if (errors.length)
-  bad(`grassrooms: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
+// Any uncaught error from the procedural geometry / audio ambient / the race is
+// caught by the pageerror listener (→ bad).
 
 console.log(
-  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} countdown=${afterStart?.phase} racing=${racing?.phase} won=${won?.phase} cleared=${cleared} luck=${luckAfter} errors=${errors.length}`,
+  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} countdown=${afterStart?.phase} racing=${racing?.phase} won=${won?.phase} cleared=${cleared} luck=${luckAfter} errors=${failures()}`,
 );
 
 await ctx.close();
@@ -107,10 +100,12 @@ await ctx.close();
 // Force a loss and confirm the race lands in 'lost', then auto-resets to 'idle' a
 // few beats later — exercising the in-frame (pause-aware) rematch timer, the path
 // the win flow doesn't cover.
+// Snapshot here so the loss-phase log reports only loss-phase failures, not the
+// win phase's too.
+const lossErr0 = failures();
 const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page2 = await ctx2.newPage();
-const errors2 = [];
-page2.on('pageerror', (e) => errors2.push(e.message));
+page2.on('pageerror', (e) => bad(`grassrooms(loss) pageerror: ${e.message}`));
 await page2.goto(base + '/?room=grassrooms&debug=1', { waitUntil: 'networkidle' });
 await page2.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
 await page2.waitForTimeout(1500);
@@ -126,13 +121,9 @@ if (rematch?.phase !== 'idle')
   bad(
     `grassrooms: after a loss the race should auto-reset to idle (got ${JSON.stringify(rematch?.phase)})`,
   );
-if (errors2.length)
-  bad(`grassrooms(loss): ${errors2.length} page error(s): ${errors2.slice(0, 2).join(' | ')}`);
 console.log(
-  `grassrooms(loss) -> lost=${lost?.phase} rematch=${rematch?.phase} errors=${errors2.length}`,
+  `grassrooms(loss) -> lost=${lost?.phase} rematch=${rematch?.phase} errors=${failures() - lossErr0}`,
 );
 await ctx2.close();
 
-await browser.close();
-console.log(fail ? `\n${fail} grassrooms check(s) FAILED` : '\ngrassrooms checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ngrassrooms checks passed.', `\n${failures()} grassrooms check(s) FAILED`);

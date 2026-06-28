@@ -4,18 +4,13 @@
 //   2. The arcade page links to /chimes (the cabinet is discoverable).
 //   3. JS ON: the canvas mounts, the pendulum sim runs (bells strike on their
 //      own), and a tap starts the audio engine — all without throwing.
-import { chromium } from 'playwright';
+import { launchSmoke, watchPageErrors } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // --- 1. JS-OFF crawlable shell ---
 {
@@ -48,17 +43,16 @@ const bad = (m) => {
 // --- 3. JS ON: the canvas mounts, the sim strikes bells, and a tap starts audio.
 //        ?debug exposes window.__sdpChimes = { strikes, started, muted }. ---
 {
+  // Snapshot so the play-phase log reports only this phase's failures, not the
+  // cumulative total (the JS-off phases ran first).
+  const playErr0 = failures();
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
     isMobile: true,
     hasTouch: true,
   });
   const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
-  });
+  watchPageErrors(page, bad);
   await page.goto(base + '/chimes?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page.waitForSelector('.chimes-canvas', { timeout: 8000 }).catch(() => null);
@@ -96,13 +90,10 @@ const bad = (m) => {
     if (!(gainMuted != null && gainMuted < 0.1))
       bad(`JS: chimes did not mute — master gain ${gainMuted} (ringing bells continue)`);
   }
-  if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(
-    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} gain=${gainLive}->${gainMuted} errors=${errors.length}`,
+    `play     -> canvas=${!!canvas} struck=${struckEarly}->${struckLater} started=${started} gain=${gainLive}->${gainMuted} errors=${failures() - playErr0}`,
   );
   await ctx.close();
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} chimes check(s) FAILED` : '\nchimes checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nchimes checks passed.', `\n${failures()} chimes check(s) FAILED`);

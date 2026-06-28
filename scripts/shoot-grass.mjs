@@ -3,26 +3,22 @@
 // the new room (the grove) + records the durable unlock. The encounter chance + the
 // d20 tumble are random/luck-tuned, so we drive deterministic test hooks
 // (__sdpGrassEncounter, __sdpBattleRoll) rather than walking + clicking the 3D die.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1000, height: 700 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
+const {
+  ctx,
+  page,
+  fail: bad,
+  finish,
+  failures,
+} = await startSmoke({
+  viewport: { width: 1000, height: 700 },
 });
+watchPageErrors(page, bad);
 
 const roomLabel = () =>
   page.$eval('.hud-room', (el) => (el.textContent ?? '').trim()).catch(() => '');
@@ -101,12 +97,9 @@ if (cleared) {
   if (!revisit) bad('grass: the grove path did not durably re-open after a win');
 }
 
-if (errors.length) bad(`grass: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `grass    -> field="${inGrass}" battle="${inBattle}" grove="${inGrove}" cleared=${cleared} revisit=${revisit} errors=${errors.length}`,
+  `grass    -> field="${inGrass}" battle="${inBattle}" grove="${inGrove}" cleared=${cleared} revisit=${revisit} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} grass check(s) FAILED` : '\ngrass checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ngrass checks passed.', `\n${failures()} grass check(s) FAILED`);

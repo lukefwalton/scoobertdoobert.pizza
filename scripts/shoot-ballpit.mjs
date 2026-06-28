@@ -1,24 +1,16 @@
 // The Kids Menu ball pit (2000 floor easter egg). Descends storefront → 1999 →
 // 2000, opens the Kids Menu, splashes the balls, and backs out. Fails non-zero
 // on any page error (the canvas physics loop must not throw).
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
-page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
-page.on('console', (m) => {
-  if (m.type() === 'error') fail(`console: ${m.text()}`);
+const { page, fail, finish, failures } = await startSmoke({
+  viewport: { width: 1100, height: 850 },
 });
+watchPageErrors(page, fail);
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 
@@ -59,8 +51,7 @@ const backOnFloor = (await page.$('[data-floor="y2000"]')) !== null;
 if (!gone) fail('back button did not close the ball pit');
 if (!backOnFloor) fail('did not return to the 2000 floor after the ball pit');
 
-await browser.close();
 console.log(
-  `ballpit: appeared=${appeared} backClosed=${gone} backOnFloor=${backOnFloor} | errors=${errors}`,
+  `ballpit: appeared=${appeared} backClosed=${gone} backOnFloor=${backOnFloor} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();
