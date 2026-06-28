@@ -628,7 +628,10 @@ function flameFrame(t) {
   const c = canvas(W, H, FL.BG);
   for (let x = 0; x < W; x++) {
     const lick =
-      18 + Math.sin(x * 0.5 + t * 1.3) * 5 + Math.sin(x * 0.21 - t * 2.1) * 4 + Math.sin(t * 3 + x) * 2;
+      18 +
+      Math.sin(x * 0.5 + t * 1.3) * 5 +
+      Math.sin(x * 0.21 - t * 2.1) * 4 +
+      Math.sin(t * 3 + x) * 2;
     const top = Math.max(2, Math.round(H - lick));
     for (let y = H - 1; y >= top; y--) {
       const f = (H - 1 - y) / (H - 1 - top + 0.001); // 0 base → 1 tip

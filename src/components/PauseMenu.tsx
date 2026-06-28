@@ -99,7 +99,8 @@ export function PauseMenu() {
             className="hud-pause__luck"
             title="Points from hoovering loot this descent — pizza, surfboards, sushi… Your best is saved for the leaderboard."
           >
-            <span aria-hidden="true">🍕</span> Pizza Points <strong>{runScore.toLocaleString()}</strong>{' '}
+            <span aria-hidden="true">🍕</span> Pizza Points{' '}
+            <strong>{runScore.toLocaleString()}</strong>{' '}
             <span className="hud-pause__best">
               (best {progress.pizzaPointsBest.toLocaleString()}
               {bestCombo > 1 ? ` · ×${bestCombo} combo` : ''})
