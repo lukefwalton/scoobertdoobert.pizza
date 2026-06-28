@@ -11,7 +11,7 @@
 //   node scripts/make-readme-shots.mjs   # produces the source frames
 //   node scripts/make-descent-gif.mjs
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, statSync } from 'node:fs';
 import { encodeGif } from './lib/gif89a.mjs';
 
 const MEDIA = '.github/media';
@@ -31,29 +31,33 @@ const FRAMES = [
 
 // 1. Decode + downscale each PNG to W×H RGBA (Chromium does the PNG decode + scale).
 const browser = await chromium.launch();
-const page = await browser.newPage();
 const rgbaFrames = [];
-for (const f of FRAMES) {
-  const b64 = readFileSync(`${MEDIA}/${f.file}`).toString('base64');
-  const data = await page.evaluate(
-    async ({ b64, W, H }) => {
-      const img = new Image();
-      img.src = 'data:image/png;base64,' + b64;
-      await img.decode();
-      const c = document.createElement('canvas');
-      c.width = W;
-      c.height = H;
-      const cx = c.getContext('2d');
-      cx.imageSmoothingEnabled = true;
-      cx.drawImage(img, 0, 0, W, H);
-      return Array.from(cx.getImageData(0, 0, W, H).data);
-    },
-    { b64, W, H },
-  );
-  rgbaFrames.push(Uint8ClampedArray.from(data));
-  console.log(`decoded ${f.file}`);
+// try/finally so a decode/evaluate throw still closes Chromium (no orphan process).
+try {
+  const page = await browser.newPage();
+  for (const f of FRAMES) {
+    const b64 = readFileSync(`${MEDIA}/${f.file}`).toString('base64');
+    const data = await page.evaluate(
+      async ({ b64, W, H }) => {
+        const img = new Image();
+        img.src = 'data:image/png;base64,' + b64;
+        await img.decode();
+        const c = document.createElement('canvas');
+        c.width = W;
+        c.height = H;
+        const cx = c.getContext('2d');
+        cx.imageSmoothingEnabled = true;
+        cx.drawImage(img, 0, 0, W, H);
+        return Array.from(cx.getImageData(0, 0, W, H).data);
+      },
+      { b64, W, H },
+    );
+    rgbaFrames.push(Uint8ClampedArray.from(data));
+    console.log(`decoded ${f.file}`);
+  }
+} finally {
+  await browser.close().catch(() => {});
 }
-await browser.close();
 
 // 2. Median-cut a 256-color global palette over a sample of all frames' pixels.
 const samples = [];
@@ -134,10 +138,13 @@ const frames = rgbaFrames.map((rgba, fi) => {
   return { indices, delay: FRAMES[fi].delay };
 });
 
-// 4. Encode + write.
+// 4. Encode + write (to a temp file, then rename — so an interrupted write never
+// leaves a half-encoded GIF in place; symmetry with the screenshot generator).
 const gif = encodeGif({ width: W, height: H, palette, frames, loop: 0 });
 const out = `${MEDIA}/descent.gif`;
-writeFileSync(out, gif);
+const tmp = `${out}.tmp`;
+writeFileSync(tmp, gif);
+renameSync(tmp, out);
 console.log(
   `wrote ${out} (${W}×${H}, ${frames.length} frames, ${(statSync(out).size / 1024).toFixed(0)} KB)`,
 );
