@@ -27,6 +27,9 @@ const fail = (m) => {
   errors++;
   console.error('CAPTURE FAIL:', m);
 };
+// One page navigates across many surfaces, so tag async console/page errors with
+// the surface in flight — makes an intermittent failure easy to localize in logs.
+let current = '(startup)';
 
 const browser = await chromium.launch();
 let promotedCount = 0;
@@ -47,6 +50,7 @@ try {
   });
   const page = await ctx.newPage();
   const shot = async (name) => {
+    current = name;
     await page.screenshot({ path: join(STAGE, `${name}.png`) });
     console.log(`shot ${name}`);
   };
@@ -55,9 +59,9 @@ try {
   // `[rooms] unknown room id …`), which would otherwise save the WRONG room under the
   // right filename — so a typo can't quietly produce a canonical asset of the shop.
   page.on('console', (m) => {
-    if (m.type() === 'error') fail(`console error: ${m.text()}`);
+    if (m.type() === 'error') fail(`[${current}] console error: ${m.text()}`);
   });
-  page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
+  page.on('pageerror', (e) => fail(`[${current}] pageerror: ${e.message}`));
 
   // ── the era-floor descent (one stateful session, clicking down the eras) ──────
   await page.goto(base + '/', { waitUntil: 'networkidle' });
@@ -90,6 +94,7 @@ try {
 
   // ── the 3D world (debug entrances; wait out any GLB loader + the intro card) ──
   const worldShot = async (url, name, { warm = 3500, walk = 0 } = {}) => {
+    current = name; // before goto, so a room's load-time errors are tagged right
     await page.goto(base + url, { waitUntil: 'commit' });
     // REQUIRED: the canvas must mount, or the shot is blank.
     const canvas = await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
