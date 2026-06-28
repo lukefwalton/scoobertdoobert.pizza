@@ -21,6 +21,7 @@ import { enterDoor } from '../lib/doorTravel';
 import { collectInventoryItem } from '../lib/pickups';
 import { collectLootById } from '../lib/loot';
 import { ScoreHud } from './ScoreHud';
+import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
@@ -334,6 +335,7 @@ export function WorldHud() {
         hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
       />
       <ScoreHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
+      <RaceHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
       <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>

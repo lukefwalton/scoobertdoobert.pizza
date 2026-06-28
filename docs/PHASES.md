@@ -301,6 +301,18 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
   to a battle room, and winning the d20 roll-off opens the grove + records the
   unlock. `shoot:grass`.
+- ✅ **The Grassrooms (草の間) + the 3D ghost race (2026-06-28, from Luke's
+  r/LiminalSpace inspiration):** a **fully sweet liminal breather** off the
+  `liminal` GLB level — the backrooms after nature wins (white office bones gone to
+  grass + indoor trees + blue wildflowers, the low ceiling broken open to an
+  impossibly blue sky), **sized as a 48×48 racecourse**. A `musicRoom` with its own
+  wind + furin ambient; `baseUnease` below SAFE. Hosts **ゴーストレース / RACE THE
+  GHOST** — a real in-world, first-person **lap race** against a floating ghost
+  character (checkpoint gates, 3·2·1·GO countdown, hold SHIFT to sprint, first to 2
+  laps; `raceStore` + `world/GhostRace` + `components/RaceHud`). Losing is an
+  anticlimax + auto-rematch; winning gives +3 luck + the clear. Words stay EN + JP.
+  `shoot:grassrooms` drives the countdown→racing→won state machine (+ the room
+  graph/map/dread/whisper wiring; full unit suite green).
 - ⬜ **Tail / backlog (in DESIGN):** further album-themed wings (the **Basement
   Sessions** studio wing is the first big one — shipped above). (Trap-door d20,
   spells, perception whispers, the grass encounter, storefront reactivity, the greek

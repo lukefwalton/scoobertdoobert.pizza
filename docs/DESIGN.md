@@ -261,6 +261,47 @@ unblocks you (same anticlimax as the dice pit). Rides the engine already shipped
 the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
 it stays a delight, not a grind.
 
+### The Grassrooms (草の間) — nature reclaims the backrooms + a 3D race (SHIPPED, inspiration from Luke)
+The backrooms after nature wins: a BIG white office/mall interior whose floor has
+gone wall-to-wall GRASS, flecked with blue wildflowers, low-poly trees growing
+INDOORS, one lonely white dresser — and the low ceiling broken open over the
+middle to an impossibly blue, wispy-cloud sky. (From u/AnarkyMusic's 3D-printed
+r/LiminalSpace piece "The Grassrooms" — Luke: "good inspiration for a level.")
+- **A FULLY SWEET breather** (`src/world/GrassroomsRoom.tsx`, `kind: 'grassrooms'`):
+  `baseUnease` 0.02, below SAFE so it DECAYS — a relief exhale among the bitter
+  depths (taste guardrail; the contrast is the point). A **`musicRoom`** that sings
+  its own ambient (a soft wind pad + occasional furin chime off the indoor trees,
+  the shared bell engine, mute-aware + voice-capped, WCAG-safe).
+- **Branches off the `liminal` GLB level** via a visible (un-keyed) side door — a
+  sweet place you FIND by wandering the sterile beige nothing (the sterile→reclaimed
+  contrast is the whole beat). PS1 register throughout: unlit flat-white office
+  bones, crossed-alpha grass quads, fog, a broken-ceiling skybox. **Sized as a
+  racecourse** (48×48): the pillars sit in the infield + corners so the racing ring
+  stays clear.
+- **Words stay EN + JP** (a bilingual entrance plaque 草の間 / THE GRASSROOMS, the
+  race banner ゴーストレース / RACE THE GHOST), like 青函トンネル / 二拍手 elsewhere
+  (Luke). `shoot:grassrooms`.
+
+#### The ghost race — ゴーストレース / RACE THE GHOST (SHIPPED, Luke)
+"A 3D game… a race around the level, you race another 3D character around it"
+(Luke). A real in-world **lap race** through the Grassrooms — NOT a 2D minigame.
+You race a floating **ghost character** around a loop of checkpoint gates, **on
+foot in first person** (the existing controls; **hold SHIFT to sprint** — the only
+way to outrun it). Click the ghost (a billboarded bilingual banner marks it) →
+**3·2·1·GO** → first to **2 laps** wins.
+- **Architecture:** `state/raceStore.ts` (the phase/lap/progress machine, three-
+  free, shared across the Canvas boundary) + `world/GhostRace.tsx` (the gates, the
+  ghost rival floating the racing line, the countdown + per-frame gate detection,
+  mounted inside the room so it lives/dies/resets with it) + `components/RaceHud.tsx`
+  (the DOM countdown · LAP · standing · win/lose card). The course is a loop of
+  `RACE_GATES`; the player's next gate beacon pulses gold; the ghost floats THROUGH
+  the pillars (it's a ghost) at a beatable-but-real clip.
+- **Taste guardrail (hard):** sweet + non-traumatic — **losing is an anticlimax**
+  ("the ghost won this one — rematch? もういっかい？", auto-resets for a rematch, no
+  game-over of doom). Winning rewards **+3 luck + the clear remembered**
+  (`progressStore.clearGame('ghost-race')`). WCAG 2.3.1: the countdown is a
+  scale-pop, never a flash/strobe; all audio mute-aware + voice-capped.
+
 ### The shop remembers your deeds — storefront reactivity (SHIPPED, Luke)
 "What you did IN the game changes how the top-level pizza shop looks." This is the
 persistence spine reaching the surface. **Live now (`PlainFloor.tsx` news section),
