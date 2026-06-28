@@ -191,29 +191,32 @@ export const WATER_ROOMS: Room[] = [
     id: 'grassrooms',
     kind: 'grassrooms',
     title: 'The Grassrooms',
-    // A low-ceilinged white interior gone to grass (the photo's vibe). Wide enough
-    // to wander the pillars; the central skylight breaks the low ceiling open.
-    dims: { halfW: 9, halfD: 9, height: 4.2, eye: EYE },
-    // Soft warm-white interior haze — bright, airy, endless-feeling fog.
-    palette: { background: '#eef1ea', fog: '#eef1ea', fogNear: 6, fogFar: 40 },
+    // A BIG low-ceilinged white interior gone to grass (the photo's vibe), sized
+    // as a racecourse: you race the ghost around the loop of gates (GhostRace).
+    // The central skylight breaks the low ceiling open over the infield.
+    dims: { halfW: 24, halfD: 24, height: 5, eye: EYE },
+    // Soft warm-white interior haze — bright, airy, endless-feeling fog (pushed
+    // back for the big arena so you can see across the course).
+    palette: { background: '#eef1ea', fog: '#eef1ea', fogNear: 8, fogFar: 64 },
     // The space owns its own audio (wind pad + furin chimes off the indoor trees);
     // the carried jukebox voice fades out (RoomEnvironment). A SWEET relief beat.
     musicRoom: true,
     spawns: {
-      // Step in from the liminal at the +Z end, a clear stride from the return
-      // door, facing -Z into the grass under the skylight.
-      default: { position: [0, EYE, 5], yaw: Math.PI },
-      fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
+      // Arrive at the START LINE (just inside the start/finish gate, off to one
+      // side so the ghost rival isn't in your face), facing the ghost + its banner
+      // + the course ahead. A clear stride from the return door.
+      default: { position: [-4, EYE, 20], yaw: 2.0 },
+      fromLiminal: { position: [-4, EYE, 20], yaw: 2.0 },
     },
     doors: [
       {
         id: 'grass-to-liminal',
         to: 'liminal',
         toSpawn: 'fromGrass',
-        position: [0, 0, 8.9], // +Z wall — back into the empty backrooms
+        position: [0, 0, 23.9], // +Z wall — back into the empty backrooms
         rotationY: 0,
         label: 'back into the empty backrooms',
-        radius: 3.2,
+        radius: 3.0,
       },
     ],
   },

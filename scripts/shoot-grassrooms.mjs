@@ -1,10 +1,10 @@
-// Verifies the Grassrooms (草の間) — the overgrown-backrooms breather off the
-// liminal level — AND its ghost kart-battle minigame (おばけグランプリ):
+// Verifies the Grassrooms (草の間) — the big overgrown-backrooms racecourse off
+// the liminal level — AND its 3D ghost race (ゴーストレース):
 //  - the ?room=grassrooms test entrance drops into the room, the procedural scene
 //    renders without throwing, the HUD names it;
-//  - the pure battle helpers (projectileHits / decideWinner) hold;
-//  - launching the battle mounts the ArcadeModal + the game canvas;
-//  - forcing a WIN clears the game in the progress store (the reward).
+//  - starting the race rolls through the countdown into racing (the state machine);
+//  - the race HUD (LAP / standing) shows while racing;
+//  - forcing a WIN flips to 'won' and records the clear in the progress store.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -24,7 +24,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 
 // ?room=grassrooms drops straight in (it's otherwise a side door off the liminal).
-// &debug=1 so the action test hooks (room-jump-free) are exposed.
+// &debug=1 exposes the race test hooks.
 await page.goto(base + '/?room=grassrooms&debug=1', { waitUntil: 'networkidle' });
 
 const canvas = await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
@@ -36,70 +36,57 @@ const title =
 if (title !== 'The Grassrooms')
   bad(`grassrooms: HUD room is ${JSON.stringify(title)}, expected "The Grassrooms"`);
 
-// Let the scene settle (grass + sky + materials compile), then shoot.
+// Let the scene settle (grass + gates + sky + materials compile), then shoot.
 await page.waitForTimeout(2600);
 await page.screenshot({ path: '.shots/grassrooms.png' });
 
-// ── the ghost kart battle ───────────────────────────────────────────────────
-// Launch it via the room's debug hook (no precise 3D click needed).
-const launched = await page.evaluate(() => {
-  if (typeof window.__sdpRaceGhost !== 'function') return false;
-  window.__sdpRaceGhost();
-  return true;
-});
-if (!launched) bad('grassrooms: __sdpRaceGhost hook missing — cannot launch the battle');
+// ── the 3D ghost race ─────────────────────────────────────────────────────────
+const hasHooks = await page.evaluate(
+  () => typeof window.__sdpRaceStart === 'function' && typeof window.__sdpRaceState === 'function',
+);
+if (!hasHooks) bad('grassrooms: race test hooks (__sdpRaceStart/__sdpRaceState) missing');
 
-// The ArcadeModal + the game's own canvas should mount (two canvases now: the
-// world + the minigame). Give React a beat to render the modal.
-await page.waitForTimeout(600);
-const canvases = await page.evaluate(() => document.querySelectorAll('canvas').length);
-if (canvases < 2) bad(`grassrooms: ghost-kart modal canvas didn't mount (canvases=${canvases})`);
-
-await page.screenshot({ path: '.shots/grassrooms-kart.png' });
-
-// The pure helpers must be exposed + correct (a dead-on hit, a clean miss; 0
-// ghost balloons = a win).
-const helpers = await page.evaluate(() => {
-  const hit = window.__sdpKartHits;
-  const win = window.__sdpKartWinner;
-  if (typeof hit !== 'function' || typeof win !== 'function') return null;
-  return {
-    onTarget: hit({ x: 100, y: 100, owner: 'you' }, { x: 102, y: 101 }),
-    miss: hit({ x: 100, y: 100, owner: 'you' }, { x: 200, y: 200 }),
-    youWin: win(3, 0),
-    youLose: win(0, 3),
-  };
-});
-if (!helpers) bad('grassrooms: kart helper hooks (__sdpKartHits/__sdpKartWinner) missing');
-else {
-  if (helpers.onTarget !== true) bad('grassrooms: a dead-on pizza should hit the target');
-  if (helpers.miss !== false) bad('grassrooms: a far-off pizza should miss');
-  if (helpers.youWin !== 'won') bad('grassrooms: 0 ghost balloons should be a WIN');
-  if (helpers.youLose !== 'lost') bad('grassrooms: 0 of your balloons should be a LOSS');
-}
-
-// Force a WIN and confirm the reward landed: the game is recorded as cleared in
-// the durable progress store (localStorage 'scoobert:progress').
-await page.evaluate(() => window.__sdpKartForce && window.__sdpKartForce('won'));
+// Start it → it should enter the countdown.
+await page.evaluate(() => window.__sdpRaceStart && window.__sdpRaceStart());
 await page.waitForTimeout(300);
+const afterStart = await page.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
+if (afterStart?.phase !== 'countdown')
+  bad(
+    `grassrooms: after start, phase is ${JSON.stringify(afterStart?.phase)}, expected "countdown"`,
+  );
+
+// After the 3·2·1 countdown it should be racing; the LAP HUD should be up.
+await page.waitForTimeout(3500);
+const racing = await page.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
+if (racing?.phase !== 'racing')
+  bad(`grassrooms: after countdown, phase is ${JSON.stringify(racing?.phase)}, expected "racing"`);
+const lapText = await page.textContent('.hud-race__lap').catch(() => null);
+if (!lapText || !/LAP\s*1\//.test(lapText))
+  bad(`grassrooms: race LAP HUD missing/wrong (got ${JSON.stringify(lapText)})`);
+await page.screenshot({ path: '.shots/grassrooms-race.png' });
+
+// Force a WIN → 'won', and the clear is recorded in the durable progress store.
+await page.evaluate(() => window.__sdpRaceForce && window.__sdpRaceForce('you'));
+await page.waitForTimeout(300);
+const won = await page.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
+if (won?.phase !== 'won')
+  bad(`grassrooms: after force-win, phase is ${JSON.stringify(won?.phase)}, expected "won"`);
 const cleared = await page.evaluate(() => {
   try {
-    const raw = localStorage.getItem('sdp_progress_v1');
-    if (!raw) return false;
-    const p = JSON.parse(raw);
-    return Array.isArray(p.clearedGames) && p.clearedGames.includes('ghost-kart');
+    const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
+    return Array.isArray(p.clearedGames) && p.clearedGames.includes('ghost-race');
   } catch {
     return false;
   }
 });
-if (!cleared) bad('grassrooms: winning the ghost kart battle did not record the clear');
+if (!cleared) bad('grassrooms: winning the ghost race did not record the clear');
 
-// Any uncaught error from the procedural geometry / audio ambient / minigame.
+// Any uncaught error from the procedural geometry / audio ambient / the race.
 if (errors.length)
   bad(`grassrooms: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 console.log(
-  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} kartCanvases=${canvases} cleared=${cleared} errors=${errors.length}`,
+  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} countdown=${afterStart?.phase} racing=${racing?.phase} won=${won?.phase} cleared=${cleared} errors=${errors.length}`,
 );
 
 await ctx.close();
