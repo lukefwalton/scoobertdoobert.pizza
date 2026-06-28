@@ -100,6 +100,9 @@ await ctx.close();
 // Force a loss and confirm the race lands in 'lost', then auto-resets to 'idle' a
 // few beats later — exercising the in-frame (pause-aware) rematch timer, the path
 // the win flow doesn't cover.
+// Snapshot here so the loss-phase log reports only loss-phase failures, not the
+// win phase's too.
+const lossErr0 = failures();
 const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page2 = await ctx2.newPage();
 page2.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
@@ -119,7 +122,7 @@ if (rematch?.phase !== 'idle')
     `grassrooms: after a loss the race should auto-reset to idle (got ${JSON.stringify(rematch?.phase)})`,
   );
 console.log(
-  `grassrooms(loss) -> lost=${lost?.phase} rematch=${rematch?.phase} errors=${failures()}`,
+  `grassrooms(loss) -> lost=${lost?.phase} rematch=${rematch?.phase} errors=${failures() - lossErr0}`,
 );
 await ctx2.close();
 
