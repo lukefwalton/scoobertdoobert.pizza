@@ -11,7 +11,7 @@
 //   node scripts/make-readme-shots.mjs   # produces the source frames
 //   node scripts/make-descent-gif.mjs
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync, renameSync, statSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, statSync, existsSync } from 'node:fs';
 import { encodeGif } from './lib/gif89a.mjs';
 
 const MEDIA = '.github/media';
@@ -28,6 +28,16 @@ const FRAMES = [
   { file: '05-world-shop.png', delay: 230 },
   { file: '06-jukebox.png', delay: 230 },
 ];
+
+// Preflight: a clear message beats a generic ENOENT mid-run if a source frame is
+// missing (run make-readme-shots.mjs first).
+const missing = FRAMES.map((f) => f.file).filter((f) => !existsSync(`${MEDIA}/${f}`));
+if (missing.length) {
+  console.error(
+    `missing README source frame(s): ${missing.join(', ')} — run make-readme-shots.mjs first.`,
+  );
+  process.exit(1);
+}
 
 // 1. Decode + downscale each PNG to W×H RGBA (Chromium does the PNG decode + scale).
 const browser = await chromium.launch();
