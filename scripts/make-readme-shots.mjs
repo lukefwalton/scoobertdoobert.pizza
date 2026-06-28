@@ -30,6 +30,15 @@ const shot = async (name) => {
   await page.screenshot({ path: `${OUT}/${name}.png` });
   console.log(`shot ${name}`);
 };
+// These assets get committed as the canonical README media, so a capture that ran
+// before the page was actually ready must fail LOUDLY (exit non-zero), not quietly
+// write a half-loaded screenshot. Required surfaces call fail(); genuinely
+// best-effort touches (the CRT, the auto-dismissing intro) just log a note.
+let errors = 0;
+const fail = (m) => {
+  errors++;
+  console.error('CAPTURE FAIL:', m);
+};
 
 // ── the era-floor descent (one stateful session, clicking down the eras) ──────
 await page.goto(base + '/', { waitUntil: 'networkidle' });
@@ -48,23 +57,47 @@ await shot('03-2000');
 
 await page.click('.floor-door--down');
 await page.waitForSelector('[data-floor="machine"]', { timeout: 8000 });
-await page.waitForSelector('.mr__crt-screen canvas', { timeout: 12000 }).catch(() => {});
+// Best-effort: the SGI chrome + the install dialog carry this shot even if the
+// little live CRT render is slow, so a miss is a note, not a failure.
+const crt = await page
+  .waitForSelector('.mr__crt-screen canvas', { timeout: 12000 })
+  .catch(() => null);
+if (!crt)
+  console.warn(
+    '  note: machine-room CRT canvas never appeared (chrome + install still carry the shot)',
+  );
 await page.waitForTimeout(1800); // let the live CRT render warm up
 await shot('04-machine-room');
 
 // ── the 3D world (debug entrances; wait out any GLB loader + the intro card) ──
 const worldShot = async (url, name, { warm = 3500, walk = 0 } = {}) => {
   await page.goto(base + url, { waitUntil: 'commit' });
-  await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => {});
-  await page
+  // REQUIRED: the canvas must mount, or the shot is blank.
+  const canvas = await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
+  if (!canvas) {
+    fail(`${name}: the world canvas never mounted — capture would be blank`);
+    return; // don't write a broken canonical asset
+  }
+  // REQUIRED: a committed gallery shot must NOT show a stuck GLB loader.
+  const loaderGone = await page
     .waitForFunction(() => !document.querySelector('[data-level-loader]'), null, { timeout: 20000 })
-    .catch(() => {});
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!loaderGone) fail(`${name}: the GLB loader never cleared — capture would show a load screen`);
   await page.waitForTimeout(warm);
   if (await page.$('.hud-welcome')) {
-    await page
+    // Best-effort: the welcome card auto-dismisses, so a failed click still clears.
+    const dismissed = await page
       .getByRole('button', { name: /dismiss intro/i })
       .click({ timeout: 2000 })
-      .catch(() => {});
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!dismissed)
+      console.warn(`  note: ${name}: intro dismiss click failed (it auto-dismisses anyway)`);
     await page.waitForTimeout(700);
   }
   if (walk) {
@@ -90,4 +123,10 @@ await page.waitForTimeout(1600);
 await shot('10-arcade');
 
 await browser.close();
+if (errors) {
+  console.error(
+    `\n${errors} capture(s) failed — see CAPTURE FAIL above. No partial assets trusted.`,
+  );
+  process.exit(1);
+}
 console.log('readme shots done.');
