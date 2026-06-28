@@ -144,6 +144,9 @@ export const WATER_ROOMS: Room[] = [
       fromPool: { position: [0, EYE, 4.5], yaw: Math.PI },
       // Climbing back up out of the abandoned pool — by the -Z door, facing +Z.
       fromDeep: { position: [0, EYE, -4.5], yaw: 0 },
+      // Back out of the overgrown Grassrooms — by the -X door, facing +X into the
+      // beige nothing, clear of every door radius.
+      fromGrass: { position: [-4.5, EYE, 0], yaw: Math.PI / 2 },
     },
     // A couple of wanderers drift the beige nothing — they emerge from the fog and
     // dance when you reach them (the relief beat).
@@ -168,6 +171,48 @@ export const WATER_ROOMS: Room[] = [
         position: [0, 0, -8.45], // far (-Z) wall — deeper still (GLB → GLB)
         rotationY: Math.PI,
         label: 'go down to the deep end',
+        radius: 3.2,
+      },
+      {
+        id: 'liminal-to-grass',
+        to: 'grassrooms',
+        toSpawn: 'fromLiminal',
+        // A side door in the -X wall — visible (not hidden), a SWEET breather you
+        // FIND by wandering the beige nothing: step through and the backrooms have
+        // gone to grass + open sky. Off the descent, so no key gates it.
+        position: [-8.45, 0, 0],
+        rotationY: Math.PI / 2, // -X wall, opening faces +X into the room
+        label: 'push through the overgrown door',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'grassrooms',
+    kind: 'grassrooms',
+    title: 'The Grassrooms',
+    // A low-ceilinged white interior gone to grass (the photo's vibe). Wide enough
+    // to wander the pillars; the central skylight breaks the low ceiling open.
+    dims: { halfW: 9, halfD: 9, height: 4.2, eye: EYE },
+    // Soft warm-white interior haze — bright, airy, endless-feeling fog.
+    palette: { background: '#eef1ea', fog: '#eef1ea', fogNear: 6, fogFar: 40 },
+    // The space owns its own audio (wind pad + furin chimes off the indoor trees);
+    // the carried jukebox voice fades out (RoomEnvironment). A SWEET relief beat.
+    musicRoom: true,
+    spawns: {
+      // Step in from the liminal at the +Z end, a clear stride from the return
+      // door, facing -Z into the grass under the skylight.
+      default: { position: [0, EYE, 5], yaw: Math.PI },
+      fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grass-to-liminal',
+        to: 'liminal',
+        toSpawn: 'fromGrass',
+        position: [0, 0, 8.9], // +Z wall — back into the empty backrooms
+        rotationY: 0,
+        label: 'back into the empty backrooms',
         radius: 3.2,
       },
     ],

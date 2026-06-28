@@ -25,6 +25,7 @@ import { ShrineRoom } from './ShrineRoom';
 import { PracticeRoom } from './PracticeRoom';
 import { GrassRoom } from './GrassRoom';
 import { GrassBattleRoom } from './GrassBattleRoom';
+import { GrassroomsRoom } from './GrassroomsRoom';
 import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
 import { LockerRoom } from './LockerRoom';
@@ -131,6 +132,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   practice: (room) => <PracticeRoom room={room} />,
   grass: (room) => <GrassRoom room={room} />,
   grassbattle: (room) => <GrassBattleRoom room={room} />,
+  grassrooms: (room) => <GrassroomsRoom room={room} />,
   grove: (room) => <GroveRoom room={room} />,
   frutiger: () => <FrutigerRoom />,
   lockerroom: (room) => <LockerRoom room={room} />,

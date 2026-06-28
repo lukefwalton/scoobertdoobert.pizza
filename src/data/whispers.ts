@@ -43,6 +43,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a faint NHK bug in the corner. He produced and remixed for the band CHAI — a drama, a film theme — written up in Japan’s Sound & Recording Magazine.',
   grove:
     'a stick half-sunk in the water, looking bent at the surface. His whole philosophy is that stick: it only looks bent. So is language.',
+  grassrooms:
+    'the carpet gave up and the lawn moved in — 草の間, the grass room. The ceiling broke open to a sky that is far too blue, and a furin rings for the breeze it lets in.',
   // ── the digital-nostalgia branch ──
   memorylane:
     'an old cartridge labeled 1101. It’s nothing but 7-bit ASCII binary — decoded: “scoobertdoobert dot pizza / slash save san diego.” A website, sung.',
