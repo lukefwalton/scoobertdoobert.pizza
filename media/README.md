@@ -6,7 +6,7 @@ Git LFS — but originals don't belong in the deploy, only their derivatives.
 
 | folder | what | ships as |
 |---|---|---|
-| `masters/` | the few song masters **wired into the site** (boot loop + per-layer themes) | `public/audio/boot.wav` (degraded 8-bit bounce via `scripts/make-boot-audio.mjs`) |
+| `masters/` | the few song masters **wired into the site** (boot loop + per-layer themes) | `public/audio/boot.mp3` (degraded 8-bit bounce via `scripts/make-boot-audio.mjs`) |
 | `music/` | the **fuller master catalog**, by `year/album/` — see [`music/README.md`](music/README.md) | derivatives only |
 | `sfx/` | **sound effects** (the owned sitar takes) | degraded derivatives only |
 | `models/` | all **3D source models** (`.glb`), grouped by theme — see [`models/README.md`](models/README.md) | optimized → `public/models/` (crunch to PS1 first) |
@@ -14,7 +14,7 @@ Git LFS — but originals don't belong in the deploy, only their derivatives.
 | `brand/` | brand-logo source files | currently **byte-identical to `public/brand/`** — treat this as the source-of-record for re-exports |
 
 ## `masters/` — active masters
-`Jolly Roger Bay (64)` = layer #1 / the world (the current `boot.wav`);
+`Jolly Roger Bay (64)` = layer #1 / the world (the current `boot.mp3`);
 `Information` = down a layer; `1101` = the `/save-san-diego` ARG. These are the
 same songs as the **KŌAN** LP in `music/koan/`, but different bounces.
 

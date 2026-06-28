@@ -5,6 +5,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -144,15 +145,7 @@ export function RoomFireball({ room }: { room: Room }) {
     return g;
   }, [spread]);
 
-  useEffect(
-    () => () => {
-      tex.dispose();
-      flameMat.dispose();
-      emberMat.dispose();
-      emberGeo.dispose();
-    },
-    [tex, flameMat, emberMat, emberGeo],
-  );
+  useDispose(tex, flameMat, emberMat, emberGeo);
 
   // Ignite when the nonce bumps (and it's the fireball). The clock is read in the
   // frame loop, so we just flag "ignite on next frame".

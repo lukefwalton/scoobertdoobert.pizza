@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { useSceneStore } from '../state/sceneStore';
 import { tvVideoFor, songAlbumSlug } from '../data/videos';
 import { albumBySlug } from '../data/albums';
+import { useDispose } from '../lib/useDispose';
 
 // ───────────────────────────────────────────────────────────────────────────
 // TvSet — a 3D CRT television in a room. Its screen shows a record sleeve; switch
@@ -57,16 +58,7 @@ export function TvSet({
   // Tracks whether the camera is in the TV's E-prompt range, so we only write the
   // store on a CHANGE (enter/leave), not every frame — like the door proximity loop.
   const inRange = useRef(false);
-  useEffect(
-    () => () => {
-      bodyMat.dispose();
-      darkMat.dispose();
-      triMat.dispose();
-      screenMat.dispose();
-      screenTex?.dispose();
-    },
-    [bodyMat, darkMat, triMat, screenMat, screenTex],
-  );
+  useDispose(bodyMat, darkMat, triMat, screenMat, screenTex);
 
   // a soft CRT flicker on the glow (gentle — never a flash; WCAG 2.3.1), plus the
   // E-prompt proximity (mirrors Doors): publish nearTv when the camera stands in

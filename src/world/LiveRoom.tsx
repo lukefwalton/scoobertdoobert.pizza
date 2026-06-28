@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { DrumKit } from './DrumKit';
 import { StudioKeys } from './StudioKeys';
 import { StudioBass } from './StudioBass';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // The Live Room — the head of the Basement Sessions wing: a cosy, dim tracking
@@ -63,7 +64,7 @@ export function LiveRoom({ room }: { room: Room }) {
   const standMat = useMemo(() => flatMat('#1a1a1e'), []);
   const robeMat = useMemo(() => flatMat('#b8b2c8'), []); // the bathrobe (soft grey-lilac)
 
-  useEffect(() => () => carpetTex.dispose(), [carpetTex]);
+  useDispose(carpetTex);
 
   return (
     <group>

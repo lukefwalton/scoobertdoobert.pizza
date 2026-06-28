@@ -218,7 +218,7 @@ export default function About() {
         />
         <meta
           property="og:image"
-          content="https://www.scoobertdoobert.pizza/press/scoobert-og.jpg"
+          content="https://www.scoobertdoobert.pizza/press/scoobert-og-card.jpg"
         />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Head>

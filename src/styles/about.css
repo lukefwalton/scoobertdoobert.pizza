@@ -4,6 +4,7 @@
 
 .about {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #fbfaf7;
   color: #1c1a17;
   font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;

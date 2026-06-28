@@ -9,6 +9,7 @@ import { visibleJukeboxTracks, jukeboxTrackUrl } from '../data/jukebox';
 import { loopIndexForUrl } from '../data/music';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useDispose } from '../lib/useDispose';
 import { type Crit } from '../lib/luck';
 import { announce } from '../state/toastStore';
 import { useMusicStore } from '../state/musicStore';
@@ -56,7 +57,7 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
     [title],
   );
   const screenMat = useMemo(() => new THREE.MeshBasicMaterial({ map: screenTex }), [screenTex]);
-  useEffect(() => () => screenTex.dispose(), [screenTex]);
+  useDispose(screenTex);
   const grilleTex = useMemo(() => {
     const t = makeCheckerTexture(10, '#1c0f16', '#2c1622');
     t.repeat.set(2, 2);

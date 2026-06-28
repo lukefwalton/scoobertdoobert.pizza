@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { flatMat } from './ps1';
 import { ChimesSim } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { cueUrl, loopIndexForUrl } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
@@ -237,14 +238,7 @@ function ChimeRig({ room }: { room: Room }) {
   const baseColors = useMemo(() => bobMats.map((m) => m.color.clone()), [bobMats]);
   const frameMat = useMemo(() => flatMat('#2a201a'), []);
   const stringMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#7a6a52' }), []);
-  useEffect(
-    () => () => {
-      bobMats.forEach((m) => m.dispose());
-      frameMat.dispose();
-      stringMat.dispose();
-    },
-    [bobMats, frameMat, stringMat],
-  );
+  useDispose(...bobMats, frameMat, stringMat);
 
   const xs = useMemo(
     () =>
@@ -324,12 +318,7 @@ export function PracticeRoom({ room }: { room: Room }) {
   const ampMat = useMemo(() => flatMat('#1b1410'), []);
   const deckMat = useMemo(() => flatMat('#2a2420'), []);
 
-  useEffect(
-    () => () => {
-      [wallMat, floorMat, ceilMat, trimMat, ampMat, deckMat].forEach((m) => m.dispose());
-    },
-    [wallMat, floorMat, ceilMat, trimMat, ampMat, deckMat],
-  );
+  useDispose(wallMat, floorMat, ceilMat, trimMat, ampMat, deckMat);
 
   return (
     <group>

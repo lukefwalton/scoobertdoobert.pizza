@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeCheckerTexture } from './ps1';
 import { audio } from '../audio/engine';
+import { useDispose } from '../lib/useDispose';
 import type { Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -35,12 +36,7 @@ function Shinkansen() {
   const lightMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#fff2c8' }), []);
   const noseMat = useMemo(() => flatMat('#e9edf2'), []);
 
-  useEffect(
-    () => () => {
-      [bodyMat, stripeMat, skirtMat, glassMat, lightMat, noseMat].forEach((m) => m.dispose());
-    },
-    [bodyMat, stripeMat, skirtMat, glassMat, lightMat, noseMat],
-  );
+  useDispose(bodyMat, stripeMat, skirtMat, glassMat, lightMat, noseMat);
 
   // Three cars at these z-centres; the nose caps the -Z front car.
   const cars = [0.5, -3.7, -7.9];
@@ -134,7 +130,7 @@ function NeonSign() {
     return t;
   }, []);
 
-  useEffect(() => () => texture.dispose(), [texture]);
+  useDispose(texture);
 
   useFrame((state) => {
     const m = matRef.current;
@@ -187,13 +183,7 @@ function FloodWater({ room }: { room: Room }) {
     [caustics],
   );
 
-  useEffect(
-    () => () => {
-      caustics.dispose();
-      mat.dispose();
-    },
-    [caustics, mat],
-  );
+  useDispose(caustics, mat);
 
   useFrame((state) => {
     // drift the caustics so the water looks alive

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { flatMat } from './ps1';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -61,12 +62,7 @@ export function StudioBass({
     [],
   );
 
-  useEffect(
-    () => () => {
-      [standMat, bodyMat, neckMat, hwMat, ...strMats].forEach((m) => m.dispose());
-    },
-    [standMat, bodyMat, neckMat, hwMat, strMats],
-  );
+  useDispose(standMat, bodyMat, neckMat, hwMat, ...strMats);
 
   const strX = (i: number) => (i - (N - 1) / 2) * STR_GAP;
 
