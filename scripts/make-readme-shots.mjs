@@ -93,7 +93,10 @@ const worldShot = async (url, name, { warm = 3500, walk = 0 } = {}) => {
       () => true,
       () => false,
     );
-  if (!loaderGone) fail(`${name}: the GLB loader never cleared — capture would show a load screen`);
+  if (!loaderGone) {
+    fail(`${name}: the GLB loader never cleared — capture would show a load screen`);
+    return; // short-circuit before shot(): never overwrite the canonical asset with a load screen
+  }
   await page.waitForTimeout(warm);
   if (await page.$('.hud-welcome')) {
     // Best-effort: the welcome card auto-dismisses, so a failed click still clears.
