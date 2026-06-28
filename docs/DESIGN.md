@@ -261,6 +261,40 @@ unblocks you (same anticlimax as the dice pit). Rides the engine already shipped
 the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
 it stays a delight, not a grind.
 
+### The Grassrooms (草の間) — nature reclaims the backrooms (SHIPPED, inspiration from Luke)
+The backrooms after nature wins: a low white office/mall interior whose floor has
+gone wall-to-wall GRASS, flecked with blue wildflowers, low-poly trees growing
+INDOORS, one lonely white dresser — and the low ceiling broken open over the
+middle to an impossibly blue, wispy-cloud sky. (From u/AnarkyMusic's 3D-printed
+r/LiminalSpace piece "The Grassrooms" — Luke: "good inspiration for a level.")
+- **A FULLY SWEET breather** (`src/world/GrassroomsRoom.tsx`, `kind: 'grassrooms'`):
+  `baseUnease` 0.02, below SAFE so it DECAYS — a relief exhale among the bitter
+  depths (taste guardrail; the contrast is the point). A **`musicRoom`** that sings
+  its own ambient (a soft wind pad + occasional furin chime off the indoor trees,
+  the shared bell engine, mute-aware + voice-capped, WCAG-safe).
+- **Branches off the `liminal` GLB level** via a visible (un-keyed) side door — a
+  sweet place you FIND by wandering the sterile beige nothing (the sterile→reclaimed
+  contrast is the whole beat). PS1 register throughout: unlit flat-white office
+  bones, crossed-alpha grass quads, fog, a broken-ceiling skybox.
+- **Words stay EN + JP** (a bilingual entrance plaque 草の間 / THE GRASSROOMS, the
+  race sign ゴーストとレース / RACE THE GHOST), like 青函トンネル / 二拍手 elsewhere
+  (Luke). `shoot:grassrooms`.
+
+#### The ghost kart battle — おばけグランプリ / GHOST GRAND PRIX (SHIPPED, Luke)
+"A mario kart battle against a ghost" (Luke) — done as a Mario-Kart-battle-mode
+minigame (original art, no marks) fought in the Grassrooms' white-pillar Block
+Fort. Click the parked pizza go-kart (a bobbing cute ghost + a bilingual sign mark
+it) to drop in. Each racer carries **3 balloons**; throw a pizza to pop the
+ghost's, dodge its lobs to keep yours; pop all 3 → you win.
+- Reuses the **arcade modal** plumbing as a SPECIAL, non-rolled id (`ghost-kart`),
+  so it's never in the random surface-cabinet roll and needs no standalone route.
+  Self-contained `<canvas>` (three-free), keyboard + touch.
+- **Taste guardrail (hard):** sweet + non-traumatic — the ghost cheers either way;
+  **losing is an anticlimax** ("boo! rematch? もういっかい？", no game-over of doom —
+  the dice-monster spirit). Winning rewards **+2 luck + the clear remembered**
+  (`progressStore.clearGame`). WCAG 2.3.1: hit feedback is a brief, small fade,
+  never a full-field flash/strobe.
+
 ### The shop remembers your deeds — storefront reactivity (SHIPPED, Luke)
 "What you did IN the game changes how the top-level pizza shop looks." This is the
 persistence spine reaching the surface. **Live now (`PlainFloor.tsx` news section),
