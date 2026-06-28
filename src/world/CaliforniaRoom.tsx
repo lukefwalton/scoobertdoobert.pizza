@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { Water } from './Water';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ function CaliforniaTower({ position = [0, 0, 0] }: { position?: [number, number,
     [tileTex],
   );
 
-  useEffect(() => () => tileTex.dispose(), [tileTex]);
+  useDispose(tileTex);
 
   // Four dark arch openings around a belfry box of half-width hw at height y.
   const arches = (hw: number, y: number, w: number, h: number) =>
@@ -146,7 +147,7 @@ export function CaliforniaRoom({ room }: { room: Room }) {
   );
   const glimmer = useRef<THREE.Mesh>(null);
 
-  useEffect(() => () => groundTex.dispose(), [groundTex]);
+  useDispose(groundTex);
 
   useFrame((state) => {
     if (glimmer.current) {

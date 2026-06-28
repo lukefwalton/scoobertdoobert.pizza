@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { Water } from './Water';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,7 @@ function Clouds({ count = 5 }: { count?: number }) {
       if (m.position.x > 20) m.position.x = -20; // wrap
     }
   });
-  useEffect(() => () => mat.dispose(), [mat]);
+  useDispose(mat);
   return (
     <group>
       {seeds.map((s, i) => (
@@ -78,7 +79,7 @@ export function BestDayRoom({ room }: { room: Room }) {
   );
   const glimmer = useRef<THREE.Mesh>(null);
 
-  useEffect(() => () => sandTex.dispose(), [sandTex]);
+  useDispose(sandTex);
 
   useFrame((state) => {
     if (glimmer.current) {

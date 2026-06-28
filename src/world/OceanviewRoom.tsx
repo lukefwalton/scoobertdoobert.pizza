@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
 import { Water } from './Water';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -52,14 +53,7 @@ function Stars({ count = 70 }: { count?: number }) {
       }),
     [sprite],
   );
-  useEffect(
-    () => () => {
-      geom.dispose();
-      mat.dispose();
-      sprite.dispose();
-    },
-    [geom, mat, sprite],
-  );
+  useDispose(geom, mat, sprite);
   return <points geometry={geom} material={mat} />;
 }
 
@@ -85,7 +79,7 @@ export function OceanviewRoom({ room }: { room: Room }) {
   );
   const glimmer = useRef<THREE.Mesh>(null);
 
-  useEffect(() => () => sandTex.dispose(), [sandTex]);
+  useDispose(sandTex);
 
   useFrame((state) => {
     if (glimmer.current) {

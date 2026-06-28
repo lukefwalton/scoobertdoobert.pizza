@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // The Control Room — the console room of the Basement Sessions: a slanted mixing
@@ -86,7 +87,7 @@ export function ControlRoom({ room }: { room: Room }) {
     [],
   );
 
-  useEffect(() => () => floorTex.dispose(), [floorTex]);
+  useDispose(floorTex);
 
   // a row of fader nubs + a row of meter dots across the desk
   const faders = useMemo(() => Array.from({ length: 10 }, (_, i) => -1.8 + i * 0.4), []);

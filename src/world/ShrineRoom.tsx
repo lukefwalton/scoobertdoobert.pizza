@@ -8,6 +8,7 @@ import { noteToFreq } from '../lib/chimes';
 import { useProgressStore } from '../state/progressStore';
 import { announce } from '../state/toastStore';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 
 // Furin tuning — a bright, glassy high pentatonic from the site's D6/9 world, so
 // the wind-chimes always agree with the music. (Reuses the chimes note math.)
@@ -184,14 +185,7 @@ function Fireflies({ count = 44 }: { count?: number }) {
     mat.opacity = 0.7 + Math.sin(t * 2.3) * 0.2;
   });
 
-  useEffect(
-    () => () => {
-      geom.dispose();
-      mat.dispose();
-      sprite.dispose();
-    },
-    [geom, mat, sprite],
-  );
+  useDispose(geom, mat, sprite);
 
   return <points ref={ref} geometry={geom} material={mat} />;
 }
@@ -214,14 +208,7 @@ function Furin({ x, y, z, pan }: { x: number; y: number; z: number; pan: number 
     () => new THREE.MeshBasicMaterial({ color: '#eae3d2', side: THREE.DoubleSide }),
     [],
   );
-  useEffect(
-    () => () => {
-      bellMat.dispose();
-      lineMat.dispose();
-      stripMat.dispose();
-    },
-    [bellMat, lineMat, stripMat],
-  );
+  useDispose(bellMat, lineMat, stripMat);
 
   useFrame((state, dt) => {
     timer.current -= dt;
@@ -393,13 +380,7 @@ export function ShrineRoom({ room }: { room: Room }) {
   const portalDarkMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#08090d' }), []); // its mouth
 
   // dispose the canvas textures we generated
-  useEffect(
-    () => () => {
-      grassTex.dispose();
-      pathTex.dispose();
-    },
-    [grassTex, pathTex],
-  );
+  useDispose(grassTex, pathTex);
 
   // sleeper cross-ties along the crossing (placed along X)
   const sleepers = useMemo(() => {

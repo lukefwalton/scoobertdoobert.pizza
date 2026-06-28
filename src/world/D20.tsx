@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { rollD20, type Crit } from '../lib/luck';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -63,7 +64,7 @@ export function D20({
     [lastRoll],
   );
   const plaqueMat = useMemo(() => new THREE.MeshBasicMaterial({ map: plaqueTex }), [plaqueTex]);
-  useEffect(() => () => plaqueTex.dispose(), [plaqueTex]);
+  useDispose(plaqueTex);
 
   const settle = () => {
     rolling.current = false;

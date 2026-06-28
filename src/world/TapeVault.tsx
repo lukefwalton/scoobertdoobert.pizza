@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // The Tape Vault — the studio's archive: dim, dusty, warm. Wall-to-wall shelving
@@ -80,7 +81,7 @@ export function TapeVault({ room }: { room: Room }) {
   const boxMat = useMemo(() => flatMat('#7a5a36'), []); // cassette/box spines (kraft)
   const lampMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffd591' }), []);
 
-  useEffect(() => () => floorTex.dispose(), [floorTex]);
+  useDispose(floorTex);
 
   return (
     <group>

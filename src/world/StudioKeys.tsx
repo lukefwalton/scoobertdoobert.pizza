@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { flatMat } from './ps1';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -60,12 +61,7 @@ export function StudioKeys({
     [],
   );
 
-  useEffect(
-    () => () => {
-      [bodyMat, standMat, blackMat, ...whiteMats].forEach((m) => m.dispose());
-    },
-    [bodyMat, standMat, blackMat, whiteMats],
-  );
+  useDispose(bodyMat, standMat, blackMat, ...whiteMats);
 
   const keyX = (i: number) => -SPAN / 2 + KEY_W / 2 + i * (KEY_W + KEY_GAP);
 

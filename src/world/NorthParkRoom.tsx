@@ -5,6 +5,7 @@ import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTextur
 import { fogFor, type Room } from '../data/rooms';
 import { useTipsyStore } from '../state/tipsyStore';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 
 // ───────────────────────────────────────────────────────────────────────────
 // NorthParkRoom — a North Park (San Diego) dusk boulevard under the iconic NORTH
@@ -37,13 +38,7 @@ function NorthParkSign({ position = [0, 0, 0] }: { position?: [number, number, n
     () => new THREE.MeshBasicMaterial({ map: textTex, transparent: true, fog: true }),
     [textTex],
   );
-  useEffect(
-    () => () => {
-      tileTex.dispose();
-      textTex.dispose();
-    },
-    [tileTex, textTex],
-  );
+  useDispose(tileTex, textTex);
 
   return (
     <group position={position}>
@@ -216,7 +211,7 @@ export function NorthParkRoom({ room }: { room: Room }) {
     };
   }, []);
 
-  useEffect(() => () => sidewalkTex.dispose(), [sidewalkTex]);
+  useDispose(sidewalkTex);
 
   return (
     <group>
