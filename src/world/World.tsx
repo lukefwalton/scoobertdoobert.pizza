@@ -15,6 +15,7 @@ import { noteToFreq } from '../lib/chimes';
 import { useTipsyStore } from '../state/tipsyStore';
 import { audio } from '../audio/engine';
 import { ShopRoom } from './ShopRoom';
+import { KitchenRoom } from './KitchenRoom';
 import { HallwayRoom } from './HallwayRoom';
 import { JukeboxRoom } from './JukeboxRoom';
 import { ClassifiedRoom } from './ClassifiedRoom';
@@ -122,6 +123,7 @@ function RoomMusic({ room }: { room: Room }) {
 type RoomRenderer = (room: Room) => ReactElement;
 export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   shop: () => <ShopRoom />,
+  kitchen: (room) => <KitchenRoom room={room} />,
   hallway: (room) => <HallwayRoom room={room} />,
   jukebox: (room) => <JukeboxRoom room={room} />,
   classified: (room) => <ClassifiedRoom room={room} />,

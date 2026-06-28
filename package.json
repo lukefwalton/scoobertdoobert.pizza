@@ -35,6 +35,7 @@
     "shoot:games": "node scripts/shoot-games.mjs",
     "shoot:trapdoor": "node scripts/shoot-trapdoor.mjs",
     "shoot:shrine": "node scripts/shoot-shrine.mjs",
+    "shoot:kitchen": "node scripts/shoot-kitchen.mjs",
     "shoot:poke": "node scripts/shoot-poke.mjs",
     "shoot:chimes": "node scripts/shoot-chimes.mjs",
     "shoot:cultures": "node scripts/shoot-cultures.mjs",

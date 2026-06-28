@@ -313,6 +313,18 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   anticlimax + auto-rematch; winning gives +3 luck + the clear. Words stay EN + JP.
   `shoot:grassrooms` drives the countdown→racing→won state machine (+ the room
   graph/map/dread/whisper wiring; full unit suite green).
+- ✅ **The Kitchen (厨房) — the thesis at its source (2026-06-28):** a warm,
+  goofy **surface relief room** off the shop's **-X "EMPLOYEES ONLY" door** (a
+  lateral side room, never the way down — the descent rule is untouched). Original
+  parody PS1 geometry: a glowing brick oven (emissive mouth + a hot point light),
+  a stainless prep counter with stacked dough boxes, a ceiling pot rail. The point:
+  against the back wall, a rack of tuned **PIZZA PANS** you can play — the shipped
+  `PizzaPanChimes` instrument reused — so the kitchen itself makes music (a pizza
+  shop that is secretly a one-man music project, made literal where the pies AND
+  the songs get made). Bilingual 厨房 / KITCHEN plaque; `baseUnease` 0 (stays
+  sweet). Reuses `makeBilingualSign` + `useDispose` + `PizzaPanChimes` (elegant
+  repo — no new instrument). `shoot:kitchen` drives the room + a pan strike; the
+  room graph/map/dread/whisper wiring lands with the full unit suite green.
 - ⬜ **Tail / backlog (in DESIGN):** further album-themed wings (the **Basement
   Sessions** studio wing is the first big one — shipped above). (Trap-door d20,
   spells, perception whispers, the grass encounter, storefront reactivity, the greek
