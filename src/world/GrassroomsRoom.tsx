@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat } from './ps1';
+import { flatMat, makeGrassTexture, makeBilingualSign, seededRandom } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
@@ -33,74 +34,6 @@ import { type Room } from '../data/rooms';
 // 青函トンネル, 二拍手).
 // ───────────────────────────────────────────────────────────────────────────
 
-// A grass-blade sprite — green verticals on transparent, 32px + NearestFilter
-// (PS1). Two crossed quads of it read as a tuft of tall grass.
-function makeGrassTexture(): THREE.Texture {
-  const s = 32;
-  const c = document.createElement('canvas');
-  c.width = c.height = s;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    ctx.clearRect(0, 0, s, s);
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    const blades: [string, number][] = [
-      ['#6f9a3e', 7],
-      ['#83b24a', 13],
-      ['#5f8a36', 19],
-      ['#8fc056', 25],
-    ];
-    for (const [col, x] of blades) {
-      ctx.strokeStyle = col;
-      ctx.beginPath();
-      ctx.moveTo(x, s);
-      ctx.quadraticCurveTo(x + (x < s / 2 ? -3 : 3), s * 0.45, x + (x < s / 2 ? -2 : 2), 3);
-      ctx.stroke();
-    }
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
-}
-
-// The bilingual entrance plaque: 草の間 over THE GRASSROOMS, drawn to a small
-// NearestFilter canvas so it reads as a printed sign, not a clean modern label.
-function makeSignTexture(): THREE.Texture {
-  const w = 256;
-  const h = 96;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#f3f4ee';
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#3a5a32';
-    ctx.fillRect(0, 0, w, 4);
-    ctx.fillRect(0, h - 4, w, 4);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#2f4a2a';
-    ctx.font = 'bold 40px "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif';
-    ctx.fillText('草の間', w / 2, 48);
-    ctx.fillStyle = '#4a6a40';
-    ctx.font = 'bold 20px "Courier New", monospace';
-    ctx.fillText('THE GRASSROOMS', w / 2, 80);
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
-}
-
-// Tiny seeded LCG so the scatter is STABLE across frames/reloads (never reshuffles).
-function lcg(seed: number): () => number {
-  let s = seed >>> 0;
-  return () => (s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff;
-}
-
 // White partition slabs + square pillars (the office bones), kept to the INFIELD
 // (inside the racing ring) + the corners so the loop at radius ~18 stays clear.
 // [x, z, w, d, h, rotY].
@@ -126,7 +59,7 @@ export function GrassroomsRoom({ room }: { room: Room }) {
   const CEIL = room.dims.height;
 
   const grassTex = useMemo(makeGrassTexture, []);
-  const signTex = useMemo(makeSignTexture, []);
+  const signTex = useMemo(() => makeBilingualSign('草の間', 'THE GRASSROOMS'), []);
   const grassMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
@@ -160,48 +93,28 @@ export function GrassroomsRoom({ room }: { room: Room }) {
   const dresserMat = useMemo(() => flatMat('#d9d6cc'), []);
   const drawerMat = useMemo(() => flatMat('#c2bdae'), []);
 
-  useEffect(
-    () => () => {
-      grassTex.dispose();
-      signTex.dispose();
-      [
-        grassMat,
-        signMat,
-        wallMat,
-        ceilMat,
-        skyMat,
-        cloudMat,
-        flowerMat,
-        groundMat,
-        trunkMat,
-        leafMat,
-        dresserMat,
-        drawerMat,
-      ].forEach((m) => m.dispose());
-    },
-    [
-      grassTex,
-      signTex,
-      grassMat,
-      signMat,
-      wallMat,
-      ceilMat,
-      skyMat,
-      cloudMat,
-      flowerMat,
-      groundMat,
-      trunkMat,
-      leafMat,
-      dresserMat,
-      drawerMat,
-    ],
+  useDispose(
+    grassTex,
+    signTex,
+    grassMat,
+    signMat,
+    wallMat,
+    ceilMat,
+    skyMat,
+    cloudMat,
+    flowerMat,
+    groundMat,
+    trunkMat,
+    leafMat,
+    dresserMat,
+    drawerMat,
   );
 
   // Grass tufts — a fixed-count random scatter (kept bounded for the big floor's
   // perf), stable via the seeded LCG.
   const tufts = useMemo(() => {
     const out: { x: number; z: number; s: number; r: number }[] = [];
-    const rnd = lcg(1996);
+    const rnd = seededRandom(1996);
     for (let i = 0; i < 320; i++) {
       out.push({
         x: (rnd() - 0.5) * (W - 1) * 2,
@@ -216,7 +129,7 @@ export function GrassroomsRoom({ room }: { room: Room }) {
   // Little blue wildflowers dotted through the grass — the photo's bluebells.
   const flowers = useMemo(() => {
     const out: { x: number; z: number; s: number }[] = [];
-    const rnd = lcg(424242);
+    const rnd = seededRandom(424242);
     for (let i = 0; i < 90; i++) {
       out.push({
         x: (rnd() - 0.5) * (W - 0.5) * 2,

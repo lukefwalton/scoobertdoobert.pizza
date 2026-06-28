@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat } from './ps1';
+import { flatMat, makeBilingualSign } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
@@ -45,34 +46,22 @@ const GHOST_REACH = 1.6; // how close the ghost gets to a gate before targeting 
 // next gate" into a 0..1 fraction for the continuous standing readout.
 const SEG = 2 * COURSE_R * Math.sin(Math.PI / RACE_GATES);
 
-// A bilingual floating banner over the idle ghost — words stay EN + JP.
-function makeBannerTexture(): THREE.Texture {
-  const w = 256;
-  const h = 80;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    ctx.fillStyle = '#1b2b40';
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = '#ffd23a';
-    ctx.fillRect(0, 0, w, 3);
-    ctx.fillRect(0, h - 3, w, 3);
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffe98a';
-    ctx.font = 'bold 30px "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif';
-    ctx.fillText('ゴーストレース', w / 2, 36);
-    ctx.fillStyle = '#bfe0ff';
-    ctx.font = 'bold 18px "Courier New", monospace';
-    ctx.fillText('CLICK TO RACE THE GHOST', w / 2, 64);
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
-}
+// The bilingual floating banner over the idle ghost — words stay EN + JP. Uses the
+// shared sign helper (a dark panel + gold accents, distinct from the white plaques).
+const makeBannerTexture = (): THREE.Texture =>
+  makeBilingualSign('ゴーストレース', 'CLICK TO RACE THE GHOST', {
+    w: 256,
+    h: 80,
+    bg: '#1b2b40',
+    accent: '#ffd23a',
+    accentH: 3,
+    jpColor: '#ffe98a',
+    jpSize: 30,
+    jpY: 36,
+    enColor: '#bfe0ff',
+    enSize: 18,
+    enY: 64,
+  });
 
 // One checkpoint gate: two posts + a top beam, laid ACROSS the track (rotated to
 // the loop's tangent). It glows gold when it's your next target.
@@ -94,7 +83,7 @@ function Gate({
     () => new THREE.MeshBasicMaterial({ color: highlighted ? '#ffd23a' : '#9fb6c7' }),
     [highlighted],
   );
-  useEffect(() => () => beaconMat.dispose(), [beaconMat]);
+  useDispose(beaconMat);
   return (
     <group position={[pos[0], 0, pos[1]]} rotation-y={yaw}>
       <mesh material={postMat} position={[-2.0, 1.6, 0]}>
@@ -133,13 +122,7 @@ export function GhostRace() {
   );
   const eyeMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#3a2f55' }), []);
 
-  useEffect(
-    () => () => {
-      bannerTex.dispose();
-      [bannerMat, postMat, beamMat, ghostMat, eyeMat].forEach((m) => m.dispose());
-    },
-    [bannerTex, bannerMat, postMat, beamMat, ghostMat, eyeMat],
-  );
+  useDispose(bannerTex, bannerMat, postMat, beamMat, ghostMat, eyeMat);
 
   // The ghost's live position (floats the racing line); the group follows it.
   const ghostGroup = useRef<THREE.Group>(null);

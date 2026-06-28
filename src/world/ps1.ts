@@ -252,3 +252,103 @@ export function makeSpeckTexture(base = '#d9b48c', speck = '#b8895f'): THREE.Tex
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
   return tex;
 }
+
+/** A tiny seeded LCG → a deterministic 0..1 generator, so a scatter (grass tufts,
+ *  flowers, rocks) is STABLE across frames + reloads instead of reshuffling. One
+ *  home; rooms used to each re-declare their own copy. */
+export function seededRandom(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => (s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff;
+}
+
+/** A tuft-of-grass sprite: green blades on transparent, 32px + NearestFilter
+ *  (PS1). Two crossed quads of it read as a clump of tall grass. Shared by the
+ *  grass field + the Grassrooms (was copy-pasted in both). */
+export function makeGrassTexture(): THREE.Texture {
+  const s = 32;
+  const c = document.createElement('canvas');
+  c.width = c.height = s;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.clearRect(0, 0, s, s);
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    const blades: [string, number][] = [
+      ['#6f9a3e', 7],
+      ['#83b24a', 13],
+      ['#5f8a36', 19],
+      ['#8fc056', 25],
+    ];
+    for (const [col, x] of blades) {
+      ctx.strokeStyle = col;
+      ctx.beginPath();
+      ctx.moveTo(x, s);
+      ctx.quadraticCurveTo(x + (x < s / 2 ? -3 : 3), s * 0.45, x + (x < s / 2 ? -2 : 2), 3);
+      ctx.stroke();
+    }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
+
+/** A bilingual plaque texture: a Japanese line over an English line on a tinted
+ *  panel with accent bars, drawn to a NearestFilter canvas so it reads as a
+ *  printed sign (not a clean modern label). The site keeps its words EN + JP
+ *  (草の間 / THE GRASSROOMS, ゴーストレース / RACE THE GHOST, cf. 青函トンネル). */
+export function makeBilingualSign(
+  jp: string,
+  en: string,
+  opts: {
+    w?: number;
+    h?: number;
+    bg?: string;
+    accent?: string;
+    accentH?: number;
+    jpColor?: string;
+    jpSize?: number;
+    jpY?: number;
+    enColor?: string;
+    enSize?: number;
+    enY?: number;
+  } = {},
+): THREE.Texture {
+  const {
+    w = 256,
+    h = 96,
+    bg = '#f3f4ee',
+    accent = '#3a5a32',
+    accentH = 4,
+    jpColor = '#2f4a2a',
+    jpSize = 40,
+    jpY = 48,
+    enColor = '#4a6a40',
+    enSize = 20,
+    enY = 80,
+  } = opts;
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, w, accentH);
+    ctx.fillRect(0, h - accentH, w, accentH);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = jpColor;
+    ctx.font = `bold ${jpSize}px "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif`;
+    ctx.fillText(jp, w / 2, jpY);
+    ctx.fillStyle = enColor;
+    ctx.font = `bold ${enSize}px "Courier New", monospace`;
+    ctx.fillText(en, w / 2, enY);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = THREE.NearestFilter;
+  t.minFilter = THREE.NearestFilter;
+  t.generateMipmaps = false;
+  return t;
+}
