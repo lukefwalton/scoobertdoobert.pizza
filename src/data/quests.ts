@@ -66,7 +66,9 @@ export const QUESTS: Quest[] = [
   {
     id: 'collect-tapes',
     label: 'Find the lost cassettes',
-    hint: 'Four tapes hide around the place — pocket each to hear it and tune the radio.',
+    // Count derived from CASSETTE_IDS so it never drifts when a `track` item is
+    // added (the Basement Sessions master tapes grew this from 4 to 7).
+    hint: `${CASSETTE_IDS.length} tapes hide around the place — pocket each to hear it and tune the radio.`,
     done: (p) => CASSETTE_IDS.every((id) => p.itemsHeld.includes(id)),
   },
   {
@@ -119,4 +121,13 @@ export function completionPct(p: Progress): number {
 /** Has the player finished every objective? Triggers the finale (the win arc). */
 export function allQuestsDone(p: Progress): boolean {
   return questsDone(p) === QUESTS.length;
+}
+
+/** Is the always-on objective chip actually on screen? The HUD toggle is on, it
+ *  isn't hidden (pause / dialog / room wipe), and there's still an undone
+ *  objective. The SINGLE source of truth shared by ObjectiveHud (its render gate)
+ *  and WorldHud (which drops the announce toast below the chip only when it's truly
+ *  showing) — so the two can never drift. */
+export function objectiveChipVisible(p: Progress, opts: { on: boolean; hidden: boolean }): boolean {
+  return opts.on && !opts.hidden && questStatus(p).some((q) => !q.done);
 }

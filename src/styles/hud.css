@@ -810,6 +810,11 @@
   pointer-events: none;
   animation: hud-toast-in 220ms ease-out both;
 }
+/* When the always-on objective chip is showing (it can stand two rows tall),
+   drop the toast below it so the two top-centre elements never overlap. */
+.hud-toast--below-objective {
+  top: 100px;
+}
 .hud-toast--luck {
   border-color: #e2c054;
   color: #ffe9a8;

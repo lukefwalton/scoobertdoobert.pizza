@@ -1,6 +1,6 @@
 import { useHeadingStore } from '../state/headingStore';
 import { useSceneStore } from '../state/sceneStore';
-import { questStatus } from '../data/quests';
+import { questStatus, objectiveChipVisible } from '../data/quests';
 import { nextHopDoor, arrowDeg } from '../lib/wayfinding';
 import type { Progress } from '../state/progressStore';
 
@@ -21,9 +21,11 @@ export function ObjectiveHud({
   const on = useSceneStore((s) => s.objectiveHudOn);
   const heading = useHeadingStore();
 
-  if (!on || hidden) return null;
-  const undone = questStatus(progress).find((q) => !q.done)?.quest;
-  if (!undone) return null; // all objectives done — the finale takes over (later commit)
+  // The render gate is the shared predicate (WorldHud reads the same one to know
+  // when to drop the toast below this chip), so the two can't drift.
+  if (!objectiveChipVisible(progress, { on, hidden })) return null;
+  // Guaranteed defined: objectiveChipVisible is true only when one is undone.
+  const undone = questStatus(progress).find((q) => !q.done)!.quest;
 
   const target = undone.room;
   const here = !!target && target === currentRoom;
