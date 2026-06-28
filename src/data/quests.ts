@@ -122,3 +122,12 @@ export function completionPct(p: Progress): number {
 export function allQuestsDone(p: Progress): boolean {
   return questsDone(p) === QUESTS.length;
 }
+
+/** Is the always-on objective chip actually on screen? The HUD toggle is on, it
+ *  isn't hidden (pause / dialog / room wipe), and there's still an undone
+ *  objective. The SINGLE source of truth shared by ObjectiveHud (its render gate)
+ *  and WorldHud (which drops the announce toast below the chip only when it's truly
+ *  showing) — so the two can never drift. */
+export function objectiveChipVisible(p: Progress, opts: { on: boolean; hidden: boolean }): boolean {
+  return opts.on && !opts.hidden && questStatus(p).some((q) => !q.done);
+}
