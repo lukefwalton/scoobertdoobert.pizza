@@ -68,6 +68,9 @@ export const DREAD: DreadConfig = {
     //                       (don't let dread smother the gag — dial it down)
     shrine: 0.02, // the OUTDOOR sweet breather — a deliberate relief beat (below
     //              SAFE so it DECAYS): the exhale that makes the tunnel land
+    grassrooms: 0.02, // the overgrown-backrooms breather off the liminal — FULLY
+    //                   SWEET (below SAFE so it DECAYS): nature reclaimed the
+    //                   office, sunlit and calm; the exhale after the liminal
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)

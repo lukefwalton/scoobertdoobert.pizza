@@ -214,6 +214,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   mobius: { x: 5, y: 4.8 },
   liminal: { x: 5, y: 6.0 },
   deeppool: { x: 5, y: 7.2 },
+  // The Grassrooms — a sweet breather branching LEFT off the liminal level.
+  grassrooms: { x: 3.4, y: 6.2 },
   // shrine / grass thread (right branch off the pool)
   shrine: { x: 7, y: 4.4 },
   'metro-tunnel': { x: 7, y: 5.6 },

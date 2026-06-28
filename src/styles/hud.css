@@ -1004,3 +1004,90 @@
   padding: 6px 18px;
   cursor: pointer;
 }
+
+/* ── Ghost race (ゴーストレース) — countdown · lap/standing · win-lose card ───── */
+.hud-race {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* the big 3·2·1·GO countdown, dead centre — a scale-pop per number (no flash) */
+.hud-race__count {
+  margin-top: 33vh;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 84px;
+  color: #ffe98a;
+  text-shadow: 0 3px 0 #1b2b40;
+  animation: hud-race-pop 0.5s ease-out;
+}
+@keyframes hud-race-pop {
+  from {
+    transform: scale(1.8);
+    opacity: 0.2;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-race__count {
+    animation: none;
+  }
+}
+/* the live readout — a tidy top-centre band */
+.hud-race--live {
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+  align-items: flex-start;
+  top: 12px;
+  inset: auto 0 auto 0;
+}
+.hud-race__lap,
+.hud-race__place {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  padding: 5px 12px;
+  background: #1b2b40dd;
+  border: 2px solid #ffd23a;
+  color: #ffe98a;
+}
+.hud-race__place--behind {
+  border-color: #cdb8ff;
+  color: #e7dcff;
+}
+/* the sweet win / lose card */
+.hud-race__card {
+  margin-top: 28vh;
+  text-align: center;
+  padding: 18px 26px;
+  background: #1b2b40f2;
+  border: 3px solid #ffd23a;
+  max-width: 80vw;
+}
+.hud-race__card--lose {
+  border-color: #cdb8ff;
+}
+.hud-race__title {
+  margin: 0 0 6px;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 26px;
+  color: #ffe98a;
+}
+.hud-race__card--lose .hud-race__title {
+  color: #e7dcff;
+}
+.hud-race__sub {
+  margin: 0;
+  font-size: 13px;
+  color: #cfe9f0;
+}
