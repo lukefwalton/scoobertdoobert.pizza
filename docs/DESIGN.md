@@ -237,8 +237,13 @@ window, multiplying up to ×9). Three deliberate hooks:
 
 **The leaderboard (no login).** Sign your best with **three letters**, classic-arcade
 style, stored in **Vercel Blob** (`api/score.ts` — one route, GET board + POST
-submit; honeypot + validation + a small profanity blocklist; the board blob is
-public since initials+score aren't PII). It's the one sanctioned backend beyond the
+submit; honeypot + validation + a small profanity blocklist; the score blobs are
+public since initials+score aren't PII). Storage is **append-per-submission, race-
+free**: each score is its own blob with the value encoded in the pathname (pure
+logic in `src/lib/leaderboardCore.ts`, unit-tested), so concurrent submits can't
+overwrite each other and a read is one `list()` — no read-modify-write. Backend
+states stay distinct end-to-end (`unavailable` / not-ranked / `bad_initials`) so the
+UI never shows an outage as user error. It's the one sanctioned backend beyond the
 localStorage spine (Luke asked for it explicitly), and it **degrades gracefully** —
 no backend just reads as "offline," never blocking the UI; your best is always kept
 locally. Lives in the pause menu + a crawlable `/leaderboard` route, dressed as a
