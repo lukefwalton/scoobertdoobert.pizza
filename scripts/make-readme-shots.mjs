@@ -39,6 +39,14 @@ const fail = (m) => {
   errors++;
   console.error('CAPTURE FAIL:', m);
 };
+// Any console error / uncaught exception means a surface didn't render as intended.
+// Most importantly: roomById() fails SOFT to the shop on a bad ?room id (it logs
+// `[rooms] unknown room id …`), which would otherwise save the WRONG room under the
+// right filename — so a typo can't quietly produce a canonical asset of the shop.
+page.on('console', (m) => {
+  if (m.type() === 'error') fail(`console error: ${m.text()}`);
+});
+page.on('pageerror', (e) => fail(`pageerror: ${e.message}`));
 
 // ── the era-floor descent (one stateful session, clicking down the eras) ──────
 await page.goto(base + '/', { waitUntil: 'networkidle' });
