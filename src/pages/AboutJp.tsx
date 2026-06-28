@@ -83,6 +83,7 @@ export default function AboutJp() {
           'https://scoobertdoobert.bandcamp.com/',
           'https://www.youtube.com/@scoobertdoobertburrito',
           'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
+          'https://koookooorooo.com/scoobert-doobert',
         ],
       },
       {
