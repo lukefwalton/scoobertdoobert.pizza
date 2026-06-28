@@ -18,6 +18,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a chart cutting tacked to the wall: “Don’t Worry” hit #1 on Munich’s egoFM in 2021. Muso.AI files him Top 1% songwriter — near 300 compositions.',
   practice:
     'a bathrobe slung over an amp. He tracked the whole 2018 LP $WAMI$ alone in one, minus a few drum-and-bass moments played by Louis Cole.',
+  kitchen:
+    'a flour-dusted rack of pizza pans, each tuned to a note. The site’s whole joke, here: a pizza shop that’s secretly a one-man music project — where the pies and the songs both get made.',
   // ── the basement sessions (the studio wing — warm, where it's all made) ──
   liveroom:
     'amps stacked three deep and a kit set for one. He plays the drums, the keys, the bass — a whole band tracked after dark by one guy in a basement.',
