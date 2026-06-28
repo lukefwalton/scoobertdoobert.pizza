@@ -335,7 +335,7 @@ export function WorldHud() {
         hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
       />
       <ScoreHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
-      <RaceHud />
+      <RaceHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
       <RhythmGame />
       {toast && (
         <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>

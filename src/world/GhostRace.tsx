@@ -138,13 +138,12 @@ export function GhostRace() {
   const ghostPos = useRef(new THREE.Vector3(GATES[0][0], 1.3, GATES[0][1]));
   const beacons = useRef<(THREE.Mesh | null)[]>([]);
   const cdTimer = useRef(0); // countdown seconds accumulator
+  const finishedAccum = useRef(0); // seconds since the race finished (→ auto-rematch)
   const lastPhase = useRef<RacePhase>('idle');
-  const resetTimer = useRef<number | undefined>(undefined);
 
   // Reset the race when the room unmounts (you left the Grassrooms).
   useEffect(() => {
     return () => {
-      if (resetTimer.current) window.clearTimeout(resetTimer.current);
       useRaceStore.getState().reset();
     };
   }, []);
@@ -191,10 +190,7 @@ export function GhostRace() {
         cdTimer.current = 0;
         ghostPos.current.set(GATES[0][0], 1.3, GATES[0][1]);
       }
-      if (r.phase === 'won' || r.phase === 'lost') {
-        if (resetTimer.current) window.clearTimeout(resetTimer.current);
-        resetTimer.current = window.setTimeout(() => useRaceStore.getState().reset(), 4500);
-      }
+      if (r.phase === 'won' || r.phase === 'lost') finishedAccum.current = 0;
       lastPhase.current = r.phase;
     }
 
@@ -229,6 +225,12 @@ export function GhostRace() {
         // idle / won / lost: drift the ghost gently back to the start line.
         ghostPos.current.x += (GATES[0][0] - ghostPos.current.x) * Math.min(1, dt * 1.5);
         ghostPos.current.z += (GATES[0][1] - ghostPos.current.z) * Math.min(1, dt * 1.5);
+        // auto-rematch a few beats after a finish — driven here (not a setTimeout)
+        // so it RESPECTS pause: a paused finish card won't tick toward reset.
+        if (r.phase === 'won' || r.phase === 'lost') {
+          finishedAccum.current += dt;
+          if (finishedAccum.current >= 4.5) useRaceStore.getState().reset();
+        }
       }
     }
 
