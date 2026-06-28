@@ -4,6 +4,7 @@
 
 .sb {
   min-height: 100vh;
+  min-height: 100dvh;
   /* the most GeoCities thing of all: a tiled starfield wallpaper (our own GIF). The
      dark base means the floor's light text gains contrast over it (WCAG-friendly). */
   background: #0a1024 url('/gifs/wallpaper.gif') repeat;

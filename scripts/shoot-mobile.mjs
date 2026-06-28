@@ -77,15 +77,18 @@ for (const route of ROUTES) {
     );
   }
 
-  // 2) Tap targets: the on-screen GAME CONTROLS (the arcade pad + start/jump
-  //    buttons) must stay finger-sized (>= 40px each way). The dead-plain
-  //    storefront's tiny inline links are intentionally small (the constitution's
-  //    "barely-designed is the joke"), so only the real touch controls are checked
-  //    — pages without them simply report none.
+  // 2) Tap targets: the on-screen TOUCH CONTROLS (the arcade pad + start/jump
+  //    buttons, and the /chimes + /cultures instrument buttons) must stay
+  //    finger-sized (>= 40px each way). The dead-plain storefront's tiny inline
+  //    links are intentionally small (the constitution's "barely-designed is the
+  //    joke"), so only the real touch controls are checked — pages without them
+  //    simply report none.
   const tooSmall = await page.evaluate(() => {
     const MIN = 40;
     const out = [];
-    for (const el of document.querySelectorAll('.arcade-padbtn, .arcade-jump')) {
+    for (const el of document.querySelectorAll(
+      '.arcade-padbtn, .arcade-jump, .chimes-btn, .cultures-btn',
+    )) {
       const r = el.getBoundingClientRect();
       if (r.width < MIN || r.height < MIN)
         out.push(

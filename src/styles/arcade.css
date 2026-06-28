@@ -9,6 +9,7 @@
 
 .arcade-page {
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 12px 12px 28px;
   /* The period "wallpaper": one little pizzeria-check tile repeating forever
