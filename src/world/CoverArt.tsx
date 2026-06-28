@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { useSceneStore } from '../state/sceneStore';
 import { albumBySlug } from '../data/albums';
 import { type RoomPainting } from '../data/rooms';
@@ -117,7 +118,7 @@ export function FramedCover({
   diveTo?: string;
 }) {
   const placeholder = useMemo(() => makeCoverTexture(hue, album ?? 'untitled'), [hue, album]);
-  useEffect(() => () => placeholder.dispose(), [placeholder]);
+  useDispose(placeholder);
   const tex = useCoverTexture(art, placeholder);
 
   // A water-RIPPLE shader rides on the cover for the dive (driven by uDive). The
@@ -147,14 +148,8 @@ export function FramedCover({
   // frame/mat materials are stable (useMemo []), so their disposal is a one-time
   // unmount cleanup — folding them into coverMat's effect would dispose materials
   // still attached to live meshes every time the art loads in.
-  useEffect(() => () => coverMat.dispose(), [coverMat]);
-  useEffect(
-    () => () => {
-      frameMat.dispose();
-      matMat.dispose();
-    },
-    [frameMat, matMat],
-  );
+  useDispose(coverMat);
+  useDispose(frameMat, matMat);
 
   const inner = useRef<THREE.Group>(null);
   const dive = useRef(0);

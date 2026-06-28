@@ -5,6 +5,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
+import { useDispose } from '../lib/useDispose';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -67,7 +68,7 @@ export function RoomLight({ room }: { room: Room }) {
       }),
     [],
   );
-  useEffect(() => () => orbMat.dispose(), [orbMat]);
+  useDispose(orbMat);
 
   // The mote hangs at a comfortable mid-room height (capped for tall GLB levels).
   const orbY = Math.min(room.dims.height * 0.6, 2.6);

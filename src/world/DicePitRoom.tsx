@@ -14,6 +14,7 @@ import { CRIT_MULT, type Crit } from '../lib/luck';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
+import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ export function DicePitRoom({ room }: { room: Room }) {
     [signText, maxed, last],
   );
   const signMat = useMemo(() => new THREE.MeshBasicMaterial({ map: signTex }), [signTex]);
-  useEffect(() => () => signTex.dispose(), [signTex]);
+  useDispose(signTex);
 
   // Warm the reward track on entry; hand the loop back to the boot ambience on
   // leave (and clear the test hook).
