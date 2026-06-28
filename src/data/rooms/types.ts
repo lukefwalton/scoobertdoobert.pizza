@@ -16,6 +16,10 @@ export { ROOM };
 
 export type RoomKind =
   | 'shop'
+  // The Kitchen — the pizza shop's back-of-house off the shop's -X wall ("EMPLOYEES
+  // ONLY"): a warm, goofy SURFACE relief room (stays sweet). The pizza→music thesis
+  // made into a place — a rack of tuned pizza pans you can play (reuses PizzaPanChimes).
+  | 'kitchen'
   | 'hallway'
   | 'jukebox'
   | 'classified'

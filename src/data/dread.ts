@@ -50,6 +50,7 @@ export const DREAD: DreadConfig = {
     machine: 0.18,
     // ── 3D rooms (rooms.ts) ──
     shop: 0, // the safe, goofy spawn — stays sweet, always
+    kitchen: 0, // the back-of-house off the shop — a sweet SURFACE relief room
     hallway: 0.42, // dim backrooms corridor — the first real tension
     jukebox: 0.05, // the warm payoff shrine — a relief valve, kept safe
     practice: 0.04, // backstage music room — a "play it" relief beat, kept sweet
