@@ -51,6 +51,7 @@
     "shoot:gallery": "node scripts/shoot-gallery.mjs",
     "shoot:memorylane": "node scripts/shoot-memorylane.mjs",
     "shoot:studio": "node scripts/shoot-studio.mjs",
+    "shoot:hud": "node scripts/shoot-hud.mjs",
     "shoot:moonlight": "node scripts/shoot-moonlight.mjs",
     "shoot:california": "node scripts/shoot-california.mjs",
     "shoot:sandiego": "node scripts/shoot-sandiego.mjs",

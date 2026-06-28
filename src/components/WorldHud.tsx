@@ -9,7 +9,7 @@ import { lyricFor } from '../data/lyrics';
 import { useProgressStore } from '../state/progressStore';
 import { SPELLS } from '../data/spells';
 import { castSpell, castEquippedSpell } from '../lib/spellcast';
-import { QUESTS, allQuestsDone } from '../data/quests';
+import { QUESTS, allQuestsDone, objectiveChipVisible } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { SpellHotbar } from './SpellHotbar';
@@ -39,6 +39,7 @@ export function WorldHud() {
   const near = useSceneStore((s) => s.nearHotspot);
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
+  const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
@@ -327,18 +328,28 @@ export function WorldHud() {
   const openHs = open ? HOTSPOTS.find((h) => h.id === open) : undefined;
   const openDest = openHs ? destById(openHs.destId) : undefined;
 
+  // The objective chip and the announce toast both live top-centre; when the chip
+  // is actually on screen it can stand two rows tall, so drop the toast below it
+  // (a modifier class) instead of letting them overlap. Mirror ObjectiveHud's own
+  // visibility test so the toast only moves when the chip is really there.
+  const objectiveHidden = paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame;
+  const objectiveShowing = objectiveChipVisible(progress, {
+    on: objectiveHudOn,
+    hidden: objectiveHidden,
+  });
+
   return (
     <>
-      <ObjectiveHud
-        progress={progress}
-        currentRoom={currentRoom}
-        hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame}
-      />
-      <ScoreHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
-      <RaceHud hidden={paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame} />
+      <ObjectiveHud progress={progress} currentRoom={currentRoom} hidden={objectiveHidden} />
+      <ScoreHud hidden={objectiveHidden} />
+      <RaceHud hidden={objectiveHidden} />
       <RhythmGame />
       {toast && (
-        <div className={`hud-toast hud-toast--${toast.kind}`} role="status" key={toast.id}>
+        <div
+          className={`hud-toast hud-toast--${toast.kind}${objectiveShowing ? ' hud-toast--below-objective' : ''}`}
+          role="status"
+          key={toast.id}
+        >
           {toast.msg}
         </div>
       )}
