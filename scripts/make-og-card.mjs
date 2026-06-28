@@ -53,9 +53,19 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
 </body></html>`;
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
-await page.setContent(html, { waitUntil: 'networkidle' });
-await page.screenshot({ path: OUT, type: 'jpeg', quality: 88, clip: { x: 0, y: 0, width: W, height: H } });
-await browser.close();
+try {
+  const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+  await page.setContent(html, { waitUntil: 'networkidle' });
+  await page.screenshot({
+    path: OUT,
+    type: 'jpeg',
+    quality: 88,
+    clip: { x: 0, y: 0, width: W, height: H },
+  });
+} finally {
+  // Always close Chromium, even if setContent/screenshot throws, so a failed
+  // render never leaks a browser process.
+  await browser.close();
+}
 
 console.log(`wrote ${OUT} (${W}×${H}, ${(statSync(OUT).size / 1024).toFixed(0)} KB)`);

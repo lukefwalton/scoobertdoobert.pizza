@@ -25,6 +25,16 @@ describe('sitemap.xml stays in sync with routes.tsx', () => {
     expect(new Set(sitemapLocs).size).toBe(sitemapLocs.length);
   });
 
+  it('is structurally well-formed (xml decl, root urlset opens + closes, balanced <url>)', () => {
+    expect(sitemap.trimStart().startsWith('<?xml')).toBe(true);
+    expect(sitemap).toContain('<urlset');
+    expect(sitemap.trimEnd().endsWith('</urlset>')).toBe(true);
+    const open = (sitemap.match(/<url>/g) ?? []).length;
+    const close = (sitemap.match(/<\/url>/g) ?? []).length;
+    expect(open).toBe(close);
+    expect(open).toBe(expectedLocs.length);
+  });
+
   it('robots.txt points at the sitemap', () => {
     const robots = readFileSync(new URL('../public/robots.txt', import.meta.url), 'utf8');
     expect(robots).toContain(`Sitemap: ${HOST}/sitemap.xml`);
