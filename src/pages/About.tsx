@@ -107,6 +107,7 @@ export default function About() {
           'https://www.discogs.com/artist/8593593-Scoobert-Doobert',
           'https://genius.com/artists/Scoobert-doobert',
           'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22',
+          'https://koookooorooo.com/scoobert-doobert',
         ],
       },
       {
