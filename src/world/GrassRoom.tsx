@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat } from './ps1';
+import { flatMat, makeGrassTexture, seededRandom } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore, selectLuck } from '../state/progressStore';
@@ -17,44 +18,6 @@ import { type Room } from '../data/rooms';
 // + the screen-to-black battle ride on top of this in a later slice; this is the
 // field + its way back to the shrine.
 // ───────────────────────────────────────────────────────────────────────────
-
-// A grass-blade sprite — a clump of green verticals on transparent, 32px +
-// NearestFilter (PS1). Two crossed quads of it read as a tuft of tall grass.
-function makeGrassTexture(): THREE.Texture {
-  const s = 32;
-  const c = document.createElement('canvas');
-  c.width = c.height = s;
-  const ctx = c.getContext('2d');
-  if (ctx) {
-    ctx.clearRect(0, 0, s, s);
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    const blades: [string, number][] = [
-      ['#6f9a3e', 7],
-      ['#83b24a', 13],
-      ['#5f8a36', 19],
-      ['#8fc056', 25],
-    ];
-    for (const [col, x] of blades) {
-      ctx.strokeStyle = col;
-      ctx.beginPath();
-      ctx.moveTo(x, s);
-      ctx.quadraticCurveTo(x + (x < s / 2 ? -3 : 3), s * 0.45, x + (x < s / 2 ? -2 : 2), 3);
-      ctx.stroke();
-    }
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
-}
-
-// Tiny seeded LCG so the scatter is STABLE across frames/reloads (never reshuffles).
-function lcg(seed: number): () => number {
-  let s = seed >>> 0;
-  return () => (s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff) / 0x7fffffff;
-}
 
 type Tuft = { x: number; z: number; s: number; r: number };
 
@@ -79,21 +42,13 @@ export function GrassRoom({ room }: { room: Room }) {
   const rockMat = useMemo(() => flatMat('#8d8b84'), []);
   const trunkMat = useMemo(() => flatMat('#6b4f32'), []);
   const leafMat = useMemo(() => flatMat('#4f7233'), []);
-  useEffect(
-    () => () => {
-      grassTex.dispose();
-      [grassMat, groundMat, pathMat, toriiMat, rockMat, trunkMat, leafMat].forEach((m) =>
-        m.dispose(),
-      );
-    },
-    [grassTex, grassMat, groundMat, pathMat, toriiMat, rockMat, trunkMat, leafMat],
-  );
+  useDispose(grassTex, grassMat, groundMat, pathMat, toriiMat, rockMat, trunkMat, leafMat);
 
   // Scatter tufts on a jittered grid; keep a clear strip down the entrance path
   // (+Z, x≈0) so you can walk in.
   const tufts = useMemo<Tuft[]>(() => {
     const out: Tuft[] = [];
-    const rnd = lcg(90210);
+    const rnd = seededRandom(90210);
     for (let gx = -W + 1; gx <= W - 1; gx += 1.45) {
       for (let gz = -D + 1; gz <= D - 1; gz += 1.45) {
         const x = gx + (rnd() - 0.5) * 1.0;
@@ -106,7 +61,7 @@ export function GrassRoom({ room }: { room: Room }) {
   }, [W, D]);
 
   const rocks = useMemo(() => {
-    const rnd = lcg(4242);
+    const rnd = seededRandom(4242);
     return Array.from({ length: 7 }, () => ({
       x: (rnd() - 0.5) * (W - 2) * 2,
       z: (rnd() - 0.5) * (D - 4) * 2,
