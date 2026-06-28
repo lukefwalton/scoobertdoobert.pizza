@@ -16,12 +16,7 @@ export type ArcadeGameId =
   | 'slice-breaker'
   | 'jazz-snake'
   | 'pizza-radar'
-  | 'burrito-belt'
-  // A SPECIAL, non-cabinet game: the Grassrooms' ghost kart battle. It uses the
-  // same `arcadeGame` modal grammar but is fought at a parked kart in the world,
-  // so it's deliberately OUT of ARCADE_GAMES — never in the random cabinet roll,
-  // and it needs no standalone /route (see SPECIAL_TITLES).
-  | 'ghost-kart';
+  | 'burrito-belt';
 
 // `slug` is the cabinet's standalone route (no leading slash). It's the id for
 // every cabinet EXCEPT pizza-run, whose route predates the id and lives at
@@ -46,12 +41,6 @@ export const ARCADE_GAMES: readonly ArcadeGame[] = [
 export const rollArcadeGame = (): ArcadeGame =>
   ARCADE_GAMES[Math.floor(Math.random() * ARCADE_GAMES.length)];
 
-// Titles for the SPECIAL (non-cabinet) games — the ones that ride the arcade
-// modal but aren't in the roll/route registry above.
-const SPECIAL_TITLES: Partial<Record<ArcadeGameId, string>> = {
-  'ghost-kart': 'GHOST GRAND PRIX',
-};
-
 /** The display title for a game id (for the modal chrome / announce). */
 export const arcadeGameTitle = (id: ArcadeGameId): string =>
-  ARCADE_GAMES.find((g) => g.id === id)?.title ?? SPECIAL_TITLES[id] ?? 'ARCADE';
+  ARCADE_GAMES.find((g) => g.id === id)?.title ?? 'ARCADE';
