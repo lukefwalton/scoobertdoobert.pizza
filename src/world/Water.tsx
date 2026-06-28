@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useControls } from 'leva';
 import * as THREE from 'three';
 import { PS1_SNAP_GLSL, PS1_DITHER_GLSL } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { OCEAN, FOG_NEAR, FOG_FAR, SEA } from './constants';
 
 // The degraded water. Same simulation idea as the source (a subdivided plane
@@ -98,7 +99,7 @@ export function Water({
       }),
     [base, crest, fog, fogNear, fogFar],
   );
-  useEffect(() => () => material.dispose(), [material]);
+  useDispose(material);
 
   useFrame((state) => {
     material.uniforms.uTime.value = state.clock.elapsedTime;

@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { Water } from './Water';
 import { ArcadeCabinet } from './ArcadeCabinet';
 import { fogFor, type Room } from '../data/rooms';
@@ -67,13 +68,7 @@ export function BoardwalkRoom({ room }: { room: Room }) {
   const pilingMat = useMemo(() => flatMat('#5e3f25'), []);
   const sunMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffdf9c' }), []);
 
-  useEffect(
-    () => () => {
-      sandTex.dispose();
-      plankTex.dispose();
-    },
-    [sandTex, plankTex],
-  );
+  useDispose(sandTex, plankTex);
 
   // pilings marching down into the sea under the deck
   const pilings = useMemo(() => {
