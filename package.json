@@ -64,7 +64,8 @@
     "shoot:cabinet": "node scripts/shoot-cabinet.mjs",
     "shoot:spell": "node scripts/shoot-spell.mjs",
     "shoot:whisper": "node scripts/shoot-whisper.mjs",
-    "shoot:score": "node scripts/shoot-score.mjs"
+    "shoot:score": "node scripts/shoot-score.mjs",
+    "shoot:leaderboard": "node scripts/shoot-leaderboard.mjs"
   },
   "engines": {
     "node": ">=20.19"

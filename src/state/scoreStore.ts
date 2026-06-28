@@ -25,6 +25,9 @@ export type LootAward = {
   combo: number;
   score: number;
   tallness: number;
+  /** True the FIRST time this run's score crosses your record (or 100 for a cold
+   *  player) — the cue to nudge "go sign the leaderboard." Fires once per run. */
+  newBest: boolean;
 };
 
 type ScoreState = {
@@ -40,6 +43,10 @@ type ScoreState = {
   taken: string[];
   /** performance.now() of the last grab (drives the combo window). */
   lastGrabAt: number;
+  /** Your durable best at the START of this run, + whether we've already nudged
+   *  "go sign the board" — so the new-best cue fires exactly once per descent. */
+  startBest: number;
+  nudged: boolean;
   /** Collect a loot drop. IDEMPOTENT per id within a run (returns null if already
    *  taken), so click / walk-over / P / the smoke hook all converge safely. On a
    *  real collect it returns the award so the caller can play the note + announce. */
@@ -59,6 +66,8 @@ export const useScoreStore = create<ScoreState>((set, get) => ({
   tallness: 0,
   taken: [],
   lastGrabAt: 0,
+  startBest: 0,
+  nudged: false,
 
   collectLoot: (id, points, grow) => {
     const s = get();
@@ -68,6 +77,9 @@ export const useScoreStore = create<ScoreState>((set, get) => ({
     const awarded = points * Math.min(combo, MAX_COMBO_MULT);
     const score = s.score + awarded;
     const tallness = Math.min(MAX_TALLNESS, s.tallness + grow);
+    // New-best cue: the first grab this run that beats your record (or clears 100
+    // for a cold player). Fires once — the "go sign the leaderboard" nudge.
+    const newBest = !s.nudged && score > Math.max(s.startBest, 99);
     set({
       taken: [...s.taken, id],
       combo,
@@ -75,18 +87,29 @@ export const useScoreStore = create<ScoreState>((set, get) => ({
       score,
       tallness,
       lastGrabAt: now,
+      nudged: s.nudged || newBest,
     });
     // Drop the visible combo back to 0 if the streak isn't continued in time.
     if (comboTimer) clearTimeout(comboTimer);
     comboTimer = setTimeout(() => set({ combo: 0 }), COMBO_WINDOW_MS);
     // Bank the durable best as we climb (monotonic — only ever rises).
     useProgressStore.getState().recordPizzaScore(score);
-    return { awarded, combo, score, tallness };
+    return { awarded, combo, score, tallness, newBest };
   },
 
   resetRun: () => {
     if (comboTimer) clearTimeout(comboTimer);
-    set({ score: 0, combo: 0, bestCombo: 0, tallness: 0, taken: [], lastGrabAt: 0 });
+    set({
+      score: 0,
+      combo: 0,
+      bestCombo: 0,
+      tallness: 0,
+      taken: [],
+      lastGrabAt: 0,
+      // Capture the record to beat THIS descent, and re-arm the one-time nudge.
+      startBest: useProgressStore.getState().pizzaPointsBest,
+      nudged: false,
+    });
   },
 }));
 
