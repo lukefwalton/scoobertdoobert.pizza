@@ -1,26 +1,14 @@
 // Verifies the directed-play HUD: the always-on objective chip shows your next
 // undone objective, and the compass arrow actually points at the next-hop door
 // (cross-checked against the live camera pose), and tracks as you turn.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 // The same clockwise bearing the app computes (yaw − bearing), in degrees.
 const expectDeg = (tx, tz, hx, hz, yaw) => {
@@ -97,13 +85,9 @@ else {
   await page.screenshot({ path: '.shots/objective.png' });
 }
 
-if (errors.length)
-  bad(`objective: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `objective -> chip=${!!chip} label=${JSON.stringify(label)} arrow=${arrowOk} track=${trackOk} errors=${errors.length}`,
+  `objective -> chip=${!!chip} label=${JSON.stringify(label)} arrow=${arrowOk} track=${trackOk} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} objective check(s) FAILED` : '\nobjective checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nobjective checks passed.', `\n${failures()} objective check(s) FAILED`);

@@ -2,26 +2,14 @@
 // settled, walking up to it shows "Press E to talk", and E opens a dialogue box
 // that nudges you toward your next objective. The rat's knock/reveal itself is
 // covered by shoot:rooms; this focuses on the new TALK interaction.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 const ratPhase = () => page.evaluate(() => window.__sdpRatPhase);
 const holdUntil = async (selector, keys, timeout = 12000) => {
@@ -97,12 +85,9 @@ if (settled) {
   }
 }
 
-if (errors.length) bad(`rat: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `rat -> settled=${settled} talkPrompt=${talkPrompt} dialog=${dialogOpen} nudge=${nudgeShown} errors=${errors.length}`,
+  `rat -> settled=${settled} talkPrompt=${talkPrompt} dialog=${dialogOpen} nudge=${nudgeShown} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} rat check(s) FAILED` : '\nrat checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nrat checks passed.', `\n${failures()} rat check(s) FAILED`);

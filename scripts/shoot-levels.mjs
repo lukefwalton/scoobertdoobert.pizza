@@ -7,19 +7,18 @@
 //
 // Asserts on the quiet `.hud-room` label + the loader's data-loader-state, not on
 // animation timing.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { roomIs as sharedRoomIs, tapLoaderCta, watchPageErrors } from './lib/smoke.mjs';
+import {
+  launchSmoke,
+  roomIs as sharedRoomIs,
+  tapLoaderCta,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { browser, fail, finish, failures } = await launchSmoke();
 
 const roomIs = (page, name, timeout) => sharedRoomIs(page, name, { fail, timeout });
 const overlayGone = (page, timeout = 15000) =>
@@ -192,11 +191,10 @@ let retryRecovered = false;
   await ctx.close();
 }
 
-await browser.close();
 console.log(
   `levels: pool=${inPool} waterfallDown=${waterfallOnDescent} autoEntered=${autoEntered} ` +
     `liminal=${inLiminal} noWaterfallUp=${noWaterfallOnAscent} backToPool=${backToPool} ` +
     `reEnter=${reEnter} errLoader=${errLoader} errBtnFocused=${errBtnFocused} bouncedBack=${bouncedBack} ` +
-    `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${errors}`,
+    `overlayGoneOnAbort=${overlayGoneOnAbort} retryRecovered=${retryRecovered} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

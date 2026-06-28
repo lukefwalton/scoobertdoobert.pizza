@@ -4,26 +4,14 @@
 // a regression guard for that fix. Also pins the collect-tapes hint to the LIVE
 // cassette count (derived from CASSETTE_IDS), so it can't drift back to a frozen
 // number when a `track` item is added.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 // Seed so "collect-tapes" is the FIRST undone objective (earlier ones done, no tapes
 // held) — that chip carries the long, two-row hint that used to collide with toasts.
@@ -117,10 +105,7 @@ else {
   await page.screenshot({ path: '.shots/hud-overlap.png' });
 }
 
-if (errors.length) bad(`hud: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
-console.log(`hud -> count=${countOk} noOverlap=${noOverlap} errors=${errors.length}`);
+console.log(`hud -> count=${countOk} noOverlap=${noOverlap} errors=${failures()}`);
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} hud check(s) FAILED` : '\nhud checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nhud checks passed.', `\n${failures()} hud check(s) FAILED`);

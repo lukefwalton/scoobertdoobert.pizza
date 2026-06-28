@@ -4,26 +4,14 @@
 // in the back hall — the brass key → locked SUPPLY closet → unlock → reward —
 // proving the mechanic generalizes. (Lock-blocks/opens logic is also unit-tested
 // in src/lib/doorTravel.test.ts.)
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 const KEY = 'pool-locker-key';
 const held = () =>
@@ -228,12 +216,9 @@ if (hasHook) {
   }
 }
 
-if (errors.length) bad(`keys: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `keys     -> canvas=${!!canvas} hook=${hasHook} lockedBlocked=${lockedBlocked} pocketed=${pocketed} pockets=${inPocketsList} unlockedViaDoor=${unlockedViaDoor} lockerRoom=${lockerOk} reward=${rewardToast} persisted=${persisted} closetPocketed=${closetPocketed} closet=${closetOk} errors=${errors.length}`,
+  `keys     -> canvas=${!!canvas} hook=${hasHook} lockedBlocked=${lockedBlocked} pocketed=${pocketed} pockets=${inPocketsList} unlockedViaDoor=${unlockedViaDoor} lockerRoom=${lockerOk} reward=${rewardToast} persisted=${persisted} closetPocketed=${closetPocketed} closet=${closetOk} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} keys check(s) FAILED` : '\nkeys checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nkeys checks passed.', `\n${failures()} keys check(s) FAILED`);

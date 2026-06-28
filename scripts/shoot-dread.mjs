@@ -5,18 +5,10 @@
 //     surface and in the shrine relief beat (the contrast is the whole point).
 // Reads the live value off the ?debug DREAD overlay; drives the audio singleton
 // directly via the gated __sdpAudio test hook.
-import { chromium } from 'playwright';
+import { startSmoke } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
+const { page, fail: bad, finish, failures } = await startSmoke();
 
 // ── 1. the limiter guard ────────────────────────────────────────────────────
 await page.goto(base + '/?debug', { waitUntil: 'networkidle' });
@@ -63,9 +55,7 @@ if (!(shrine < 0.1)) bad(`shrine relief beat is not sweet: unease=${shrine}`);
 const metro = await uneaseAt('/?room=metro-tunnel&debug');
 if (!(metro > 0.3 && metro < 0.72)) bad(`metro-tunnel not in the moderate band: unease=${metro}`);
 
-await browser.close();
 console.log(
   `dread -> limiter=${lim.kind} | surface=${surface} classified=${classified} shrine=${shrine} metro=${metro}`,
 );
-console.log(fail ? `\n${fail} dread check(s) FAILED` : '\ndread checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ndread checks passed.', `\n${failures()} dread check(s) FAILED`);

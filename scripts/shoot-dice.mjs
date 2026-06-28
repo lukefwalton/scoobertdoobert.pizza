@@ -4,21 +4,15 @@
 // DICE, and a fixed entry avoids the slow-CI walk-timing flake). Click the die and
 // assert it rolled (1..20) + the jukebox jumped, and force the nat 1 / nat 20 crits
 // through the ?debug hook.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import { launchSmoke, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
+const { browser, fail, finish, failures } = await launchSmoke();
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
 watchPageErrors(page, fail);
 
 // Drop straight into the jukebox via ?room=ID (WorldMount enters that room directly).
@@ -236,8 +230,7 @@ let worldGated = false;
   await wctx.close();
 }
 
-await browser.close();
 console.log(
-  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} worldGated=${worldGated} | errors=${errors}`,
+  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} worldGated=${worldGated} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

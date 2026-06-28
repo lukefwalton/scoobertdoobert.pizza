@@ -8,22 +8,19 @@
 // fires the waterfall overlay).
 //
 // Asserts on the `.hud-room` label + the `__sdpMobius` lap hook, not on timing.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { makeLoaderHelpers, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  makeLoaderHelpers,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 const BREAK = 3; // MOBIUS_BREAK in src/data/rooms.ts
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -140,10 +137,9 @@ if (lapsCounted) {
   }
 }
 
-await browser.close();
 console.log(
   `mobius: pool=${inPool} corridor=${inCorridor} freshReset=${lapsFresh === 0} ` +
     `looped=${looped}/${BREAK} stayedInLoop=${stayedInLoop} broke=${lapsCounted} ` +
-    `descended=${descended} arrived=${arrived} | errors=${errors}`,
+    `descended=${descended} arrived=${arrived} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

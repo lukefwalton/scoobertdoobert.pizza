@@ -5,26 +5,14 @@
 //   • the score + combo chips render on the HUD;
 //   • a re-grab is idempotent (no double-collect);
 //   • the best persists to the progress spine (localStorage).
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 const score = () => page.evaluate(() => window.__sdpScore?.() ?? null);
 
@@ -117,14 +105,11 @@ if (hooksReady) {
   }
 }
 
-if (errors.length) bad(`score: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
   `score -> hooks=${hooksReady} loot=${ids.length} combo=${comboOk} multiplied=${multiplied} ` +
     `grew=${grew} hudPts=${hudPts} hudCombo=${hudCombo} idempotent=${idempotent} persisted=${persisted} ` +
-    `errors=${errors.length}`,
+    `errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} score check(s) FAILED` : '\nscore checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nscore checks passed.', `\n${failures()} score check(s) FAILED`);

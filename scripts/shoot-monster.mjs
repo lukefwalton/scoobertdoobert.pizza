@@ -3,21 +3,13 @@
 // Each loss grows it; enough losses and it's TOO BIG TO MOVE (maxed) — a
 // room-filling lump, never a fail state. Asserts the grow→cap path via the
 // `__sdpMonster` hook (losses climb, scale caps, maxed flips), not on visuals.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import { roomIs as sharedRoomIs, startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -121,10 +113,9 @@ const greeting = await page.evaluate(
 const ratClocks = greeting.includes('dice');
 if (!ratClocks) fail(`rat greeting didn't clock the dice-monster win (got: ${greeting})`);
 
-await browser.close();
 console.log(
   `monster: shop=${startShop} pit=${inPit} startedSmall=${startedSmall} grew=${grew} ` +
     `won=${won} maxed=${maxed} monotonic=${monotonic} capped=${cappedScale} left=${left} ` +
-    `secret=${secretSaved} ratClocks=${ratClocks} | errors=${errors}`,
+    `secret=${secretSaved} ratClocks=${ratClocks} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

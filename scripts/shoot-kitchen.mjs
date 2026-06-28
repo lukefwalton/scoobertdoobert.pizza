@@ -6,22 +6,18 @@
 // HUD names it, the arrival is clean (no prompt flash), and the rack of tuned
 // PIZZA PANS — the reused in-world instrument, the site's thesis at its source —
 // both mounted (its strike hook only exists once the rack rendered) and rings.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  holdUntilDoorPrompt,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
 watchPageErrors(page, bad);
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail: bad, timeout });
 const noPromptNow = async (where) => {
@@ -89,10 +85,8 @@ const backInShop = await roomIs('Beach Pizza Shop');
 await noPromptNow('shop (from kitchen)');
 
 console.log(
-  `kitchen  -> shop=${startShop} kitchen=${inKitchen} pan=${panOk} back=${backInShop} errors=${fail}`,
+  `kitchen  -> shop=${startShop} kitchen=${inKitchen} pan=${panOk} back=${backInShop} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} kitchen check(s) FAILED` : '\nkitchen checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nkitchen checks passed.', `\n${failures()} kitchen check(s) FAILED`);

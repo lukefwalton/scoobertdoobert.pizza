@@ -4,19 +4,14 @@
 // tiers correctly (and that a cold visitor gets NO wink at all). The wink is a
 // post-hydration enhancement, so it must never appear with JS off / on a cold
 // first load.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 const KEY = 'sdp_progress_v1';
 
-const browser = await chromium.launch();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { browser, fail, finish, failures } = await launchSmoke();
 
 // Load the storefront with a seeded progress blob; return the rat-greeting text
 // (or null if there's no wink). seed=null means a cold visitor (no localStorage).
@@ -78,10 +73,9 @@ for (const c of cases) {
   if (!ok) fail(`"${c.label}" greeting missing "${c.needle}" (got: ${text})`);
 }
 
-await browser.close();
 console.log(
   `persistence: coldNoWink=${cold === null} ` +
     cases.map((c) => `${c.label.replace(/\s+/g, '_')}=${results[c.label]}`).join(' ') +
-    ` | errors=${errors}`,
+    ` | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();
