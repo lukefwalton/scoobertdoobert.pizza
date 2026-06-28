@@ -4,6 +4,7 @@
 
 .tl {
   min-height: 100vh;
+  min-height: 100dvh;
   background: #b9c0c9 linear-gradient(180deg, #cdd4dc 0%, #aab2bd 100%);
   color: #11203a;
   font-family: Verdana, Geneva, Arial, sans-serif;

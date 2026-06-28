@@ -7,6 +7,7 @@
 
 .chimes-page {
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 12px 12px 28px;
   background: #04040a;
@@ -110,7 +111,11 @@
 
 .chimes-btn {
   appearance: none;
-  min-width: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px; /* finger-sized tap target (WCAG 2.5.5) */
   padding: 5px 9px;
   font:
     bold 13px 'Courier New',

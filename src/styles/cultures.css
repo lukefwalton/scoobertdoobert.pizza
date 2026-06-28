@@ -6,6 +6,7 @@
 
 .cultures-page {
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   padding: 12px 12px 28px;
   background: #04040a;
@@ -103,8 +104,12 @@
 
 .cultures-btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   align-self: flex-start;
   min-width: 64px;
+  min-height: 44px; /* finger-sized tap target (WCAG 2.5.5) */
   padding: 6px 12px;
   font:
     bold 13px 'Courier New',

@@ -5,6 +5,7 @@
 .mr {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background: radial-gradient(ellipse at 50% 0%, #0a1030 0%, #04030f 60%, #000 100%);
   color: #cfe0ff;
