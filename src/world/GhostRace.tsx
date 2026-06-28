@@ -6,7 +6,13 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { useRaceStore, RACE_GATES, nextGateOf, type RacePhase } from '../state/raceStore';
+import {
+  useRaceStore,
+  RACE_GATES,
+  nextGateOf,
+  continuousProgress,
+  type RacePhase,
+} from '../state/raceStore';
 
 // ───────────────────────────────────────────────────────────────────────────
 // GhostRace — the Grassrooms' 3D lap race (ゴーストレース). You race a floating
@@ -228,8 +234,8 @@ export function GhostRace() {
         // truthful standing: CONTINUOUS progress = gates passed + fraction of the
         // way to the next gate, so the HUD's 1st/2nd is honest mid-segment instead
         // of a gate-count tie. (Ties favor the player — see raceStore.finish.)
-        const contP = r.playerProgress + (1 - Math.min(1, pd / SEG));
-        const contG = r.ghostProgress + (1 - Math.min(1, gd / SEG));
+        const contP = continuousProgress(r.playerProgress, pd, SEG);
+        const contG = continuousProgress(r.ghostProgress, gd, SEG);
         r.setPlayerAhead(contP >= contG);
       } else {
         // idle / won / lost: drift the ghost gently back to the start line.

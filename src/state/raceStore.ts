@@ -126,3 +126,11 @@ export const lapOf = (progress: number): number =>
 
 /** The index of the gate a racer must cross next (they START at gate 0). */
 export const nextGateOf = (progress: number): number => (progress + 1) % RACE_GATES;
+
+/** A racer's CONTINUOUS progress: gates passed + how far (0..1) along the current
+ *  segment toward the next gate, so the standing is honest mid-segment (not a
+ *  gate-count tie). `seg` is the inter-gate chord length; `distToNext` the racer's
+ *  distance to its next gate. Pure (unit-tested) — GhostRace feeds it live
+ *  positions to set `playerAhead`. */
+export const continuousProgress = (progress: number, distToNext: number, seg: number): number =>
+  progress + (1 - Math.min(1, Math.max(0, distToNext / Math.max(1e-6, seg))));

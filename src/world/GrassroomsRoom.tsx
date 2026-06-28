@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { flatMat } from './ps1';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useSceneStore } from '../state/sceneStore';
 import { GhostRace } from './GhostRace';
 import { type Room } from '../data/rooms';
 
@@ -238,6 +239,10 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     audio.playColony(noteToFreq('A', 2), 0, 0.05); // the breeze, straight away
   }, []);
   useFrame((_, delta) => {
+    // Freeze the ambient scheduler under the pause menu / a room wipe, like
+    // GhostRace — don't keep scheduling chimes while the world is paused.
+    const sc = useSceneStore.getState();
+    if (sc.paused || sc.transitioning) return;
     const dt = Math.min(delta, 0.05);
     wind.current -= dt;
     if (wind.current <= 0) {
