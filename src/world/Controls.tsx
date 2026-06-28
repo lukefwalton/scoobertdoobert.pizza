@@ -3,10 +3,10 @@ import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
-import { useLevelStore } from '../state/levelStore';
 import { useHeadingStore } from '../state/headingStore';
-import { useRhythmStore } from '../state/rhythmStore';
+import { useScoreStore } from '../state/scoreStore';
 import { isTestEntrance } from '../lib/testHooks';
+import { inputFrozen } from './inputFrozen';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
@@ -16,34 +16,6 @@ const EXPOSE_CAM = isTestEntrance();
 const BASE_FOV = 72;
 const REDUCED =
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-// True when a modal overlay (pause / hotspot dialog), a room transition, or a
-// GLB level loader should freeze input. `transitioning` covers the WHOLE door
-// wipe (fade-out + commit + fade-in). For a GLB room we freeze until the level is
-// `ready` (GlbRoom has mounted + is rendering) — which is exactly when the loading
-// panel clears and the level auto-enters — so WASD/look can't drift the camera
-// behind the loader. Gating on `ready` (owned race-free by GlbRoom's mount/unmount)
-// rather than a separate `entered` flag avoids a GLB→GLB reset race that could
-// strand input frozen forever. A failed load keeps `ready` false, so a broken room
-// stays frozen under its TURN BACK overlay.
-function inputFrozen(): boolean {
-  const st = useSceneStore.getState();
-  // `divingTo` is the painting-dive ripple window (DIVE_MS before the room wipe) —
-  // freeze it like a transition so WASD/look can't drift the camera mid-swallow.
-  if (
-    st.paused ||
-    st.openHotspot !== null ||
-    st.openNpc !== null ||
-    st.transitioning ||
-    st.tvVideo !== null ||
-    st.divingTo !== null ||
-    useRhythmStore.getState().active
-  )
-    return true;
-  const room = roomById(st.currentRoom);
-  if (room.glb && !useLevelStore.getState().ready) return true;
-  return false;
-}
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
 // never traps the cursor and works for screenshots + menus), WASD / arrows to
@@ -170,7 +142,10 @@ export function Controls() {
     const d = dims.current;
     camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
-    camera.position.y = d.eye;
+    // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
+    // clamped under THIS room's ceiling so you never poke through the roof.
+    const grow = Math.min(useScoreStore.getState().tallness, Math.max(0, d.height - d.eye - 0.4));
+    camera.position.y = d.eye + grow;
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

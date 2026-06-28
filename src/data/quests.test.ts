@@ -14,6 +14,7 @@ const COLD: Progress = {
   clearedGames: [],
   arcadeHigh: 0,
   arcadeHighs: {},
+  pizzaPointsBest: 0,
   radioUnlocked: false,
   luckEarned: 0,
   luckSpent: 0,

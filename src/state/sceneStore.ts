@@ -66,6 +66,11 @@ type SceneState = {
     albumSlug?: string;
     requiresKey?: string;
   } | null;
+  /** the collectible the camera is near (its id + how it reads + which collector
+   *  owns it), or null — drives the "Press P to grab …" prompt + the P action.
+   *  `kind` routes the grab: an items.ts inventory item vs a loot drop. Walk closer
+   *  still auto-grabs; this is the prompt/keyboard path. Set by PickupController. */
+  nearPickup: { id: string; label: string; glyph: string; kind: 'item' | 'loot' } | null;
   /** the room TV the camera is standing in front of (its already-resolved clip), or
    *  null — drives the "Press E to switch on the TV" prompt + the E action (openTv).
    *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
@@ -172,6 +177,9 @@ type SceneState = {
       requiresKey?: string;
     } | null,
   ) => void;
+  setNearPickup: (
+    pickup: { id: string; label: string; glyph: string; kind: 'item' | 'loot' } | null,
+  ) => void;
   setNearTv: (video: TvVideo | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
@@ -208,6 +216,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   queuedRoom: null,
   transitioning: false,
   nearDoor: null,
+  nearPickup: null,
   nearTv: null,
   nearEntity: null,
   objectiveHudOn: true,
@@ -253,6 +262,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
+      nearPickup: null,
       nearTv: null,
       nearEntity: null,
       nearNpc: null,
@@ -274,6 +284,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openHotspot: null,
       nearHotspot: null,
       nearDoor: null,
+      nearPickup: null,
       nearTv: null,
       nearEntity: null,
       nearNpc: null,
@@ -330,6 +341,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         transitioning: true,
         queuedRoom: null,
         nearDoor: null,
+        nearPickup: null,
         nearHotspot: null,
         nearTv: null,
         nearEntity: null,
@@ -354,6 +366,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       return {
         divingTo: to,
         nearDoor: null,
+        nearPickup: null,
         nearHotspot: null,
         nearTv: null,
         nearEntity: null,
@@ -376,6 +389,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
+  setNearPickup: (pickup) => set({ nearPickup: pickup }),
   setNearTv: (video) => set({ nearTv: video }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
