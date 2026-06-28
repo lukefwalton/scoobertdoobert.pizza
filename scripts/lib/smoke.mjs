@@ -1,3 +1,5 @@
+import { chromium } from 'playwright';
+
 // Shared Playwright smoke helpers for the GLB level-loader flow (LevelLoader).
 //
 // The error-path smoke (levels) taps TURN BACK to bounce out of a failed GLB
@@ -104,6 +106,48 @@ export function watchPageErrors(page, onError) {
   page.on('console', (m) => {
     if (m.type() === 'error') onError(`console: ${m.text()}`);
   });
+}
+
+// ── Harness scaffold ─────────────────────────────────────────────────────────
+// Every shoot:* smoke repeated the same launch / context / page / fail-counter /
+// process.exit boilerplate. These two factories own it: launchSmoke() for the
+// multi-context smokes (e.g. storefront desktop + JS-off + mobile), startSmoke()
+// for the common single-context case. Error-watching stays OPT-IN — call
+// watchPageErrors(page, fail) yourself — because smokes differ on whether a
+// console.error should fail the run.
+
+// Launch Chromium with a shared fail counter + teardown. `fail(msg)` logs and
+// counts; `finish(ok, bad)` prints the matching summary (both args optional — pass
+// neither if the script already logged its own summary line), closes the browser,
+// and exits non-zero iff anything failed. `failures()` reads the live count.
+export async function launchSmoke() {
+  const browser = await chromium.launch();
+  let failed = 0;
+  const fail = (msg) => {
+    failed++;
+    console.log('FAIL:', msg);
+  };
+  const finish = async (ok, bad) => {
+    if (failed) {
+      if (bad) console.error(bad);
+    } else if (ok) {
+      console.log(ok);
+    }
+    await browser.close();
+    process.exit(failed ? 1 : 0);
+  };
+  return { browser, fail, finish, failures: () => failed };
+}
+
+// The common case: launchSmoke() + one context + its page. The default viewport is
+// a 1280×800 desktop; override or extend via `opts` (it spreads into newContext) —
+// e.g. { javaScriptEnabled: false } for the JS-off pass, or a mobile
+// { isMobile, hasTouch, deviceScaleFactor } for a phone viewport.
+export async function startSmoke(opts = {}) {
+  const h = await launchSmoke();
+  const ctx = await h.browser.newContext({ viewport: { width: 1280, height: 800 }, ...opts });
+  const page = await ctx.newPage();
+  return { ...h, ctx, page };
 }
 
 export function makeLoaderHelpers(page, fail) {
