@@ -7,18 +7,13 @@
 //     GRACEFULLY when /api/score is absent (offline notices, never a thrown error);
 //   • the initials entry + ADD button work and report the offline state;
 //   • the same board is wired into the in-world pause menu.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // ── 1. JS-OFF: a real crawlable document ─────────────────────────────────────
 const noJs = await browser.newContext({ javaScriptEnabled: false });
@@ -132,6 +127,4 @@ console.log(
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} leaderboard check(s) FAILED` : '\nleaderboard checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nleaderboard checks passed.', `\n${failures()} leaderboard check(s) FAILED`);

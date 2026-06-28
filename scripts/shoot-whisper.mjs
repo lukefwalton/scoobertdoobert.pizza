@@ -3,24 +3,13 @@
 // always succeeds (deterministic), so this pins the wiring: the right whisper for
 // the room, exposed on __sdpWhisper, and a sweet info toast — without depending on
 // the random d20. Also checks a whisper-less room (the safe shop) stays quiet.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { watchPageErrors } from './lib/smoke.mjs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const bad = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail: bad, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, bad);
 
 // ?room=california drops straight into a whisper room; &debug forces the check to
@@ -60,8 +49,7 @@ const shopWhispered = await page.evaluate(() => window.__sdpWhisper?.room === 's
 if (shopWhispered) bad('whisper: the safe shop should have nothing to notice, but it whispered');
 
 await ctx.close();
-await browser.close();
 console.log(
-  `whisper: california=${whispered} toast=${toast} shopQuiet=${!shopWhispered} | errors=${errors}`,
+  `whisper: california=${whispered} toast=${toast} shopQuiet=${!shopWhispered} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

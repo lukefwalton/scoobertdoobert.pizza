@@ -3,9 +3,8 @@
 // press E, and assert a game modal opened with a valid rolled game id. Then Esc and
 // assert it closed. Asserts on the prompt + modal + __sdpArcade hook, not on pixels.
 // (Distinct from shoot:arcade, which covers the 2D /arcade page.)
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { watchPageErrors } from './lib/smoke.mjs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 // Fallback only — the smoke prefers the live __sdpArcadeIds the app exposes.
@@ -20,14 +19,7 @@ const GAMES = [
 ];
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
@@ -143,9 +135,8 @@ if (prompted) {
   }
 }
 
-await browser.close();
 console.log(
   `cabinet: reached=${reached} prompted=${prompted} opened=${opened} rolledOk=${rolledOk} ` +
-    `baseline=${baselineQuiet} ducked=${duckedForGame} restored=${restoredAfterGame} closed=${closed} | errors=${errors}`,
+    `baseline=${baselineQuiet} ducked=${duckedForGame} restored=${restoredAfterGame} closed=${closed} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

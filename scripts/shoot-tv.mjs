@@ -4,21 +4,13 @@
 // closes it. Mirrors how doors/hotspots are reached, so a keyboard-only player can
 // switch the TV on. (The video content is also in the pause-menu videos dialog; this
 // is the in-world affordance.)
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import { roomIs as sharedRoomIs, startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -113,10 +105,9 @@ if (closed) {
   if (!musicRestored) fail('the radio did not restore after the TV video closed');
 }
 
-await browser.close();
 console.log(
   `tv: frutiger=${inFrutiger} noPromptAtSpawn=${noPromptAtSpawn} prompted=${prompted} ` +
     `modalOpen=${modalOpen} albumTitled=${titledForAlbum} escClosed=${closed} ` +
-    `ducked=${duckedForVideo} restored=${musicRestored} | errors=${errors}`,
+    `ducked=${duckedForVideo} restored=${musicRestored} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

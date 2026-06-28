@@ -5,7 +5,7 @@
 //      at one of the DEEP back rooms — never the safe surface.
 //   2. It's a desktop-only progressive enhancement: ABSENT on mobile, and ABSENT
 //      from the crawlable / JS-off HTML (so the dead-plain front door is intact).
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
@@ -16,12 +16,7 @@ mkdirSync('.shots', { recursive: true });
 // never be a landing.
 const DEEP_TITLES = ['Classified', 'The Back Room', 'The Long Corridor', 'Liminal Space'];
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // --- 1. JS-OFF: the seam must NOT be in the crawlable HTML ---
 {
@@ -84,6 +79,4 @@ const bad = (m) => {
   await ctx.close();
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} trapdoor check(s) FAILED` : '\ntrapdoor checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ntrapdoor checks passed.', `\n${failures()} trapdoor check(s) FAILED`);

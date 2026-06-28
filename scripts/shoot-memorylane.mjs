@@ -5,24 +5,18 @@
 // holds). Proves the new rooms mount, the CRT props don't crash the scene, the doors
 // wire both ways with no spawn-prompt flash, and each room takes over the loop voice
 // with its own song (Room.song).
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  holdUntilDoorPrompt,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -116,10 +110,9 @@ await page.keyboard.press('e');
 const backClassified = await roomIs('Classified');
 
 await ctx.close();
-await browser.close();
 console.log(
   `memorylane: bootReady=${bootReady} memorylane=${inMemoryLane} laneSong=${laneSong} ` +
     `internet=${inInternet} internetSong=${internetSong} backLane=${backLane} ` +
-    `laneResumes=${laneResumes} backClassified=${backClassified} | errors=${errors}`,
+    `laneResumes=${laneResumes} backClassified=${backClassified} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

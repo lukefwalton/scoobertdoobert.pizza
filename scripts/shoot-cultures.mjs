@@ -4,18 +4,13 @@
 //   2. The arcade page links to /cultures (the cabinet is discoverable).
 //   3. JS ON: the canvas mounts, the colony sim runs, and dragging across the
 //      glass herds the cells together so they breed notes — all without throwing.
-import { chromium } from 'playwright';
+import { launchSmoke, watchPageErrors } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // --- 1. JS-OFF crawlable shell ---
 {
@@ -52,11 +47,7 @@ const bad = (m) => {
     hasTouch: true,
   });
   const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
-  });
+  watchPageErrors(page, bad);
   await page.goto(base + '/cultures?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page
@@ -117,13 +108,10 @@ const bad = (m) => {
     if (!(gainMuted != null && gainMuted < 0.1))
       bad(`JS: colony did not mute — master gain ${gainMuted} (drone bed still audible)`);
   }
-  if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(
-    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} gain=${gainLive}->${gainMuted} errors=${errors.length}`,
+    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} gain=${gainLive}->${gainMuted} errors=${failures()}`,
   );
   await ctx.close();
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} cultures check(s) FAILED` : '\ncultures checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ncultures checks passed.', `\n${failures()} cultures check(s) FAILED`);

@@ -11,9 +11,9 @@
 // WebCodecs ImageDecoder is disabled — we still get Chromium to validate EVERY later
 // frame by rewrapping that frame's VERBATIM bytes as a standalone single-frame GIF
 // and decoding THAT. Real browser, real per-frame bytes, no animation timing.
-import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { lzwDecode } from './lib/gif89a.mjs';
+import { startSmoke } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 
@@ -121,13 +121,7 @@ async function decodeInBrowser(page, src) {
   }, src);
 }
 
-const browser = await chromium.launch();
-const page = await browser.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { page, fail, finish, failures } = await startSmoke();
 await page.goto(base, { waitUntil: 'commit' });
 
 for (const g of GIFS) {
@@ -188,6 +182,5 @@ for (const g of GIFS) {
   );
 }
 
-await browser.close();
-console.log(`gifs: checked ${GIFS.length} | errors=${errors}`);
-process.exit(errors ? 1 : 0);
+console.log(`gifs: checked ${GIFS.length} | errors=${failures()}`);
+await finish();

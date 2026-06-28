@@ -3,18 +3,13 @@
 //      with NO live canvas (the instrument is a post-hydration enhancement).
 //   2. The arcade page links to /poke (the cabinet is discoverable).
 //   3. JS ON: the warp canvas mounts and a drag distorts it without throwing.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 // --- 1. JS-OFF crawlable shell ---
 {
@@ -57,8 +52,7 @@ const bad = (m) => {
     hasTouch: true,
   });
   const page = await ctx.newPage();
-  const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
   await page.goto(base + '/poke?debug=1', { waitUntil: 'networkidle' });
 
   const canvas = await page.waitForSelector('.poke-canvas', { timeout: 8000 }).catch(() => null);
@@ -111,13 +105,10 @@ const bad = (m) => {
         `JS: face did not spring back after release (stayed ${stayStretch.toFixed(1)} -> released ${releasedStretch.toFixed(1)}px)`,
       );
   }
-  if (errors.length) bad(`JS: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
   console.log(
-    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${errors.length}`,
+    `play     -> canvas=${!!canvas} held=${heldStretch.toFixed(1)} stay=${stayStretch.toFixed(1)} released=${releasedStretch.toFixed(1)} errors=${failures()}`,
   );
   await ctx.close();
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} poke check(s) FAILED` : '\npoke checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\npoke checks passed.', `\n${failures()} poke check(s) FAILED`);

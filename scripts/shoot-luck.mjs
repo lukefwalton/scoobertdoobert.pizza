@@ -2,26 +2,14 @@
 // luck, a toast announces it, and the pause menu shows the stat. (The d20 itself —
 // luck-biased rolls + nat20/crit-fail 3× — is unit-tested in src/lib/luck.test.ts;
 // this covers the in-world earn + display path.)
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 // ?room=shrine drops into the shrine; &debug=1 exposes the clap test hook.
 await page.goto(base + '/?room=shrine&debug=1', { waitUntil: 'networkidle' });
@@ -92,12 +80,9 @@ if (hasHook) {
     bad(`luck: pause menu shows ${JSON.stringify(pauseLuck)}, expected ${luckAfter} (stored)`);
 }
 
-if (errors.length) bad(`luck: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} repeat=${luckRepeat} pauseLuck=${JSON.stringify(pauseLuck)} errors=${errors.length}`,
+  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} repeat=${luckRepeat} pauseLuck=${JSON.stringify(pauseLuck)} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} luck check(s) FAILED` : '\nluck checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nluck checks passed.', `\n${failures()} luck check(s) FAILED`);

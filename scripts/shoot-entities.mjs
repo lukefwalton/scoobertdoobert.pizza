@@ -2,26 +2,14 @@
 // when the player comes near it transitions wander → approach → DANCE (never
 // anything threatening). Uses the per-entity phase hook (gated to the test
 // entrances) since the creatures roam, so a pixel check would be flaky.
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-const page = await ctx.newPage();
-const errors = [];
-page.on('pageerror', (e) => errors.push(e.message));
-page.on('console', (m) => {
-  if (m.type() === 'error') errors.push(m.text());
-});
+const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+watchPageErrors(page, bad);
 
 // ?room=liminal drops into the GLB liminal level (lighter fog than the deeper
 // levels); &debug=1 exposes the per-entity phase hook.
@@ -135,13 +123,9 @@ if (hasEntity) {
   }
 }
 
-if (errors.length)
-  bad(`entities: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
-  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} prompt=${dancePrompt} rhythm=${rhythmStarted} reward=${danceReward} recorded=${danceRecorded} errors=${errors.length}`,
+  `entities -> hook=${hasEntity} approach=${sawApproach} dance=${sawDance} prompt=${dancePrompt} rhythm=${rhythmStarted} reward=${danceReward} recorded=${danceRecorded} errors=${failures()}`,
 );
 
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} entities check(s) FAILED` : '\nentities checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nentities checks passed.', `\n${failures()} entities check(s) FAILED`);

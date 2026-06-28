@@ -5,7 +5,7 @@
 // so a human can eyeball contrast/layout. The 3D world is gated off mobile by
 // design, so it's not audited here; these are the crawlable pages + the mobile
 // arcade (the actual mobile reward).
-import { chromium } from 'playwright';
+import { startSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
@@ -30,25 +30,22 @@ const ROUTES = [
   '/cultures',
 ];
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (m) => {
-  fail++;
-  console.log('FAIL:', m);
-};
-
-const ctx = await browser.newContext({
+const {
+  ctx,
+  page,
+  fail: bad,
+  finish,
+  failures,
+} = await startSmoke({
   viewport: { width: 390, height: 844 },
   isMobile: true,
   hasTouch: true,
   deviceScaleFactor: 2,
 });
-const page = await ctx.newPage();
-const errors = [];
 let currentRoute = '(init)';
 // Tag each page error with the route it fired on, so a failure points straight at
 // the broken surface instead of a context-free message at the end.
-page.on('pageerror', (e) => errors.push(`${currentRoute}: ${e.message}`));
+page.on('pageerror', (e) => bad(`${currentRoute}: ${e.message}`));
 
 for (const route of ROUTES) {
   currentRoute = route;
@@ -106,9 +103,5 @@ for (const route of ROUTES) {
   );
 }
 
-if (errors.length) bad(`mobile: ${errors.length} page error(s): ${errors.slice(0, 3).join(' | ')}`);
-
 await ctx.close();
-await browser.close();
-console.log(fail ? `\n${fail} mobile check(s) FAILED` : '\nmobile checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\nmobile checks passed.', `\n${failures()} mobile check(s) FAILED`);

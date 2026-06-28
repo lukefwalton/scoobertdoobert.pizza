@@ -6,24 +6,18 @@
 // scene, the doors wire both ways with no spawn-prompt flash, each room takes its
 // song (Room.song), AND the "too many beers → blurry" gag fires (via __sdpDrinkBeer
 // / __sdpTipsy debug hooks).
-import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
-import { holdUntilDoorPrompt, roomIs as sharedRoomIs, watchPageErrors } from './lib/smoke.mjs';
+import {
+  holdUntilDoorPrompt,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const browser = await chromium.launch();
-const ctx = await browser.newContext({
-  viewport: { width: 1280, height: 800 },
-  deviceScaleFactor: 1,
-});
-const page = await ctx.newPage();
-let errors = 0;
-const fail = (m) => {
-  errors++;
-  console.log('FAIL:', m);
-};
+const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, fail);
 
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail, timeout });
@@ -139,10 +133,9 @@ await page.keyboard.press('e');
 const backCal = await roomIs('I Live in California');
 
 await ctx.close();
-await browser.close();
 console.log(
   `sandiego: bootReady=${bootReady} zoo=${inZoo} zooSong=${zooSong} northpark=${inNP} ` +
     `npSong=${npSong} tipsy=${gotTipsy} backZoo=${backZoo} zooResumes=${zooResumes} ` +
-    `backCal=${backCal} | errors=${errors}`,
+    `backCal=${backCal} | errors=${failures()}`,
 );
-process.exit(errors ? 1 : 0);
+await finish();

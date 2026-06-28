@@ -6,7 +6,7 @@
 //   2. JS ON: the live game mounts a <canvas>, STARTS on a tap (the title overlay
 //      clears), runs without a page error, and its PER-CABINET high score
 //      (progress.arcadeHighs[id]) persists across a reload + displays in the HUD.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
@@ -71,12 +71,7 @@ const GAMES = [
   },
 ];
 
-const browser = await chromium.launch();
-let fail = 0;
-const bad = (msg) => {
-  fail++;
-  console.log('FAIL:', msg);
-};
+const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 for (const g of GAMES) {
   // --- 1. JS-DISABLED: a real prerendered page, no canvas ---
@@ -121,8 +116,7 @@ for (const g of GAMES) {
       hasTouch: true,
     });
     const page = await ctx.newPage();
-    const errs = [];
-    page.on('pageerror', (e) => errs.push(String(e)));
+    page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
     await page.goto(`${base}/${g.slug}?debug=1`, { waitUntil: 'networkidle' });
 
     const canvas = await page.$('.arcade-canvas');
@@ -138,7 +132,6 @@ for (const g of GAMES) {
         .catch(() => '');
       const started = !/TAP TO START|TAP TO LAUNCH|TAP \/ SWIPE/i.test(overlayText);
       if (!started) bad(`${g.slug} JS: tapping the screen did not start the game`);
-      if (errs.length) bad(`${g.slug} JS: page error -> ${errs[0]?.slice(0, 80)}`);
 
       // Touch-hold parity: the held pad controls (PizzaRadar ◀/▶, BurritoBelt
       // soft-drop) set an internal flag on pointerdown and clear it on pointerup —
@@ -300,7 +293,7 @@ for (const g of GAMES) {
       if (!hud.includes('777'))
         bad(`${g.slug} JS: high score 777 did not persist -> ${hud.trim()}`);
       console.log(
-        `${g.slug} JS    -> canvas=${!!canvas} started=${started} errors=${errs.length} hi="${hud.trim()}"`,
+        `${g.slug} JS    -> canvas=${!!canvas} started=${started} errors=${failures()} hi="${hud.trim()}"`,
       );
       await page.screenshot({ path: `.shots/game-${g.slug}.png` });
     }
@@ -308,6 +301,4 @@ for (const g of GAMES) {
   }
 }
 
-await browser.close();
-console.log(fail ? `\n${fail} games check(s) FAILED` : '\ngames checks passed.');
-process.exit(fail ? 1 : 0);
+await finish('\ngames checks passed.', `\n${failures()} games check(s) FAILED`);
