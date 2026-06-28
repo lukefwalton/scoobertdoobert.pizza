@@ -141,7 +141,12 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     [signTex],
   );
   // Unlit flat white for the office bones — overexposed, like the reference photo.
-  const wallMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#eef1ec' }), []);
+  // DoubleSide so the +Z / +X perimeter walls (single planes whose normals face
+  // OUT of the room) aren't back-face culled to nothing from the inside.
+  const wallMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: '#eef1ec', side: THREE.DoubleSide }),
+    [],
+  );
   const ceilMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e8ebe4' }), []);
   // The sky through the broken ceiling — bright, impossible blue + soft clouds.
   const skyMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#4aa6ff' }), []);

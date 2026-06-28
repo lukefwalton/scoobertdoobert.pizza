@@ -7,13 +7,15 @@ import { useRaceStore, RACE_LAPS, lapOf } from '../state/raceStore';
 // Renders nothing when idle, so it's free off the race. WCAG-safe: the countdown
 // is a scale-pop per number (keyed remount), never a flash/strobe.
 // ───────────────────────────────────────────────────────────────────────────
-export function RaceHud() {
+export function RaceHud({ hidden }: { hidden?: boolean }) {
   const phase = useRaceStore((s) => s.phase);
   const countdown = useRaceStore((s) => s.countdown);
   const playerProgress = useRaceStore((s) => s.playerProgress);
   const ghostProgress = useRaceStore((s) => s.ghostProgress);
 
-  if (phase === 'idle') return null;
+  // Gate it like the other HUDs (ScoreHud/ObjectiveHud): off under the pause menu
+  // / a room wipe / a dialog / a modal overlay, so it never sits over a menu.
+  if (hidden || phase === 'idle') return null;
 
   if (phase === 'countdown') {
     return (

@@ -65,28 +65,40 @@ if (!lapText || !/LAP\s*1\//.test(lapText))
   bad(`grassrooms: race LAP HUD missing/wrong (got ${JSON.stringify(lapText)})`);
 await page.screenshot({ path: '.shots/grassrooms-race.png' });
 
-// Force a WIN → 'won', and the clear is recorded in the durable progress store.
+// Snapshot the durable luck BEFORE the win so we can prove the reward DELTA, not
+// just that the clear is present (a fresh context starts clean, but assert the
+// delta so a regression in the first-win reward path can't slip through).
+const readProgress = () =>
+  page.evaluate(() => {
+    try {
+      return JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
+    } catch {
+      return {};
+    }
+  });
+const luckBefore = (await readProgress()).luckEarned || 0;
+
+// Force a WIN → 'won', and the clear + the +3 luck reward land in the store.
 await page.evaluate(() => window.__sdpRaceForce && window.__sdpRaceForce('you'));
 await page.waitForTimeout(300);
 const won = await page.evaluate(() => window.__sdpRaceState && window.__sdpRaceState());
 if (won?.phase !== 'won')
   bad(`grassrooms: after force-win, phase is ${JSON.stringify(won?.phase)}, expected "won"`);
-const cleared = await page.evaluate(() => {
-  try {
-    const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
-    return Array.isArray(p.clearedGames) && p.clearedGames.includes('ghost-race');
-  } catch {
-    return false;
-  }
-});
+const after = await readProgress();
+const cleared = Array.isArray(after.clearedGames) && after.clearedGames.includes('ghost-race');
 if (!cleared) bad('grassrooms: winning the ghost race did not record the clear');
+const luckAfter = after.luckEarned || 0;
+if (luckAfter !== luckBefore + 3)
+  bad(
+    `grassrooms: first ghost-race win should grant +3 luck (before ${luckBefore}, after ${luckAfter})`,
+  );
 
 // Any uncaught error from the procedural geometry / audio ambient / the race.
 if (errors.length)
   bad(`grassrooms: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 
 console.log(
-  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} countdown=${afterStart?.phase} racing=${racing?.phase} won=${won?.phase} cleared=${cleared} errors=${errors.length}`,
+  `grassrooms -> canvas=${!!canvas} room=${JSON.stringify(title)} countdown=${afterStart?.phase} racing=${racing?.phase} won=${won?.phase} cleared=${cleared} luck=${luckAfter} errors=${errors.length}`,
 );
 
 await ctx.close();
