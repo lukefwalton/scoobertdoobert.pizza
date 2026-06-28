@@ -103,7 +103,13 @@ export function DeliveryDash() {
 
   const hop = (dRow: number, dx: number) => {
     const g = game.current;
-    if (g.phase !== 'playing') return;
+    // Idle / game-over: the first hop input (arrow OR the ◀▲▼▶ pad) starts a fresh
+    // run, consumed as the start — so the standalone mobile cabinet is fully
+    // operable from the controls it advertises, not just a canvas tap.
+    if (g.phase !== 'playing') {
+      start();
+      return;
+    }
     if (dx !== 0) {
       g.px = Math.max(PLAYER_W / 2, Math.min(W - PLAYER_W / 2, g.px + dx));
       audio.playTone(noteToFreq('A', 4), 45, 0.08);
