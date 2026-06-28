@@ -462,6 +462,18 @@ commit + smoke:
   globals all route through `src/lib/testHooks.ts` (`isTestEntrance` /
   `exposeTestGlobal`); the arcade cabinet set is one registry (`arcadeGames.ts`)
   the shelf derives from + a route-parity test guards (no parallel lists drift).
+  The PS1 grass-texture + seeded-scatter (`makeGrassTexture` / `seededRandom`) and
+  the bilingual sign factory (`makeBilingualSign`) are single exports in `ps1.ts`,
+  and a `useDispose(...resources)` hook (`src/lib/useDispose.ts`) replaces the
+  hand-spelled `useEffect(() => () => […].dispose())` cleanup across the world
+  components (rolling out file-by-file).
+- **Mobile audit (shipped):** `shoot:mobile` loads every URL-addressable surface
+  (storefront, `/text`, `/links`, `/about`(+`/jp`), `/leaderboard`, all the arcade
+  cabinets) at a 390×844 phone viewport and fails on horizontal overflow, with a
+  full-page screenshot each for eyeballing. The descent era-floors stay covered by
+  `shoot:descent`'s mobile pass. (Audit found the routable surfaces already clean —
+  the dead-plain storefront's small inline links are intentional, per the
+  constitution — so this locks that in as a regression guard.)
 - **Component decomposition (shipped):** the 825-line `WorldHud` was split into
   self-sufficient children — `WelcomeOverlay`, `SpellHotbar`, `PauseMenu` — each
   reading its own store slices, so the HUD is no longer a monolith.
