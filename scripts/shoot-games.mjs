@@ -119,7 +119,7 @@ for (const g of GAMES) {
       hasTouch: true,
     });
     const page = await ctx.newPage();
-    page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
+    page.on('pageerror', (e) => bad(`${g.slug} JS pageerror: ${e.message}`));
     await page.goto(`${base}/${g.slug}?debug=1`, { waitUntil: 'networkidle' });
 
     const canvas = await page.$('.arcade-canvas');
