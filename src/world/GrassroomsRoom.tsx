@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat } from './ps1';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
+import { useSceneStore } from '../state/sceneStore';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -61,9 +63,10 @@ function makeGrassTexture(): THREE.Texture {
   return t;
 }
 
-// The bilingual entrance sign: 草の間 over THE GRASSROOMS, drawn to a small
-// NearestFilter canvas so it reads as a printed plaque, not a clean modern label.
-function makeSignTexture(): THREE.Texture {
+// A bilingual plaque: the Japanese line over the English, drawn to a small
+// NearestFilter canvas so it reads as a printed sign, not a clean modern label.
+// Every word in this level stays EN + JP (cf. 青函トンネル / 二拍手 elsewhere).
+function makeSignTexture(jp: string, en: string): THREE.Texture {
   const w = 256;
   const h = 96;
   const c = document.createElement('canvas');
@@ -79,10 +82,10 @@ function makeSignTexture(): THREE.Texture {
     ctx.textAlign = 'center';
     ctx.fillStyle = '#2f4a2a';
     ctx.font = 'bold 40px "Hiragino Kaku Gothic Pro", "Yu Gothic", sans-serif';
-    ctx.fillText('草の間', w / 2, 48);
+    ctx.fillText(jp, w / 2, 48);
     ctx.fillStyle = '#4a6a40';
-    ctx.font = 'bold 22px "Courier New", monospace';
-    ctx.fillText('THE GRASSROOMS', w / 2, 80);
+    ctx.font = 'bold 20px "Courier New", monospace';
+    ctx.fillText(en, w / 2, 80);
   }
   const t = new THREE.CanvasTexture(c);
   t.magFilter = THREE.NearestFilter;
@@ -118,8 +121,12 @@ export function GrassroomsRoom({ room }: { room: Room }) {
   const D = room.dims.halfD;
   const CEIL = room.dims.height;
 
+  const { gl } = useThree();
+  const openArcade = useSceneStore((s) => s.openArcade);
+
   const grassTex = useMemo(makeGrassTexture, []);
-  const signTex = useMemo(makeSignTexture, []);
+  const signTex = useMemo(() => makeSignTexture('草の間', 'THE GRASSROOMS'), []);
+  const raceTex = useMemo(() => makeSignTexture('ゴーストとレース', 'RACE THE GHOST'), []);
   const grassMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
@@ -134,6 +141,14 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     () => new THREE.MeshBasicMaterial({ map: signTex, side: THREE.DoubleSide }),
     [signTex],
   );
+  const raceMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ map: raceTex, side: THREE.DoubleSide }),
+    [raceTex],
+  );
+  // The parked pizza go-kart's body + the floating ghost that wants a race.
+  const kartMat = useMemo(() => flatMat('#e23b2e'), []);
+  const kartTrimMat = useMemo(() => flatMat('#2a2622'), []);
+  const ghostMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f4f0ff' }), []);
   // Unlit flat white for the office bones — overexposed, like the reference photo.
   const wallMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#eef1ec' }), []);
   const ceilMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e8ebe4' }), []);
@@ -152,9 +167,14 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     () => () => {
       grassTex.dispose();
       signTex.dispose();
+      raceTex.dispose();
       [
         grassMat,
         signMat,
+        raceMat,
+        kartMat,
+        kartTrimMat,
+        ghostMat,
         wallMat,
         ceilMat,
         skyMat,
@@ -170,8 +190,13 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     [
       grassTex,
       signTex,
+      raceTex,
       grassMat,
       signMat,
+      raceMat,
+      kartMat,
+      kartTrimMat,
+      ghostMat,
       wallMat,
       ceilMat,
       skyMat,
@@ -184,6 +209,15 @@ export function GrassroomsRoom({ room }: { room: Room }) {
       drawerMat,
     ],
   );
+
+  // Open the ghost kart-battle (おばけグランプリ) — shared by the kart's click and a
+  // test hook so shoot:grassrooms can launch it without a precise 3D click.
+  const raceTheGhost = () => openArcade('ghost-kart');
+  useEffect(() => {
+    exposeTestGlobal('__sdpRaceGhost', raceTheGhost);
+    return () => exposeTestGlobal('__sdpRaceGhost', undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Grass tufts on a jittered grid (keep a clear lane down the entrance, +Z x≈0).
   const tufts = useMemo(() => {
@@ -220,12 +254,20 @@ export function GrassroomsRoom({ room }: { room: Room }) {
   // silence, never spikes — WCAG 2.3.1; a SWEET room).
   const wind = useRef(2.0);
   const chime = useRef(3.5);
+  const ghostRef = useRef<THREE.Group>(null);
   useEffect(() => {
     audio.unlock();
     audio.playColony(noteToFreq('A', 2), 0, 0.05); // the breeze, straight away
   }, []);
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dt = Math.min(delta, 0.05);
+    // the little ghost hovering by its kart, bobbing + drifting (it wants a race)
+    const gm = ghostRef.current;
+    if (gm) {
+      const t = state.clock.elapsedTime;
+      gm.position.y = 1.7 + Math.sin(t * 1.4) * 0.18;
+      gm.rotation.y = Math.sin(t * 0.6) * 0.4;
+    }
     wind.current -= dt;
     if (wind.current <= 0) {
       audio.playColony(
@@ -368,6 +410,68 @@ export function GrassroomsRoom({ room }: { room: Room }) {
             <boxGeometry args={[1.05, 0.26, 0.04]} />
           </mesh>
         ))}
+      </group>
+
+      {/* the parked pizza go-kart + the floating ghost that wants a race. Click it
+          (or its ghost) to drop into おばけグランプリ / GHOST GRAND PRIX — the
+          balloon battle. A bilingual sign floats above, words EN + JP. */}
+      <group
+        position={[4.5, 0, 4.4]}
+        rotation={[0, -0.5, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          raceTheGhost();
+        }}
+        onPointerOver={() => {
+          gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
+        }}
+        onPointerOut={() => {
+          gl.domElement.style.cursor = 'grab';
+        }}
+      >
+        {/* the kart: a chunky red body, a seat back, four black wheels */}
+        <mesh material={kartMat} position={[0, 0.34, 0]}>
+          <boxGeometry args={[0.95, 0.34, 1.5]} />
+        </mesh>
+        <mesh material={kartMat} position={[0, 0.62, -0.45]}>
+          <boxGeometry args={[0.8, 0.4, 0.12]} />
+        </mesh>
+        {(
+          [
+            [-0.52, -0.55],
+            [0.52, -0.55],
+            [-0.52, 0.55],
+            [0.52, 0.55],
+          ] as const
+        ).map(([x, z], i) => (
+          <mesh
+            key={i}
+            material={kartTrimMat}
+            position={[x, 0.22, z]}
+            rotation={[0, 0, Math.PI / 2]}
+          >
+            <cylinderGeometry args={[0.22, 0.22, 0.16, 10]} />
+          </mesh>
+        ))}
+        {/* the floating ghost (bobs via ghostRef) — sheet body + two dark eyes */}
+        <group ref={ghostRef} position={[0, 1.7, 0.2]}>
+          <mesh material={ghostMat}>
+            <sphereGeometry args={[0.42, 10, 8]} />
+          </mesh>
+          <mesh material={ghostMat} position={[0, -0.34, 0]}>
+            <coneGeometry args={[0.42, 0.5, 10]} />
+          </mesh>
+          <mesh material={kartTrimMat} position={[-0.14, 0.06, 0.36]}>
+            <sphereGeometry args={[0.06, 6, 6]} />
+          </mesh>
+          <mesh material={kartTrimMat} position={[0.14, 0.06, 0.36]}>
+            <sphereGeometry args={[0.06, 6, 6]} />
+          </mesh>
+        </group>
+        {/* the bilingual race sign floating over the kart */}
+        <mesh material={raceMat} position={[0, 2.9, 0]}>
+          <planeGeometry args={[2.6, 1.0]} />
+        </mesh>
       </group>
     </group>
   );
