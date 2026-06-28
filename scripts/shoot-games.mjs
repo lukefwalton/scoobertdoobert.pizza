@@ -52,6 +52,23 @@ const GAMES = [
       holds: [{ button: 'soft drop', field: 'softDrop' }],
     },
   },
+  // delivery-dash's loss (clipped by a car) isn't keypress-forceable, so it exposes
+  // a ?debug force-lose hook that drives its REAL game-over branch (the smoke calls
+  // it + asserts the over overlay + the persisted high score). Hops are discrete, so
+  // there's no held-control parity to probe.
+  {
+    slug: 'delivery-dash',
+    title: 'Delivery Dash',
+    id: 'delivery-dash',
+    loseHook: '__sdpDashForceLose',
+    // The successful-delivery branch (reach the door → +100, reset to the curb,
+    // rebuild faster lanes) isn't keypress-forceable, so a ?debug hook drives the
+    // REAL deliver() and a read-only state hook witnesses the effects.
+    deliverProbe: {
+      deliverHook: '__sdpDashDeliver',
+      stateHook: '__sdpDashState',
+    },
+  },
 ];
 
 const browser = await chromium.launch();
@@ -176,6 +193,42 @@ for (const g of GAMES) {
             `${g.slug} JS: a drag released off-canvas left drag state stranded (dragging=${dragging})`,
           );
         console.log(`${g.slug} drag-off-canvas-release -> dragging=${dragging}`);
+      }
+
+      // The successful-delivery branch (delivery-dash): call the ?debug deliver hook
+      // and assert via the read-only state hook that it scored +100, reset the player
+      // to the curb (row 0), counted the delivery, and bumped the lane speed. Runs
+      // while the game is still playing, before the loss path below ends it.
+      if (g.deliverProbe) {
+        const { deliverHook, stateHook } = g.deliverProbe;
+        const readState = () =>
+          page.evaluate((h) => (typeof window[h] === 'function' ? window[h]() : null), stateHook);
+        const before = await readState();
+        const fired = await page.evaluate((h) => {
+          if (typeof window[h] !== 'function') return false;
+          window[h]();
+          return true;
+        }, deliverHook);
+        if (!fired) bad(`${g.slug} JS: the deliver hook ${deliverHook} was not exposed`);
+        await page.waitForTimeout(120);
+        const after = await readState();
+        if (!before || !after) {
+          bad(`${g.slug} JS: deliver state hook ${stateHook} missing`);
+        } else {
+          if (after.score !== before.score + 100)
+            bad(`${g.slug} JS: a delivery should score +100 (${before.score} -> ${after.score})`);
+          if (after.row !== 0 || after.delivered !== before.delivered + 1)
+            bad(
+              `${g.slug} JS: a delivery should reset to the curb + count it (row ${after.row}, delivered ${before.delivered} -> ${after.delivered})`,
+            );
+          if (!(after.speed > before.speed))
+            bad(
+              `${g.slug} JS: a delivery should speed the lanes up (${before.speed} -> ${after.speed})`,
+            );
+          console.log(
+            `${g.slug} deliver -> score ${before.score}->${after.score} row=${after.row} speed ${before.speed}->${after.speed}`,
+          );
+        }
       }
 
       // The real lose path: drive a deterministic loss and assert the GAME OVER
