@@ -28,6 +28,12 @@ export type RoomKind =
   | 'practice'
   | 'grass'
   | 'grassbattle'
+  // The Grassrooms (草の間) — the backrooms after nature won: a white office
+  // interior gone to grass + indoor trees + blue wildflowers, the low ceiling
+  // broken open to an impossible blue sky. A FULLY SWEET liminal breather off the
+  // liminal level (a relief exhale; baseUnease below SAFE). musicRoom (its own
+  // wind + furin ambient). Hosts the ghost kart-battle minigame.
+  | 'grassrooms'
   | 'grove'
   | 'frutiger'
   | 'lockerroom'
