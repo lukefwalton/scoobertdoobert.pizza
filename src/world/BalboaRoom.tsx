@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { useDispose } from '../lib/useDispose';
 import { PizzaPanChimes } from './PizzaPanChimes';
 import { fogFor, type Room } from '../data/rooms';
 
@@ -80,13 +81,7 @@ export function BalboaRoom({ room }: { room: Room }) {
   );
   const jet = useRef<THREE.Mesh>(null);
 
-  useEffect(
-    () => () => {
-      grassTex.dispose();
-      pathTex.dispose();
-    },
-    [grassTex, pathTex],
-  );
+  useDispose(grassTex, pathTex);
 
   useFrame((state) => {
     // the fountain jet bobs a touch (a sweet little burble, no flashing)

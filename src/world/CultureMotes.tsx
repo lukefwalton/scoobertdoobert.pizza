@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { CulturesSim } from '../lib/cultures';
+import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -41,7 +42,7 @@ export function CultureMotes({ bounds }: { bounds: Bounds }) {
       }),
     [sim],
   );
-  useEffect(() => () => mats.forEach((m) => m.dispose()), [mats]);
+  useDispose(...mats);
 
   // The colony drifts at roughly chest height over an 80% footprint of the room —
   // glowing spirit-orbs you can see clearly and that lean toward you as you move.
