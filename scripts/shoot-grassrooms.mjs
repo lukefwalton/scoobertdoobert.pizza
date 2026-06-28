@@ -15,7 +15,7 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page = await ctx.newPage();
-page.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
+page.on('pageerror', (e) => bad(`grassrooms(win) pageerror: ${e.message}`));
 
 // ?room=grassrooms drops straight in (it's otherwise a side door off the liminal).
 // &debug=1 exposes the race test hooks.
@@ -105,7 +105,7 @@ await ctx.close();
 const lossErr0 = failures();
 const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 800 } });
 const page2 = await ctx2.newPage();
-page2.on('pageerror', (e) => bad(`pageerror: ${e.message}`));
+page2.on('pageerror', (e) => bad(`grassrooms(loss) pageerror: ${e.message}`));
 await page2.goto(base + '/?room=grassrooms&debug=1', { waitUntil: 'networkidle' });
 await page2.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
 await page2.waitForTimeout(1500);
