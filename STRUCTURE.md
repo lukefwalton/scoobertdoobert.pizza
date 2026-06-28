@@ -6,14 +6,13 @@ the roadmap + live status [`docs/PHASES.md`](docs/PHASES.md), and the vision +
 systems [`docs/DESIGN.md`](docs/DESIGN.md). This file is just **where everything
 lives and why**.
 
-Everything sorts into five buckets:
+Everything sorts into four buckets:
 
 1. **The app** — `src/`, `index.html`, `api/`
 2. **Shipped assets** — `public/` (served as-is, URL-mapped)
 3. **Source assets (NOT shipped)** — `media/` (heavy originals; only degraded
    derivatives ever reach `public/`)
-4. **Archive / misc** — `fun/`
-5. **Config + docs + content** — root files
+4. **Config + docs + content** — root files
 
 ```
 scoobertdoobert.pizza/
@@ -34,30 +33,31 @@ scoobertdoobert.pizza/
 │   ├── floors/            # the era-floor descent scenes (Plain→Starburst→Table→MachineRoom, doors)
 │   ├── world/             # the three.js world: World, rooms, ps1 pipeline, boids sim, Rat, Doors
 │   ├── data/              # SINGLE SOURCES: links.ts, hotspots.ts, floors.ts, rooms.ts, linkArchive.ts
-│   ├── state/             # zustand stores (audioStore, sceneStore)
+│   ├── state/             # zustand stores (scene, audio, progress, score, dread, race, …)
 │   ├── audio/             # Web Audio engine
-│   ├── lib/               # small utils (lowPower, useMounted)
+│   ├── lib/               # pure helpers (luck, doorTravel, pickups, leaderboardCore, useDispose, testHooks, …)
 │   └── styles/            # CSS
 │
-├── api/                   # Vercel serverless functions (order.ts — email opt-in → Blob)
-├── scripts/               # build + verify tooling (shoot* Playwright, make-boot-audio, make-jukebox-audio, make-classified-photos, check-build)
+├── api/                   # Vercel serverless functions (order.ts — email opt-in; score.ts — leaderboard)
+├── scripts/               # build + verify tooling (shoot:* Playwright smokes, make-*-audio, make-gifs, check-build; shared flows in scripts/lib/)
 │
 ├── public/                # ── SHIPPED STATIC ASSETS (served at /) ──
-│   ├── audio/boot.wav     # the only audio that ships (degraded boot loop)
+│   ├── audio/             # boot.mp3 (boot loop) + jukebox/*.mp3 (degraded loops)
+│   ├── models/            # PS1-crunched 3D GLBs (see THIRD_PARTY_NOTICES.md)
+│   ├── gifs/              # our own GIF89a-encoded animated GIFs (+ static twins)
+│   ├── textures/          # canvas/baked textures shipped for the world
 │   ├── brand/             # logos used on the site
-│   ├── press/             # OG image + inline period photos (web-sized)
+│   ├── press/             # OG card + inline period photos (web-sized)
 │   ├── 1101.html           # ARG / Twine page (/savesandiego rewrites here, see vercel.json)
 │   └── PIZZA.png · cursor.cur · logo-sd.jpg
 │
-├── media/                 # ── SOURCE ORIGINALS (NOT shipped) ── see media/README.md
+└── media/                 # ── SOURCE ORIGINALS (NOT shipped) ── see media/README.md
 │   ├── masters/           # the few masters wired into the site (boot loop + layer themes)
 │   ├── music/             # full master catalog, by year/album    → media/music/README.md
 │   ├── sfx/               # sound effects (owned sitar takes)
 │   ├── models/            # all .glb source models by theme     → media/models/README.md
 │   ├── photos/            # full-res photo archive, grouped by shoot
 │   └── brand/             # brand-logo source (full set; public/brand/ ships only the used logo)
-│
-└── fun/                   # placeholder for a separate repo, not yet wired in → fun/README.md
 ```
 
 ## "I want to… → go here"

@@ -23,7 +23,7 @@ unless the work is genuinely ambiguous.
 | 5 | The dread conductor (`unease` modulation layer) | ✅ built (steps 1–5 live) |
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
-| 7+ | `fun/` instruments → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
+| 7+ | instruments (vendored from Luke's `fun` playground) → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
 | 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
 | — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
 
@@ -176,9 +176,11 @@ descent, each covered by a `shoot:*` smoke:
   pull-and-hold warps his own sample live (touch-first).
 
 **Remaining tail (small):**
-- ✅/⬜ **`fun/` instruments — borrowed by VENDORING (the repo stays standalone).**
-  Rather than submodule `fun/`, the two pure-synthesis instruments were ported and
-  **re-homed as our own files** (so `fun/` can be deleted — Luke's ask). Shipped as
+- ✅ **`fun` instruments — borrowed by VENDORING (the repo stays standalone).**
+  Rather than submodule the `fun` playground, the two pure-synthesis instruments
+  were ported and **re-homed as our own files**; the `fun/` breadcrumb dir has
+  since been removed (Luke's ask), its provenance kept in the source headers
+  (`src/lib/chimes.ts` / `cultures.ts`). Shipped as
   touch-first arcade cabinets: **`/chimes`** (Pendulum Chimes — `src/lib/chimes.ts`
   + `ChimesCabinet`) and **`/cultures`** (the DNA cell-drone — `src/lib/cultures.ts`
   + `CulturesCabinet`), both synthesised, mute-aware, brickwall-limited, crawlable,
