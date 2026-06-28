@@ -391,13 +391,6 @@ export const selectKnowsSpell =
   (s: Pick<Progress, 'knownSpells'>): boolean =>
     s.knownSpells.includes(id);
 
-/** Does the player hold this item id? (Door locks read this.) Curried so it can
- *  be a stable zustand selector: `useProgressStore(selectHasItem('pool-locker-key'))`. */
-export const selectHasItem =
-  (id: string) =>
-  (s: Pick<Progress, 'itemsHeld'>): boolean =>
-    s.itemsHeld.includes(id);
-
 /** The durable progress as a plain, store-free snapshot — for non-React readers
  *  (e.g. the terminal's `status`/`whoami`, which take a Progress via ctx so
  *  commands.ts stays free of stores). */

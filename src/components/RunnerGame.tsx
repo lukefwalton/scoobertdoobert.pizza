@@ -10,10 +10,11 @@ import { exposeTestGlobal } from '../lib/testHooks';
 // The bug this guards against: the old check ALSO subtracted the runner's height
 // here (groundY - ph - o.h), which put the lose-line ~12px above the obstacle —
 // so a clean jump that visibly cleared still registered as a collision ("you
-// lose when you succeed"). Pure + exported so shoot:arcade can assert it.
-export const RUNNER_X = 44;
-export const RUNNER_W = 18;
-export function runnerHitsObstacle(
+// lose when you succeed"). Kept a pure helper (no canvas/DOM) so the collision
+// invariant stays easy to reason about in isolation.
+const RUNNER_X = 44;
+const RUNNER_W = 18;
+function runnerHitsObstacle(
   py: number,
   groundY: number,
   o: { x: number; w: number; h: number },
