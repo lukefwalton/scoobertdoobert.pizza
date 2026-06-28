@@ -1,21 +1,58 @@
 # scoobertdoobert.pizza
 
-A fake late-90s **Electronic Pizza Storefront** that comes alive, falls backward
-through web eras, and drops you into a low-poly PS1/N64 world — a pizza shop off
-the coast of San Diego that is secretly the archive of **Scoobert Doobert**, a
-philosopher's solo music project.
+<p align="center">
+  <img src=".github/media/descent.gif" width="600"
+       alt="A 1996 pizza storefront falling backward through web eras into a low-poly PS1 world" />
+</p>
 
-> A pizza shop off the coast of San Diego.
-> (It is actually a solo music project by a philosopher.)
+<p align="center">
+  <em>A pizza shop off the coast of San Diego.<br />
+  (It is actually a solo music project by a philosopher.)</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/lukefwalton/scoobertdoobert.pizza/actions/workflows/ci.yml"><img src="https://github.com/lukefwalton/scoobertdoobert.pizza/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/three.js-r169-111" alt="three.js" />
+  <img src="https://img.shields.io/badge/React-18-149eca" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178c6" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-6-646cff" alt="Vite" />
+</p>
+
+A deliberately terrible 1996 **Electronic Pizza Storefront** that falls backward
+through web history and drops you into a low-poly PS1/N64 world. With JavaScript
+**off**, it's an honest, crawlable HTML pizza page. With JS **on**, trying to
+order makes it "install" a fake VRML plug-in and descend — through a 1999
+GeoCities floor, a 2000 table-layout floor, an SGI parody machine room — into a
+real-time 3D shop on the seafloor, which turns out to be the archive of
+**Scoobert Doobert**, a philosopher's solo music project.
 
 ## The idea
 
 Silicon Graphics built the Nintendo 64's graphics chip and, on its "Silicon
 Surf" site, advertised navigable 3D worlds in the browser via VRML in 1996. That
 promise never really arrived. This site ships it ~30 years late, as a haunted
-pizza CD-ROM: a deliberately ugly 1996 storefront that, when you try to order,
-"requires" the **Calzone Player™** plug-in — and installing it descends you into
-a real-time 3D pizza shop on the seafloor.
+pizza CD-ROM: the storefront "requires" the **Calzone Player™** plug-in to order,
+and installing it descends you through the eras into the world below.
+
+## The descent
+
+|     |     |
+| --- | --- |
+| <img src=".github/media/01-storefront.png" alt="1996 storefront" /> | <img src=".github/media/02-1999.png" alt="1999 starburst floor" /> |
+| **1996** — the dead-plain front door (works with JS off) | **1999** — GeoCities energy: guestbook, hit counter, eternal construction |
+| <img src=".github/media/03-2000.png" alt="2000 table-layout floor" /> | <img src=".github/media/04-machine-room.png" alt="SGI machine room" /> |
+| **2000** — table-layout web + a pizza image-map | **the machine room** — SGI parody, live CRT render, the Calzone install |
+| <img src=".github/media/05-world-shop.png" alt="PS1 beach shop" /> | <img src=".github/media/06-jukebox.png" alt="the jukebox room" /> |
+| **the world** — a PS1 shop on the seafloor | **the jukebox** — the music payoff (+ a d20 to gamble for a track) |
+| <img src=".github/media/07-boardwalk.png" alt="the boardwalk" /> | <img src=".github/media/08-grassrooms.png" alt="the grassrooms" /> |
+| **the boardwalk** — a golden-hour surface wing | **the grassrooms** — liminal grass + a first-person ghost race |
+| <img src=".github/media/09-gallery.png" alt="the sunken gallery" /> | <img src=".github/media/10-arcade.png" alt="the arcade" /> |
+| **the sunken gallery** — vaporwave-Greek ruins, knee-deep | **the arcade** — seven touch-first cabinets (this one's Asteroids) |
+
+> Every frame above is the real site — captured by `scripts/make-readme-shots.mjs`,
+> and the GIF is stitched + crunched by the repo's own
+> [`gif89a` encoder](./scripts/lib/gif89a.mjs) (no image libraries). See
+> [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how the whole thing is wired.
 
 ## Architecture — fallback first
 
@@ -38,7 +75,8 @@ progressive enhancement layered on top:
 - **Mobile / `prefers-reduced-motion`** skip the descent and 3D entirely and get
   the storefront + the flat `/text` list.
 
-See [`CLAUDE.md`](./CLAUDE.md) for the rules + PS1 hard constraints,
+See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how it's wired,
+[`CLAUDE.md`](./CLAUDE.md) for the rules + PS1 hard constraints,
 [`docs/PHASES.md`](./docs/PHASES.md) for the roadmap + live status, and
 [`docs/DESIGN.md`](./docs/DESIGN.md) for the vision + systems. [`STRUCTURE.md`](./STRUCTURE.md)
 maps the repo.
