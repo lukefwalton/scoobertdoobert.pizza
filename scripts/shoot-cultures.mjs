@@ -41,6 +41,9 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
 // --- 3. JS ON: the canvas mounts and a stir breeds notes + starts audio.
 //        ?debug exposes window.__sdpCultures = { collisions, started, cells }. ---
 {
+  // Snapshot so the play-phase log reports only this phase's failures, not the
+  // cumulative total (the JS-off phases ran first).
+  const playErr0 = failures();
   const ctx = await browser.newContext({
     viewport: { width: 412, height: 900 },
     isMobile: true,
@@ -109,7 +112,7 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
       bad(`JS: colony did not mute — master gain ${gainMuted} (drone bed still audible)`);
   }
   console.log(
-    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} gain=${gainLive}->${gainMuted} errors=${failures()}`,
+    `play     -> canvas=${!!canvas} cells=${cells} started=${started} bred=${bred} gain=${gainLive}->${gainMuted} errors=${failures() - playErr0}`,
   );
   await ctx.close();
 }
