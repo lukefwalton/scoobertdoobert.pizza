@@ -1,17 +1,27 @@
 import { put, list } from '@vercel/blob';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import {
+  SCORE_PREFIX,
+  RANKED_TOP,
+  scorePath,
+  parseScorePath,
+  rankFor,
+  validateSubmission,
+} from '../src/lib/leaderboardCore';
 
 // The arcade high-score LEADERBOARD — 3 initials + a PIZZA POINTS score, no login.
 // One route does both: GET /api/score → the top board; POST /api/score → submit.
 //
-// Local stand-ins for @vercel/node's request/response types (we don't depend on
-// @vercel/node — it only pulled types and a pile of CVEs; see api/order.ts). The
-// initials+score are NOT PII, so the board blob is access:'public' (unlike the
-// private subscriber blobs); reads go through the function anyway.
+// STORAGE (race-free, append-only): each submission is its OWN blob, keyed by
+// score in the pathname (src/lib/leaderboardCore). Concurrent POSTs can't overwrite
+// each other (the old single-blob read-modify-write could), and a read is a single
+// `list()` that parses pathnames — no per-row fetch. The board blobs are public
+// (initials + score aren't PII); reads still go through this function.
 //
+// Local Vercel req/res types (we don't depend on @vercel/node — see api/order.ts).
 // SETUP: needs a Blob store on the Vercel project (injects BLOB_READ_WRITE_TOKEN).
-// In local `vite preview` there is no serverless runtime, so the client degrades
-// gracefully (the score is still kept locally) — see src/lib/leaderboard.ts.
+// In local `vite preview` there's no serverless runtime, so the client degrades
+// gracefully (see src/lib/leaderboard.ts).
 type VercelRequest = IncomingMessage & {
   body?: unknown;
   query?: Record<string, string | string[]>;
@@ -21,77 +31,45 @@ type VercelResponse = ServerResponse & {
   json: (jsonBody: unknown) => VercelResponse;
 };
 
-type Entry = { initials: string; score: number; ts: string };
+type Entry = { initials: string; score: number };
 
-const BOARD = 'leaderboard/board.json';
-const MAX_ENTRIES = 50; // the board keeps the all-time top 50
-const MAX_SCORE = 5_000_000; // sanity ceiling — reject obviously-forged scores
+// One list call returns up to 1000 blobs. Because the inverted-score key sorts the
+// TOP scores first, the first page always holds the board even past 1000 lifetime
+// submissions (those beyond aren't top-50 anyway). Append-only growth is fine at
+// this scale; a periodic prune can come later if it ever matters.
+const LIST_LIMIT = 1000;
 
-// A short blocklist of the obvious 3-letter combos (classic-arcade hygiene). Not
-// exhaustive — just turns away the lazy ones; an unlisted slur isn't our liability
-// to fully solve with three letters, but we make the easy effort.
-const BLOCKED = new Set([
-  'ASS',
-  'FUK',
-  'FUC',
-  'FUX',
-  'SEX',
-  'CUM',
-  'FAG',
-  'NIG',
-  'KKK',
-  'TIT',
-  'JEW',
-  'GAY',
-  'DIE',
-  'POO',
-  'WTF',
-]);
-
-function cleanInitials(v: unknown): string {
-  return String(v ?? '')
-    .toUpperCase()
-    .replace(/[^A-Z]/g, '')
-    .slice(0, 3);
-}
-
-async function readBoard(): Promise<Entry[]> {
+/** Read every submitted score (one list, parse pathnames, sort desc). Returns null
+ *  ONLY on a backend failure (so callers can distinguish "unavailable" from the
+ *  empty board, which is a successful []). */
+async function readScores(): Promise<Entry[] | null> {
   try {
-    const { blobs } = await list({ prefix: BOARD, limit: 10 });
-    const blob = blobs.find((b) => b.pathname === BOARD) ?? blobs[0];
-    if (!blob) return [];
-    const res = await fetch(blob.downloadUrl ?? blob.url, { cache: 'no-store' });
-    if (!res.ok) return [];
-    const data = (await res.json()) as unknown;
-    if (!Array.isArray(data)) return [];
-    return data
-      .map((d) => d as Record<string, unknown>)
-      .filter((d) => typeof d.initials === 'string' && typeof d.score === 'number')
-      .map((d) => ({
-        initials: cleanInitials(d.initials),
-        score: Math.max(0, Math.floor(d.score as number)),
-        ts: typeof d.ts === 'string' ? d.ts : '',
-      }));
-  } catch {
-    return [];
+    const { blobs } = await list({ prefix: SCORE_PREFIX, limit: LIST_LIMIT });
+    const out: Entry[] = [];
+    for (const b of blobs) {
+      const parsed = parseScorePath(b.pathname);
+      if (parsed) out.push(parsed);
+    }
+    out.sort((a, b) => b.score - a.score);
+    return out;
+  } catch (err) {
+    console.error('[api/score] list failed:', err);
+    return null;
   }
-}
-
-async function writeBoard(entries: Entry[]): Promise<void> {
-  await put(BOARD, JSON.stringify(entries), {
-    access: 'public',
-    addRandomSuffix: false,
-    contentType: 'application/json',
-  });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ── GET: the top board ─────────────────────────────────────────────────────
   if (req.method === 'GET') {
-    const board = await readBoard();
+    const scores = await readScores();
+    if (scores === null) {
+      // Distinct from an empty board: the storage is down, not just unpopulated.
+      res.status(200).json({ ok: false, error: 'unavailable' });
+      return;
+    }
     const limRaw = Array.isArray(req.query?.limit) ? req.query?.limit[0] : req.query?.limit;
-    const limit = Math.max(1, Math.min(MAX_ENTRIES, Number(limRaw) || 25));
-    res.status(200).json({ ok: true, entries: board.slice(0, limit) });
+    const limit = Math.max(1, Math.min(RANKED_TOP, Number(limRaw) || 25));
+    res.status(200).json({ ok: true, entries: scores.slice(0, limit) });
     return;
   }
 
@@ -120,33 +98,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const initials = cleanInitials(body.initials);
-  const score = Math.floor(Number(body.score));
-  if (initials.length < 3) {
-    res.status(200).json({ ok: false, error: 'bad_initials' });
-    return;
-  }
-  if (!Number.isFinite(score) || score <= 0 || score > MAX_SCORE) {
-    res.status(200).json({ ok: false, error: 'bad_score' });
-    return;
-  }
-  if (BLOCKED.has(initials)) {
-    res.status(200).json({ ok: false, error: 'rejected' });
+  const v = validateSubmission(body.initials, body.score);
+  if (!v.ok) {
+    res.status(200).json({ ok: false, error: v.error });
     return;
   }
 
+  // Append-only write: a unique blob per submission, so concurrent POSTs never
+  // clobber each other.
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   try {
-    const board = await readBoard();
-    const entry: Entry = { initials, score, ts: new Date().toISOString() };
-    board.push(entry);
-    board.sort((a, b) => b.score - a.score);
-    const top = board.slice(0, MAX_ENTRIES);
-    await writeBoard(top);
-    // The submitter's rank on the trimmed board (1-based; 0 if it didn't make it).
-    const rank = top.findIndex((e) => e === entry) + 1;
-    res.status(200).json({ ok: true, stored: true, rank, entries: top.slice(0, 25) });
+    await put(
+      scorePath(v.score, v.initials, id),
+      JSON.stringify({ initials: v.initials, score: v.score, ts: new Date().toISOString() }),
+      { access: 'public', addRandomSuffix: false, contentType: 'application/json' },
+    );
   } catch (err) {
-    console.error('[api/score] blob write failed:', err);
-    res.status(200).json({ ok: false, stored: false, error: 'store_failed' });
+    console.error('[api/score] put failed:', err);
+    res.status(200).json({ ok: false, error: 'unavailable' });
+    return;
   }
+
+  // Compute the (display-only) rank + whether it cracked the board, and hand back
+  // the fresh top for the client to render. A read failure here just means we
+  // stored it but can't rank it right now — still a success.
+  const scores = await readScores();
+  if (scores === null) {
+    res.status(200).json({ ok: true, stored: true, rank: 0, ranked: false, entries: [] });
+    return;
+  }
+  const rank = rankFor(scores, v.score);
+  res.status(200).json({
+    ok: true,
+    stored: true,
+    rank,
+    ranked: rank <= RANKED_TOP,
+    entries: scores.slice(0, 25),
+  });
 }

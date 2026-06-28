@@ -1,0 +1,75 @@
+import { describe, it, expect } from 'vitest';
+import {
+  MAX_SCORE,
+  RANKED_TOP,
+  invKey,
+  scorePath,
+  parseScorePath,
+  rankFor,
+  cleanInitials,
+  validateSubmission,
+  SCORE_PREFIX,
+} from './leaderboardCore';
+
+describe('leaderboard score-path encoding (race-free storage)', () => {
+  it('round-trips score + initials through the pathname', () => {
+    const path = scorePath(12345, 'ABC', 'k3j4l5');
+    expect(path.startsWith(SCORE_PREFIX)).toBe(true);
+    expect(parseScorePath(path)).toEqual({ initials: 'ABC', score: 12345 });
+  });
+
+  it('higher scores sort FIRST lexically (so a single list returns the top board)', () => {
+    const scores = [10, 5000, 100, 999_999, 0];
+    const paths = scores.map((s, i) => scorePath(s, 'AAA', `id${i}`));
+    const recovered = [...paths]
+      .sort() // lexical ascending == score descending, by construction
+      .map((p) => parseScorePath(p)!.score);
+    expect(recovered).toEqual([999_999, 5000, 100, 10, 0]);
+  });
+
+  it('invKey is fixed-width and inverted', () => {
+    expect(invKey(MAX_SCORE)).toBe('00000000');
+    expect(invKey(0)).toBe(String(MAX_SCORE).padStart(8, '0'));
+    expect(invKey(10).length).toBe(invKey(999_999).length);
+  });
+
+  it('rejects malformed pathnames', () => {
+    expect(parseScorePath('other/prefix/123-ABC-x.json')).toBeNull();
+    expect(parseScorePath(`${SCORE_PREFIX}notanumber-ABC-x.json`)).toBeNull();
+    expect(parseScorePath(`${SCORE_PREFIX}00012345-ab-x.json`)).toBeNull(); // bad initials
+  });
+});
+
+describe('rankFor', () => {
+  const board = [{ score: 100 }, { score: 90 }, { score: 90 }, { score: 50 }];
+  it('is (# strictly greater) + 1, ties shared', () => {
+    expect(rankFor(board, 100)).toBe(1);
+    expect(rankFor(board, 90)).toBe(2); // both 90s rank 2
+    expect(rankFor(board, 50)).toBe(4);
+    expect(rankFor(board, 200)).toBe(1);
+    expect(rankFor(board, 10)).toBe(5);
+  });
+  it('flags not-ranked when beyond the top cutoff', () => {
+    const big = Array.from({ length: RANKED_TOP }, () => ({ score: 1000 }));
+    expect(rankFor(big, 10) > RANKED_TOP).toBe(true); // rank RANKED_TOP+1 → not ranked
+  });
+});
+
+describe('validateSubmission + cleanInitials', () => {
+  it('cleans initials to 3 uppercase letters', () => {
+    expect(cleanInitials('a1b2c3')).toBe('ABC');
+    expect(cleanInitials('  zz ')).toBe('ZZ');
+    expect(cleanInitials(null)).toBe('');
+  });
+  it('accepts a good submission', () => {
+    expect(validateSubmission('abc', 1234)).toEqual({ ok: true, initials: 'ABC', score: 1234 });
+  });
+  it('rejects with DISTINCT reasons', () => {
+    expect(validateSubmission('ab', 100)).toEqual({ ok: false, error: 'bad_initials' });
+    expect(validateSubmission('ASS', 100)).toEqual({ ok: false, error: 'rejected' });
+    expect(validateSubmission('ABC', 0)).toEqual({ ok: false, error: 'bad_score' });
+    expect(validateSubmission('ABC', -5)).toEqual({ ok: false, error: 'bad_score' });
+    expect(validateSubmission('ABC', MAX_SCORE + 1)).toEqual({ ok: false, error: 'bad_score' });
+    expect(validateSubmission('ABC', Number.NaN)).toEqual({ ok: false, error: 'bad_score' });
+  });
+});

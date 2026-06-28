@@ -6,6 +6,7 @@ import {
   sanitizeInitials,
   type ScoreEntry,
 } from '../lib/leaderboard';
+import { RANKED_TOP } from '../lib/leaderboardCore';
 
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
@@ -30,7 +31,11 @@ export function LeaderboardPanel({
 }) {
   const [entries, setEntries] = useState<ScoreEntry[] | null | undefined>(undefined);
   const [initials, setInitials] = useState('');
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'ok' | 'err' | 'offline'>('idle');
+  // ranked = made the top board · unranked = stored but below it · badletters =
+  // initials rejected · offline = backend down. Distinct so the UX never lies.
+  const [status, setStatus] = useState<
+    'idle' | 'submitting' | 'ranked' | 'unranked' | 'badletters' | 'offline'
+  >('idle');
   const [rank, setRank] = useState<number | undefined>(undefined);
 
   useEffect(() => {
@@ -51,12 +56,16 @@ export function LeaderboardPanel({
     setStatus('submitting');
     const r = await submitScore(initials, score);
     if (r.ok) {
-      setStatus('ok');
       setRank(r.rank);
+      setStatus(r.ranked ? 'ranked' : 'unranked');
       if (r.entries && r.entries.length) setEntries(r.entries.slice(0, rows));
-      else fetchLeaderboard(rows).then(setEntries);
+      else if (loadBoard) fetchLeaderboard(rows).then(setEntries);
     } else {
-      setStatus(r.reason === 'offline' ? 'offline' : 'err');
+      // Initials problem vs backend down — show the right thing, not "bad initials"
+      // for an outage (the review's failure-semantics fix).
+      const initialsProblem =
+        r.reason === 'bad_initials' || r.reason === 'rejected' || r.reason === 'invalid';
+      setStatus(initialsProblem ? 'badletters' : 'offline');
     }
   };
 
@@ -92,16 +101,23 @@ export function LeaderboardPanel({
         <p className="hud-board__hint">Collect 🍕🌯🍣🛹🏄 for PIZZA POINTS, then sign the board.</p>
       )}
 
-      {status === 'ok' && (
+      {status === 'ranked' && (
         <p className="hud-board__msg hud-board__msg--ok">
           {rank ? `You're #${rank} on the board!` : 'You made the board!'}
+        </p>
+      )}
+      {status === 'unranked' && (
+        <p className="hud-board__msg hud-board__msg--ok">
+          Submitted! Keep climbing to crack the top {RANKED_TOP}.
         </p>
       )}
       {status === 'offline' && (
         <p className="hud-board__msg">Couldn&rsquo;t reach the board — your best is saved here.</p>
       )}
-      {status === 'err' && (
-        <p className="hud-board__msg">Those initials didn&rsquo;t take — try three letters.</p>
+      {status === 'badletters' && (
+        <p className="hud-board__msg">
+          Those initials didn&rsquo;t take — try three (different) letters.
+        </p>
       )}
 
       {loadBoard && entries === undefined && <p className="hud-board__msg">loading…</p>}

@@ -13,6 +13,10 @@ export type ScoreEntry = { initials: string; score: number; ts?: string };
 export type SubmitResult = {
   ok: boolean;
   rank?: number;
+  /** Did the score crack the top 50? false = stored but "keep climbing." */
+  ranked?: boolean;
+  /** Failure reason: 'offline'/'unavailable' = backend down; 'bad_initials'/
+   *  'rejected'/'invalid' = the initials; 'bad_score'/'error' = other. */
   reason?: string;
   entries?: ScoreEntry[];
 };
@@ -32,15 +36,20 @@ function asEntries(v: unknown): ScoreEntry[] {
   );
 }
 
-/** The top board, or null when it can't be reached (offline / no backend). */
+/** The top board, or null when it can't be reached. null = unavailable (offline /
+ *  no backend / storage down); [] = a reachable but empty board — distinct, so the
+ *  UI can say "offline" vs "no scores yet." */
 export async function fetchLeaderboard(limit = 25): Promise<ScoreEntry[] | null> {
   try {
     const res = await fetch(`/api/score?limit=${limit}`, {
       headers: { accept: 'application/json' },
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { entries?: unknown };
-    return asEntries(data?.entries);
+    const data = (await res.json()) as { ok?: boolean; entries?: unknown };
+    // ok:false (e.g. 'unavailable') is a reachable endpoint reporting a down
+    // backend — treat it as offline, not as an empty board.
+    if (!data?.ok) return null;
+    return asEntries(data.entries);
   } catch {
     return null;
   }
@@ -63,11 +72,12 @@ export async function submitScore(initials: string, score: number): Promise<Subm
     const data = (await res.json()) as {
       ok?: boolean;
       rank?: number;
+      ranked?: boolean;
       error?: string;
       entries?: unknown;
     };
     if (!data?.ok) return { ok: false, reason: data?.error ?? 'error' };
-    return { ok: true, rank: data.rank, entries: asEntries(data.entries) };
+    return { ok: true, rank: data.rank, ranked: data.ranked, entries: asEntries(data.entries) };
   } catch {
     return { ok: false, reason: 'offline' };
   }

@@ -96,7 +96,7 @@ else {
   submitGraceful = await page
     .waitForFunction(
       () =>
-        /saved here|you're #|made the board/i.test(
+        /saved here|you're #|keep climbing|made the board/i.test(
           document.querySelector('.hud-board')?.textContent || '',
         ),
       null,
