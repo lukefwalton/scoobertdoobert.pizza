@@ -29,6 +29,10 @@ type RaceState = {
   /** Gates each racer has passed since GO (lap = ⌊progress / RACE_GATES⌋). */
   playerProgress: number;
   ghostProgress: number;
+  /** Is the player currently AHEAD? Computed from CONTINUOUS progress (gate count
+   *  + fractional distance to the next gate), set each frame by GhostRace, so the
+   *  HUD's 1st/2nd is truthful mid-segment, not just at whole checkpoints. */
+  playerAhead: boolean;
 
   /** Begin the bout: roll into the 3·2·1 countdown (only from idle). */
   start: () => void;
@@ -40,6 +44,8 @@ type RaceState = {
   passPlayerGate: () => void;
   /** The ghost crossed its next gate. */
   passGhostGate: () => void;
+  /** Publish the live standing (GhostRace computes it from continuous progress). */
+  setPlayerAhead: (ahead: boolean) => void;
   /** End the race for `winner` (idempotent; rewards a player win once). */
   finish: (winner: 'you' | 'ghost') => void;
   /** Back to idle — the ghost returns to the start, ready for a rematch. */
@@ -51,11 +57,18 @@ export const useRaceStore = create<RaceState>((set, get) => ({
   countdown: 3,
   playerProgress: 0,
   ghostProgress: 0,
+  playerAhead: true,
 
   start: () =>
     set((s) =>
       s.phase === 'idle'
-        ? { phase: 'countdown', countdown: 3, playerProgress: 0, ghostProgress: 0 }
+        ? {
+            phase: 'countdown',
+            countdown: 3,
+            playerProgress: 0,
+            ghostProgress: 0,
+            playerAhead: true,
+          }
         : {},
     ),
   setCountdown: (n) => set({ countdown: Math.max(0, n) }),
@@ -79,6 +92,11 @@ export const useRaceStore = create<RaceState>((set, get) => ({
       }
       return { ghostProgress };
     }),
+  setPlayerAhead: (ahead) => set((s) => (s.playerAhead === ahead ? {} : { playerAhead: ahead })),
+  // A same-frame tie resolves to the PLAYER (passPlayerGate's microtask is queued
+  // before passGhostGate's, and the first finish wins — finish is idempotent). This
+  // player-favored tie-break is intentional: a generous tie suits the sweet,
+  // non-traumatic register (a draw should never feel like a loss).
   finish: (winner) =>
     set((s) => {
       if (s.phase !== 'racing') return {};
@@ -98,7 +116,8 @@ export const useRaceStore = create<RaceState>((set, get) => ({
       announce('👻 the ghost won this one — rematch? もういっかい？', 'info');
       return { phase: 'lost' };
     }),
-  reset: () => set({ phase: 'idle', countdown: 3, playerProgress: 0, ghostProgress: 0 }),
+  reset: () =>
+    set({ phase: 'idle', countdown: 3, playerProgress: 0, ghostProgress: 0, playerAhead: true }),
 }));
 
 /** Lap a racer is on (1-based for display), capped at RACE_LAPS. */

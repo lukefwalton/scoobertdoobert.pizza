@@ -35,6 +35,9 @@ export const GATES: [number, number][] = Array.from({ length: RACE_GATES }, (_, 
 const GATE_R = 4.8; // how close you must pass a gate for it to count (generous)
 const GHOST_SPEED = 8.6; // units/s — beatable by a sprinting player (~10.2/s)
 const GHOST_REACH = 1.6; // how close the ghost gets to a gate before targeting the next
+// Chord between adjacent gates — the segment length used to turn "distance to the
+// next gate" into a 0..1 fraction for the continuous standing readout.
+const SEG = 2 * COURSE_R * Math.sin(Math.PI / RACE_GATES);
 
 // A bilingual floating banner over the idle ghost — words stay EN + JP.
 function makeBannerTexture(): THREE.Texture {
@@ -206,7 +209,8 @@ export function GhostRace() {
       } else if (r.phase === 'racing') {
         // your gate: cross the next checkpoint in order → it counts + chimes.
         const pg = GATES[nextGateOf(r.playerProgress)];
-        if (Math.hypot(camera.position.x - pg[0], camera.position.z - pg[1]) < GATE_R) {
+        const pd = Math.hypot(camera.position.x - pg[0], camera.position.z - pg[1]);
+        if (pd < GATE_R) {
           r.passPlayerGate();
           audio.playChime(noteToFreq('A', 5), 0.2, 0.1);
         }
@@ -221,6 +225,12 @@ export function GhostRace() {
           ghostPos.current.x += (gx / gd) * GHOST_SPEED * dt;
           ghostPos.current.z += (gz / gd) * GHOST_SPEED * dt;
         }
+        // truthful standing: CONTINUOUS progress = gates passed + fraction of the
+        // way to the next gate, so the HUD's 1st/2nd is honest mid-segment instead
+        // of a gate-count tie. (Ties favor the player — see raceStore.finish.)
+        const contP = r.playerProgress + (1 - Math.min(1, pd / SEG));
+        const contG = r.ghostProgress + (1 - Math.min(1, gd / SEG));
+        r.setPlayerAhead(contP >= contG);
       } else {
         // idle / won / lost: drift the ghost gently back to the start line.
         ghostPos.current.x += (GATES[0][0] - ghostPos.current.x) * Math.min(1, dt * 1.5);

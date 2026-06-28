@@ -11,7 +11,7 @@ export function RaceHud({ hidden }: { hidden?: boolean }) {
   const phase = useRaceStore((s) => s.phase);
   const countdown = useRaceStore((s) => s.countdown);
   const playerProgress = useRaceStore((s) => s.playerProgress);
-  const ghostProgress = useRaceStore((s) => s.ghostProgress);
+  const playerAhead = useRaceStore((s) => s.playerAhead);
 
   // Gate it like the other HUDs (ScoreHud/ObjectiveHud): off under the pause menu
   // / a room wipe / a dialog / a modal overlay, so it never sits over a menu.
@@ -43,15 +43,14 @@ export function RaceHud({ hidden }: { hidden?: boolean }) {
     );
   }
 
-  // racing
-  const ahead = playerProgress >= ghostProgress;
+  // racing — `playerAhead` is the truthful CONTINUOUS standing (set by GhostRace).
   return (
     <div className="hud-race hud-race--live" aria-hidden="true">
       <div className="hud-race__lap">
         LAP {lapOf(playerProgress)}/{RACE_LAPS}
       </div>
-      <div className={`hud-race__place hud-race__place--${ahead ? 'lead' : 'behind'}`}>
-        {ahead ? '🏁 1st — hold SHIFT!' : '👻 2nd — hold SHIFT!'}
+      <div className={`hud-race__place hud-race__place--${playerAhead ? 'lead' : 'behind'}`}>
+        {playerAhead ? '🏁 1st — hold SHIFT!' : '👻 2nd — hold SHIFT!'}
       </div>
     </div>
   );
