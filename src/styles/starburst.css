@@ -326,6 +326,41 @@
   vertical-align: middle;
 }
 
+.sb__webring {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 4px;
+}
+.sb__globe {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 100%;
+  font-family: 'Comic Sans MS', 'Times New Roman', cursive;
+  font-weight: bold;
+  font-size: 0.95rem;
+  color: #000080;
+  text-decoration: underline;
+  padding: 6px 14px;
+  background: #d7e6ff;
+  border: 3px ridge #6aa0ff;
+}
+.sb__globe img {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated; /* keep the globe crisp */
+  vertical-align: middle;
+}
+.sb__globe:hover {
+  background: #eaf2ff;
+}
+.sb__globe:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
 .sb__doors {
   display: flex;
   flex-wrap: wrap;

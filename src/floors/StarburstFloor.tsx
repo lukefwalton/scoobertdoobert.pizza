@@ -135,6 +135,20 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             </picture>
           </div>
 
+          {/* A spinning WORLD WIDE WEB globe — the most GeoCities artifact of all,
+              printed by our own GIF89a encoder (make-gifs.mjs) — wrapping a REAL
+              crawlable anchor to the Link Archive (/links), never a dead '#'. The
+              <picture> serves a still first frame under reduced motion. */}
+          <div className="sb__webring">
+            <a className="sb__globe" href="/links">
+              <picture>
+                <source srcSet="/gifs/globe-static.gif" media="(prefers-reduced-motion: reduce)" />
+                <img src="/gifs/globe.gif" width={48} height={48} alt="" />
+              </picture>
+              <span>Surf the rest of our WORLD&nbsp;WIDE&nbsp;WEB &raquo;</span>
+            </a>
+          </div>
+
           <div className="sb__doors">
             <FloorDoor direction="up" label="Back upstairs" onActivate={ascend} />
             <FloorDoor
