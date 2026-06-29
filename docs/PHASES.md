@@ -507,6 +507,23 @@ commit + smoke:
   hand-spelled `useEffect(() => () => […].dispose())` cleanup across the world
   components (now rolled out — 41 effects across 29 components; store/mixed/
   setup-bearing effects are deliberately left as real `useEffect`s).
+- **Repo code-quality pass (shipped, 2026-06-29):** a focused clean/DRY sweep on
+  its own branch. The PS1 nearest-texture finalizer (`nearestify`) and the bought-
+  GLB material re-treat (`ps1ifyGltfMaterial`) are now single exports in
+  `src/world/ps1.ts` — the same 3-liner had been copy-pasted across ~12 rooms plus
+  both GLB files — and `PS1.snap` is the real snap source now, not an unused
+  constant. The arcade cross-link shelf is one registry-derived `CabinetShelf`
+  component (the four older cabinet pages had drifted, silently dropping links to
+  shipped cabinets — the exact failure the `arcadeGames.ts` registry exists to
+  prevent). A shared `ExternalLink` replaces the per-page `target="_blank"`
+  helpers; the client/server initials sanitizers collapsed to one `cleanInitials`,
+  and the terminal `song`/`lyrics` lookups to one `fuzzyFindSlug`. Dead CSS
+  (`.boot__skip`, `.world-exit`) removed; `shoot.mjs` migrated onto the shared
+  harness; an `.editorconfig` (aligned with `.prettierrc`) added. Deliberately
+  left alone: the vendored-standalone `cultures.ts` note table (the standalone
+  guardrail) and the `progressStore` spend counters (the persistence spine — the
+  tiny dup reads clearer than a cast-laden helper). typecheck / lint / format /
+  518 unit tests / `shoot:all` all green.
 - **Mobile audit (shipped):** `shoot:mobile` loads every URL-addressable surface
   (storefront, `/text`, `/links`, `/about`(+`/jp`), `/leaderboard`, all the arcade
   cabinets) at a 390×844 phone viewport and fails on horizontal overflow, with a
@@ -562,10 +579,7 @@ guardrail before anything that adds a place/NPC/system):
   open backlog (Phase 8 tail) is **further album-themed wings.**
 - **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
   instruments tail are the loose ends still flagged in the table above.
-- **Tooling DRY — the smoke harness.** The ~53 `shoot-*.mjs` scripts each repeat
-  the Playwright bootstrap (`chromium.launch` / `newContext` / the `fail` counter)
-  and the `process.exit` teardown; only the *domain* helpers are shared (in
-  `scripts/lib/smoke.mjs`). Extracting `setupSmoke({ viewport })` + `finishSmoke()`
-  would cut ~10–15 lines × ~53 files. Deferred deliberately: it's a big,
-  tooling-only blast radius best landed as its own chunk and verified with one
-  full `shoot:all` run.
+- **Tooling DRY — the smoke harness.** ✅ Shipped — the Playwright bootstrap +
+  teardown now live in `scripts/lib/smoke.mjs` (`launchSmoke` / `startSmoke` +
+  the `fail`/`finish` counter), and every `shoot:*` smoke routes through them. The
+  last straggler (`shoot.mjs`) was migrated in the repo code-quality pass below.

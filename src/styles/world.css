@@ -13,20 +13,3 @@
   font-family: 'Courier New', Courier, monospace;
   letter-spacing: 0.12em;
 }
-
-.world-exit {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 70;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 0.9rem;
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 6px 12px;
-  cursor: url('/cursor.cur'), pointer;
-}
-.world-exit:hover {
-  background: rgba(0, 0, 0, 0.82);
-}

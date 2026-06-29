@@ -1,0 +1,18 @@
+# EditorConfig — editor defaults that match .prettierrc.json + .nvmrc.
+# https://editorconfig.org. Prettier formats the files it owns (see
+# .prettierrc.json for the JS/TS style); this keeps every editor consistent for
+# the rest, and before Prettier runs.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Markdown is hand-wrapped and excluded from Prettier (.prettierignore); keep
+# trailing whitespace, which is significant there as a hard line break.
+[*.md]
+trim_trailing_whitespace = false
