@@ -373,6 +373,16 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   + a standalone `/delivery-dash` route through `ArcadeCabinetPage`, a per-cabinet
   high score (`arcadeHighs['delivery-dash']`), and a `?debug`-only `__sdpDashForceLose`
   hook driving the real game-over branch in `shoot:games`.
+- ✅ **…and a musical seventh — Order Up (2026-06-29):** a kitchen-side **Simon** — the
+  cook calls a growing order on four singing topping pads (a C-major arpeggio rung
+  through the SHARED bell engine `audio.playChime`, so it's mute-aware + brickwall-
+  limited for free), you ring it back from memory, and one slip ends the shift. The
+  music ladder as a memory game — "the reward is the melody you echo." Same DRY
+  plumbing as the rest: one `arcadeGames.ts` registry row drives the in-world roll +
+  the derived cross-link shelf + a standalone `/order-up` route through
+  `ArcadeCabinetPage` (route-parity guarded), a per-cabinet high score
+  (`arcadeHighs['order-up']` = the longest order reached), and a `?debug`-only
+  `__sdpOrderUpForceLose` hook driving the real game-over branch in `shoot:games`.
 - ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
   catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a
