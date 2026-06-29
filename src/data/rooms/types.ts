@@ -53,6 +53,12 @@ export type RoomKind =
   // onto a sweet pastel daydream breather. Each plays its own song (Room.song).
   | 'gallery'
   | 'daydream'
+  // The Aerial (テルミン) — a hushed cosmic chamber deep off the liminal level with
+  // one theremin you play BY PROXIMITY (walk toward it → it sings higher + louder).
+  // The deep "play it" instrument ROOM (vs. the surface cabinets); a SWEET relief
+  // beat (musicRoom — it owns the space). The first sustained/continuous voice on
+  // the music ladder (every other instrument is struck/plucked).
+  | 'theremin'
   // The Memory Lane wing — a digital-nostalgia branch off the classified file
   // room: a corridor of glowing CRTs showing old-web fragments, opening into a
   // dark server-void where drifting data motes are "all my friends." Mildly
