@@ -1,0 +1,166 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   cabinet.css — the shared period arcade-cabinet shell for the three
+   touch-first instrument routes: /poke, /chimes, /cultures. They wear the same
+   grammar (sharp corners, beveled inset/outset chrome, a flat palette, a hard
+   zero-blur RGB chroma-split marquee), so the skeleton lives here ONCE instead
+   of being copy-pasted into three near-identical stylesheets.
+
+   It is keyed on each page's EXISTING prefixed classes (grouped selectors), so
+   no markup, component, or smoke-test selector had to change. Each cabinet's own
+   file (poke.css / chimes.css / cultures.css) is imported alongside this one and
+   carries ONLY its differences: its theme colour (the `--cab-accent` custom
+   property, read below), its canvas size, and any controls unique to it. The
+   shared and per-cabinet rules set disjoint properties, so load order is moot.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.poke-page,
+.chimes-page,
+.cultures-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 12px 12px 28px;
+  background: #04040a;
+  color: #cfe9ef;
+  font:
+    13px/1.5 'Courier New',
+    monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.poke-util,
+.chimes-util,
+.cultures-util {
+  width: 100%;
+  max-width: 360px;
+  margin: 0;
+}
+.poke-util a,
+.chimes-util a,
+.cultures-util a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+
+.poke-cabinet,
+.chimes-cabinet,
+.cultures-cabinet {
+  width: 100%;
+  max-width: 360px;
+  background: #20202c;
+  border: 4px outset #4a4a5e;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poke-marquee,
+.chimes-marquee,
+.cultures-marquee {
+  text-align: center;
+  padding: 7px 6px;
+  background: #0a0a12;
+  border: 3px inset #4a4a5e;
+}
+/* The cabinet's theme colour is the one real per-cabinet knob — set as
+   `--cab-accent` on each `*-page` root; the marquee word-art + cold-screen title
+   read it here. The hard cyan/red chroma-split is shared. */
+.poke-marquee__neon,
+.chimes-marquee__neon,
+.cultures-marquee__neon {
+  font-weight: bold;
+  color: var(--cab-accent);
+  text-shadow:
+    1px 0 0 #00e0ff,
+    -1px 0 0 #ff2a2a;
+}
+
+.poke-screen,
+.chimes-screen,
+.cultures-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poke-canvas,
+.chimes-canvas,
+.cultures-canvas {
+  display: block;
+  width: 100%;
+  border: 3px inset #4a4a5e;
+  touch-action: none; /* each cabinet owns its drag/tap */
+  user-select: none;
+}
+
+.poke-hint,
+.chimes-hint,
+.cultures-hint {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+  text-align: center;
+  min-height: 1.2em;
+}
+
+.poke-coinslot,
+.chimes-coinslot,
+.cultures-coinslot {
+  margin: 0;
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #6b6b80;
+}
+
+/* No-JS / pre-hydration cold screen */
+.poke-screen--cold,
+.chimes-screen--cold,
+.cultures-screen--cold {
+  width: 100%;
+  min-height: 280px;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+  border: 3px inset #4a4a5e;
+}
+.poke-cold-title,
+.chimes-cold-title,
+.cultures-cold-title {
+  margin: 0 0 6px;
+  font-weight: bold;
+  color: var(--cab-accent);
+}
+.poke-cold-sub,
+.chimes-cold-sub,
+.cultures-cold-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #9fb6bd;
+}
+
+.poke-foot,
+.chimes-foot,
+.cultures-foot {
+  max-width: 360px;
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #7a8290;
+}
+.poke-foot a,
+.chimes-foot a,
+.cultures-foot a {
+  color: #5a7cff;
+  text-decoration: underline;
+}
+.poke-foot--copy,
+.chimes-foot--copy,
+.cultures-foot--copy {
+  color: #4a5160;
+}
