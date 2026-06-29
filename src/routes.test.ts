@@ -4,8 +4,9 @@ import { ARCADE_GAMES } from './data/arcadeGames';
 
 // The arcade cabinet set lives in several parallel lists. Two of them can't drift:
 // ArcadeModal's `Record<ArcadeGameId, ComponentType>` is tsc-exhaustive, and the
-// cross-link shelf in ArcadeCabinetPage is DERIVED from ARCADE_GAMES. The one that
-// stays hand-maintained is routes.tsx — it has to pair each cabinet with its real
+// cross-link shelf (the shared `CabinetShelf`, used by every cabinet page) is
+// DERIVED from ARCADE_GAMES. The one that stays hand-maintained is routes.tsx —
+// it has to pair each cabinet with its real
 // page component, which TypeScript can't make exhaustive for us. So pin it by
 // source-parity: every registered cabinet must have a matching standalone route,
 // so adding one to the registry without wiring a /route fails HERE instead of
