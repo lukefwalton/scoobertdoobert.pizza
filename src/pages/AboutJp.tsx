@@ -271,7 +271,7 @@ export default function AboutJp() {
 
         <p>
           Scoobert Doobert は、ミュージシャン／プロデューサー{' '}
-          <a href="https://lukefwalton.com/" rel="me">
+          <a href="https://lukefwalton.com/jp/" rel="me" hrefLang="ja">
             ルーク・フランシス・ウォルトン（Luke Francis Walton）
           </a>{' '}
           の録音・ポッドキャスト・音声プロジェクト名義です。
