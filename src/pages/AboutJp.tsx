@@ -120,8 +120,8 @@ export default function AboutJp() {
       {
         '@type': 'Person',
         '@id': 'https://lukefwalton.com/#person',
-        name: 'Luke Francis Walton',
-        alternateName: ['ルーク・フランシス・ウォルトン', 'Luke F. Walton', 'Scoobert Doobert'],
+        name: 'Luke F. Walton',
+        alternateName: ['ルーク・フランシス・ウォルトン', 'Luke Francis Walton', 'Scoobert Doobert'],
         url: 'https://lukefwalton.com/',
       },
     ],
