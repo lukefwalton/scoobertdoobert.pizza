@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat, makeCheckerTexture } from './ps1';
+import { flatMat, makeCheckerTexture, nearestify } from './ps1';
 import { audio } from '../audio/engine';
 import { useDispose } from '../lib/useDispose';
 import type { Room } from '../data/rooms';
@@ -123,11 +123,7 @@ function NeonSign() {
     ctx.shadowBlur = 8;
     ctx.fillStyle = '#eafdff';
     ctx.fillText('青函トンネル', 256, 70);
-    const t = new THREE.CanvasTexture(c);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
-    return t;
+    return nearestify(new THREE.CanvasTexture(c));
   }, []);
 
   useDispose(texture);

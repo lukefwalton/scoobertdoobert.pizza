@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, nearestify } from './ps1';
 import { fogFor, type Room } from '../data/rooms';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
@@ -123,11 +123,7 @@ function Fireflies({ count = 44 }: { count?: number }) {
     g.addColorStop(1, 'rgba(255,255,210,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 16, 16);
-    const t = new THREE.CanvasTexture(c);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
-    return t;
+    return nearestify(new THREE.CanvasTexture(c));
   }, []);
 
   // Seed base positions + per-point bob phase/speed.
