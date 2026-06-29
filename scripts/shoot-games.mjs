@@ -69,6 +69,15 @@ const GAMES = [
       stateHook: '__sdpDashState',
     },
   },
+  // order-up's loss (a wrong topping) isn't keypress-forceable — the order is random —
+  // so it exposes a ?debug force-lose hook that drives its REAL game-over branch; the
+  // smoke calls it and asserts the over overlay ("PLAY AGAIN") + the persisted high.
+  {
+    slug: 'order-up',
+    title: 'Order Up',
+    id: 'order-up',
+    loseHook: '__sdpOrderUpForceLose',
+  },
 ];
 
 const { browser, fail: bad, finish, failures } = await launchSmoke();
