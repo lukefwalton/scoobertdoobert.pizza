@@ -1,4 +1,5 @@
 import { Head } from 'vite-react-ssg';
+import '../styles/cabinet.css';
 import '../styles/poke.css';
 import { FaceStretch } from '../components/FaceStretch';
 import { MuteToggle } from '../components/MuteToggle';

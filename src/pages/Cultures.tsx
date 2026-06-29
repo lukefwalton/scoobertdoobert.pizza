@@ -1,4 +1,5 @@
 import { Head } from 'vite-react-ssg';
+import '../styles/cabinet.css';
 import '../styles/cultures.css';
 import { CulturesCabinet } from '../components/CulturesCabinet';
 import { CabinetShelf } from '../components/CabinetShelf';

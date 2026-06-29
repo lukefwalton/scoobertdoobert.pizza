@@ -1,78 +1,26 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   /cultures — the "Cultures" cabinet. PERIOD-ACCURATE, same grammar as the
-   arcade / poke / chimes cabinets: sharp corners, beveled chrome, a flat
-   palette, and a hard zero-blur RGB chroma-split marquee.
+   /cultures — the "Cultures" cabinet. The shared period shell lives in
+   cabinet.css; this file carries cultures' green theme, its stir canvas, and its
+   controls (the speed slider + the ♪ ON/OFF toggle) — unique to it.
    ───────────────────────────────────────────────────────────────────────── */
 
 .cultures-page {
-  min-height: 100vh;
-  min-height: 100dvh;
-  margin: 0;
-  padding: 12px 12px 28px;
-  background: #04040a;
-  color: #cfe9ef;
-  font:
-    13px/1.5 'Courier New',
-    monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  --cab-accent: #8fe070;
 }
 
-.cultures-util {
-  width: 100%;
-  max-width: 360px;
-  margin: 0;
-}
-.cultures-util a {
-  color: #5a7cff;
-  text-decoration: underline;
-}
-
-.cultures-cabinet {
-  width: 100%;
-  max-width: 360px;
-  background: #20202c;
-  border: 4px outset #4a4a5e;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.cultures-marquee {
-  text-align: center;
-  padding: 7px 6px;
-  background: #0a0a12;
-  border: 3px inset #4a4a5e;
-}
 .cultures-marquee__neon {
-  font-weight: bold;
   letter-spacing: 5px;
-  color: #8fe070;
-  text-shadow:
-    1px 0 0 #00e0ff,
-    -1px 0 0 #ff2a2a;
 }
 
 .cultures-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 10px;
 }
 
 .cultures-canvas {
-  display: block;
-  width: 100%;
   max-width: 320px;
   aspect-ratio: 320 / 340;
   background: #07090f;
-  border: 3px inset #4a4a5e;
-  touch-action: none; /* we own the stir */
   cursor: grab;
-  user-select: none;
 }
 .cultures-canvas:active {
   cursor: grabbing;
@@ -99,7 +47,7 @@
 }
 .cultures-ctl input {
   flex: 1;
-  accent-color: #8fe070;
+  accent-color: var(--cab-accent);
 }
 
 .cultures-btn {
@@ -132,56 +80,9 @@
   border-color: #7dff66;
 }
 
-.cultures-hint {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #9fb6bd;
-  text-align: center;
-  min-height: 1.2em;
-}
-
-.cultures-coinslot {
-  margin: 0;
-  text-align: center;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: #6b6b80;
-}
-
-/* No-JS / pre-hydration cold screen */
 .cultures-screen--cold {
-  width: 100%;
-  min-height: 280px;
-  justify-content: center;
-  text-align: center;
-  padding: 18px;
   background: #07090f;
-  border: 3px inset #4a4a5e;
 }
 .cultures-cold-title {
-  margin: 0 0 6px;
-  font-weight: bold;
   letter-spacing: 3px;
-  color: #8fe070;
-}
-.cultures-cold-sub {
-  margin: 0;
-  font-size: 11px;
-  color: #9fb6bd;
-}
-
-.cultures-foot {
-  max-width: 360px;
-  margin: 0;
-  text-align: center;
-  font-size: 11px;
-  color: #7a8290;
-}
-.cultures-foot a {
-  color: #5a7cff;
-  text-decoration: underline;
-}
-.cultures-foot--copy {
-  color: #4a5160;
 }
