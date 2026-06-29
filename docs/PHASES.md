@@ -186,9 +186,10 @@ descent, each covered by a `shoot:*` smoke:
   + `CulturesCabinet`), both synthesised, mute-aware, brickwall-limited, crawlable,
   covered by `shoot:chimes` / `shoot:cultures`. **The bell synth is a reusable
   engine** (`strikeBell` → `audio.playChime`): it also rings the **furin** in the
-  Wayside Shrine — the first "use the ENGINE for in-room effects" (Luke). ⬜ More
-  in-room/"odd-thing" uses + a possible deep instrument ROOM (vs. surface cabinet)
-  remain; the webcam stays its own gated thread (DESIGN → Webcam policy).
+  Wayside Shrine — the first "use the ENGINE for in-room effects" (Luke). ✅ The
+  deep instrument ROOM (vs. surface cabinet) landed — **The Aerial**, a proximity-
+  played theremin off the liminal (Phase 8, 2026-06-29). ⬜ More in-room/"odd-thing"
+  uses remain; the webcam stays its own gated thread (DESIGN → Webcam policy).
 - ⬜/❓ **The Doom / Freedoom shrine — likely DROPPED.** The point of it (a hidden,
   lazy, dread-tinged liminal level) is effectively already delivered by our OWN
   GLB levels (deep pool / liminal / backrooms) — without taking on Freedoom's
@@ -327,6 +328,20 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   sweet). Reuses `makeBilingualSign` + `useDispose` + `PizzaPanChimes` (elegant
   repo — no new instrument). `shoot:kitchen` drives the room + a pan strike; the
   room graph/map/dread/whisper wiring lands with the full unit suite green.
+- ✅ **The Aerial (テルミン) — the deep theremin room (2026-06-29):** the music ladder's
+  first SUSTAINED, continuously-pitched instrument and the long-flagged "deep instrument
+  ROOM (vs. surface cabinet)." A hushed, starlit chamber off the **liminal** level's +X
+  wall (a sweet relief beat — `musicRoom`, `baseUnease` below SAFE) holding one theremin
+  you play BY PROXIMITY: walk into its field and it sings higher + louder, back away and
+  it fades to silence (the real theremin mechanism, mapped onto first-person movement —
+  no pointer-lock fight). The proximity→{freq,gain} curve is a pure, unit-tested mapping
+  (`src/lib/theremin.ts`); the SOUND is a NEW reusable engine primitive —
+  `audio.startVoice()` (a warm tri+sub under a gentle vibrato, mute-aware + brickwall-
+  limited), the sustained counterpart to the struck/plucked one-shots. Original parody
+  geometry; a faint floor ring marks the field; bilingual テルミン / THEREMIN plaque; a
+  perception whisper ties the wordless air-played voice to his wordless KŌAN track 無門関.
+  `shoot:theremin` drives the REAL per-frame proximity path (sings near → drops with
+  distance → silent outside); `theremin.test` + `rooms.test` / `music.test` guards.
 - ⬜ **Tail / backlog (in DESIGN):** further album-themed wings (the **Basement
   Sessions** studio wing is the first big one — shipped above). (Trap-door d20,
   spells, perception whispers, the grass encounter, storefront reactivity, the greek
@@ -530,7 +545,9 @@ guardrail before anything that adds a place/NPC/system):
   extend the retro furniture while adding real nav anchors, not just decoration.
   Reuses the GIF89a encoder (`make-gifs.mjs`) already in the repo.
 - **3D world delight.** ✅ First beat shipped — the **pizza pan chimes** "play it"
-  instrument in the park (above). More to feed the "exploration's reward is sound"
+  instrument in the park (above); ✅ and **The Aerial** — the deep proximity-played
+  theremin room (the music ladder's first SUSTAINED voice). More to feed the
+  "exploration's reward is sound"
   spine on desktop — another easter-egg, a room touch, or an NPC beat. The biggest
   open backlog (Phase 8 tail) is **further album-themed wings.**
 - **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
