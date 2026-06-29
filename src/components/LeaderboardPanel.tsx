@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../styles/leaderboard.css';
-import {
-  fetchLeaderboard,
-  submitScore,
-  sanitizeInitials,
-  type ScoreEntry,
-} from '../lib/leaderboard';
-import { RANKED_TOP } from '../lib/leaderboardCore';
+import { fetchLeaderboard, submitScore, type ScoreEntry } from '../lib/leaderboard';
+import { cleanInitials, RANKED_TOP } from '../lib/leaderboardCore';
 
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
@@ -49,7 +44,7 @@ export function LeaderboardPanel({
     };
   }, [rows, loadBoard]);
 
-  const canSubmit = score > 0 && sanitizeInitials(initials).length === 3 && status !== 'submitting';
+  const canSubmit = score > 0 && cleanInitials(initials).length === 3 && status !== 'submitting';
 
   const onSubmit = async () => {
     if (!canSubmit) return;
@@ -82,7 +77,7 @@ export function LeaderboardPanel({
             <input
               className="hud-board__initials"
               value={initials}
-              onChange={(e) => setInitials(sanitizeInitials(e.target.value))}
+              onChange={(e) => setInitials(cleanInitials(e.target.value))}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') onSubmit();
               }}

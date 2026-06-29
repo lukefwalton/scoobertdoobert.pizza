@@ -8,6 +8,8 @@
 // (progressStore.pizzaPointsBest); the leaderboard is a bonus on top.
 // ───────────────────────────────────────────────────────────────────────────
 
+import { cleanInitials } from './leaderboardCore';
+
 export type ScoreEntry = { initials: string; score: number; ts?: string };
 
 export type SubmitResult = {
@@ -20,14 +22,6 @@ export type SubmitResult = {
   reason?: string;
   entries?: ScoreEntry[];
 };
-
-/** Three A–Z letters, uppercased — the classic arcade tag. */
-export function sanitizeInitials(s: string): string {
-  return s
-    .toUpperCase()
-    .replace(/[^A-Z]/g, '')
-    .slice(0, 3);
-}
 
 function asEntries(v: unknown): ScoreEntry[] {
   if (!Array.isArray(v)) return [];
@@ -57,7 +51,7 @@ export async function fetchLeaderboard(limit = 25): Promise<ScoreEntry[] | null>
 
 /** Submit initials + score. Never throws; reason 'offline' means no backend. */
 export async function submitScore(initials: string, score: number): Promise<SubmitResult> {
-  const ini = sanitizeInitials(initials);
+  const ini = cleanInitials(initials);
   if (ini.length < 3 || !Number.isFinite(score) || score <= 0) {
     return { ok: false, reason: 'invalid' };
   }
