@@ -1,7 +1,13 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap, flatMat, makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import {
+  applyVertexSnap,
+  flatMat,
+  makeAffineTexturedMaterial,
+  makeCheckerTexture,
+  nearestify,
+} from './ps1';
 import { useDreadStore } from '../state/dreadStore';
 import { fogFor, type Room } from '../data/rooms';
 import { CultureMotes } from './CultureMotes';
@@ -60,11 +66,7 @@ function makeRippleTexture(): THREE.Texture {
     }
   }
   ctx.putImageData(img, 0, 0);
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
+  const tex = nearestify(new THREE.CanvasTexture(c), { repeat: true });
   tex.repeat.set(2, 2);
   return tex;
 }

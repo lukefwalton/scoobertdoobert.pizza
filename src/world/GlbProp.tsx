@@ -2,7 +2,7 @@ import { Component, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { applyVertexSnap } from './ps1';
+import { ps1ifyGltfMaterial } from './ps1';
 import type { RoomProp } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -15,15 +15,6 @@ import type { RoomProp } from '../data/rooms';
 // vertex-snapped materials. Auto-fits to a target size and sits its base at the
 // group origin so placement is "feet at (x,z)". Provenance: THIRD_PARTY_NOTICES.
 // ───────────────────────────────────────────────────────────────────────────
-
-const TEX_KEYS = [
-  'map',
-  'emissiveMap',
-  'roughnessMap',
-  'metalnessMap',
-  'normalMap',
-  'aoMap',
-] as const;
 
 // A failed prop load must never blow up the room — render nothing on error and
 // drop the poisoned cache entry so a transient failure can recover on revisit.
@@ -59,24 +50,13 @@ function PropInner({ spec }: { spec: RoomProp }) {
       mesh.material = Array.isArray(mesh.material) ? cloned : cloned[0];
       for (const m of cloned) {
         const mat = m as THREE.MeshStandardMaterial;
-        for (const key of TEX_KEYS) {
-          const tex = mat[key] as THREE.Texture | null | undefined;
-          if (tex) {
-            tex.magFilter = THREE.NearestFilter;
-            tex.minFilter = THREE.NearestFilter;
-            tex.generateMipmaps = false;
-            tex.needsUpdate = true;
-          }
-        }
-        mat.flatShading = true;
+        ps1ifyGltfMaterial(mat);
         // Lift it off pure black in dim rooms (e.g. the Möbius strip in the
         // corridor) by tinting emissive toward its own colour.
         if (spec.glow && mat.emissive) {
           mat.emissive.copy(mat.color ?? new THREE.Color('#ffffff'));
           mat.emissiveIntensity = spec.glow;
         }
-        applyVertexSnap(mat, 64);
-        mat.needsUpdate = true;
       }
     });
     // Auto-fit: scale so the largest dimension == fit; drop base to y=0, centre x/z.

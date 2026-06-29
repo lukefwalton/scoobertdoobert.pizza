@@ -3,7 +3,13 @@ import { useFrame } from '@react-three/fiber';
 import { useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { RoomBox } from './RoomBox';
-import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
+import {
+  flatMat,
+  makeAffineTexturedMaterial,
+  makeCheckerTexture,
+  makeTextTexture,
+  nearestify,
+} from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
 
@@ -17,9 +23,7 @@ function SuspectBoard({ W }: { W: number }) {
   const maps = useTexture(PHOTO_URLS) as THREE.Texture[];
   useMemo(() => {
     for (const t of maps) {
-      t.magFilter = THREE.NearestFilter;
-      t.minFilter = THREE.NearestFilter;
-      t.generateMipmaps = false;
+      nearestify(t);
       t.needsUpdate = true;
     }
   }, [maps]);

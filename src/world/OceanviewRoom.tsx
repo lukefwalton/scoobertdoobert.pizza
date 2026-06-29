@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { makeAffineTexturedMaterial, makeCheckerTexture } from './ps1';
+import { makeAffineTexturedMaterial, makeCheckerTexture, nearestify } from './ps1';
 import { Water } from './Water';
 import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
@@ -23,11 +23,7 @@ function Stars({ count = 70 }: { count?: number }) {
     const ctx = c.getContext('2d')!;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(2, 2, 4, 4);
-    const t = new THREE.CanvasTexture(c);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
-    return t;
+    return nearestify(new THREE.CanvasTexture(c));
   }, []);
   const geom = useMemo(() => {
     const pos = new Float32Array(count * 3);
