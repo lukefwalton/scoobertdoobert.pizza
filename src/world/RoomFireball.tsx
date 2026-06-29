@@ -6,6 +6,7 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useDispose } from '../lib/useDispose';
+import { nearestify } from './ps1';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -42,11 +43,7 @@ function makeFlameTexture(): THREE.Texture {
   g.addColorStop(1, 'rgba(120,30,0,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, s, s);
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
+  return nearestify(new THREE.CanvasTexture(c));
 }
 
 // Smooth 0→1→0 burn envelope: a gentle attack (~10% of the burn), then an

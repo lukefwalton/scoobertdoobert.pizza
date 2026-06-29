@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { makeAffineTexturedMaterial, makeCheckerTexture, flatMat } from './ps1';
+import { makeAffineTexturedMaterial, makeCheckerTexture, flatMat, nearestify } from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { Theremin } from './Theremin';
 import { fogFor, type Room } from '../data/rooms';
@@ -63,11 +63,7 @@ function Motes({ count = 40 }: { count?: number }) {
     g.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, 16, 16);
-    const t = new THREE.CanvasTexture(c);
-    t.magFilter = THREE.NearestFilter;
-    t.minFilter = THREE.NearestFilter;
-    t.generateMipmaps = false;
-    return t;
+    return nearestify(new THREE.CanvasTexture(c));
   }, []);
   const seed = useMemo(() => {
     const base = new Float32Array(count * 3);

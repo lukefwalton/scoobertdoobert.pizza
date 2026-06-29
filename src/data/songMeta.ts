@@ -31,3 +31,21 @@ export const songMeaning = (slug: string): string | null => SONG_META[slug]?.mea
 
 /** The published title for a slug (falls back to the slug itself). */
 export const songTitle = (slug: string): string => SONG_META[slug]?.title ?? slug;
+
+/** Fuzzy-resolve a user query (a slug, slug prefix, or title substring) to one of
+ *  `slugs`: exact slug → prefix → dash-insensitive / title substring. `titleOf`
+ *  maps a slug to its display title. Shared by the forgiving terminal `song` +
+ *  `lyrics` lookups, so the two matchers can't drift. undefined on no match. */
+export function fuzzyFindSlug(
+  slugs: string[],
+  query: string,
+  titleOf: (slug: string) => string,
+): string | undefined {
+  const q = query.trim().toLowerCase();
+  if (!q) return undefined;
+  return (
+    slugs.find((s) => s === q) ??
+    slugs.find((s) => s.startsWith(q)) ??
+    slugs.find((s) => s.replace(/-/g, ' ').includes(q) || titleOf(s).toLowerCase().includes(q))
+  );
+}

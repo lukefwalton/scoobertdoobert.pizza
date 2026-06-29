@@ -14,7 +14,7 @@
 // have no entry (no words to show), so `hasLyrics` is the gate everywhere.
 // ───────────────────────────────────────────────────────────────────────────
 import lyricsData from './lyrics.json';
-import { songMeta } from './songMeta';
+import { songMeta, fuzzyFindSlug } from './songMeta';
 
 export type Lyric = {
   /** The track's display title (from songMeta). */
@@ -51,12 +51,5 @@ export const hasLyrics = (slug: string | null | undefined): slug is string =>
 /** Fuzzy-resolve a user query (a slug, slug prefix, or title substring) to a slug
  *  that has lyrics — for the forgiving terminal `lyrics <name>` command. */
 export function findLyricSlug(query: string): string | undefined {
-  const q = query.trim().toLowerCase();
-  if (!q) return undefined;
-  const slugs = songsWithLyrics();
-  return (
-    slugs.find((s) => s === q) ??
-    slugs.find((s) => s.startsWith(q)) ??
-    slugs.find((s) => s.replace(/-/g, ' ').includes(q) || LYRICS[s].title.toLowerCase().includes(q))
-  );
+  return fuzzyFindSlug(songsWithLyrics(), query, (s) => LYRICS[s].title);
 }
