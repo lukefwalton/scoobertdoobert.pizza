@@ -1,132 +1,42 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   /poke — the "Poke Scoobert" cabinet. PERIOD-ACCURATE (same lesson as the
-   arcade restyle): sharp corners, beveled chrome, flat palette, hard RGB-split
-   marquee — no rounded/neon/soft-shadow modern UI.
+   /poke — the "Poke Scoobert" cabinet. The shared period shell lives in
+   cabinet.css; this file carries only what's unique to poke: its gold theme, the
+   back row (it pairs the back link with a mute toggle), and its portrait canvas.
    ───────────────────────────────────────────────────────────────────────── */
 
 .poke-page {
-  min-height: 100vh;
-  min-height: 100dvh;
-  margin: 0;
-  padding: 12px 12px 28px;
-  background: #04040a;
-  color: #cfe9ef;
-  font:
-    13px/1.5 'Courier New',
-    monospace;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
+  --cab-accent: #ffcf4d;
 }
 
+/* poke pairs the back link with a mute toggle, so its util row is a flex row. */
 .poke-util {
-  width: 100%;
-  max-width: 360px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin: 0;
-}
-.poke-util a {
-  color: #5a7cff;
-  text-decoration: underline;
 }
 
-.poke-cabinet {
-  width: 100%;
-  max-width: 360px;
-  background: #20202c;
-  border: 4px outset #4a4a5e;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.poke-marquee {
-  text-align: center;
-  padding: 7px 6px;
-  background: #0a0a12;
-  border: 3px inset #4a4a5e;
-}
 .poke-marquee__neon {
-  font-weight: bold;
   letter-spacing: 4px;
-  color: #ffcf4d;
-  text-shadow:
-    1px 0 0 #00e0ff,
-    -1px 0 0 #ff2a2a;
 }
 
 .poke-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 8px;
 }
 
 .poke-canvas {
-  display: block;
-  width: 100%;
   max-width: 270px;
   aspect-ratio: 270 / 320;
   background: #0b0b12;
-  border: 3px inset #4a4a5e;
-  touch-action: none; /* we own the drag */
   cursor: grab;
-  user-select: none;
 }
 .poke-canvas:active {
   cursor: grabbing;
 }
 
-.poke-hint {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 1px;
-  color: #9fb6bd;
-  text-align: center;
-  min-height: 1.2em;
-}
-
-.poke-coinslot {
-  margin: 0;
-  text-align: center;
-  font-size: 10px;
-  letter-spacing: 2px;
-  color: #6b6b80;
-}
-
-/* No-JS / pre-hydration cold screen */
 .poke-screen--cold {
-  min-height: 280px;
-  justify-content: center;
-  text-align: center;
-  padding: 18px;
   background: #0b0b12;
-  border: 3px inset #4a4a5e;
 }
 .poke-cold-title {
-  margin: 0 0 6px;
-  font-weight: bold;
   letter-spacing: 2px;
-  color: #ffcf4d;
-}
-.poke-cold-sub {
-  margin: 0;
-  font-size: 11px;
-  color: #9fb6bd;
-}
-
-.poke-foot {
-  max-width: 360px;
-  margin: 0;
-  text-align: center;
-  font-size: 11px;
-  color: #7a8290;
-}
-.poke-foot--copy {
-  color: #4a5160;
 }
