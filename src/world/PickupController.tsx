@@ -14,11 +14,15 @@ import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 // Proximity pickups — the game-feel upgrade over click-only, for BOTH inventory
 // items (items.ts: keys / cassettes / scrolls) and LOOT (loot.ts: the pizza-points
 // collectathon). ONE controller (like Doors) scans the current room each frame and:
-//   • publishes the nearest in PROMPT_RADIUS to sceneStore.nearPickup → the
-//     "Press P to grab …" prompt (P is handled in WorldHud, the keyboard owner);
-//   • AUTO-GRABS the nearest once you walk within AUTO_RADIUS — "just walk over it."
-// Clicking the mesh still works (ItemPickup / LootPickup). All paths funnel through
-// the same idempotent collectors, so they can't double-collect.
+//   • AUTO-GRABS the nearest auto-grab thing (loot / cassettes / scrolls) once you
+//     walk within AUTO_RADIUS — "just walk over it";
+//   • publishes the nearest NON-auto-grab item (a key) in PROMPT_RADIUS to
+//     sceneStore.nearPickup → its "Press P to grab …" prompt (P handled in WorldHud).
+// Each pickup has exactly ONE proximity mechanic: keys = press P, everything else =
+// walk over. (A prompt on TOP of walk-over was redundant — "press OR just walk over"
+// the same drop, which read as weird; the walk-over keeps its toast + ring feedback.)
+// Clicking the mesh still works for anything (ItemPickup / LootPickup). All paths
+// funnel through the same idempotent collectors, so they can't double-collect.
 const PROMPT_RADIUS = 2.7; // show the grab prompt within this (you can press P)
 const AUTO_RADIUS = 1.25; // walk this close and it's pocketed automatically
 // Auto-grab ARMS only after you've walked this far from where you spawned, so you
@@ -120,7 +124,11 @@ export function PickupController() {
       return;
     }
 
-    const inPrompt = nearest && nd < PROMPT_RADIUS ? nearest.id : null;
+    // Prompt ONLY for things that DON'T auto-grab (keys): for an auto-grab drop the
+    // walk-over IS the mechanic, so a "Press P" prompt on top of it was the redundant
+    // "both" — drop it. Keys never auto-grab, so the prompt is their only proximity
+    // grab (clicking the mesh still works for everything).
+    const inPrompt = nearest && nd < PROMPT_RADIUS && !nearest.autoGrab ? nearest.id : null;
     if (inPrompt !== lastNear.current) {
       lastNear.current = inPrompt;
       st.setNearPickup(
