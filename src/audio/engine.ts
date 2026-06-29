@@ -637,16 +637,17 @@ class PizzaAudio {
    * routed via `master` so the output limiter + global mute apply — mute silences it
    * through master exactly like the loop, so it never needs to special-case it.
    * Build it ONCE (on entering the room) and drive it with set(freq, gain) per
-   * frame; stop() fades + frees it (on leaving). Returns a no-op handle when there's
-   * no audio context yet (SSR / pre-gesture), so callers never have to branch.
+   * frame; stop() fades + frees it (on leaving). Returns null when there's no audio
+   * context yet (SSR / pre-gesture) so the caller can re-acquire on a later frame
+   * once a gesture builds the ctx — a deep-link into the room can't get stuck silent.
    *
    * NOT a one-shot, so it deliberately skips the worldVoices cap (that bounds many
    * transient ambient hits; this is one long-lived, managed voice). The oscillators
    * idle at near-zero gain when set(_, 0) — cheap, like the dread bed.
    */
-  startVoice(): SustainedVoice {
+  startVoice(): SustainedVoice | null {
     this.ensure();
-    if (!this.ctx || !this.master) return { set() {}, stop() {} };
+    if (!this.ctx || !this.master) return null;
     const ctx = this.ctx;
     const now = ctx.currentTime;
     const out = ctx.createGain();

@@ -49,13 +49,20 @@ const probe = async (dist) => {
   return page.evaluate(() => window.__sdpTheremin);
 };
 
-// Near the device: it should SING — playing, a real pitch in the bounded window.
+// Near the device: it should SING — the sustained voice was acquired on this fresh
+// deep-link (hasVoice — the lifecycle path, no extra gesture), playing a real pitch
+// in the bounded window.
 const near = await probe(2.0);
 const nearOk =
-  near && near.playing === true && near.gain > 0.01 && near.freq >= 210 && near.freq <= 680;
+  near &&
+  near.hasVoice === true &&
+  near.playing === true &&
+  near.gain > 0.01 &&
+  near.freq >= 210 &&
+  near.freq <= 680;
 if (!nearOk)
   bad(
-    `theremin: stepping into the field should play a bounded pitch (got ${JSON.stringify(near)})`,
+    `theremin: fresh-load should acquire the voice + play a bounded pitch (got ${JSON.stringify(near)})`,
   );
 
 // Farther (still inside): the pitch + volume should DROP (the glide is monotonic).
