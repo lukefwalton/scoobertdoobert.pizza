@@ -14,7 +14,7 @@
 
 import type { Progress } from '../state/progressStore';
 import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug, hasLyrics } from './lyrics';
-import { SONG_META, songMeta } from './songMeta';
+import { SONG_META, songMeta, fuzzyFindSlug } from './songMeta';
 import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
@@ -297,12 +297,7 @@ export const COMMANDS: Command[] = [
           ],
         };
       }
-      const slug =
-        slugs.find((s) => s === q) ??
-        slugs.find((s) => s.startsWith(q)) ??
-        slugs.find(
-          (s) => s.replace(/-/g, ' ').includes(q) || SONG_META[s].title.toLowerCase().includes(q),
-        );
+      const slug = fuzzyFindSlug(slugs, q, (s) => SONG_META[s].title);
       const m = slug ? songMeta(slug) : undefined;
       if (!m || !slug)
         return { output: [`song: nothing matching "${q}". try \`song\` or \`discography\`.`] };
