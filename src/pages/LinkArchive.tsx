@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/archive.css';
 import { ARCHIVE_SECTIONS, ARCHIVE_LINK_COUNT, type ArchiveLink } from '../data/linkArchive';
+import { ExternalLink } from '../components/ExternalLink';
 
 // The Link Archive — a deliberately exhaustive, crawlable directory of every
 // Scoobert Doobert presence on the web (profiles, streaming, releases, the Love
@@ -10,9 +11,7 @@ import { ARCHIVE_SECTIONS, ARCHIVE_LINK_COUNT, type ArchiveLink } from '../data/
 // rather than the main menu. Sourced from links.md so it stays single-source.
 
 const A = ({ link }: { link: ArchiveLink }) => (
-  <a href={link.url} target="_blank" rel="noopener noreferrer">
-    {link.text}
-  </a>
+  <ExternalLink href={link.url}>{link.text}</ExternalLink>
 );
 
 export default function LinkArchive() {
