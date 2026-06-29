@@ -46,11 +46,12 @@ export function Theremin({
 
   const glowLight = useRef<THREE.PointLight>(null);
 
-  // Open the sustained voice on enter (a gesture has long since unlocked us this
-  // deep in the world), release it on leave.
+  // Kick the audio context on enter (ensure + resume); the sustained voice itself is
+  // acquired lazily in useFrame, so a deep-link into this room before the first
+  // gesture (no ctx yet → startVoice returns null) still gets a voice the moment one
+  // is available. Release it on leave.
   useEffect(() => {
     audio.unlock();
-    voiceRef.current = audio.startVoice();
     return () => {
       voiceRef.current?.stop();
       voiceRef.current = null;
@@ -72,6 +73,10 @@ export function Theremin({
   }, [camera, worldPos]);
 
   useFrame((_, dt) => {
+    // Acquire (or re-acquire) the sustained voice the moment audio is available —
+    // startVoice returns null until a gesture has built the ctx, so a fresh deep-link
+    // into the room can't get stuck silent with no retry. Once set, this skips.
+    voiceRef.current ??= audio.startVoice();
     // Distance on the XZ plane (height/eye doesn't gate the field).
     const dx = camera.position.x - worldPos.x;
     const dz = camera.position.z - worldPos.z;
@@ -93,6 +98,7 @@ export function Theremin({
       playing: v.playing,
       freq: Math.round(v.freq),
       gain: +v.gain.toFixed(3),
+      hasVoice: !!voiceRef.current, // proves the (possibly-retried) voice acquisition
     });
   });
 
