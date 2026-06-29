@@ -17,7 +17,8 @@ export type ArcadeGameId =
   | 'jazz-snake'
   | 'pizza-radar'
   | 'burrito-belt'
-  | 'delivery-dash';
+  | 'delivery-dash'
+  | 'order-up';
 
 // `slug` is the cabinet's standalone route (no leading slash). It's the id for
 // every cabinet EXCEPT pizza-run, whose route predates the id and lives at
@@ -34,6 +35,7 @@ export const ARCADE_GAMES: readonly ArcadeGame[] = [
   { id: 'pizza-radar', title: 'PIZZA RADAR 1996', slug: 'pizza-radar' },
   { id: 'burrito-belt', title: 'BURRITO BELT', slug: 'burrito-belt' },
   { id: 'delivery-dash', title: 'DELIVERY DASH', slug: 'delivery-dash' },
+  { id: 'order-up', title: 'ORDER UP', slug: 'order-up' },
   { id: 'poke', title: 'POKE SCOOBERT', slug: 'poke' },
   { id: 'chimes', title: 'PENDULUM CHIMES', slug: 'chimes' },
   { id: 'cultures', title: 'CULTURES', slug: 'cultures' },
