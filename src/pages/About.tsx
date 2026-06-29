@@ -178,8 +178,8 @@ export default function About() {
       {
         '@type': 'Person',
         '@id': 'https://lukefwalton.com/#person',
-        name: 'Luke Francis Walton',
-        alternateName: ['Luke F. Walton', 'Scoobert Doobert'],
+        name: 'Luke F. Walton',
+        alternateName: ['Luke Francis Walton', 'Scoobert Doobert'],
         url: 'https://lukefwalton.com/',
       },
     ],
