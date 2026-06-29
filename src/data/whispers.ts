@@ -36,6 +36,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a koan scratched into the felt: does a dog have Buddha-nature? “Mu.” He just says, “I am the dog lol.” Moo.',
   gallery:
     'a museum tag fallen behind a statue. The Getty once filed Scoobert under “doppelgängers” — flagged as a lookalike for a figure in a Degas.',
+  theremin:
+    'no strings, no words — just a wavering pitch you coax from the air. Like his KŌAN track 無門関, sung in Japanese while admitting it can’t read its own kanji: “um… I wonder?”',
   // ── the Japan wing ──
   shrine:
     'a torn ticket stub. His first night ever in Japan landed on his birthday and ended in a four-hour jam in Kanda — 20-plus songs with locals.',

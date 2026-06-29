@@ -180,7 +180,11 @@ rat, the music, recurrence, even the loaders all flip the same way.
     play living-colony drone: cells breed notes by musical interval over a bed of
     drones). Both synthesise their own sound (no shipped samples), are mute-aware
     + brickwall-limited + WCAG-safe, and stay crawlable. These are the surface
-    "play it" seed; a deeper instrument ROOM can still come later.
+    "play it" seed; the deeper instrument ROOM has SHIPPED — **The Aerial**
+    (テルミン), a proximity-played theremin off the liminal level: the ladder's first
+    SUSTAINED/continuous voice (you play it by walking into its field), on a new
+    reusable engine primitive `audio.startVoice()`. See `src/world/Theremin` +
+    `src/lib/theremin`.
   - **The synth is a reusable ENGINE, not just a cabinet (Luke).** `strikeBell`
     (`src/lib/chimes.ts`) is context-agnostic, so the same bell voice powers the
     cabinet *and* the 3D world via `audio.playChime` — first use: the **furin

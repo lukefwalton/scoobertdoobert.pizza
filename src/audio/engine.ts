@@ -20,6 +20,19 @@ import { mapUnease } from '../data/dread';
 import { strikeBell } from '../lib/chimes';
 import { exposeTestGlobal } from '../lib/testHooks';
 
+/**
+ * A SUSTAINED, continuously-controllable voice — the handle startVoice() returns.
+ * The counterpart to the one-shot playTone/playChime, for an instrument you PLAY
+ * OVER TIME (the deep theremin room): drive set(freq, gain) every frame, stop()
+ * when you leave.
+ */
+export type SustainedVoice = {
+  /** Glide toward a new pitch (Hz) + gain (0..~0.3), short portamento each call. */
+  set(freq: number, gain: number): void;
+  /** Fade out and free the voice. Idempotent. */
+  stop(): void;
+};
+
 // Resting lowpass cutoff — lo-fi but the song still reads through; the descent
 // bends it down to 700.
 const REST_CUTOFF = 4200;
@@ -613,6 +626,99 @@ class PizzaAudio {
     osc.onended = () => {
       osc.disconnect();
       g.disconnect();
+    };
+  }
+
+  /**
+   * Open a SUSTAINED, continuously-controllable voice — the counterpart to the
+   * one-shot playTone/playChime, for an instrument you PLAY OVER TIME (the deep
+   * theremin room). A warm triangle + a sub-octave sine under a gentle vibrato LFO,
+   * driven through a gain you ramp with a short glide each frame (portamento), and
+   * routed via `master` so the output limiter + global mute apply — mute silences it
+   * through master exactly like the loop, so it never needs to special-case it.
+   * Build it ONCE (on entering the room) and drive it with set(freq, gain) per
+   * frame; stop() fades + frees it (on leaving). Returns a no-op handle when there's
+   * no audio context yet (SSR / pre-gesture), so callers never have to branch.
+   *
+   * NOT a one-shot, so it deliberately skips the worldVoices cap (that bounds many
+   * transient ambient hits; this is one long-lived, managed voice). The oscillators
+   * idle at near-zero gain when set(_, 0) — cheap, like the dread bed.
+   */
+  startVoice(): SustainedVoice {
+    this.ensure();
+    if (!this.ctx || !this.master) return { set() {}, stop() {} };
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const out = ctx.createGain();
+    out.gain.value = 0.0001;
+    out.connect(this.master);
+
+    // warm core: a triangle with a sub-octave sine under it for body
+    const osc = ctx.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = 220;
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.value = 110;
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.5;
+    osc.connect(out);
+    sub.connect(subGain);
+    subGain.connect(out);
+
+    // gentle vibrato on detune (the theremin "waver") — small + slow, so it reads
+    // sweet/expressive, never a siren.
+    const lfo = ctx.createOscillator();
+    lfo.type = 'sine';
+    lfo.frequency.value = 5.2;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 6; // cents of detune
+    lfo.connect(lfoGain);
+    lfoGain.connect(osc.detune);
+    lfoGain.connect(sub.detune);
+
+    osc.start(now);
+    sub.start(now);
+    lfo.start(now);
+
+    let stopped = false;
+    return {
+      set: (freq: number, gain: number) => {
+        if (stopped || !this.ctx) return;
+        const t = this.ctx.currentTime;
+        const f = Math.max(60, Math.min(2000, freq)); // safety clamp
+        const g = Math.max(0, Math.min(0.3, gain));
+        osc.frequency.setTargetAtTime(f, t, 0.05); // portamento glide
+        sub.frequency.setTargetAtTime(f / 2, t, 0.05);
+        out.gain.setTargetAtTime(Math.max(0.0001, g), t, 0.06);
+      },
+      stop: () => {
+        if (stopped || !this.ctx) return;
+        stopped = true;
+        const t = this.ctx.currentTime;
+        out.gain.cancelScheduledValues(t);
+        out.gain.setTargetAtTime(0.0001, t, 0.08); // fade, don't click
+        const end = t + 0.4;
+        try {
+          osc.stop(end);
+          sub.stop(end);
+          lfo.stop(end);
+        } catch {
+          /* already stopped */
+        }
+        osc.onended = () => {
+          try {
+            osc.disconnect();
+            sub.disconnect();
+            lfo.disconnect();
+            subGain.disconnect();
+            lfoGain.disconnect();
+            out.disconnect();
+          } catch {
+            /* already disconnected */
+          }
+        };
+      },
     };
   }
 

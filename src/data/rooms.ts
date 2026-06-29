@@ -218,6 +218,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   deeppool: { x: 5, y: 7.2 },
   // The Grassrooms — a sweet breather branching LEFT off the liminal level.
   grassrooms: { x: 3.4, y: 6.2 },
+  // The Aerial (theremin) — a sweet instrument room branching RIGHT off the liminal.
+  theremin: { x: 6.4, y: 6.4 },
   // shrine / grass thread (right branch off the pool)
   shrine: { x: 7, y: 4.4 },
   'metro-tunnel': { x: 7, y: 5.6 },
