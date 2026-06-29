@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
 import { Head } from 'vite-react-ssg';
 import '../styles/about.css';
 import { destById } from '../data/links';
+import { ExternalLink as Ext } from '../components/ExternalLink';
 
 // ───────────────────────────────────────────────────────────────────────────
 // /about/jp — 日本語版「シークレット・レシピ」. The Japanese-language twin of
@@ -17,15 +17,6 @@ import { destById } from '../data/links';
 // #apology-audiobook, #person), exactly like /about, so the Japanese page does
 // not fork a second set of entities — it's the same creator, described in 日本語.
 // ───────────────────────────────────────────────────────────────────────────
-
-// External-link helper: collaborator + platform homes always open in a new tab.
-function Ext({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  );
-}
 
 export default function AboutJp() {
   const listen =

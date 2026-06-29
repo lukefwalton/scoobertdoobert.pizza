@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/chimes.css';
 import { ChimesCabinet } from '../components/ChimesCabinet';
+import { CabinetShelf } from '../components/CabinetShelf';
 import { useMounted } from '../lib/useMounted';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -59,8 +60,7 @@ export default function Chimes() {
         live &mdash; nothing is recorded or sent anywhere.
       </p>
       <p className="chimes-foot">
-        &#9654; Other cabinets: <a href="/arcade">PIZZA RUN</a> &middot;{' '}
-        <a href="/poke">POKE SCOOBERT</a> &middot; <a href="/cultures">CULTURES</a>
+        <CabinetShelf currentSlug="chimes" />
       </p>
       <p className="chimes-foot chimes-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation

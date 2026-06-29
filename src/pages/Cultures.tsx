@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/cultures.css';
 import { CulturesCabinet } from '../components/CulturesCabinet';
+import { CabinetShelf } from '../components/CabinetShelf';
 import { useMounted } from '../lib/useMounted';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -60,8 +61,7 @@ export default function Cultures() {
         anywhere.
       </p>
       <p className="cultures-foot">
-        &#9654; Other cabinets: <a href="/arcade">PIZZA RUN</a> &middot;{' '}
-        <a href="/poke">POKE SCOOBERT</a> &middot; <a href="/chimes">PENDULUM CHIMES</a>
+        <CabinetShelf currentSlug="cultures" />
       </p>
       <p className="cultures-foot cultures-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation

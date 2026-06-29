@@ -1,7 +1,7 @@
 import { Component, useEffect, useMemo, type ReactNode } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { applyVertexSnap } from './ps1';
+import { ps1ifyGltfMaterial } from './ps1';
 import { useLevelStore } from '../state/levelStore';
 import type { Room } from '../data/rooms';
 
@@ -17,15 +17,6 @@ import type { Room } from '../data/rooms';
 //
 // Asset provenance for anything shipped here is tracked in THIRD_PARTY_NOTICES.md.
 // ───────────────────────────────────────────────────────────────────────────
-
-const TEX_KEYS = [
-  'map',
-  'emissiveMap',
-  'roughnessMap',
-  'metalnessMap',
-  'normalMap',
-  'aoMap',
-] as const;
 
 // A fetch/decode failure on useGLTF (404, corrupt file, GPU OOM) re-throws
 // during render once the suspended promise rejects. Without a boundary that
@@ -79,21 +70,8 @@ function GlbRoomInner({ room }: { room: Room }) {
       const mesh = o as THREE.Mesh;
       if (!mesh.isMesh) return;
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      for (const m of mats) {
-        const mat = m as THREE.MeshStandardMaterial;
-        for (const key of TEX_KEYS) {
-          const tex = mat[key] as THREE.Texture | null | undefined;
-          if (tex) {
-            tex.magFilter = THREE.NearestFilter;
-            tex.minFilter = THREE.NearestFilter;
-            tex.generateMipmaps = false;
-            tex.needsUpdate = true;
-          }
-        }
-        mat.flatShading = true;
-        applyVertexSnap(mat, 64); // the PS1 wobble, on bought geometry
-        mat.needsUpdate = true;
-      }
+      // PS1-treat the bought geometry so a downloaded level matches the world.
+      for (const m of mats) ps1ifyGltfMaterial(m as THREE.MeshStandardMaterial);
     });
     // Center on XZ, drop the floor to y=0, then scale to fit the room.
     const box = new THREE.Box3().setFromObject(clone);

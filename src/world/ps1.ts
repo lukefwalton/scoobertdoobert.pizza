@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { OCEAN, FOG_NEAR, FOG_FAR } from './constants';
+import { OCEAN, FOG_NEAR, FOG_FAR, PS1 } from './constants';
 
 // ───────────────────────────────────────────────────────────────────────────
 // The PS1/N64 look, as reusable pieces. Three tells do most of the work:
@@ -40,7 +40,7 @@ export const PS1_DITHER_GLSL = /* glsl */ `
  * Patch any standard three material with vertex snapping. Returns the live
  * uniform object so leva can tune the grid at runtime.
  */
-export function applyVertexSnap(material: THREE.Material, grid = 64): { value: number } {
+export function applyVertexSnap(material: THREE.Material, grid = PS1.snap): { value: number } {
   const uSnap = { value: grid };
   material.onBeforeCompile = (shader) => {
     shader.uniforms.uSnap = uSnap;
@@ -61,6 +61,51 @@ export function applyVertexSnap(material: THREE.Material, grid = 64): { value: n
 }
 
 /**
+ * Finalize a canvas/image texture as a PS1 nearest-filtered texture: NearestFilter
+ * for min+mag and no mipmaps (the blocky, <=128px look). Pass `{ repeat: true }`
+ * for tiling textures (floors, walls, brick) that wrap. Returns the texture so a
+ * maker can create + finalize in one expression — this 3-liner used to be
+ * copy-pasted after almost every `new THREE.CanvasTexture(...)`.
+ */
+export function nearestify(tex: THREE.Texture, { repeat = false } = {}): THREE.Texture {
+  tex.magFilter = THREE.NearestFilter;
+  tex.minFilter = THREE.NearestFilter;
+  tex.generateMipmaps = false;
+  if (repeat) tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
+// The standard-material texture slots a crunched GLTF can carry — walked when
+// re-treating a bought GLB to the PS1 look (GlbRoom / GlbProp).
+const GLTF_TEX_KEYS = [
+  'map',
+  'emissiveMap',
+  'roughnessMap',
+  'metalnessMap',
+  'normalMap',
+  'aoMap',
+] as const;
+
+/**
+ * Re-treat one material from a bought/crunched GLTF so it matches the hand-built
+ * PS1 rooms: every texture slot → NearestFilter + no mipmaps, flat shading, and
+ * the vertex-snap wobble. Shared by GlbRoom (whole levels) and GlbProp (set
+ * dressing); GlbProp layers its per-placement emissive `glow` on top around the call.
+ */
+export function ps1ifyGltfMaterial(mat: THREE.MeshStandardMaterial): void {
+  for (const key of GLTF_TEX_KEYS) {
+    const tex = mat[key] as THREE.Texture | null | undefined;
+    if (tex) {
+      nearestify(tex);
+      tex.needsUpdate = true;
+    }
+  }
+  mat.flatShading = true;
+  applyVertexSnap(mat);
+  mat.needsUpdate = true;
+}
+
+/**
  * Flat-shaded, vertex-snapped Lambert material — the default surface for the
  * hand-built PS1 rooms (a snapped MeshLambertMaterial, no PBR). Every room used
  * to re-declare its own `flatMat`; this is the one home. `side` defaults to
@@ -72,7 +117,7 @@ export function flatMat(
   { side = THREE.FrontSide, map }: { side?: THREE.Side; map?: THREE.Texture } = {},
 ): THREE.MeshLambertMaterial {
   const m = new THREE.MeshLambertMaterial({ color, map, flatShading: true, side });
-  applyVertexSnap(m, 64);
+  applyVertexSnap(m);
   return m;
 }
 
@@ -89,12 +134,7 @@ export function makeCheckerTexture(cells = 8, a = '#c7402f', b = '#efe6d2'): THR
       ctx.fillRect(x * cell, y * cell, cell, cell);
     }
   }
-  const tex = new THREE.CanvasTexture(c);
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  return tex;
+  return nearestify(new THREE.CanvasTexture(c), { repeat: true });
 }
 
 /**
@@ -115,7 +155,7 @@ export function makeAffineTexturedMaterial(
   return new THREE.ShaderMaterial({
     uniforms: {
       uMap: { value: map },
-      uSnap: { value: 64 },
+      uSnap: { value: PS1.snap },
       uRepeat: { value: repeat },
       // This material does its own fog (raw shader, bypasses scene.fog), so each
       // room must hand in its fog or the affine floor would dissolve into the
@@ -188,12 +228,7 @@ export function makeBrickTexture(brick = '#7d2b22', mortar = '#2a1410', rows = 6
   for (let i = 0; i < size; i++) {
     ctx.fillRect(Math.floor(Math.random() * size), Math.floor(Math.random() * size), 1, 1);
   }
-  const tex = new THREE.CanvasTexture(c);
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  return tex;
+  return nearestify(new THREE.CanvasTexture(c), { repeat: true });
 }
 
 /**
@@ -226,11 +261,7 @@ export function makeTextTexture(
   while (fontPx > 8 && fit() > w * 0.92) fontPx -= 2;
   const lh = h / (lines.length + 0.5);
   lines.forEach((ln, i) => ctx.fillText(ln, w / 2, lh * (i + 0.85)));
-  const tex = new THREE.CanvasTexture(c);
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
-  return tex;
+  return nearestify(new THREE.CanvasTexture(c));
 }
 
 /** A blocky procedural texture for walls — flat base + sparse darker specks. */
@@ -245,12 +276,7 @@ export function makeSpeckTexture(base = '#d9b48c', speck = '#b8895f'): THREE.Tex
   for (let i = 0; i < size * 4; i++) {
     ctx.fillRect(Math.floor(Math.random() * size), Math.floor(Math.random() * size), 1, 1);
   }
-  const tex = new THREE.CanvasTexture(c);
-  tex.magFilter = THREE.NearestFilter;
-  tex.minFilter = THREE.NearestFilter;
-  tex.generateMipmaps = false;
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  return tex;
+  return nearestify(new THREE.CanvasTexture(c), { repeat: true });
 }
 
 /** A tiny seeded LCG → a deterministic 0..1 generator, so a scatter (grass tufts,
@@ -287,11 +313,7 @@ export function makeGrassTexture(): THREE.Texture {
       ctx.stroke();
     }
   }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
+  return nearestify(new THREE.CanvasTexture(c));
 }
 
 /** A bilingual plaque texture: a Japanese line over an English line on a tinted
@@ -346,9 +368,5 @@ export function makeBilingualSign(
     ctx.font = `bold ${enSize}px "Courier New", monospace`;
     ctx.fillText(en, w / 2, enY);
   }
-  const t = new THREE.CanvasTexture(c);
-  t.magFilter = THREE.NearestFilter;
-  t.minFilter = THREE.NearestFilter;
-  t.generateMipmaps = false;
-  return t;
+  return nearestify(new THREE.CanvasTexture(c));
 }

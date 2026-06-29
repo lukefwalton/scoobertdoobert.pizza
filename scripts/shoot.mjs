@@ -8,7 +8,7 @@
 // card. Beyond "did it 200", each shot asserts that expected fallback CONTENT
 // actually rendered — so a prerender regression that still returns 200 fails
 // here instead of passing unnoticed.
-import { chromium } from 'playwright';
+import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
 const base = process.argv[2] || 'http://localhost:4173';
@@ -57,8 +57,10 @@ const shots = [
   // moved to the descent (the level load). shoot-descent.mjs asserts it there.
 ];
 
-const browser = await chromium.launch();
-let failures = 0;
+// Shared launch / fail-counter / teardown (the same harness the rest of the
+// shoot:* suite uses). This smoke creates a fresh context per shot in the loop,
+// so it takes the bare launchSmoke() and builds each context itself.
+const { browser, fail, finish, failures } = await launchSmoke();
 for (const s of shots) {
   const ctx = await browser.newContext({
     viewport: s.viewport,
@@ -86,18 +88,14 @@ for (const s of shots) {
 
     const html = await page.content();
     const missing = (s.assert || []).filter((a) => !html.includes(a));
-    const ok = status < 400 && missing.length === 0;
-    if (!ok) failures++;
-    console.log(
-      `${ok ? 'PASS' : 'FAIL'}  ${s.name.padEnd(24)} js=${String(s.js).padEnd(5)} -> ${status}` +
-        (missing.length ? `  MISSING: ${missing.join(', ')}` : ''),
-    );
+    const line =
+      `${s.name.padEnd(24)} js=${String(s.js).padEnd(5)} -> ${status}` +
+      (missing.length ? `  MISSING: ${missing.join(', ')}` : '');
+    if (status < 400 && missing.length === 0) console.log(`PASS  ${line}`);
+    else fail(line);
   } catch (err) {
-    failures++;
-    console.error(`FAIL  ${s.name}:`, err.message);
+    fail(`${s.name}: ${err.message}`);
   }
   await ctx.close();
 }
-await browser.close();
-console.log(failures ? `\n${failures} shot(s) failed.` : '\nAll shots passed (status + content).');
-process.exit(failures ? 1 : 0);
+await finish('\nAll shots passed (status + content).', `\n${failures()} shot(s) failed.`);
