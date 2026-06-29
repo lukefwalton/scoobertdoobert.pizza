@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { makeAffineTexturedMaterial, makeCheckerTexture, flatMat } from './ps1';
 import { useDispose } from '../lib/useDispose';
+import { Theremin } from './Theremin';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -158,6 +159,13 @@ export function DaydreamRoom({ room }: { room: Room }) {
       </mesh>
 
       <Motes />
+
+      {/* A theremin you play by walking near it — the ethereal cousin of The Aerial's,
+          set out on the cloud deck (a dreamy proximity instrument suits the watercolor
+          sky). Reuses the shipped component + its sustained-voice engine; it sings over
+          the room's song only when you approach, and fades as you drift off — a quiet
+          "play it" reward in the breather. */}
+      <Theremin position={[5, 0, -2]} rotationY={-0.4} />
     </group>
   );
 }
