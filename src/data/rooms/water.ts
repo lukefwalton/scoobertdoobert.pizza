@@ -147,6 +147,9 @@ export const WATER_ROOMS: Room[] = [
       // Back out of the overgrown Grassrooms — by the -X door, facing +X into the
       // beige nothing, clear of every door radius.
       fromGrass: { position: [-4.5, EYE, 0], yaw: Math.PI / 2 },
+      // Back out of The Aerial (theremin) — by the +X door, facing -X into the
+      // beige nothing, clear of every door radius (the mirror of fromGrass).
+      fromTheremin: { position: [4.5, EYE, 0], yaw: -Math.PI / 2 },
     },
     // A couple of wanderers drift the beige nothing — they emerge from the fog and
     // dance when you reach them (the relief beat).
@@ -183,6 +186,18 @@ export const WATER_ROOMS: Room[] = [
         position: [-8.45, 0, 0],
         rotationY: Math.PI / 2, // -X wall, opening faces +X into the room
         label: 'push through the overgrown door',
+        radius: 3.0,
+      },
+      {
+        id: 'liminal-to-theremin',
+        to: 'theremin',
+        toSpawn: 'fromLiminal',
+        // A side door in the +X wall (mirrors the grass door in -X) — visible, a
+        // SWEET instrument room you FIND by wandering the beige nothing toward a
+        // faint hum. Off the descent, so no key gates it.
+        position: [8.45, 0, 0],
+        rotationY: -Math.PI / 2, // +X wall, opening faces -X into the room
+        label: 'follow the faint hum through the side door',
         radius: 3.0,
       },
     ],
@@ -481,6 +496,36 @@ export const WATER_ROOMS: Room[] = [
         rotationY: 0,
         label: 'back down into the gallery',
         radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'theremin',
+    kind: 'theremin',
+    title: 'The Aerial',
+    // A small, hushed cosmic chamber off the liminal level — one theremin you play
+    // by walking into its field (ThereminRoom / Theremin). A SWEET relief beat: it
+    // owns the space (musicRoom — the carried song fades), so it stays silent +
+    // starlit until you approach the device and it sings. Off the descent; no key.
+    dims: { halfW: 6, halfD: 6, height: 4.5, eye: EYE },
+    // Deep indigo with soft starlight — wondrous, not dread (baseUnease below SAFE).
+    palette: { background: '#0a0e26', fog: '#10163a', fogNear: 4, fogFar: 30 },
+    musicRoom: true,
+    spawns: {
+      // Arrive a stride inside the +Z door, facing -Z toward the device — but
+      // OUTSIDE its field, so you walk IN to start it (no sound thrust at the door).
+      default: { position: [0, EYE, 2.4], yaw: Math.PI },
+      fromLiminal: { position: [0, EYE, 2.4], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'theremin-to-liminal',
+        to: 'liminal',
+        toSpawn: 'fromTheremin',
+        position: [0, 0, 5.9], // +Z wall — back into the empty backrooms
+        rotationY: 0,
+        label: 'back into the empty backrooms',
+        radius: 3.0,
       },
     ],
   },

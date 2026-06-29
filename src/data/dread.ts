@@ -72,6 +72,9 @@ export const DREAD: DreadConfig = {
     grassrooms: 0.02, // the overgrown-backrooms breather off the liminal — FULLY
     //                   SWEET (below SAFE so it DECAYS): nature reclaimed the
     //                   office, sunlit and calm; the exhale after the liminal
+    theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:
+    //                 a SWEET relief beat (below SAFE so it DECAYS), a cosmic exhale
+    //                 you play with your body, not a dread room (taste guardrail)
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
