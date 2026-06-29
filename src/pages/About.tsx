@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
 import { Head } from 'vite-react-ssg';
 import '../styles/about.css';
 import { destById } from '../data/links';
+import { ExternalLink as Ext } from '../components/ExternalLink';
 
 // ───────────────────────────────────────────────────────────────────────────
 // /about — "Our Secret Recipe." The plain, credible page: the thing a search
@@ -16,15 +16,6 @@ import { destById } from '../data/links';
 // never a nav destination here. Collaborator links below point at each artist's
 // own external home (verified via the hub's collaborators data), never at the hub.
 // ───────────────────────────────────────────────────────────────────────────
-
-// External-link helper: collaborator + platform homes always open in a new tab.
-function Ext({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <a href={href} target="_blank" rel="noopener noreferrer">
-      {children}
-    </a>
-  );
-}
 
 export default function About() {
   const listen =

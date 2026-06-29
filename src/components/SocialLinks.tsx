@@ -1,4 +1,5 @@
 import { SOCIAL_DESTINATIONS } from '../data/links';
+import { ExternalLink } from './ExternalLink';
 
 // Compact "find Scoobert everywhere" row — the secondary platform links the
 // curated Sample Menu leaves out (Apple Music, SoundCloud, TikTok, Threads,
@@ -11,9 +12,7 @@ export function SocialLinks() {
       {SOCIAL_DESTINATIONS.map((d, i) => (
         <span key={d.id}>
           {i > 0 ? ' · ' : ''}
-          <a href={d.href} target="_blank" rel="noopener noreferrer">
-            {d.label}
-          </a>
+          <ExternalLink href={d.href}>{d.label}</ExternalLink>
         </span>
       ))}
     </nav>
