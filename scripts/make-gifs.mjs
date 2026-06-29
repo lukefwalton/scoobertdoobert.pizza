@@ -732,4 +732,97 @@ function coinsFrame(p) {
   );
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 10) globe.gif — the single most GeoCities artifact of all: a spinning WORLD WIDE
+//     WEB globe. A shaded blue sphere with green continents under a wireframe of
+//     latitude rings + meridians that ROTATE — the meridians sweep across the front
+//     hemisphere and vanish at the limb, the classic "spinning globe" read. Baked on
+//     a dark tile (the floor frames it); wraps a real /links anchor. WCAG: smooth
+//     rotation, no flash, small bright glint. *-static twin for reduced motion.
+// ═══════════════════════════════════════════════════════════════════════════════
+const GLOBE = [
+  [14, 20, 48], // 0 bg navy tile
+  [33, 102, 180], // 1 ocean (lit)
+  [22, 70, 130], // 2 ocean (shaded right)
+  [74, 170, 84], // 3 land green
+  [150, 210, 255], // 4 grid line (cyan-white)
+  [9, 28, 58], // 5 limb outline
+  [240, 250, 255], // 6 glint
+];
+const GB = { BG: 0, SEA: 1, SEAD: 2, LAND: 3, GRID: 4, RIM: 5, GLINT: 6 };
+
+function globeFrame(phase) {
+  const W = 48;
+  const H = 48;
+  const c = canvas(W, H, GB.BG);
+  const cx = 24;
+  const cy = 24;
+  const R = 20;
+  // ocean disc with a soft right-side shade so it reads as a sphere, not a coin
+  for (let y = -R; y <= R; y++) {
+    const half = Math.floor(Math.sqrt(Math.max(0, R * R - y * y)));
+    for (let x = -half; x <= half; x++) c.set(cx + x, cy + y, x > R * 0.28 ? GB.SEAD : GB.SEA);
+  }
+  // continents — green blobs at fixed longitudes, rotating with the spin; they
+  // foreshorten and vanish round the limb (cos(lon) <= 0 = the far hemisphere)
+  const lands = [
+    [0.3, -7, 6],
+    [1.7, 5, 7],
+    [3.0, -2, 5],
+    [4.6, 9, 5],
+    [5.2, -11, 4],
+  ];
+  for (const [lon0, latY, r] of lands) {
+    const lon = lon0 + phase;
+    const f = Math.cos(lon);
+    if (f <= 0.05) continue;
+    const halfAtLat = Math.sqrt(Math.max(0, R * R - latY * latY));
+    c.disc(cx + Math.sin(lon) * halfAtLat * 0.92, cy + latY, Math.max(2, r * f), GB.LAND);
+  }
+  // latitude rings (static)
+  for (const latDeg of [-40, 0, 40]) {
+    const ly = Math.round(R * Math.sin((latDeg * Math.PI) / 180));
+    const half = Math.floor(Math.sqrt(Math.max(0, R * R - ly * ly)));
+    for (let x = -half; x <= half; x++) c.set(cx + x, cy + ly, GB.GRID);
+  }
+  // meridians (rotating): each longitude projects to a bowed vertical arc; only the
+  // front hemisphere is drawn, so they sweep across and disappear at the edges
+  const K = 6;
+  for (let k = 0; k < K; k++) {
+    const lon = (k / K) * Math.PI * 2 + phase;
+    if (Math.cos(lon) <= 0.05) continue;
+    for (let y = -R; y <= R; y++) {
+      const halfAtY = Math.sqrt(Math.max(0, R * R - y * y));
+      c.set(Math.round(cx + Math.sin(lon) * halfAtY), cy + y, GB.GRID);
+    }
+  }
+  // limb outline + a top-left glint
+  for (let a = 0; a < Math.PI * 2; a += 0.04)
+    c.set(cx + Math.cos(a) * R, cy + Math.sin(a) * R, GB.RIM);
+  c.disc(cx - 8, cy - 9, 2, GB.GLINT);
+  return c.indices();
+}
+
+{
+  const W = 48;
+  const H = 48;
+  const N = 12;
+  const frames = Array.from({ length: N }, (_, i) => ({
+    indices: globeFrame((i / N) * Math.PI * 2),
+    delay: 12,
+  }));
+  write('globe.gif', encodeGif({ width: W, height: H, palette: GLOBE, frames }), W, H);
+  write(
+    'globe-static.gif',
+    encodeGif({
+      width: W,
+      height: H,
+      palette: GLOBE,
+      frames: [{ indices: globeFrame(0.7), delay: 100 }],
+    }),
+    W,
+    H,
+  );
+}
+
 console.log('done — original GIFs generated.');

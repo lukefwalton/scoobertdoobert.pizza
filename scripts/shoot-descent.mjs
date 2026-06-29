@@ -54,12 +54,23 @@ const on2000 = await floor(page, 'y2000');
 
 // The @-mail envelope serves its ANIMATED frame under normal motion here; the
 // reduced-motion still-swap is asserted in the reduced-motion pass at the end —
-// together they cover the <picture> in BOTH directions.
+// together they cover the <picture> in BOTH directions. WAIT for the <img> to
+// actually load (currentSrc is empty until it does) rather than reading it in a
+// bare evaluate — otherwise a slow runner loses the load race (cf. the NEW! blinky
+// check below, which already waits).
 const atmailAnimated = await page
-  .evaluate(() =>
-    (document.querySelector('.tl__mail img')?.currentSrc || '').endsWith('/gifs/atmail.gif'),
+  .waitForFunction(
+    () => {
+      const img = document.querySelector('.tl__mail img');
+      return !!img && img.complete && (img.currentSrc || '').endsWith('/gifs/atmail.gif');
+    },
+    null,
+    { timeout: 6000 },
   )
-  .catch(() => false);
+  .then(
+    () => true,
+    () => false,
+  );
 if (!atmailAnimated)
   fail('the @-mail did not serve its animated frame (atmail.gif) under normal motion');
 
