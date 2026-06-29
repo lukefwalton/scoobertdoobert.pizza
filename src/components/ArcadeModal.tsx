@@ -13,6 +13,7 @@ import { JazzSnake } from './JazzSnake';
 import { PizzaRadar } from './PizzaRadar';
 import { BurritoBelt } from './BurritoBelt';
 import { DeliveryDash } from './DeliveryDash';
+import { OrderUp } from './OrderUp';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
   'pizza-radar': PizzaRadar,
   'burrito-belt': BurritoBelt,
   'delivery-dash': DeliveryDash,
+  'order-up': OrderUp,
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,
