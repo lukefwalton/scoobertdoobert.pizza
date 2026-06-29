@@ -2,6 +2,7 @@ import { Head } from 'vite-react-ssg';
 import '../styles/poke.css';
 import { FaceStretch } from '../components/FaceStretch';
 import { MuteToggle } from '../components/MuteToggle';
+import { CabinetShelf } from '../components/CabinetShelf';
 import { useMounted } from '../lib/useMounted';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@ export default function Poke() {
         anywhere.
       </p>
       <p className="poke-foot">
-        &#9654; Next cabinet: <a href="/chimes">PENDULUM CHIMES</a> &mdash; tap to ring the bells.
+        <CabinetShelf currentSlug="poke" />
       </p>
       <p className="poke-foot poke-foot--copy">
         Scoobert Doobert&rsquo;s likeness &amp; music &copy; Luke F. Walton dba Scoobert Doobert.
