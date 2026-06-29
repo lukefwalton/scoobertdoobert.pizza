@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import '../styles/arcade.css';
 import { MuteToggle } from './MuteToggle';
 import { useMounted } from '../lib/useMounted';
-import { ARCADE_GAMES } from '../data/arcadeGames';
+import { CabinetShelf } from './CabinetShelf';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ArcadeCabinetPage — the shared period cabinet shell for a standalone game route
@@ -16,11 +16,6 @@ import { ARCADE_GAMES } from '../data/arcadeGames';
 // The four older cabinet pages (/arcade, /poke, /chimes, /cultures) predate this
 // and stay standalone; new cabinets share this shell so the boilerplate lives once.
 // ───────────────────────────────────────────────────────────────────────────
-
-// Every cabinet in the arcade, for the cross-link footer (the shelf) — DERIVED
-// from the one registry so a new cabinet shows up here automatically and this
-// list can never drift out of sync with arcadeGames.ts.
-const CABINETS = ARCADE_GAMES.map((g) => ({ slug: g.slug, label: g.title }));
 
 export function ArcadeCabinetPage({
   slug,
@@ -90,13 +85,7 @@ export function ArcadeCabinetPage({
 
       <p className="arcade-foot">{foot}</p>
       <p className="arcade-foot">
-        &#9654; More cabinets:{' '}
-        {CABINETS.filter((c) => c.slug !== slug).map((c, i) => (
-          <span key={c.slug}>
-            {i > 0 ? ' · ' : ''}
-            <a href={`/${c.slug}`}>{c.label}</a>
-          </span>
-        ))}
+        <CabinetShelf currentSlug={slug} />
       </p>
       <p className="arcade-foot arcade-foot--copy">
         &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
