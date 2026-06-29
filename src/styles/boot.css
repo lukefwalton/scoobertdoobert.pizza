@@ -29,12 +29,6 @@
   animation: boot-blink 1s steps(1) infinite;
 }
 
-.boot__skip {
-  margin-top: 2.4em;
-  color: #2a8a55;
-  font-size: 0.8rem;
-}
-
 @keyframes boot-out {
   0%,
   82% {
