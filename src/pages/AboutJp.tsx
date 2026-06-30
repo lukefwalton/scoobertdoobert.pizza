@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/about.css';
 import { destById } from '../data/links';
+import { personNode } from '../data/identity';
 import { ExternalLink as Ext } from '../components/ExternalLink';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -117,13 +118,7 @@ export default function AboutJp() {
         organizer: { '@id': 'https://lukefwalton.com/#beformer' },
         performer: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
-      {
-        '@type': 'Person',
-        '@id': 'https://lukefwalton.com/#person',
-        name: 'Luke F. Walton',
-        alternateName: ['ルーク・フランシス・ウォルトン', 'Luke Francis Walton', 'Scoobert Doobert'],
-        url: 'https://lukefwalton.com/',
-      },
+      personNode('ja'),
     ],
   };
 
