@@ -43,7 +43,10 @@
          crawlable entity data survives the rebuild. The artist, person, podcast,
          and audiobook entities are canonically homed on the lukefwalton.com hub;
          we reuse those @ids here so the graph resolves to one creator, never a
-         forked .pizza-homed copy. -->
+         forked .pizza-homed copy. The Person node below is a hand-maintained
+         MIRROR of personNode() in src/data/identity.ts (static HTML can't import
+         TS) — keep its @id, alternateName, identifier, and sameAs in sync with
+         that module, which the /about and /about/jp pages import. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -94,7 +97,13 @@
             "@type": "Person",
             "@id": "https://lukefwalton.com/#person",
             "name": "Luke F. Walton",
-            "alternateName": ["Luke Francis Walton", "Scoobert Doobert"],
+            "alternateName": [
+              "Scoobert Doobert",
+              "スクーバート・ドゥーバート",
+              "Luke Francis Walton",
+              "ルーク・F・ウォルトン"
+            ],
+            "disambiguatingDescription": "American musician and record producer; recording name Scoobert Doobert — not the Scooby-Doo character.",
             "url": "https://lukefwalton.com/",
             "identifier": [
               {
@@ -107,9 +116,29 @@
               { "@type": "PropertyValue", "propertyID": "ORCID", "value": "0009-0005-9263-1954" }
             ],
             "sameAs": [
+              "https://lukefwalton.com/",
+              "https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn",
+              "https://music.apple.com/us/artist/scoobert-doobert/1240946356",
+              "https://scoobertdoobert.bandcamp.com/",
+              "https://soundcloud.com/mrscoobertdoobert",
+              "https://www.youtube.com/@scoobertdoobertburrito",
+              "https://www.tiktok.com/@mr.scoobert_doobert",
+              "https://www.threads.net/@scoobertdoobert.pizza",
+              "https://www.reddit.com/user/mrscoobertdoobert",
+              "https://www.instagram.com/scoobertdoobert.pizza/",
+              "https://anchor.fm/scoobertdoobert",
+              "https://scoobertdoobert.threadless.com/",
+              "https://lovemusicmore.substack.com/",
+              "https://beformer.co",
               "https://orcid.org/0009-0005-9263-1954",
+              "https://isni.org/isni/0000000530400539",
+              "https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0",
               "https://philpeople.org/profiles/luke-f-walton",
-              "https://isni.org/isni/0000000530400539"
+              "https://github.com/lukefwalton",
+              "https://www.discogs.com/artist/8593593-Scoobert-Doobert",
+              "https://genius.com/artists/Scoobert-doobert",
+              "https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22",
+              "https://koookooorooo.com/scoobert-doobert"
             ]
           }
         ]
