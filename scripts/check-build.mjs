@@ -78,10 +78,25 @@ function graphNodes(file) {
   return nodes;
 }
 
+const HUB_URL = 'https://lukefwalton.com/';
+// Each identity page must: carry the shared #person Person node, bridge #scoobert
+// -> #person, list the hub in the Person's sameAs (the bidirectional link), and
+// disambiguate from the Scooby-Doo character in the page's language. The about
+// pages additionally declare the right inLanguage on their AboutPage node.
 const identityPages = [
-  { label: 'storefront (/)', files: ['dist/index.html'] },
-  { label: 'about (/about)', files: ['dist/about.html', 'dist/about/index.html'] },
-  { label: 'about-jp (/about/jp)', files: ['dist/about/jp.html', 'dist/about/jp/index.html'] },
+  { label: 'storefront (/)', files: ['dist/index.html'], disambig: 'Scooby-Doo' },
+  {
+    label: 'about (/about)',
+    files: ['dist/about.html', 'dist/about/index.html'],
+    disambig: 'Scooby-Doo',
+    inLanguage: 'en',
+  },
+  {
+    label: 'about-jp (/about/jp)',
+    files: ['dist/about/jp.html', 'dist/about/jp/index.html'],
+    disambig: 'スクービー',
+    inLanguage: 'ja',
+  },
 ];
 for (const p of identityPages) {
   const file = p.files.find((f) => existsSync(f));
@@ -91,15 +106,25 @@ for (const p of identityPages) {
     continue;
   }
   const nodes = graphNodes(file);
-  const hasPerson = nodes.some((n) => n['@type'] === 'Person' && n['@id'] === PERSON_ID);
+  const person = nodes.find((n) => n['@type'] === 'Person' && n['@id'] === PERSON_ID);
   const scoobert = nodes.find((n) => n['@type'] === 'MusicGroup' && n['@id'] === SCOOBERT_ID);
-  const bridged = scoobert?.member?.['@id'] === PERSON_ID;
-  if (hasPerson && bridged) {
-    console.log(`  ok ${p.label} -> #scoobert.member resolves to ${PERSON_ID}`);
+  const checks = {
+    person: !!person,
+    'scoobert->person': scoobert?.member?.['@id'] === PERSON_ID,
+    'hub in sameAs': (person?.sameAs ?? []).includes(HUB_URL),
+    disambiguation: (person?.disambiguatingDescription ?? '').includes(p.disambig),
+  };
+  if (p.inLanguage) {
+    const aboutPage = nodes.find((n) => n['@type'] === 'AboutPage');
+    checks[`inLanguage=${p.inLanguage}`] = aboutPage?.inLanguage === p.inLanguage;
+  }
+  const broken = Object.entries(checks)
+    .filter(([, ok]) => !ok)
+    .map(([k]) => k);
+  if (broken.length === 0) {
+    console.log(`  ok ${p.label} -> shared #person identity intact`);
   } else {
-    console.error(
-      `  x ${p.label}: identity unification broken (Person ${PERSON_ID}: ${hasPerson}, #scoobert->#person: ${bridged})`,
-    );
+    console.error(`  x ${p.label}: identity checks failed -> ${broken.join(', ')}`);
     failed++;
   }
 }
