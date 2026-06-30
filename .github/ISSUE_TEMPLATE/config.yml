@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Visit the site
+    url: https://scoobertdoobert.pizza
+    about: The thing itself. Best on desktop with sound on.
+  - name: Report a security issue
+    url: https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/SECURITY.md
+    about: Please report vulnerabilities privately rather than as a public issue.

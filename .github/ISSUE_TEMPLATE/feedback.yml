@@ -1,0 +1,18 @@
+name: Idea or feedback
+description: A thought about the site, the music, or something you'd love to see.
+labels: ['feedback']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a solo art project, so ideas are welcome but not promises —
+        feature PRs aren't accepted (see
+        [CONTRIBUTING](https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/CONTRIBUTING.md)).
+        Still, tell me what you think.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's on your mind?
+      description: An idea, a reaction, a thing you noticed. All welcome.
+    validations:
+      required: true
