@@ -1,0 +1,44 @@
+# Normalize line endings on commit. Force LF on everything that runs on Linux CI
+# runners or in a shell, so a checkout on another OS can never introduce CRLF
+# breakage in the build/shoot scripts.
+* text=auto
+
+*.sh    text eol=lf
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.json  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.md    text eol=lf
+*.svg   text eol=lf
+
+# Binary assets — never normalize or diff as text.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.cur   binary
+*.glb   binary
+*.gltf  binary
+*.wav   binary
+*.mp3   binary
+*.ogg   binary
+*.m4a   binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.pdf   binary
+
+# Shipped + hand-authored period assets and source media are kept exactly as
+# authored — never normalize their line endings (some are intentionally CRLF,
+# mimicking 1990s files). Mirrors .prettierignore: these aren't ours to reflow.
+public/** -text
+media/**  -text
+

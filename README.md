@@ -12,10 +12,12 @@
 
 <p align="center">
   <a href="https://github.com/lukefwalton/scoobertdoobert.pizza/actions/workflows/ci.yml"><img src="https://github.com/lukefwalton/scoobertdoobert.pizza/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-All%20Rights%20Reserved-b30000" alt="License: All Rights Reserved" /></a>
   <img src="https://img.shields.io/badge/three.js-r169-111" alt="three.js" />
   <img src="https://img.shields.io/badge/React-18-149eca" alt="React" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Vite-6-646cff" alt="Vite" />
+  <a href="https://deepwiki.com/lukefwalton/scoobertdoobert.pizza"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
 </p>
 
 A deliberately terrible 1996 **Electronic Pizza Storefront** that falls backward
@@ -268,6 +270,15 @@ content.
 auto-detects the Vite preset and manages the domain from its dashboard. The
 repo's root `CNAME` is a vestigial GitHub Pages artifact — safe to delete once
 DNS points at Vercel. (The build output no longer carries a `CNAME`.)
+
+## Contributing
+
+It's a solo art project, not an open-source one — but bug reports are welcome.
+Found a dead link, audio that won't play, or a floor that renders wrong? Open an
+[issue](https://github.com/lukefwalton/scoobertdoobert.pizza/issues/new/choose).
+See [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.md),
+and — for anything touching the `api/` functions or stored emails —
+[SECURITY.md](SECURITY.md).
 
 ## Copyright & licensing
 
