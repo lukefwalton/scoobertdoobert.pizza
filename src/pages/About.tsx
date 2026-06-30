@@ -1,6 +1,7 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/about.css';
 import { destById } from '../data/links';
+import { personNode } from '../data/identity';
 import { ExternalLink as Ext } from '../components/ExternalLink';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -65,6 +66,7 @@ export default function About() {
         '@id': 'https://www.scoobertdoobert.pizza/about#page',
         name: 'About Scoobert Doobert',
         url: 'https://www.scoobertdoobert.pizza/about',
+        inLanguage: 'en',
         isPartOf: { '@id': 'https://www.scoobertdoobert.pizza/#website' },
         about: { '@id': 'https://lukefwalton.com/#scoobert' },
         mainEntity: { '@id': 'https://lukefwalton.com/#scoobert' },
@@ -175,13 +177,7 @@ export default function About() {
         organizer: { '@id': 'https://lukefwalton.com/#beformer' },
         performer: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
-      {
-        '@type': 'Person',
-        '@id': 'https://lukefwalton.com/#person',
-        name: 'Luke F. Walton',
-        alternateName: ['Luke Francis Walton', 'Scoobert Doobert'],
-        url: 'https://lukefwalton.com/',
-      },
+      personNode('en'),
     ],
   };
 
