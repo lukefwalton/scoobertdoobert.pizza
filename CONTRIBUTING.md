@@ -39,6 +39,16 @@ copyrighted assets, and the PS1/N64 look is a hard constraint.
 [`ARCHITECTURE.md`](ARCHITECTURE.md) explains how it's wired;
 [`STRUCTURE.md`](STRUCTURE.md) maps where everything lives.
 
+## Line endings
+
+`.gitattributes` forces **LF** on source and CI/shell files so a checkout on
+another OS can't introduce CRLF breakage. Shipped, hand-authored period assets
+under `public/` and source media under `media/` are deliberately left alone
+(`-text`) — some are intentionally CRLF, mimicking 1990s files, and they aren't
+ours to reflow (same set `.prettierignore` skips). If you ever see a stray
+line-ending-only diff, run `git add --renormalize .` once on a clean tree; it
+should report no changes.
+
 ## Security
 
 Found a vulnerability — in the `api/` functions, the leaderboard, or anything
