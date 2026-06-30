@@ -1,5 +1,6 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
+import { discographyGraph } from '../data/discography';
 import { AudioBootstrap } from '../components/AudioBootstrap';
 import { ProgressTracker } from '../components/ProgressTracker';
 import { DreadConductor } from '../components/DreadConductor';
@@ -34,6 +35,9 @@ export default function Storefront() {
           property="og:description"
           content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
         />
+        {/* Discography: every album in the storefront grid as a MusicAlbum tied
+            to the canonical #scoobert artist. Source of truth: albums.json. */}
+        <script type="application/ld+json">{JSON.stringify(discographyGraph())}</script>
       </Head>
       <AudioBootstrap />
       <ProgressTracker />
