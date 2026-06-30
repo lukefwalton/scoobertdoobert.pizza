@@ -108,6 +108,7 @@ for (const p of identityPages) {
   const nodes = graphNodes(file);
   const person = nodes.find((n) => n['@type'] === 'Person' && n['@id'] === PERSON_ID);
   const scoobert = nodes.find((n) => n['@type'] === 'MusicGroup' && n['@id'] === SCOOBERT_ID);
+  const aboutPage = nodes.find((n) => n['@type'] === 'AboutPage');
   const checks = {
     person: !!person,
     'scoobert->person': scoobert?.member?.['@id'] === PERSON_ID,
@@ -115,8 +116,11 @@ for (const p of identityPages) {
     disambiguation: (person?.disambiguatingDescription ?? '').includes(p.disambig),
   };
   if (p.inLanguage) {
-    const aboutPage = nodes.find((n) => n['@type'] === 'AboutPage');
+    // The about pages carry an AboutPage node; assert the full documented bridge
+    // (about/mainEntity -> #scoobert) and the localized language tag.
     checks[`inLanguage=${p.inLanguage}`] = aboutPage?.inLanguage === p.inLanguage;
+    checks['about->scoobert'] = aboutPage?.about?.['@id'] === SCOOBERT_ID;
+    checks['mainEntity->scoobert'] = aboutPage?.mainEntity?.['@id'] === SCOOBERT_ID;
   }
   const broken = Object.entries(checks)
     .filter(([, ok]) => !ok)
@@ -127,13 +131,16 @@ for (const p of identityPages) {
     console.error(`  x ${p.label}: identity checks failed -> ${broken.join(', ')}`);
     // Print the actual values behind the failure so CI is diagnosable without a
     // local repro.
-    const aboutPage = nodes.find((n) => n['@type'] === 'AboutPage');
     console.error(
       `      actual: Person ${person ? 'present' : 'MISSING'}` +
         `, #scoobert.member=${JSON.stringify(scoobert?.member?.['@id'])}` +
         `, sameAs=${JSON.stringify(person?.sameAs)}` +
         `, disambiguatingDescription=${JSON.stringify(person?.disambiguatingDescription)}` +
-        (p.inLanguage ? `, AboutPage.inLanguage=${JSON.stringify(aboutPage?.inLanguage)}` : ''),
+        (p.inLanguage
+          ? `, AboutPage.inLanguage=${JSON.stringify(aboutPage?.inLanguage)}` +
+            `, AboutPage.about=${JSON.stringify(aboutPage?.about?.['@id'])}` +
+            `, AboutPage.mainEntity=${JSON.stringify(aboutPage?.mainEntity?.['@id'])}`
+          : ''),
     );
     failed++;
   }
