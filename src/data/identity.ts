@@ -30,6 +30,10 @@ export const PERSON_ID = 'https://lukefwalton.com/#person';
  * stable identity-equivalent URLs): the Ajax Public Library author-search page
  * and koookooorooo.com. They remain on the #scoobert artist node (a catalog
  * listing there is defensible); they're just not Person-level identity claims.
+ *
+ * Deliberately NOT here: beformer.co — that's the record label (an organization),
+ * modeled in the graph as the #beformer recordLabel node, not a page that
+ * represents the person. sameAs on a Person is for person-representing URLs only.
  */
 export const CANONICAL_SAMEAS: string[] = [
   // The hub — required for the bidirectional person↔hub link.
@@ -47,7 +51,6 @@ export const CANONICAL_SAMEAS: string[] = [
   'https://anchor.fm/scoobertdoobert',
   'https://scoobertdoobert.threadless.com/',
   'https://lovemusicmore.substack.com/',
-  'https://beformer.co',
   // Cross-graph identifiers / authority files.
   'https://orcid.org/0009-0005-9263-1954',
   'https://isni.org/isni/0000000530400539',
