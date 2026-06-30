@@ -125,6 +125,16 @@ for (const p of identityPages) {
     console.log(`  ok ${p.label} -> shared #person identity intact`);
   } else {
     console.error(`  x ${p.label}: identity checks failed -> ${broken.join(', ')}`);
+    // Print the actual values behind the failure so CI is diagnosable without a
+    // local repro.
+    const aboutPage = nodes.find((n) => n['@type'] === 'AboutPage');
+    console.error(
+      `      actual: Person ${person ? 'present' : 'MISSING'}` +
+        `, #scoobert.member=${JSON.stringify(scoobert?.member?.['@id'])}` +
+        `, sameAs=${JSON.stringify(person?.sameAs)}` +
+        `, disambiguatingDescription=${JSON.stringify(person?.disambiguatingDescription)}` +
+        (p.inLanguage ? `, AboutPage.inLanguage=${JSON.stringify(aboutPage?.inLanguage)}` : ''),
+    );
     failed++;
   }
 }

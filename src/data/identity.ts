@@ -25,6 +25,11 @@ export const PERSON_ID = 'https://lukefwalton.com/#person';
  *
  * Intentionally omitted to avoid fabrication (no verified URL / does not yet
  * exist): Wikidata, Google Scholar, AllMusic. Add them here once real.
+ *
+ * Also dropped as non-canonical per review (search/aggregator-style pages, not
+ * stable identity-equivalent URLs): the Ajax Public Library author-search page
+ * and koookooorooo.com. They remain on the #scoobert artist node (a catalog
+ * listing there is defensible); they're just not Person-level identity claims.
  */
 export const CANONICAL_SAMEAS: string[] = [
   // The hub — required for the bidirectional person↔hub link.
@@ -51,8 +56,6 @@ export const CANONICAL_SAMEAS: string[] = [
   'https://github.com/lukefwalton',
   'https://www.discogs.com/artist/8593593-Scoobert-Doobert',
   'https://genius.com/artists/Scoobert-doobert',
-  'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22',
-  'https://koookooorooo.com/scoobert-doobert',
 ];
 
 /** Every name the person records / publishes under, EN + 日本語. */
