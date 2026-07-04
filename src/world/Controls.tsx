@@ -5,6 +5,8 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useHeadingStore } from '../state/headingStore';
 import { useScoreStore } from '../state/scoreStore';
+import { useProgressStore } from '../state/progressStore';
+import { JUMP_SECRET } from '../data/abilities';
 import { isTestEntrance } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 import { takeHeading } from './cameraRig';
@@ -175,7 +177,16 @@ export function Controls() {
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
     // JUMP: Space hops (a little videogame joy). Simple ballistic arc on top of
     // the eye line; grounded = arc finished. Holding Space bunny-hops on purpose.
-    if (k[' '] && hop.current === 0 && hopVy.current === 0) hopVy.current = 4.6;
+    // GATED: you LEARN TO JUMP at the Jumping Turtle (durable unlock) — before
+    // that Space does nothing (getState read only on the grounded keypress, not
+    // every frame). The reward for finding the old venue is a new verb.
+    if (
+      k[' '] &&
+      hop.current === 0 &&
+      hopVy.current === 0 &&
+      useProgressStore.getState().secretsFound.includes(JUMP_SECRET)
+    )
+      hopVy.current = 4.6;
     if (hop.current > 0 || hopVy.current !== 0) {
       hopVy.current -= 13.5 * dt; // floaty-fun gravity, not simulation
       hop.current += hopVy.current * dt;

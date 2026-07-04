@@ -35,18 +35,45 @@ import { isDebugEntrance, exposeTestGlobal } from '../lib/testHooks';
 // spat you, no snap-back.
 // ───────────────────────────────────────────────────────────────────────────
 
-/** The camera's path through the tube, mouth → over the tower → exit. */
-const PATH: [number, number, number][] = [
-  [-4.2, 1.9, -4.2], // the mouth (ground level, facing the garden)
-  [-5.6, 2.2, -5.6], // swallowed — the tube starts pulling you up
-  [-6.9, 3.7, -6.3], // climbing the tower
-  [-7.3, 5.1, -7.2], // the top (whistle peak)
-  [-5.6, 4.7, -7.9], // over the elbow
-  [-3.9, 3.1, -7.5], // the swoop
-  [-2.7, 1.8, -6.3], // the drop
-  [-1.7, 1.3, -4.9], // the low exit mouth
-  [-0.8, 2.2, -3.5], // popped out, standing back up
-];
+// ── the shape ────────────────────────────────────────────────────────────────
+// A real play-place silhouette, built programmatically so the tube can never
+// self-intersect into a blob: one steep SWALLOW leg from the ground mouth up to
+// the tower top, then a ¾-turn DESCENDING helix wrapped around the tower, then
+// the exit tangent that shoots you out. The helix drops 3.3 units over 270°, and
+// nothing else enters its cylinder — every non-adjacent pair of path points
+// stays > 2× the tube radius apart.
+const TOWER = { x: -6.6, z: -6.6 };
+const HELIX_R = 2.3;
+const TUBE_R = 1.0;
+
+function buildPath(): THREE.Vector3[] {
+  const pts: THREE.Vector3[] = [];
+  const th0 = Math.atan2(-3.0 - TOWER.x, -4.0 - TOWER.z); // mouth bearing off the tower
+  pts.push(new THREE.Vector3(-3.0, 1.8, -4.0)); // the ground mouth (the trigger)
+  pts.push(new THREE.Vector3(-3.9, 3.4, -4.65)); // swallowed — hauled up the swallow leg
+  const SEG = 6;
+  for (let i = 0; i <= SEG; i++) {
+    const th = th0 - (i / SEG) * 1.5 * Math.PI; // ¾ of a turn, clockwise, descending
+    pts.push(
+      new THREE.Vector3(
+        TOWER.x + Math.sin(th) * HELIX_R,
+        4.9 - (i / SEG) * 3.3, // the whistle peak → knee height
+        TOWER.z + Math.cos(th) * HELIX_R,
+      ),
+    );
+  }
+  // The helix's clockwise exit tangent — the direction it spits you.
+  const thEnd = th0 - 1.5 * Math.PI;
+  const tx = -Math.cos(thEnd);
+  const tz = Math.sin(thEnd);
+  const last = pts[pts.length - 1];
+  pts.push(new THREE.Vector3(last.x + tx * 1.7, 1.5, last.z + tz * 1.7)); // the low exit mouth
+  pts.push(new THREE.Vector3(last.x + tx * 3.0, 2.2, last.z + tz * 3.0)); // popped out, standing
+  return pts;
+}
+const PTS = buildPath();
+const ENTRY = PTS[0];
+const EXIT_MOUTH = PTS[PTS.length - 2];
 
 const RIDE_SECONDS = 3.6;
 const POINTS_PER_RIDE = 15;
@@ -54,21 +81,19 @@ const POINTS_PER_RIDE = 15;
 export function TubeSlide() {
   const { camera } = useThree();
 
-  const curve = useMemo(
-    () => new THREE.CatmullRomCurve3(PATH.map((p) => new THREE.Vector3(...p))),
-    [],
-  );
+  const curve = useMemo(() => new THREE.CatmullRomCurve3(PTS), []);
   // The exit heading Controls resumes with: the direction of the last path leg.
   const exitYaw = useMemo(() => {
-    const a = PATH[PATH.length - 2];
-    const b = PATH[PATH.length - 1];
-    return Math.atan2(b[0] - a[0], b[2] - a[2]);
+    const a = PTS[PTS.length - 2];
+    const b = PTS[PTS.length - 1];
+    return Math.atan2(b.x - a.x, b.z - a.z);
   }, []);
 
   // Ringed two-tone green along the tube length so the ride READS as speed —
-  // a flat solid interior would just fill the screen with one color.
+  // a flat solid interior would just fill the screen with one color. The deep
+  // pine green of the reference photo, not a bright teal.
   const tubeTex = useMemo(() => {
-    const t = makeCheckerTexture(2, '#2c6b60', '#245a50');
+    const t = makeCheckerTexture(2, '#245448', '#1d4a3f');
     t.repeat.set(26, 1);
     return t;
   }, []);
@@ -80,10 +105,10 @@ export function TubeSlide() {
       }),
     [tubeTex],
   );
-  const rimMat = useMemo(() => flatMat('#3f8577'), []);
+  const rimMat = useMemo(() => flatMat('#2f6a58'), []);
   const poleMat = useMemo(() => flatMat('#a9b8ae'), []); // galvanized play-place steel
   const deckMat = useMemo(() => flatMat('#8ea698'), []);
-  const tubeGeom = useMemo(() => new THREE.TubeGeometry(curve, 72, 1.35, 10, false), [curve]);
+  const tubeGeom = useMemo(() => new THREE.TubeGeometry(curve, 96, TUBE_R, 10, false), [curve]);
   useDispose(tubeTex, tubeMat, rimMat, poleMat, deckMat, tubeGeom);
 
   // ── the ride ──────────────────────────────────────────────────────────────
@@ -176,69 +201,71 @@ export function TubeSlide() {
     // Entry: walking into the mouth swallows you (playground logic — no prompt,
     // no key; the mouth IS the button). XZ distance so jumping in counts too.
     if (!inputFrozen()) {
-      const dx = camera.position.x - PATH[0][0];
-      const dz = camera.position.z - PATH[0][2];
+      const dx = camera.position.x - ENTRY.x;
+      const dz = camera.position.z - ENTRY.z;
       if (dx * dx + dz * dz < 1.35 * 1.35) startRide();
     }
   });
 
   // ── the structure (visual) ────────────────────────────────────────────────
-  // Support poles sampled under the tube's high half + the platform tower the
-  // corkscrew wraps, all in play-place galvanized steel.
-  const poles = useMemo(() => {
-    const out: { x: number; z: number; h: number }[] = [];
-    for (const u of [0.28, 0.42, 0.58, 0.74]) {
-      const p = curve.getPointAt(u);
-      out.push({ x: p.x, z: p.z, h: p.y - 0.9 });
-    }
-    return out;
-  }, [curve]);
+  // Four galvanized legs planted at the tower corners, each rising to the deck —
+  // the play-place scaffold the corkscrew wraps. Sampled poles UNDER the raised
+  // tube would poke through it now that the run is a clean helix, so we plant
+  // the tower legs explicitly instead.
+  const entryYaw = useMemo(() => Math.atan2(PTS[1].x - PTS[0].x, PTS[1].z - PTS[0].z), []);
+  const DECK_Y = 5.0; // just under the helix top
+  const legs = useMemo(
+    () =>
+      (
+        [
+          [-1.5, -1.5],
+          [1.5, -1.5],
+          [-1.5, 1.5],
+          [1.5, 1.5],
+        ] as const
+      ).map(([dx, dz]) => ({ x: TOWER.x + dx, z: TOWER.z + dz })),
+    [],
+  );
 
   return (
     <group>
       {/* the tube itself — one continuous ringed corkscrew */}
       <mesh geometry={tubeGeom} material={tubeMat} />
       {/* rim rings at the two mouths (the bolted flange look) */}
+      <mesh material={rimMat} position={[ENTRY.x, ENTRY.y, ENTRY.z]} rotation={[0, entryYaw, 0]}>
+        <torusGeometry args={[TUBE_R + 0.12, 0.14, 6, 14]} />
+      </mesh>
       <mesh
         material={rimMat}
-        position={PATH[0]}
-        rotation={[0, Math.atan2(PATH[1][0] - PATH[0][0], PATH[1][2] - PATH[0][2]), 0]}
+        position={[EXIT_MOUTH.x, EXIT_MOUTH.y, EXIT_MOUTH.z]}
+        rotation={[0, exitYaw, 0]}
       >
-        <torusGeometry args={[1.4, 0.14, 6, 14]} />
+        <torusGeometry args={[TUBE_R + 0.12, 0.14, 6, 14]} />
       </mesh>
-      <mesh material={rimMat} position={PATH[PATH.length - 2]} rotation={[0, exitYaw, 0]}>
-        <torusGeometry args={[1.4, 0.14, 6, 14]} />
-      </mesh>
-      {/* galvanized support poles under the raised run */}
-      {poles.map((p, i) => (
-        <mesh key={i} material={poleMat} position={[p.x, p.h / 2, p.z]}>
-          <cylinderGeometry args={[0.09, 0.09, p.h, 6]} />
+      {/* the tower: four legs + the deck the corkscrew wraps (pure dressing) */}
+      {legs.map((p, i) => (
+        <mesh key={i} material={poleMat} position={[p.x, DECK_Y / 2, p.z]}>
+          <cylinderGeometry args={[0.1, 0.1, DECK_Y, 6]} />
         </mesh>
       ))}
-      {/* the little platform deck + rails the corkscrew wraps (pure dressing) */}
-      <group position={[-6.6, 0, -7.2]}>
-        <mesh material={deckMat} position={[0, 3.1, 0]}>
-          <boxGeometry args={[2.6, 0.16, 2.2]} />
+      <group position={[TOWER.x, 0, TOWER.z]}>
+        <mesh material={deckMat} position={[0, DECK_Y, 0]}>
+          <boxGeometry args={[3.6, 0.16, 3.6]} />
         </mesh>
-        {[
-          [-1.2, -1.0],
-          [1.2, -1.0],
-          [-1.2, 1.0],
-          [1.2, 1.0],
-        ].map(([x, z], i) => (
-          <mesh key={i} material={poleMat} position={[x, 1.55, z]}>
-            <cylinderGeometry args={[0.08, 0.08, 3.1, 6]} />
-          </mesh>
-        ))}
-        {/* guard rails around the deck */}
+        {/* guard rails around the deck (three sides — the slide mouth is open) */}
         {(
           [
-            [0, -1.0, 2.6, 0],
-            [0, 1.0, 2.6, 0],
-            [-1.2, 0, 2.2, Math.PI / 2],
+            [0, -1.7, 3.4, 0],
+            [-1.7, 0, 3.4, Math.PI / 2],
+            [1.7, 0, 3.4, Math.PI / 2],
           ] as const
         ).map(([x, z, len, rot], i) => (
-          <mesh key={i} material={poleMat} position={[x, 3.75, z]} rotation={[0, rot, Math.PI / 2]}>
+          <mesh
+            key={i}
+            material={poleMat}
+            position={[x, DECK_Y + 0.6, z]}
+            rotation={[0, rot, Math.PI / 2]}
+          >
             <cylinderGeometry args={[0.05, 0.05, len, 6]} />
           </mesh>
         ))}
