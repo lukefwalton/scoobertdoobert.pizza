@@ -146,6 +146,45 @@ for (const p of identityPages) {
   }
 }
 
+// Bundle-discipline guard: the storefront's INITIAL JS graph must ship zero three.js
+// and no debug-only `leva` — both are lazy (three behind the install gag, leva behind
+// ?debug). We assert against the storefront HTML's OWN script graph, keyed on
+// fingerprint tokens that survive minification (a class name / a hook name) rather
+// than the word "leva" (which also hides inside "relevant" — a known false positive)
+// or a chunk filename (which the bundler is free to rename). A static-import
+// regression that pulls either dep into the entry chunk then fails the build.
+const FORBIDDEN = [
+  { token: 'BufferGeometry', dep: 'three.js' },
+  { token: 'LevaPanel', dep: 'leva' },
+  { token: 'useControls', dep: 'leva' },
+];
+const storefront = 'dist/index.html';
+if (existsSync(storefront)) {
+  const html = readFileSync(storefront, 'utf8');
+  const entryJs = [
+    ...new Set([...html.matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)].map((m) => m[0])),
+  ];
+  let bundleBad = 0;
+  for (const ref of entryJs) {
+    const file = 'dist' + ref;
+    const code = existsSync(file) ? readFileSync(file, 'utf8') : '';
+    for (const { token, dep } of FORBIDDEN) {
+      if (code.includes(token)) {
+        console.error(
+          `  x storefront chunk ${ref} contains ${dep} (${token}) — it must stay lazy, out of the initial bundle`,
+        );
+        bundleBad++;
+      }
+    }
+  }
+  failed += bundleBad;
+  if (!bundleBad) {
+    console.log(
+      `  ok storefront initial JS graph (${entryJs.length} chunk) ships no three.js / leva`,
+    );
+  }
+}
+
 if (failed) {
   console.error(`\npost-build check FAILED (${failed}).`);
   process.exit(1);
