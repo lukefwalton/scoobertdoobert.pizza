@@ -24,16 +24,22 @@ try {
 } catch (e) {
   bad(`world did not mount: ${e.message}`);
 }
-// A generous settle: this is the LAST heavy walk-smoke in shoot:all's sequential
-// run, so the CI box is warm and frame delivery is slowest here — give the scene
-// time to become interactive before the first walk (a cold first step was the flake).
-await page.waitForTimeout(3000);
+// Sync on a CONCRETE readiness signal, not a fixed settle: Controls exposes
+// __sdpRoom once it's mounted with the room committed, i.e. movement + door prompts
+// are live. (This is the LAST, heaviest walk-smoke in shoot:all's sequential run —
+// the box is warm and slowest here — so waiting on real readiness beats guessing a
+// wall-clock delay.)
+await page
+  .waitForFunction(() => window.__sdpRoom === 'northpark', { timeout: 15000 })
+  .catch(() => bad('world controls never came live in North Park'));
 const startStreet = await roomIs('North Park');
 
-// The holds get a wide budget on purpose: movement is a CLAMPED per-frame delta, so
-// a slow runner covers less ground per wall-clock second — and this smoke chains
-// five room traversals, so it feels that most. 20s reliably reaches each door edge
-// even on a saturated runner (well under shoot:all's 180s per-suite cap).
+// Each hold is itself state-based — holdUntilDoorPrompt polls for `.hud-prompt--door`
+// and releases the INSTANT it shows, so this budget is a CEILING, not a sleep. It's
+// wide because movement is a CLAMPED per-frame delta: a slow runner covers less
+// ground per wall-clock second, and this smoke chains five traversals, so it feels
+// that most. 20s reaches each door edge even on a saturated runner, well under
+// shoot:all's 180s per-suite cap.
 const WALK = 20000;
 
 // 1) North Park → Main Street: the +X edge at z≈-2 (forward + strafe right).

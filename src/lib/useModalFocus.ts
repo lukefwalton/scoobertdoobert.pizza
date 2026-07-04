@@ -19,7 +19,25 @@ import { useEffect, useRef, type RefObject } from 'react';
 //
 // `onEscape` is read through a ref so passing an inline handler doesn't re-run the
 // effect (which would yank focus back to the first control on every render).
-const modalStack: HTMLElement[] = [];
+//
+// The stack is a small pure object (push / remove / isTop over `roots`) rather than a
+// bare array so the ownership DISCIPLINE — only the last-opened root is topmost, and
+// removing the top hands ownership back down — is unit-testable without a DOM
+// (identity-based; the test pushes sentinels). The DOM-bound Tab/focus flow itself is
+// covered by the shoot:hud pause+lyrics smoke.
+export const modalStack = {
+  roots: [] as HTMLElement[],
+  push(root: HTMLElement) {
+    this.roots.push(root);
+  },
+  remove(root: HTMLElement) {
+    const i = this.roots.lastIndexOf(root);
+    if (i !== -1) this.roots.splice(i, 1);
+  },
+  isTop(root: HTMLElement) {
+    return this.roots.length > 0 && this.roots[this.roots.length - 1] === root;
+  },
+};
 
 export function useModalFocus(
   ref: RefObject<HTMLElement | null>,
@@ -36,7 +54,7 @@ export function useModalFocus(
     const opener = document.activeElement as HTMLElement | null;
     modalStack.push(root);
     // This root owns the keyboard only while it's the top of the stack.
-    const isTop = () => modalStack[modalStack.length - 1] === root;
+    const isTop = () => modalStack.isTop(root);
 
     const focusables = () =>
       Array.from(
@@ -76,8 +94,7 @@ export function useModalFocus(
     document.addEventListener('keydown', onKey);
     return () => {
       document.removeEventListener('keydown', onKey);
-      const i = modalStack.lastIndexOf(root);
-      if (i !== -1) modalStack.splice(i, 1);
+      modalStack.remove(root);
       // Restore focus to the opener if it's still in the DOM — which, for a stacked
       // dialog, hands focus back to the layer beneath that launched it.
       if (opener && document.contains(opener)) opener.focus?.();
