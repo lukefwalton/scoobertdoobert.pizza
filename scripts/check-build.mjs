@@ -153,8 +153,14 @@ for (const p of identityPages) {
 // than the word "leva" (which also hides inside "relevant" — a known false positive)
 // or a chunk filename (which the bundler is free to rename). A static-import
 // regression that pulls either dep into the entry chunk then fails the build.
+// Several fingerprints per dep, not one: a tree-shaken subset of three that happened
+// to exclude BufferGeometry would still violate the standard, but any real use pulls
+// the renderer or the scene-graph base too — so we trip on ANY of them. All are absent
+// from the legit storefront entry chunk today (verified), so no false positives.
 const FORBIDDEN = [
   { token: 'BufferGeometry', dep: 'three.js' },
+  { token: 'WebGLRenderer', dep: 'three.js' },
+  { token: 'Object3D', dep: 'three.js' },
   { token: 'LevaPanel', dep: 'leva' },
   { token: 'useControls', dep: 'leva' },
 ];
@@ -192,6 +198,40 @@ if (existsSync(storefront)) {
     console.log(
       `  ok storefront initial JS graph (${entryJs.length} chunk) ships no three.js / leva`,
     );
+  }
+}
+
+// Installability guard: every icon the manifest DECLARES must actually ship at the
+// declared square dimensions, so a manifest/asset drift (a renamed or wrong-sized
+// icon) fails the build instead of quietly breaking install / home-screen behavior.
+// Reads the PNG IHDR directly — no image dep — and requires square.
+function pngSize(file) {
+  const buf = readFileSync(file);
+  if (buf.length < 24 || buf.toString('ascii', 12, 16) !== 'IHDR') return null;
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+const manifestFile = 'dist/site.webmanifest';
+if (existsSync(manifestFile)) {
+  const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
+  for (const icon of icons) {
+    const file = 'dist' + icon.src;
+    const sz = existsSync(file) ? pngSize(file) : null;
+    if (!sz) {
+      console.error(`  x manifest icon ${icon.src} -> missing or not a PNG at dist${icon.src}`);
+      failed++;
+    } else if (`${sz.w}x${sz.h}` !== icon.sizes) {
+      console.error(
+        `  x manifest icon ${icon.src} -> is ${sz.w}x${sz.h} but the manifest declares ${icon.sizes}`,
+      );
+      failed++;
+    } else if (sz.w !== sz.h) {
+      console.error(
+        `  x manifest icon ${icon.src} -> ${sz.w}x${sz.h} is not square (install wants square)`,
+      );
+      failed++;
+    } else {
+      console.log(`  ok manifest icon ${icon.src} -> ${icon.sizes}, square`);
+    }
   }
 }
 
