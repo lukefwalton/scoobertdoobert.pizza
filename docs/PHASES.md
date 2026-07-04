@@ -490,6 +490,52 @@ commit + smoke:
   with a reduced-motion `*-static` twin) over a starfield hall-of-fame.
   `shoot:leaderboard`.
 
+## ✅ The day-off pass — jump, the garden wing + the Jumping Turtle (2026-07-04, from Luke's photo batch)
+The "make it feel fun like a video game" pass, built from Luke's reference photos
+(a Balboa-Park-ish garden walk + urbex footage of the real dead venue):
+- ✅ **JUMP (game feel):** Space hops the camera — a simple ballistic arc in
+  `Controls` (holding Space bunny-hops on purpose), clamped under each room's
+  ceiling, never stealing Space from inputs/buttons (terminal typing + HUD
+  keyboard activation keep working). `shoot:garden` drives the real keyboard path.
+- ✅ **The garden wing** — three sweet SURFACE rooms west off the Park Path:
+  - **The Botanical Garden (植物園):** trimmed hedge quadrants, pink-brick paths,
+    a seeded scatter of random palms, the verdigris **FROG statue** with its
+    lily-pad parasol (click → ribbit + squash-and-stretch hop; every ribbit rolls
+    a plain d20 and a nat 20 winks **+1 LUCK**), and **THE TUBE SLIDE** — a
+    play-place corkscrew that's a real RIDE: walk into the mouth and the camera
+    is swallowed and carried through the tube (slide-whistle voice glisses with
+    height via `audio.startVoice`, FOV kicks with speed), each ride scoring
+    **pizza points through the loot combo path** (rides chain the combo) and the
+    first ride banking a durable secret + luck ("Ride the tube slide" is a new
+    pause-menu objective). The ride freezes world input (`rideState` →
+    `inputFrozen`) and hands its exit heading back to Controls (`cameraRig`) so
+    there's no snap-back. A `musicRoom` (birdsong / breeze / a distant bullfrog).
+  - **The Grotto (洞窟):** the cave behind the north hedge — dark boulders, a
+    still pool, and the MOUTH framing bright pond + a scrolling waterfall + a
+    palm (the whole room is the view out). Echoey long-decay drips ("even more
+    reverb," as the menu promised), `CeilingDrips`, first-entry +1 luck.
+  - **The Bamboo Grove (竹林):** through the garden's stone **LION moon-gate**
+    (rock ring + carved lion keystone) into a dense seeded stand of culms, a
+    stone lantern, and a **shishi-odoshi whose tip-and-CRACK animation and klok
+    are one event** (the whisper does the 鹿威し/獅子 lion-vs-deer pun).
+    First-entry +1 luck.
+- ✅ **The Jumping Turtle** — the defunct all-ages venue off North Park (San
+  Marcos; Luke played it in high school). Eerie-WARM (unease 0.08 — memory, not
+  menace): flyer-crusted entry wall, debris, the loft, dead amp stacks, the bar —
+  and the stage under the **leaping-turtle sign** where the **shipped DrumKit
+  still plays**; step up to the **mic stand** and the room remembers (a soft
+  ghost-cheer; first time = durable secret + 2 luck + the "Play the Turtle one
+  more time" objective); the **BROKEN CRT** buzzes and flickers one soft gray
+  pulse but never becomes a picture — the one set in the world that doesn't play.
+  A `musicRoom`: mains hum, a far-off kick-check, a rare feedback sigh.
+- Wiring: `ROOM_MAP` nodes, `dread.ts` bases (all garden rooms below SAFE; the
+  Turtle just past it), perception whispers for all four rooms, two new quests
+  (+ their unit-test flips; `shoot-objective` seeds them done), `rooms.test`
+  arrival-spawn contracts hold. Covered by **`shoot:garden`** (jump, real
+  balboa⇄garden + garden⇄grotto + bamboo→garden edges, ribbit, the full ride
+  state machine) and **`shoot:turtle`** (real northpark⇄turtle edges, drums,
+  broken-CRT no-modal guard, the walk-to-mic cheer).
+
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-

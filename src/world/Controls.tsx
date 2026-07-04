@@ -7,6 +7,7 @@ import { useHeadingStore } from '../state/headingStore';
 import { useScoreStore } from '../state/scoreStore';
 import { isTestEntrance } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
+import { takeHeading } from './cameraRig';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
@@ -34,6 +35,10 @@ export function Controls() {
   const keys = useRef<Record<string, boolean>>({});
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  // Jump: bonus height above the eye line + its vertical velocity. Grounded when
+  // hop === 0 and vy === 0; holding Space bunny-hops (deliberate — it feels good).
+  const hop = useRef(0);
+  const hopVy = useRef(0);
   // Throttle accumulator for publishing the camera pose to the heading store.
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
@@ -48,6 +53,8 @@ export function Controls() {
     camera.position.set(spawn.position[0], spawn.position[1], spawn.position[2]);
     yaw.current = spawn.yaw;
     pitch.current = -0.04;
+    hop.current = 0;
+    hopVy.current = 0;
     // Apply the heading NOW, not just in useFrame() — useFrame returns early
     // while `transitioning`, so without this the camera would keep its old
     // facing through the whole fade-in and snap to the spawn heading only when
@@ -80,6 +87,20 @@ export function Controls() {
       last.current = { x: e.clientX, y: e.clientY };
     };
     const kd = (e: KeyboardEvent) => {
+      // Space is the jump key: stop it scrolling the page behind the canvas —
+      // but never when it's aimed at a form control / button (typing in the
+      // terminal, keyboard-activating a HUD button must keep working).
+      if (e.key === ' ') {
+        const t = e.target as HTMLElement | null;
+        const interactive =
+          t &&
+          (t.tagName === 'INPUT' ||
+            t.tagName === 'TEXTAREA' ||
+            t.tagName === 'BUTTON' ||
+            t.tagName === 'A' ||
+            t.isContentEditable);
+        if (!interactive) e.preventDefault();
+      }
       keys.current[e.key.toLowerCase()] = true;
     };
     const ku = (e: KeyboardEvent) => {
@@ -104,13 +125,23 @@ export function Controls() {
     // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
     // frame, and the global stays off the normal runtime surface.
     if (EXPOSE_CAM) {
-      (window as Window & { __sdpCam?: { x: number; z: number; yaw: number } }).__sdpCam = {
+      (
+        window as Window & { __sdpCam?: { x: number; y: number; z: number; yaw: number } }
+      ).__sdpCam = {
         x: camera.position.x,
+        y: camera.position.y,
         z: camera.position.z,
         yaw: yaw.current,
       };
     }
     if (inputFrozen()) return;
+    // A scripted camera move (the tube-slide ride) just ended: adopt the heading
+    // it left the camera at, so the view doesn't snap back to the pre-ride yaw.
+    const handoff = takeHeading();
+    if (handoff) {
+      yaw.current = handoff.yaw;
+      pitch.current = handoff.pitch ?? -0.04;
+    }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
     // SPRINT: hold Shift to move faster, with a little FOV kick for speed-feel
@@ -142,10 +173,22 @@ export function Controls() {
     const d = dims.current;
     camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
+    // JUMP: Space hops (a little videogame joy). Simple ballistic arc on top of
+    // the eye line; grounded = arc finished. Holding Space bunny-hops on purpose.
+    if (k[' '] && hop.current === 0 && hopVy.current === 0) hopVy.current = 4.6;
+    if (hop.current > 0 || hopVy.current !== 0) {
+      hopVy.current -= 13.5 * dt; // floaty-fun gravity, not simulation
+      hop.current += hopVy.current * dt;
+      if (hop.current <= 0) {
+        hop.current = 0;
+        hopVy.current = 0; // landed
+      }
+    }
     // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
-    // clamped under THIS room's ceiling so you never poke through the roof.
+    // clamped under THIS room's ceiling so you never poke through the roof —
+    // the jump arc is clamped under the same ceiling.
     const grow = Math.min(useScoreStore.getState().tallness, Math.max(0, d.height - d.eye - 0.4));
-    camera.position.y = d.eye + grow;
+    camera.position.y = Math.min(d.height - 0.4, d.eye + grow + hop.current);
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

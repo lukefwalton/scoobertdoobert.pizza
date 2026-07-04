@@ -72,6 +72,13 @@ export const DREAD: DreadConfig = {
     grassrooms: 0.02, // the overgrown-backrooms breather off the liminal — FULLY
     //                   SWEET (below SAFE so it DECAYS): nature reclaimed the
     //                   office, sunlit and calm; the exhale after the liminal
+    garden: 0.02, // The Botanical Garden — pure surface sweetness (below SAFE so
+    //               it DECAYS): hedges, birdsong, the frog, the slide. Never curdles.
+    grotto: 0.04, // the cave behind the garden — a cool hush, still below SAFE
+    //               (the dark is cozy, not wrong; the mouth glows with the garden)
+    bamboo: 0.02, // the grove past the lion gate — dappled, sweet, decays
+    turtle: 0.08, // the dead venue — a haunted-WARM tickle just past SAFE (memory,
+    //               not menace: the taste line holds; what you notice there is sweet)
     theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:
     //                 a SWEET relief beat (below SAFE so it DECAYS), a cosmic exhale
     //                 you play with your body, not a dread room (taste guardrail)

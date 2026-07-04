@@ -55,7 +55,7 @@ describe('ratDialogue', () => {
       luckEarned: 5,
       radioUnlocked: true,
       itemsHeld: ['pool-locker-key', 'hall-closet-key', ...CASSETTE_IDS],
-      secretsFound: ['dice-monster', 'grass-cleared', 'danced:x'],
+      secretsFound: ['dice-monster', 'grass-cleared', 'danced:x', 'garden-slide', 'turtle-stage'],
       visitedRooms: ['shop', 'terminus'],
     };
     expect(QUESTS.every((q) => q.done(ALL))).toBe(true);

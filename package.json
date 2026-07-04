@@ -49,6 +49,8 @@
     "shoot:music": "node scripts/shoot-music.mjs",
     "shoot:grass": "node scripts/shoot-grass.mjs",
     "shoot:grassrooms": "node scripts/shoot-grassrooms.mjs",
+    "shoot:garden": "node scripts/shoot-garden.mjs",
+    "shoot:turtle": "node scripts/shoot-turtle.mjs",
     "shoot:boardwalk": "node scripts/shoot-boardwalk.mjs",
     "shoot:gallery": "node scripts/shoot-gallery.mjs",
     "shoot:theremin": "node scripts/shoot-theremin.mjs",
