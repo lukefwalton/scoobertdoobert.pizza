@@ -20,6 +20,14 @@ const { ctx, page, fail: bad, finish, failures } = await startSmoke();
 watchPageErrors(page, bad);
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail: bad, timeout });
 
+// Jump is UNLOCKED at the Jumping Turtle (see shoot-turtle for the gate test);
+// here we test the jump MECHANIC, so seed the unlock so Space hops in the park.
+await page.addInitScript(() => {
+  localStorage.setItem(
+    'sdp_progress_v1',
+    JSON.stringify({ everEnteredWorld: true, secretsFound: ['jump-unlocked'] }),
+  );
+});
 // Straight into the Park Path (the garden's hub) with the debug hooks on.
 await page.goto(base + '/?room=balboa&debug=1', { waitUntil: 'commit' });
 try {

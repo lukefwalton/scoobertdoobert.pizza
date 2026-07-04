@@ -493,10 +493,16 @@ commit + smoke:
 ## ✅ The day-off pass — jump, the garden wing + the Jumping Turtle (2026-07-04, from Luke's photo batch)
 The "make it feel fun like a video game" pass, built from Luke's reference photos
 (a Balboa-Park-ish garden walk + urbex footage of the real dead venue):
-- ✅ **JUMP (game feel):** Space hops the camera — a simple ballistic arc in
-  `Controls` (holding Space bunny-hops on purpose), clamped under each room's
-  ceiling, never stealing Space from inputs/buttons (terminal typing + HUD
-  keyboard activation keep working). `shoot:garden` drives the real keyboard path.
+- ✅ **JUMP (game feel), UNLOCKED at the Jumping Turtle (Luke's gag):** Space
+  hops the camera — a simple ballistic arc in `Controls` (holding Space bunny-hops
+  on purpose), clamped under each room's ceiling, never stealing Space from
+  inputs/buttons (terminal typing + HUD keyboard activation keep working). The
+  verb is **gated behind a durable unlock** (`data/abilities.ts` `JUMP_SECRET`):
+  you literally *learn to jump* the first time you set foot in the Jumping Turtle
+  (a big once-only "you learned to JUMP!" beat + fanfare there). Before that,
+  Space does nothing. `shoot:garden` seeds the unlock and drives the jump
+  mechanic; `shoot:turtle` tests the GATE both ways (no hop on the street → hop
+  after entering the venue).
 - ✅ **The garden wing** — three sweet SURFACE rooms west off the Park Path:
   - **The Botanical Garden (植物園):** trimmed hedge quadrants, pink-brick paths,
     a seeded scatter of random palms, the verdigris **FROG statue** with its
@@ -510,6 +516,9 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
     pause-menu objective). The ride freezes world input (`rideState` →
     `inputFrozen`) and hands its exit heading back to Controls (`cameraRig`) so
     there's no snap-back. A `musicRoom` (birdsong / breeze / a distant bullfrog).
+    The slide geometry is built **programmatically** (`buildPath`: a swallow leg
+    + a ¾-turn descending helix around an explicit tower) so the tube can't
+    self-intersect into a blob — replaced a hand-authored path that did.
   - **The Grotto (洞窟):** the cave behind the north hedge — dark boulders, a
     still pool, and the MOUTH framing bright pond + a scrolling waterfall + a
     palm (the whole room is the view out). Echoey long-decay drips ("even more

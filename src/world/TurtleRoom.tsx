@@ -16,6 +16,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { DrumKit } from './DrumKit';
 import { isDebugEntrance, exposeTestGlobal } from '../lib/testHooks';
+import { JUMP_SECRET } from '../data/abilities';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -216,6 +217,25 @@ export function TurtleRoom({ room }: { room: Room }) {
     [],
   );
   useDispose(...flyerMats);
+
+  // ── you LEARN TO JUMP at the Jumping Turtle (the pun made mechanical) ───────
+  // First time you set foot in the venue: the jump verb unlocks, durably and
+  // forever (Controls gates Space on this secret). A big, joyful once-only beat
+  // with an ascending three-note fanfare — the reward for finding the old room
+  // is a whole new way to move. Re-entry is silent.
+  useEffect(() => {
+    const prog = useProgressStore.getState();
+    if (prog.secretsFound.includes(JUMP_SECRET)) return;
+    prog.findSecret(JUMP_SECRET);
+    announce('★ THE JUMPING TURTLE — you learned to JUMP! (press Space)', 'crit-good');
+    const tid = window.setTimeout(() => {
+      audio.unlock();
+      audio.playChime(noteToFreq('C', 4), -0.2, 0.12, 0.7); // an ascending hop-hop-HOP
+      window.setTimeout(() => audio.playChime(noteToFreq('E', 4), 0, 0.12, 0.7), 120);
+      window.setTimeout(() => audio.playChime(noteToFreq('A', 4), 0.2, 0.14, 1.1), 260);
+    }, 400);
+    return () => window.clearTimeout(tid);
+  }, []);
 
   // ── the mic-stand memory beat: step up to it → the room remembers you.
   // Once per visit; the FIRST time ever banks the durable objective + luck.

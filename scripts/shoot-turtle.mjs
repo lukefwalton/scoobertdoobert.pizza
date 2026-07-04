@@ -29,6 +29,20 @@ try {
 await page.waitForTimeout(1500);
 const startStreet = await roomIs('North Park');
 
+// 0) THE GATE (the gag): jump is LOCKED until you enter the Jumping Turtle. In
+//    North Park, before ever setting foot in the venue, Space must do NOTHING.
+const streetY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
+await page.keyboard.down(' ');
+const hoppedLocked = await page
+  .waitForFunction((y0) => (window.__sdpCam?.y ?? 0) > y0 + 0.25, streetY, { timeout: 1200 })
+  .then(
+    () => true,
+    () => false,
+  );
+await page.keyboard.up(' ');
+const gateHeld = !hoppedLocked;
+if (!gateHeld) bad('jump worked BEFORE the Jumping Turtle — the unlock gate is open');
+
 // 1) The REAL edge in: strafe -X down the block to the dark doorway.
 if (!(await holdUntilDoorPrompt(page, 'a', { timeout: 10000 })))
   bad('venue door prompt never appeared strafing -X up the block');
@@ -61,6 +75,25 @@ await page.waitForTimeout(600); // let the flicker pulse run
 if ((await page.$('.tv-modal, .hud-tv')) !== null)
   bad('the BROKEN CRT opened a TV modal — it must never play');
 
+// 3b) THE PAYOFF: now that you've entered the Turtle, jump is UNLOCKED — Space
+//     must hop the camera (the same key that did nothing on the street).
+const venueY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
+await page.keyboard.down(' ');
+const hoppedUnlocked = await page
+  .waitForFunction((y0) => (window.__sdpCam?.y ?? 0) > y0 + 0.25, venueY, { timeout: 2000 })
+  .then(
+    () => true,
+    () => false,
+  );
+await page.keyboard.up(' ');
+if (!hoppedUnlocked) bad('jump did not work AFTER entering the Jumping Turtle (unlock failed)');
+// settle back down before the walk to the mic
+await page
+  .waitForFunction((y0) => Math.abs((window.__sdpCam?.y ?? 0) - y0) < 0.05, venueY, {
+    timeout: 2500,
+  })
+  .catch(() => {});
+
 // 4) Step up to the mic where the stage was: walking forward from the entry
 //    spawn runs straight down the hall into the memory trigger.
 await page.keyboard.down('w');
@@ -81,7 +114,8 @@ await page.keyboard.press('e');
 const backOut = await roomIs('North Park');
 
 console.log(
-  `turtle -> street=${startStreet} venue=${inVenue} drums=${drumOk} crt=${crt !== null} ` +
+  `turtle -> street=${startStreet} jumpGate=${gateHeld} venue=${inVenue} ` +
+    `jumpUnlocked=${hoppedUnlocked} drums=${drumOk} crt=${crt !== null} ` +
     `cheer=${cheered} back=${backOut} errors=${failures()}`,
 );
 
