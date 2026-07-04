@@ -1,0 +1,16 @@
+{
+  "// note": "Type-checks the Vercel serverless handlers in api/, which the main src tsconfig (include: ['src']) skips. These handle PII (the order form) + the Blob leaderboard, so they're exactly the code you want checked in CI. Node runtime, not the browser.",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["api"]
+}

@@ -1,4 +1,5 @@
-import { type ComponentType } from 'react';
+import { useRef, type ComponentType } from 'react';
+import { useModalFocus } from '../lib/useModalFocus';
 import '../styles/arcade.css';
 import '../styles/poke.css';
 import '../styles/chimes.css';
@@ -41,8 +42,18 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
 export function ArcadeModal({ id, onClose }: { id: ArcadeGameId; onClose: () => void }) {
   const Game = GAME[id];
   const title = arcadeGameTitle(id);
+  // Modal a11y: trap focus while the cabinet's open + restore it on close (Esc is
+  // handled by WorldHud's global key handler). Mounted only when open, so `true`.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, true);
   return (
-    <div className="hud-dialog window hud-dialog--arcade" role="dialog" aria-label={title}>
+    <div
+      className="hud-dialog window hud-dialog--arcade"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      ref={panelRef}
+    >
       <div className="title-bar">
         <div className="title-bar-text">🎲 {title}</div>
         <div className="title-bar-controls">
