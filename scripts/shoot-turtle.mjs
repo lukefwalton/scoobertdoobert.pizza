@@ -86,8 +86,7 @@ await page.waitForTimeout(600); // let the flicker pulse run
 if ((await page.$('.tv-modal, .hud-tv')) !== null)
   bad('the BROKEN CRT opened a TV modal — it must never play');
 
-// 3b) THE UPGRADE: single-hop peak first (double not learned yet), then LEARN the
-//     double-jump off the stage orb and prove a mid-air second press goes HIGHER.
+// 3b) THE UPGRADE: single-hop peak first (double not learned yet)…
 await page.keyboard.down(' '); // a ground hop (bunny-hops while held)
 const singlePeak = await samplePeak(850);
 await page.keyboard.up(' ');
@@ -95,19 +94,41 @@ await page
   .waitForFunction(() => (window.__sdpCam?.y ?? 0) < 2.5, { timeout: 2500 })
   .catch(() => {}); // settle
 
-const learnedDouble = await page.evaluate(() => {
-  const fn = window['__sdpLearn:doublejump'];
-  if (typeof fn !== 'function') return false;
-  fn();
-  try {
-    return (
-      JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
-    ).includes('doublejump-unlocked');
-  } catch {
-    return false;
-  }
-});
-if (!learnedDouble) bad('did not learn DOUBLE JUMP off the stage orb');
+// …then PHYSICALLY walk the hall: forward (-X) past the mic (→ the ghost cheer)
+// and on up ONTO the stage into the double-jump orb (deep on the riser, so the
+// floor can't clip it). One walk earns both beats — the end-to-end pickup path,
+// not a debug grant.
+await page.keyboard.down('w');
+const cheered = await page
+  .waitForFunction(() => window.__sdpTurtle?.cheered === true, { timeout: 8000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!cheered) bad('walking the hall never triggered the mic ghost cheer');
+const learnedDouble = await page
+  .waitForFunction(
+    () => {
+      try {
+        return (
+          JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+        ).includes('doublejump-unlocked');
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 8000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+await page.keyboard.up('w');
+if (!learnedDouble) bad('walking onto the stage did not learn DOUBLE JUMP off the orb');
+await page.screenshot({ path: '.shots/turtle-stage.png' });
+await page
+  .waitForFunction(() => (window.__sdpCam?.y ?? 0) < 2.5, { timeout: 2500 })
+  .catch(() => {});
 
 // Sample across the WHOLE double-jump sequence (both apexes). Use held down/up
 // with an 80ms hold so a frame reliably sees Space (a bare press() can fire
@@ -131,21 +152,9 @@ await page
   .waitForFunction(() => (window.__sdpCam?.y ?? 0) < 2.5, { timeout: 2500 })
   .catch(() => {});
 
-// 4) Step up to the mic where the stage was: walking forward from the entry
-//    spawn runs straight down the hall into the memory trigger.
-await page.keyboard.down('w');
-const cheered = await page
-  .waitForFunction(() => window.__sdpTurtle?.cheered === true, { timeout: 8000 })
-  .then(
-    () => true,
-    () => false,
-  );
-await page.keyboard.up('w');
-if (!cheered) bad('walking to the mic never triggered the ghost cheer');
-await page.screenshot({ path: '.shots/turtle-stage.png' });
-
-// 5) Back out to the street (the return edge is behind you from the stage).
-if (!(await holdUntilDoorPrompt(page, 's', { timeout: 12000 })))
+// 4) Back out to the street (from deep on the stage, the +X door is a long walk
+//    straight back down the hall).
+if (!(await holdUntilDoorPrompt(page, 's', { timeout: 14000 })))
   bad('street door prompt never appeared backing out of the venue');
 await page.keyboard.press('e');
 const backOut = await roomIs('North Park');

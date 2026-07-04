@@ -24,7 +24,7 @@ import { isDebugEntrance, exposeTestGlobal } from '../lib/testHooks';
 // learned, so it's gone for good the instant you take it.
 // ───────────────────────────────────────────────────────────────────────────
 
-const REACH = 1.5; // walk this close → learn it
+const REACH = 1.6; // get this close (in 3D) → learn it
 
 export function SkillOrb({
   ability,
@@ -93,12 +93,15 @@ export function SkillOrb({
       const p = 1 + Math.sin(t * 4) * 0.08; // gentle pulse
       core.current.scale.setScalar(p);
     }
-    // Walk into it → learn it (playground logic; the orb IS the button). XZ only,
-    // so jumping through it counts too. Frozen states (pause/wipe) don't collect.
+    // Walk into it → learn it (playground logic; the orb IS the button). FULL 3D
+    // distance (not just XZ), so an orb placed UP on a riser genuinely requires
+    // getting up there — a floor-level pass underneath stays out of reach. Frozen
+    // states (pause/wipe) don't collect.
     if (!claimed.current && !inputFrozen()) {
       const dx = camera.position.x - position[0];
+      const dy = camera.position.y - position[1];
       const dz = camera.position.z - position[2];
-      if (dx * dx + dz * dz < REACH * REACH) learn();
+      if (dx * dx + dy * dy + dz * dz < REACH * REACH) learn();
     }
   });
 
