@@ -180,6 +180,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   garden: { x: 0.2, y: 0.5 },
   grotto: { x: -1.1, y: 1.1 },
   bamboo: { x: -1.2, y: 0 },
+  // The Tubes — the hidden warren the garden slide drops you into (below it).
+  tubes: { x: 0.2, y: 1.5 },
   // The Jumping Turtle — the dead all-ages venue down the block in North Park.
   turtle: { x: 0.4, y: -3.2 },
   oceanview: { x: 2.4, y: 1.1 },

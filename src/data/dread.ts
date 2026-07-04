@@ -74,6 +74,8 @@ export const DREAD: DreadConfig = {
     //                   office, sunlit and calm; the exhale after the liminal
     garden: 0.02, // The Botanical Garden — pure surface sweetness (below SAFE so
     //               it DECAYS): hedges, birdsong, the frog, the slide. Never curdles.
+    tubes: 0.02, // the PlayPlace warren the slide drops into — pure nostalgic play
+    //              (below SAFE): translucent tubes, portholes, a ball pit. Sweet.
     grotto: 0.04, // the cave behind the garden — a cool hush, still below SAFE
     //               (the dark is cozy, not wrong; the mouth glows with the garden)
     bamboo: 0.02, // the grove past the lion gate — dappled, sweet, decays

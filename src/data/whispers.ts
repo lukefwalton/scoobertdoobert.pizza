@@ -66,6 +66,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a brass plaque by the path. “Walking Balboa” strolls this exact park — San Diego’s Balboa, the one in his backyard, organ pavilion and all.',
   garden:
     'a lily pad tipped like an umbrella. In Japanese the frog is 蛙 — kaeru — which also means “to return home.” That’s why he keeps the door open; you always come back.',
+  tubes:
+    'a lone sock at the bottom of the ball pit. Every PlayPlace was a liminal space before we had the word — warm plastic, and the muffled roar of somewhere you can’t quite see out of.',
   grotto:
     'the cave answers you back a half-second late. Of course there’s a grotto behind the garden — the menu always promised a choice of toppings and even more reverb.',
   bamboo:
