@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useModalFocus } from '../lib/useModalFocus';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { destById } from '../data/links';
@@ -64,6 +65,18 @@ export function WorldHud() {
   // Which song's lyrics the reader panel is showing (null = closed). In the store
   // (like tvVideo) so Esc closes it before the pause menu.
   const lyricsSong = useSceneStore((s) => s.lyricsSong);
+
+  // Modal a11y for the in-world dialogs: focus-trap while open + restore on close.
+  // Escape is handled by the global key handler below (priority-ordered), so no
+  // onEscape here — the hook only owns focus. One ref/hook per dialog.
+  const hotspotRef = useRef<HTMLDivElement>(null);
+  const npcRef = useRef<HTMLDivElement>(null);
+  const tvRef = useRef<HTMLDivElement>(null);
+  const lyricsRef = useRef<HTMLDivElement>(null);
+  useModalFocus(hotspotRef, !!open);
+  useModalFocus(npcRef, openNpc === 'rat');
+  useModalFocus(tvRef, !!tvVideo);
+  useModalFocus(lyricsRef, !!lyricsSong);
   // One shallow-compared snapshot of the durable progress drives the whole
   // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
   // door prompt). useShallow so re-rendering only happens when a field actually
@@ -437,7 +450,9 @@ export function WorldHud() {
         <div
           className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
           role="dialog"
+          aria-modal="true"
           aria-label={openDest.label}
+          ref={hotspotRef}
         >
           <div className="title-bar">
             <div className="title-bar-text">{openDest.label}</div>
@@ -466,7 +481,13 @@ export function WorldHud() {
         (() => {
           const lines = ratDialogue(progress);
           return (
-            <div className="hud-dialog window" role="dialog" aria-label="the rat">
+            <div
+              className="hud-dialog window"
+              role="dialog"
+              aria-modal="true"
+              aria-label="the rat"
+              ref={npcRef}
+            >
               <div className="title-bar">
                 <div className="title-bar-text">🐀 the rat</div>
                 <div className="title-bar-controls">
@@ -488,7 +509,13 @@ export function WorldHud() {
         })()}
 
       {tvVideo && (
-        <div className="hud-dialog window hud-dialog--tv" role="dialog" aria-label={tvVideo.title}>
+        <div
+          className="hud-dialog window hud-dialog--tv"
+          role="dialog"
+          aria-modal="true"
+          aria-label={tvVideo.title}
+          ref={tvRef}
+        >
           <div className="title-bar">
             <div className="title-bar-text">{tvVideo.title}</div>
             <div className="title-bar-controls">
@@ -514,7 +541,9 @@ export function WorldHud() {
             <div
               className="hud-dialog hud-dialog--lyrics window"
               role="dialog"
+              aria-modal="true"
               aria-label={L.title}
+              ref={lyricsRef}
             >
               <div className="title-bar">
                 <div className="title-bar-text">♪ {L.title}</div>

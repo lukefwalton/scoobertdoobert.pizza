@@ -9,7 +9,7 @@
     "build": "vite-react-ssg build",
     "postbuild": "node scripts/check-build.mjs",
     "preview": "vite preview --port 4173 --strictPort",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.api.json",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
