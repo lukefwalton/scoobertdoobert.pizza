@@ -37,21 +37,44 @@ const hoppedBefore = await page
 await page.keyboard.up(' ');
 if (hoppedBefore) bad('Space hopped BEFORE learning jump — the skill gate is open');
 
-// 2) Learn JUMP off the shop orb (deterministic grant hook), and confirm the
-//    durable secret is banked.
-const learned = await page.evaluate(() => {
-  const fn = window['__sdpLearn:jump'];
-  if (typeof fn !== 'function') return false;
-  fn();
-  try {
-    return (
-      JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
-    ).includes('jump-unlocked');
-  } catch {
-    return false;
-  }
-});
-if (!learned) bad('did not learn JUMP off the shop orb (no hook / secret not banked)');
+// 2) PHYSICALLY walk into the shop orb (the real "earned by touching it" path,
+//    not the debug grant hook) — the orb floats ahead-right of the spawn, so
+//    forward + strafe-right reaches it. Poll for the durable secret to bank.
+const jumpSecret = () =>
+  page.evaluate(() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+      ).includes('jump-unlocked');
+    } catch {
+      return false;
+    }
+  });
+await page.keyboard.down('w');
+await page.keyboard.down('d');
+const learned = await page
+  .waitForFunction(
+    () => {
+      try {
+        return (
+          JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+        ).includes('jump-unlocked');
+      } catch {
+        return false;
+      }
+    },
+    { timeout: 6000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+await page.keyboard.up('w');
+await page.keyboard.up('d');
+if (!learned) bad('walking into the shop orb did not learn JUMP (proximity pickup broken)');
+// belt-and-suspenders: if the physical walk somehow missed, the secret read is
+// authoritative — surface it either way.
+if (learned && !(await jumpSecret())) bad('jump secret not banked after the orb pickup');
 await page.waitForTimeout(300);
 
 // 3) After learning: Space hops, and lands back on the eye line.

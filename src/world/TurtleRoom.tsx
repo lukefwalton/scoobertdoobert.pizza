@@ -384,10 +384,10 @@ export function TurtleRoom({ room }: { room: Room }) {
         <LeapingTurtle position={[-1.1, 5.6, 0]} />
       </group>
 
-      {/* the DOUBLE-JUMP upgrade, floating over the stage lip: walk up onto the
-          riser past the mic and grab it — the Jumping Turtle's whole reason for
-          being, earned, not handed to you at the door */}
-      <SkillOrb ability="doublejump" position={[-6.0, 1.7, 0]} />
+      {/* the DOUBLE-JUMP upgrade, up ON the stage riser and set well OFF the
+          straight mic-walk line (z≈0), so you have to actually step up onto the
+          stage and cross to it to earn it — not clip it from the floor path */}
+      <SkillOrb ability="doublejump" position={[-6.9, 1.7, 2.1]} />
 
       {/* the mic stand out front, where you step up (the memory trigger) */}
       <group position={[MIC[0], 0, MIC[1]]}>

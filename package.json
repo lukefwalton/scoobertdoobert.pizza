@@ -51,6 +51,7 @@
     "shoot:grassrooms": "node scripts/shoot-grassrooms.mjs",
     "shoot:garden": "node scripts/shoot-garden.mjs",
     "shoot:turtle": "node scripts/shoot-turtle.mjs",
+    "shoot:mainstreet": "node scripts/shoot-mainstreet.mjs",
     "shoot:skills": "node scripts/shoot-skills.mjs",
     "shoot:boardwalk": "node scripts/shoot-boardwalk.mjs",
     "shoot:gallery": "node scripts/shoot-gallery.mjs",

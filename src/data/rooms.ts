@@ -184,6 +184,9 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   tubes: { x: 0.2, y: 1.5 },
   // The Jumping Turtle — the dead all-ages venue down the block in North Park.
   turtle: { x: 0.4, y: -3.2 },
+  // Main Street + the diner — the liminal small-town edge off North Park (+X).
+  mainstreet: { x: 2.6, y: -3.0 },
+  diner: { x: 3.6, y: -3.5 },
   oceanview: { x: 2.4, y: 1.1 },
   // moonlight wing — a night→day pair off the +X (east) end of the boardwalk,
   // trailing up and away from the descent (still pure surface).

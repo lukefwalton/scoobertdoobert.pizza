@@ -74,6 +74,10 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'the knocker fills, tips, and cracks against its stone — 鹿威し, the deer-scarer. The lion on the gate outside insists, loudly, that it’s called a shishi-odoshi after him. 獅子.',
   turtle:
     'a set list still taped to the monitor wedge. The Jumping Turtle, San Marcos — all ages. He played this room in high school; if you stand where the stage was, it remembers.',
+  mainstreet:
+    'every window dark but one. A small town at 3am is the original liminal space — the place you grew up, emptied of everyone who made it yours, still perfectly lit and waiting.',
+  diner:
+    'the deer on the wall has kind eyes, which is worse. An all-night diner is a promise: someone is awake, the coffee is on, you are not the last person on earth. The heads are just making sure.',
   moonlight:
     'a string of bulbs swaying over the floor. “Dancing in the Moonlight” was cut the way he cuts everything — every part himself, after dark.',
   bestday:

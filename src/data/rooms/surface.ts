@@ -530,6 +530,8 @@ export const SURFACE_ROOMS: Room[] = [
       // Back out of the old venue: by the -X door, angled up the street so the
       // zoo gate isn't dead ahead.
       fromTurtle: { position: [-5.45, EYE, 2], yaw: Math.PI / 2 - 0.3 },
+      // Back off Main Street: by the +X corner, facing -X back onto the block.
+      fromMainstreet: { position: [5.45, EYE, -2], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -548,6 +550,15 @@ export const SURFACE_ROOMS: Room[] = [
         position: [-9.95, 0, 2], // -X — the dark doorway under the dead marquee
         rotationY: Math.PI / 2,
         label: 'slip into the old venue',
+        radius: 3.2,
+      },
+      {
+        id: 'northpark-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromNorthPark',
+        position: [9.95, 0, -2], // +X — the block thins out toward the edge of town
+        rotationY: -Math.PI / 2,
+        label: 'wander down the empty main street',
         radius: 3.2,
       },
     ],
@@ -579,6 +590,74 @@ export const SURFACE_ROOMS: Room[] = [
         position: [8.95, 0, 0], // +X — back out to the street
         rotationY: -Math.PI / 2,
         label: 'back out to the street',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'mainstreet',
+    kind: 'mainstreet',
+    title: 'Main Street',
+    // A long empty small-town street at dead of night. Runs along Z.
+    dims: { halfW: 7, halfD: 10, height: 8, eye: EYE },
+    // Deep sodium-lit night: near-black blue, a warm lamp-glow haze, close-ish fog
+    // so the far end of the street stays swallowed (the liminal emptiness).
+    palette: { background: '#0c1020', fog: '#141a2e', fogNear: 8, fogFar: 46 },
+    // A musicRoom: a low night hum + a lone cricket + the traffic light's tick
+    // own the space (see MainStreetRoom). Eerie-warm, never a scare.
+    musicRoom: true,
+    spawns: {
+      // Arrive at the +Z end (off the North Park corner), facing -Z down the dark
+      // street toward the diner's glow. Clear of the +Z gate back to the block.
+      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      fromNorthPark: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // Back out of the diner: by the -X door, facing +X back onto the street.
+      fromDiner: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'mainstreet-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromMainstreet',
+        position: [0, 0, 9.95], // +Z — back toward the North Park block
+        rotationY: 0,
+        label: 'back toward the block',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreet-to-diner',
+        to: 'diner',
+        toSpawn: 'fromMainstreet',
+        position: [-6.95, 0, -2], // -X — the only lit doorway on the street
+        rotationY: Math.PI / 2,
+        label: 'step into the all-night diner',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'diner',
+    kind: 'diner',
+    title: 'The All-Night Diner',
+    dims: { halfW: 8, halfD: 7, height: 5, eye: EYE },
+    // Warm but wrong: amber diner light held close by dark fog — cozy, a little
+    // too still (the animal heads watching from the wall).
+    palette: { background: '#1a1206', fog: '#241a0c', fogNear: 7, fogFar: 34 },
+    // A musicRoom: a fridge hum, a ceiling-fan tick, the sign's neon buzz.
+    musicRoom: true,
+    spawns: {
+      // In the door at the +X end, facing -X across the counter into the booths.
+      default: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
+      fromMainstreet: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'diner-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromDiner',
+        position: [7.95, 0, 0], // +X — back out onto Main Street
+        rotationY: -Math.PI / 2,
+        label: 'back out onto the street',
         radius: 3.2,
       },
     ],
