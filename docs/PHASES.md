@@ -556,7 +556,29 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
   ghost-cheer; first time = durable secret + 2 luck + the "Play the Turtle one
   more time" objective); the **BROKEN CRT** buzzes and flickers one soft gray
   pulse but never becomes a picture — the one set in the world that doesn't play.
-  A `musicRoom`: mains hum, a far-off kick-check, a rare feedback sigh.
+  A `musicRoom`: mains hum, a far-off kick-check, a rare feedback sigh. The
+  double-jump orb sits UP on the riser, off the mic line, so you earn it by
+  stepping onto the stage (not from the floor path).
+- ✅ **The Main Street wing + the liminal day/night kitchen loop (Luke's idea):**
+  off North Park (+X):
+  - **Main Street (`world/MainStreetRoom.tsx`):** an empty small-town-America
+    street at dead of night — seeded dark storefronts w/ the odd lit window, a
+    slow-blinking amber caution light, a wobbling streetlamp, power poles, the
+    diner's warm doorway glow. The biggest surface tickle (unease 0.12) but still
+    warm-uncanny. A `musicRoom` (night hum / cricket / the light's tick).
+  - **The All-Night Diner (`world/DinerRoom.tsx`):** checker floor, chrome counter
+    + stools, booths, a pie case, a slow ceiling fan, a buzzing sign — and a row
+    of low-poly **taxidermy animal heads that swivel to WATCH you** (tracked in
+    the mount's local frame; a soft continuous look, never a jump). Warm-uncanny
+    (0.07); first-entry luck.
+  - **The day/night flip:** the diner's **kitchen** (dream-logic: its kitchen IS
+    the shop's) has a **back door that lets you out onto Main Street in BROAD
+    DAYLIGHT** — the SAME street (`mainstreetday`, kind `mainstreet`, day palette;
+    `MainStreetRoom` renders the day variant off the id) at a hazy overexposed
+    noon. In the back at night, out the front at noon. Loops back to North Park.
+  - Covered by **`shoot:mainstreet`** (real northpark→mainstreet→diner→kitchen→
+    back-door→day edges; the day flip). WCAG-safe: all blinks are slow smooth
+    fades, no strobe.
 - Wiring: `ROOM_MAP` nodes, `dread.ts` bases (all garden rooms below SAFE; the
   Turtle just past it), perception whispers for all four rooms, two new quests
   (+ their unit-test flips; `shoot-objective` seeds them done), `rooms.test`
