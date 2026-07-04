@@ -210,6 +210,29 @@ function pngSize(file) {
   if (buf.length < 24 || buf.toString('ascii', 12, 16) !== 'IHDR') return null;
   return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
 }
+// The apple-touch-icon is a SEPARATE contract in index.html (outside the manifest),
+// so size-check it on its own — a rename or wrong-size there would otherwise slip past
+// the manifest-icon loop below. Apple expects 180×180.
+if (existsSync('dist/index.html')) {
+  const linkTag = readFileSync('dist/index.html', 'utf8').match(
+    /<link[^>]*apple-touch-icon[^>]*>/i,
+  );
+  const href = linkTag?.[0].match(/href="([^"]+)"/)?.[1];
+  const file = href ? 'dist' + href : null;
+  const sz = file && existsSync(file) ? pngSize(file) : null;
+  if (!href) {
+    console.error('  x index.html declares no apple-touch-icon');
+    failed++;
+  } else if (!sz) {
+    console.error(`  x apple-touch-icon ${href} -> missing or not a PNG at dist${href}`);
+    failed++;
+  } else if (sz.w !== 180 || sz.h !== 180) {
+    console.error(`  x apple-touch-icon ${href} -> is ${sz.w}x${sz.h}, expected 180x180`);
+    failed++;
+  } else {
+    console.log(`  ok apple-touch-icon ${href} -> 180x180`);
+  }
+}
 const manifestFile = 'dist/site.webmanifest';
 if (existsSync(manifestFile)) {
   const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
