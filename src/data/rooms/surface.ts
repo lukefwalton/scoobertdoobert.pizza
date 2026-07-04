@@ -649,6 +649,8 @@ export const SURFACE_ROOMS: Room[] = [
       // In the door at the +X end, facing -X across the counter into the booths.
       default: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
       fromMainstreet: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
+      // Back out of the kitchen: by the -Z swing door, facing +Z into the room.
+      fromKitchen: { position: [-3, EYE, -3.5], yaw: 0 },
     },
     doors: [
       {
@@ -658,6 +660,53 @@ export const SURFACE_ROOMS: Room[] = [
         position: [7.95, 0, 0], // +X — back out onto Main Street
         rotationY: -Math.PI / 2,
         label: 'back out onto the street',
+        radius: 3.2,
+      },
+      {
+        id: 'diner-to-kitchen',
+        to: 'kitchen',
+        toSpawn: 'fromDiner',
+        position: [-3, 0, -6.95], // -Z swing door behind the counter — "the kitchen"
+        rotationY: 0,
+        label: 'through to the kitchen',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'mainstreetday',
+    kind: 'mainstreet',
+    title: 'Main Street',
+    // The SAME street as `mainstreet`, but the kitchen's back door drops you out
+    // here at a hazy, overexposed, just-as-empty NOON — the liminal day/night
+    // flip (MainStreetRoom renders the day variant off this id).
+    dims: { halfW: 7, halfD: 10, height: 8, eye: EYE },
+    // Overexposed noon: pale near-white sky, soft far haze.
+    palette: { background: '#c8d2d6', fog: '#d8e0e2', fogNear: 13, fogFar: 78 },
+    musicRoom: true,
+    spawns: {
+      // Step out of the kitchen's back door onto the -X sidewalk, facing +X into
+      // the sunstruck empty street.
+      default: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+      fromKitchen: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'mainstreetday-to-kitchen',
+        to: 'kitchen',
+        toSpawn: 'fromMainstreetDay',
+        position: [-6.95, 0, -2], // -X — back in the kitchen's back door
+        rotationY: Math.PI / 2,
+        label: 'back in the kitchen door',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreetday-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromMainstreet',
+        position: [0, 0, 9.95], // +Z — up the daylit block, back toward North Park
+        rotationY: 0,
+        label: 'up the block, into the day',
         radius: 3.2,
       },
     ],

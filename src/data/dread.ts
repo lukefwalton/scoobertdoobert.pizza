@@ -84,6 +84,9 @@ export const DREAD: DreadConfig = {
     mainstreet: 0.12, // the empty small-town street at night — the biggest surface
     //                   tickle, but still WARM-uncanny (an empty hometown, not a
     //                   threat); the diner's glow is the exhale at the end of it
+    mainstreetday: 0.1, // the SAME street flipped to an overexposed empty noon — the
+    //                     daylight makes the emptiness worse, but it's still warm
+    //                     (a touch below the night version; you can see your way out)
     diner: 0.07, // the all-night diner — cozy-wrong, back down near the turtle's
     //              warmth (the animal heads watch, but it's funny-uncanny, not grim)
     theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:

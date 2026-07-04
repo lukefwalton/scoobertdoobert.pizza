@@ -78,6 +78,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'every window dark but one. A small town at 3am is the original liminal space — the place you grew up, emptied of everyone who made it yours, still perfectly lit and waiting.',
   diner:
     'the deer on the wall has kind eyes, which is worse. An all-night diner is a promise: someone is awake, the coffee is on, you are not the last person on earth. The heads are just making sure.',
+  mainstreetday:
+    'in the back at night, out the front at noon — same street, same nobody. A kitchen is a place you pass through between two worlds; this one takes the joke literally.',
   moonlight:
     'a string of bulbs swaying over the floor. “Dancing in the Moonlight” was cut the way he cuts everything — every part himself, after dark.',
   bestday:

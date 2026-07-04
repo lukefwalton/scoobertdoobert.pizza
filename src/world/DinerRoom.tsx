@@ -48,17 +48,22 @@ function AnimalHead({
 }) {
   const { camera } = useThree();
   const head = useRef<THREE.Group>(null);
+  const scratch = useMemo(() => new THREE.Vector3(), []);
   useFrame(() => {
-    if (!head.current) return;
-    // aim a touch toward the camera, clamped so it stays "mounted on the wall"
-    // (small yaw/pitch, eased) — the room watches, softly.
-    const dx = camera.position.x - x;
-    const dz = camera.position.z - 0; // wall is at -Z-ish; measure from head plane
-    const wantYaw = THREE.MathUtils.clamp(Math.atan2(dx, Math.abs(dz) + 2), -0.5, 0.5);
-    const dy = camera.position.y - y;
-    const wantPitch = THREE.MathUtils.clamp(-Math.atan2(dy, Math.abs(dz) + 2), -0.35, 0.35);
-    head.current.rotation.y += (wantYaw - head.current.rotation.y) * 0.05;
-    head.current.rotation.x += (wantPitch - head.current.rotation.x) * 0.05;
+    const h = head.current;
+    if (!h || !h.parent) return;
+    // Aim toward the camera in the head's OWN local frame — the mount group is
+    // rotated onto the -X wall, so world coords would aim in the wrong frame.
+    // parent.worldToLocal converts the camera's world position into the space the
+    // head swivels in; the head's face looks down +Z, so yaw = atan2(x,z). Small,
+    // clamped, eased — the room watches, softly (never a snap).
+    scratch.copy(camera.position);
+    h.parent.worldToLocal(scratch);
+    const horiz = Math.hypot(scratch.x, scratch.z) + 1e-3;
+    const wantYaw = THREE.MathUtils.clamp(Math.atan2(scratch.x, scratch.z), -0.6, 0.6);
+    const wantPitch = THREE.MathUtils.clamp(-Math.atan2(scratch.y, horiz), -0.4, 0.4);
+    h.rotation.y += (wantYaw - h.rotation.y) * 0.05;
+    h.rotation.x += (wantPitch - h.rotation.x) * 0.05;
   });
   return (
     <group position={[x, y, 0]}>

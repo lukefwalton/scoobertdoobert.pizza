@@ -27,6 +27,11 @@ export function MainStreetRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
+  // The SAME street, two times of day: you arrive at night off North Park, but
+  // the diner's kitchen back door drops you out here at a hazy, overexposed,
+  // just-as-empty NOON (the liminal shift — see the 'mainstreetday' room). One
+  // component, switched by id; the sky/fog auto-shift comes from the palette.
+  const day = room.id === 'mainstreetday';
 
   // Wet asphalt down the middle (affine, so the road swims a little).
   const roadTex = useMemo(() => {
@@ -49,8 +54,13 @@ export function MainStreetRoom({ room }: { room: Room }) {
   const glowMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#c98b2e' }), []); // diner-door glow
   const amberMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e0a020' }), []);
   const lampMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f0d69a' }), []);
+  // The sky cap overhead: a dark starless lid at night, a pale hazy sky by day.
+  const capMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: day ? '#cdd7db' : '#0e1018' }),
+    [day],
+  );
   useDispose(roadTex, roadMat, walkMat, bldgMat, bldgMat2, trimMat);
-  useDispose(darkWin, litWin, poleMat, glowMat, amberMat, lampMat);
+  useDispose(darkWin, litWin, poleMat, glowMat, amberMat, lampMat, capMat);
 
   // Storefronts down both sidewalks — a seeded run of dark blocks with window
   // grids, one lit window here and there (someone's still up, or the light's
@@ -117,11 +127,23 @@ export function MainStreetRoom({ room }: { room: Room }) {
 
   return (
     <group>
-      {/* deep night: a dim cool ambient + the warm pools of the lamp + diner door */}
-      <ambientLight intensity={0.22} color="#4a5273" />
-      <pointLight position={[3.5, 5, 3]} intensity={0.7} distance={13} color="#f0d69a" />
-      <pointLight position={[-6.5, 2.4, -2]} intensity={0.8} distance={8} color="#c98b2e" />
-      <hemisphereLight args={['#20263e', '#0c1020', 0.3]} />
+      {/* NIGHT: a dim cool ambient + the warm pools of the lamp + diner door.
+          DAY: a flat, hazy, overexposed noon — bright ambient, a high white sun,
+          none of the warm night pools (the emptiness reads worse in daylight). */}
+      {day ? (
+        <>
+          <ambientLight intensity={0.95} color="#eef2f0" />
+          <directionalLight position={[4, 14, 3]} intensity={0.7} color="#fffdf4" />
+          <hemisphereLight args={['#dfeaf0', '#8a8f88', 0.6]} />
+        </>
+      ) : (
+        <>
+          <ambientLight intensity={0.22} color="#4a5273" />
+          <pointLight position={[3.5, 5, 3]} intensity={0.7} distance={13} color="#f0d69a" />
+          <pointLight position={[-6.5, 2.4, -2]} intensity={0.8} distance={8} color="#c98b2e" />
+          <hemisphereLight args={['#20263e', '#0c1020', 0.3]} />
+        </>
+      )}
 
       {/* the road + two sidewalks */}
       <mesh material={roadMat} rotation-x={-Math.PI / 2}>
@@ -213,8 +235,9 @@ export function MainStreetRoom({ room }: { room: Room }) {
         <planeGeometry args={[2.0, 2.8]} />
       </mesh>
 
-      {/* a low starless sky cap so you don't see out the top into void */}
-      <mesh material={bldgMat} position={[0, H, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* the sky cap so you don't see out the top into void — dark at night, a
+          flat overexposed haze by day */}
+      <mesh material={capMat} position={[0, H, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[W * 2 + 8, D * 2 + 8]} />
       </mesh>
     </group>

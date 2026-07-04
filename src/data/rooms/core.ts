@@ -84,6 +84,12 @@ export const CORE_ROOMS: Room[] = [
       // the kitchen (the oven + the pan rack ahead).
       default: { position: [3.5, EYE, 0], yaw: -Math.PI / 2 },
       fromShop: { position: [3.5, EYE, 0], yaw: -Math.PI / 2 },
+      // The liminal loop: in from the all-night diner (its "kitchen" IS this one,
+      // dream-logic) at the +Z swing door — lined up on x=-3 so the -Z BACK DOOR
+      // is a straight walk forward across the kitchen, facing -Z.
+      fromDiner: { position: [-3, EYE, 3], yaw: Math.PI },
+      // …and in from the day-street back door (-Z), facing +Z into the room.
+      fromMainstreetDay: { position: [-2, EYE, -3], yaw: 0 },
     },
     doors: [
       {
@@ -93,6 +99,26 @@ export const CORE_ROOMS: Room[] = [
         position: [6.95, 0, 0], // +X wall (halfW - 0.05) — back out to the shop
         rotationY: -Math.PI / 2,
         label: 'back out to the shop',
+        radius: 3.0,
+      },
+      {
+        id: 'kitchen-to-diner',
+        to: 'diner',
+        toSpawn: 'fromKitchen',
+        position: [3, 0, 5.95], // +Z swing door — back to the all-night diner
+        rotationY: 0,
+        label: 'back to the diner',
+        radius: 3.0,
+      },
+      {
+        id: 'kitchen-to-mainstreetday',
+        to: 'mainstreetday',
+        toSpawn: 'fromKitchen',
+        // -Z "back door" — it lets out onto Main Street in BROAD DAYLIGHT (the
+        // liminal day/night flip: in from the night, out into noon).
+        position: [-3, 0, -5.95],
+        rotationY: Math.PI,
+        label: 'out the back door',
         radius: 3.0,
       },
     ],

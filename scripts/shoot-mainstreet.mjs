@@ -45,17 +45,26 @@ const inDiner = await roomIs('The All-Night Diner');
 await page.waitForTimeout(1600); // the heads settle into their watch
 await page.screenshot({ path: '.shots/diner.png' });
 
-// 3) Back out onto the street (the +X return door is behind the arrival spawn).
-//    (The direct Main St → North Park door is graph-validated in rooms.test; the
-//    natural return loop is via the diner's kitchen — see that smoke.)
-if (!(await holdUntilDoorPrompt(page, 's', { timeout: 10000 })))
-  bad('return prompt never appeared backing out of the diner');
+// 3) THE LIMINAL LOOP: through the diner's -Z swing door into the kitchen…
+if (!(await holdUntilDoorPrompt(page, ['w', 'd'], { timeout: 10000 })))
+  bad('kitchen prompt never appeared heading -X/-Z behind the counter');
 await page.keyboard.press('e');
-const backMain = await roomIs('Main Street');
+const inKitchen = await roomIs('The Kitchen');
+
+// 4) …and OUT the kitchen's back door (-Z), which lets out onto Main Street in
+//    BROAD DAYLIGHT — the day/night flip (same title, but the day variant; a
+//    fresh screenshot proves the palette shifted). Graph-validated in rooms.test
+//    as targeting `mainstreetday` specifically.
+if (!(await holdUntilDoorPrompt(page, 'w', { timeout: 10000 })))
+  bad('back-door prompt never appeared walking -Z across the kitchen');
+await page.keyboard.press('e');
+const inDay = await roomIs('Main Street');
+await page.waitForTimeout(1600); // the noon haze settles
+await page.screenshot({ path: '.shots/mainstreet-day.png' });
 
 console.log(
   `mainstreet -> np=${startStreet} main=${inMain} diner=${inDiner} ` +
-    `backMain=${backMain} errors=${failures()}`,
+    `kitchen=${inKitchen} dayFlip=${inDay} errors=${failures()}`,
 );
 
 await ctx.close();
