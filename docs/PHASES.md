@@ -490,6 +490,103 @@ commit + smoke:
   with a reduced-motion `*-static` twin) over a starfield hall-of-fame.
   `shoot:leaderboard`.
 
+## ✅ The day-off pass — jump, the garden wing + the Jumping Turtle (2026-07-04, from Luke's photo batch)
+The "make it feel fun like a video game" pass, built from Luke's reference photos
+(a Balboa-Park-ish garden walk + urbex footage of the real dead venue):
+- ✅ **LEARNABLE SKILLS + JUMP (game feel):** movement verbs are now **earned
+  collectibles**, not silent grants — a glowing **skill orb** (`world/SkillOrb.tsx`)
+  you walk into for an "ooo, a skill" burst + rising fanfare + a durable once-only
+  grant (`data/abilities.ts` is the registry: id → secret/name/hint/glyph/colour).
+  The ladder:
+  - **JUMP** is learned in the **FIRST room** (the beach shop orb, in view of the
+    spawn) — the starter exploration verb, so the world is springy from the start.
+    A simple ballistic arc in `Controls` (holding Space bunny-hops), clamped under
+    each room's ceiling, and Space never steals focus from inputs/buttons (the
+    keydown handler fully bails on a focused control).
+  - **DOUBLE JUMP** is the upgrade, earned deep out at the **Jumping Turtle** (its
+    stage orb — the pun: it teaches you to jump *again*, in mid-air). Edge-triggered
+    (a fresh mid-air press), gated on its own secret.
+  - Coverage: `shoot:skills` (shop — no hop → learn orb → hop, cold), `shoot:turtle`
+    (learn double off the stage orb → proves it clears a single hop), `shoot:garden`
+    (jump mechanic + Space-on-focused-UI does-nothing + enter-the-slide-mid-hop).
+- ✅ **Pickup / learn JUICE:** a shared collect-burst pool (`world/CollectBursts.tsx`
+  + the `burstBus` mailbox) pops a flash + expanding ring + sparks wherever anything
+  is grabbed — loot, inventory items, and skill orbs all emit on the same signal
+  (so every collect path — click / walk-over / P / a skill orb — gets the juice).
+  WCAG-safe (one soft expand+fade, no strobe; world-only, already reduced-motion
+  gated).
+- ✅ **The garden wing** — three sweet SURFACE rooms west off the Park Path:
+  - **The Botanical Garden (植物園):** trimmed hedge quadrants, pink-brick paths,
+    a seeded scatter of random palms, the verdigris **FROG statue** with its
+    lily-pad parasol (click → ribbit + squash-and-stretch hop; every ribbit rolls
+    a plain d20 and a nat 20 winks **+1 LUCK**), and **THE TUBE SLIDE** — a
+    play-place corkscrew that's a real RIDE: walk into the mouth and the camera
+    is swallowed and carried through the tube (slide-whistle voice glisses with
+    height via `audio.startVoice`, FOV kicks with speed), each ride scoring
+    **pizza points through the loot combo path** (rides chain the combo) and the
+    first ride banking a durable secret + luck ("Ride the tube slide" is a new
+    pause-menu objective). The ride freezes world input (`rideState` →
+    `inputFrozen`). **It's a COIN FLIP (Luke): ~half the time it WARPS you down
+    into the hidden tube warren (below), the rest it loops you back out into the
+    garden with a "↺ care to ride again?" nudge** (the loop-back keeps its exit
+    heading via `cameraRig`, so no snap; a `?debug` hook forces the outcome for
+    the smoke). A `musicRoom` (birdsong / breeze / a distant bullfrog).
+  - **The Tubes (チューブ):** the hidden PlayPlace crawl-warren the slide drops you
+    into — translucent green tube tunnels arcing overhead, glowing bubble
+    portholes, a low-poly BALL PIT, scattered pizza-point loot, first-drop luck.
+    Pure nostalgia (below SAFE); a `musicRoom` (soft rubbery bloops). A +Z tube
+    mouth crawls back out to the garden.
+    The slide geometry is built **programmatically** (`buildPath`: a swallow leg
+    + a ¾-turn descending helix around an explicit tower) so the tube can't
+    self-intersect into a blob — replaced a hand-authored path that did.
+  - **The Grotto (洞窟):** the cave behind the north hedge — dark boulders, a
+    still pool, and the MOUTH framing bright pond + a scrolling waterfall + a
+    palm (the whole room is the view out). Echoey long-decay drips ("even more
+    reverb," as the menu promised), `CeilingDrips`, first-entry +1 luck.
+  - **The Bamboo Grove (竹林):** through the garden's stone **LION moon-gate**
+    (rock ring + carved lion keystone) into a dense seeded stand of culms, a
+    stone lantern, and a **shishi-odoshi whose tip-and-CRACK animation and klok
+    are one event** (the whisper does the 鹿威し/獅子 lion-vs-deer pun).
+    First-entry +1 luck.
+- ✅ **The Jumping Turtle** — the defunct all-ages venue off North Park (San
+  Marcos; Luke played it in high school). Eerie-WARM (unease 0.08 — memory, not
+  menace): flyer-crusted entry wall, debris, the loft, dead amp stacks, the bar —
+  and the stage under the **leaping-turtle sign** where the **shipped DrumKit
+  still plays**; step up to the **mic stand** and the room remembers (a soft
+  ghost-cheer; first time = durable secret + 2 luck + the "Play the Turtle one
+  more time" objective); the **BROKEN CRT** buzzes and flickers one soft gray
+  pulse but never becomes a picture — the one set in the world that doesn't play.
+  A `musicRoom`: mains hum, a far-off kick-check, a rare feedback sigh. The
+  double-jump orb sits UP on the riser, off the mic line, so you earn it by
+  stepping onto the stage (not from the floor path).
+- ✅ **The Main Street wing + the liminal day/night kitchen loop (Luke's idea):**
+  off North Park (+X):
+  - **Main Street (`world/MainStreetRoom.tsx`):** an empty small-town-America
+    street at dead of night — seeded dark storefronts w/ the odd lit window, a
+    slow-blinking amber caution light, a wobbling streetlamp, power poles, the
+    diner's warm doorway glow. The biggest surface tickle (unease 0.12) but still
+    warm-uncanny. A `musicRoom` (night hum / cricket / the light's tick).
+  - **The All-Night Diner (`world/DinerRoom.tsx`):** checker floor, chrome counter
+    + stools, booths, a pie case, a slow ceiling fan, a buzzing sign — and a row
+    of low-poly **taxidermy animal heads that swivel to WATCH you** (tracked in
+    the mount's local frame; a soft continuous look, never a jump). Warm-uncanny
+    (0.07); first-entry luck.
+  - **The day/night flip:** the diner's **kitchen** (dream-logic: its kitchen IS
+    the shop's) has a **back door that lets you out onto Main Street in BROAD
+    DAYLIGHT** — the SAME street (`mainstreetday`, kind `mainstreet`, day palette;
+    `MainStreetRoom` renders the day variant off the id) at a hazy overexposed
+    noon. In the back at night, out the front at noon. Loops back to North Park.
+  - Covered by **`shoot:mainstreet`** (real northpark→mainstreet→diner→kitchen→
+    back-door→day edges; the day flip). WCAG-safe: all blinks are slow smooth
+    fades, no strobe.
+- Wiring: `ROOM_MAP` nodes, `dread.ts` bases (all garden rooms below SAFE; the
+  Turtle just past it), perception whispers for all four rooms, two new quests
+  (+ their unit-test flips; `shoot-objective` seeds them done), `rooms.test`
+  arrival-spawn contracts hold. Covered by **`shoot:garden`** (jump, real
+  balboa⇄garden + garden⇄grotto + bamboo→garden edges, ribbit, the full ride
+  state machine) and **`shoot:turtle`** (real northpark⇄turtle edges, drums,
+  broken-CRT no-modal guard, the walk-to-mic cheer).
+
 ## Open hygiene / notes
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-

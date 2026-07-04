@@ -5,8 +5,11 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useHeadingStore } from '../state/headingStore';
 import { useScoreStore } from '../state/scoreStore';
-import { isTestEntrance } from '../lib/testHooks';
+import { useProgressStore } from '../state/progressStore';
+import { JUMP_SECRET, DOUBLEJUMP_SECRET } from '../data/abilities';
+import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
+import { takeHeading } from './cameraRig';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
@@ -34,6 +37,15 @@ export function Controls() {
   const keys = useRef<Record<string, boolean>>({});
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  // Jump: bonus height above the eye line + its vertical velocity. Grounded when
+  // hop === 0 and vy === 0; holding Space bunny-hops (deliberate — it feels good).
+  const hop = useRef(0);
+  const hopVy = useRef(0);
+  // How many hops used since last touching the ground (for the double-jump
+  // upgrade), plus a Space rising-edge latch so the mid-air second jump needs a
+  // FRESH press (holding Space bunny-hops off the ground but never auto-doubles).
+  const airJumps = useRef(0);
+  const spaceWasDown = useRef(false);
   // Throttle accumulator for publishing the camera pose to the heading store.
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
@@ -48,6 +60,14 @@ export function Controls() {
     camera.position.set(spawn.position[0], spawn.position[1], spawn.position[2]);
     yaw.current = spawn.yaw;
     pitch.current = -0.04;
+    hop.current = 0;
+    hopVy.current = 0;
+    airJumps.current = 0;
+    spaceWasDown.current = false;
+    takeHeading(); // drain any pending scripted heading so it can't leak across a room change
+    // Expose the current room id for smokes that need to tell same-titled rooms
+    // apart (e.g. the night vs day Main Street, both titled "Main Street").
+    exposeTestGlobal('__sdpRoom', currentRoom);
     // Apply the heading NOW, not just in useFrame() — useFrame returns early
     // while `transitioning`, so without this the camera would keep its old
     // facing through the whole fade-in and snap to the spawn heading only when
@@ -80,6 +100,24 @@ export function Controls() {
       last.current = { x: e.clientX, y: e.clientY };
     };
     const kd = (e: KeyboardEvent) => {
+      // Space is the jump key. When it's aimed at a focused form control / button /
+      // link, it BELONGS to that control (activate the button, type a space in the
+      // terminal) — so bail entirely: don't preventDefault AND don't record it into
+      // `keys`, or a UI Space would silently arm a world hop on the next frame
+      // (the "never steals Space from inputs/buttons" promise). Otherwise it's a
+      // world Space: stop it scrolling the page behind the canvas, and record it.
+      if (e.key === ' ') {
+        const t = e.target as HTMLElement | null;
+        const interactive =
+          t &&
+          (t.tagName === 'INPUT' ||
+            t.tagName === 'TEXTAREA' ||
+            t.tagName === 'BUTTON' ||
+            t.tagName === 'A' ||
+            t.isContentEditable);
+        if (interactive) return;
+        e.preventDefault();
+      }
       keys.current[e.key.toLowerCase()] = true;
     };
     const ku = (e: KeyboardEvent) => {
@@ -104,13 +142,30 @@ export function Controls() {
     // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
     // frame, and the global stays off the normal runtime surface.
     if (EXPOSE_CAM) {
-      (window as Window & { __sdpCam?: { x: number; z: number; yaw: number } }).__sdpCam = {
+      (
+        window as Window & { __sdpCam?: { x: number; y: number; z: number; yaw: number } }
+      ).__sdpCam = {
         x: camera.position.x,
+        y: camera.position.y,
         z: camera.position.z,
         yaw: yaw.current,
       };
     }
     if (inputFrozen()) return;
+    // A scripted camera move (the tube-slide ride) just ended: adopt the heading
+    // it left the camera at, so the view doesn't snap back to the pre-ride yaw.
+    const handoff = takeHeading();
+    if (handoff) {
+      yaw.current = handoff.yaw;
+      pitch.current = handoff.pitch ?? -0.04;
+      // If you jumped INTO the slide, the hop arc froze mid-flight while the ride
+      // drove the camera; clear it so this first live frame can't resume that
+      // stale arc and fight the ride's scripted exit height.
+      hop.current = 0;
+      hopVy.current = 0;
+      airJumps.current = 0;
+      spaceWasDown.current = false;
+    }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
     // SPRINT: hold Shift to move faster, with a little FOV kick for speed-feel
@@ -142,10 +197,45 @@ export function Controls() {
     const d = dims.current;
     camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
+    // JUMP: Space hops (a little videogame joy). Simple ballistic arc on top of
+    // the eye line; grounded = arc finished. Both verbs are LEARNED, not given:
+    // JUMP in the first room (the shop orb), DOUBLE JUMP out at the Jumping Turtle
+    // (its stage orb). Before you've learned jump, Space does nothing.
+    const grounded = hop.current === 0 && hopVy.current === 0;
+    const spaceDown = !!k[' '];
+    const spaceEdge = spaceDown && !spaceWasDown.current; // a fresh press this frame
+    if (grounded) airJumps.current = 0;
+    if (spaceDown || !grounded) {
+      // Read the learned verbs once per relevant frame (cheap; only when airborne
+      // or Space is down), never every idle frame.
+      const secrets = useProgressStore.getState().secretsFound;
+      if (grounded && spaceDown && secrets.includes(JUMP_SECRET)) {
+        hopVy.current = 4.6; // ground jump (holding Space re-hops → bunny hop)
+        airJumps.current = 1;
+      } else if (
+        !grounded &&
+        spaceEdge && // a SECOND, deliberate press mid-air
+        airJumps.current < 2 &&
+        secrets.includes(DOUBLEJUMP_SECRET)
+      ) {
+        hopVy.current = 3.9; // the mid-air second hop (a touch softer)
+        airJumps.current = 2;
+      }
+    }
+    spaceWasDown.current = spaceDown;
+    if (hop.current > 0 || hopVy.current !== 0) {
+      hopVy.current -= 13.5 * dt; // floaty-fun gravity, not simulation
+      hop.current += hopVy.current * dt;
+      if (hop.current <= 0) {
+        hop.current = 0;
+        hopVy.current = 0; // landed
+      }
+    }
     // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
-    // clamped under THIS room's ceiling so you never poke through the roof.
+    // clamped under THIS room's ceiling so you never poke through the roof —
+    // the jump arc is clamped under the same ceiling.
     const grow = Math.min(useScoreStore.getState().tallness, Math.max(0, d.height - d.eye - 0.4));
-    camera.position.y = d.eye + grow;
+    camera.position.y = Math.min(d.height - 0.4, d.eye + grow + hop.current);
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

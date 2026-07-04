@@ -2,6 +2,7 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
 import { useRhythmStore } from '../state/rhythmStore';
+import { isRiding } from './rideState';
 
 // Should world input (camera move/look, door E, pickups) be frozen this frame?
 // True under a modal overlay (pause / hotspot / NPC dialog), the painting-dive
@@ -17,7 +18,8 @@ export function inputFrozen(): boolean {
     st.transitioning ||
     st.tvVideo !== null ||
     st.divingTo !== null ||
-    useRhythmStore.getState().active
+    useRhythmStore.getState().active ||
+    isRiding()
   )
     return true;
   const room = roomById(st.currentRoom);

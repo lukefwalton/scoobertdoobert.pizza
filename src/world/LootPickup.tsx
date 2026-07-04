@@ -5,6 +5,7 @@ import { useScoreStore } from '../state/scoreStore';
 import { flatMat } from './ps1';
 import { lootById } from '../data/loot';
 import { collectLootById } from '../lib/loot';
+import { emitBurst } from './burstBus';
 
 // Per-KIND low-poly art so a pizza slice, a surfboard, and a burrito each read at a
 // glance (PS1 primitives + flat materials, a faint emissive accent so loot glints
@@ -116,6 +117,15 @@ export function LootPickup({
   const group = useRef<THREE.Group>(null);
   const art = useLootArt(type);
   useEffect(() => () => art.mats.forEach((m) => m.dispose()), [art]);
+
+  // Pop a collect burst the instant it's taken — by ANY path (click / walk-over /
+  // P / the smoke hook), since they all flip `taken`. Fires once on the
+  // false→true edge, then the component unmounts; the burst lives on its own bus.
+  const prevTaken = useRef(taken);
+  useEffect(() => {
+    if (taken && !prevTaken.current) emitBurst(position, lootById(type)?.color ?? '#e8b44a');
+    prevTaken.current = taken;
+  }, [taken, position, type]);
 
   // Idle bob + slow spin — the universal "this is loot" language.
   useFrame((state) => {

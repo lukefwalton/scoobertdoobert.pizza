@@ -44,7 +44,14 @@ await page.addInitScript(() => {
         'tape-1101',
         'tape-jolly-roger-bay',
       ],
-      secretsFound: ['dice-monster', 'grass-cleared', 'danced:seed'],
+      secretsFound: [
+        'jump-unlocked',
+        'dice-monster',
+        'grass-cleared',
+        'danced:seed',
+        'garden-slide',
+        'turtle-stage',
+      ],
       visitedRooms: ['shop', 'hallway', 'jukebox', 'poolrooms', 'shrine', 'terminus'],
     }),
   );
