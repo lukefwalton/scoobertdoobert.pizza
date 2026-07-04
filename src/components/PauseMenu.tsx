@@ -1,4 +1,6 @@
+import { useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useModalFocus } from '../lib/useModalFocus';
 import { useSceneStore } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
@@ -37,6 +39,13 @@ export function PauseMenu() {
   const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
   const toggleObjectiveHud = useSceneStore((s) => s.toggleObjectiveHud);
   const openLyrics = useSceneStore((s) => s.openLyrics);
+
+  // Modal a11y: this is the "accessibility guarantee" per CLAUDE.md, so it must
+  // trap focus while open + restore it on close (Escape is handled by WorldHud's
+  // global key handler, so no onEscape here). Called before the early return so
+  // the hook order is stable; `paused` is the open flag.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useModalFocus(panelRef, paused);
 
   const muted = useAudioStore((s) => s.muted);
   const audioReady = useAudioStore((s) => s.ready);
@@ -85,7 +94,7 @@ export function PauseMenu() {
   const radioUnlocked = progress.radioUnlocked;
 
   return (
-    <div className="hud-pause" role="dialog" aria-label="Paused">
+    <div className="hud-pause" role="dialog" aria-modal="true" aria-label="Paused" ref={panelRef}>
       <div className="hud-pause__panel window">
         <div className="title-bar">
           <div className="title-bar-text">Paused</div>

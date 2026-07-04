@@ -1,5 +1,4 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Leva } from 'leva';
 import { useMounted } from '../lib/useMounted';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
@@ -12,6 +11,11 @@ import '../styles/world.css';
 // that only downloads when you actually descend (or pass ?world for testing).
 // The initial storefront bundle stays three-free.
 const World = lazy(() => import('../world/World'));
+
+// leva (the ~2 MB debug tuning GUI) is ALSO lazy — it only ever shows under
+// ?debug, so there's no reason for its runtime to sit in the storefront's initial
+// bundle. Fetched on demand the moment ?debug mounts it, three-free otherwise.
+const Leva = lazy(() => import('leva').then((m) => ({ default: m.Leva })));
 
 export function WorldMount() {
   const mounted = useMounted();
@@ -42,8 +46,13 @@ export function WorldMount() {
 
   return (
     <>
-      {/* leva shader/scene tuning panel — hidden unless ?debug is present */}
-      <Leva hidden={!debug} collapsed />
+      {/* leva shader/scene tuning panel — only MOUNTED under ?debug (and lazily,
+          so its runtime never lands in the storefront's initial bundle). */}
+      {debug && (
+        <Suspense fallback={null}>
+          <Leva collapsed />
+        </Suspense>
+      )}
       {active && (
         <Suspense fallback={<div className="world-loading">entering&hellip;</div>}>
           <World />

@@ -108,7 +108,48 @@ else {
   await page.screenshot({ path: '.shots/hud-overlap.png' });
 }
 
-console.log(`hud -> count=${countOk} noOverlap=${noOverlap} errors=${failures()}`);
+// 3) STACKED-MODAL FOCUS TRAP (regression guard). The lyrics reader opens ON TOP of
+//    the pause menu — the one place two role=dialog overlays coexist. Only the TOP
+//    dialog may own Tab; before the fix, the pause menu beneath also trapped and
+//    yanked focus out of the lyrics reader on every Tab. Open pause → open lyrics →
+//    Tab must STAY in lyrics → Escape closes lyrics → focus restores to the menu.
+let stackOk = false;
+await page.keyboard.press('Escape'); // open the pause menu
+const paused = await page.waitForSelector('.hud-pause', { timeout: 5000 }).catch(() => null);
+if (!paused) bad('hud: pause menu never opened on Escape');
+else {
+  const opened = await page.evaluate(() => typeof window.__sdpOpenLyrics === 'function');
+  if (!opened) bad('hud: __sdpOpenLyrics hook missing (needed to stack lyrics over pause)');
+  else {
+    await page.evaluate(() => window.__sdpOpenLyrics());
+    const lyrics = await page
+      .waitForSelector('.hud-dialog--lyrics', { timeout: 5000 })
+      .catch(() => null);
+    if (!lyrics) bad('hud: lyrics reader never opened over the pause menu');
+    else {
+      // The top dialog's hook focuses its first control; Tab must keep focus INSIDE
+      // it and never fall through to the pause menu beneath.
+      const inLyrics = () =>
+        page.evaluate(() => !!document.activeElement?.closest('.hud-dialog--lyrics'));
+      let trapped = await inLyrics();
+      for (let i = 0; i < 4 && trapped; i++) {
+        await page.keyboard.press('Tab');
+        trapped = await inLyrics();
+      }
+      if (!trapped) bad('hud: Tab escaped the top (lyrics) dialog into the pause menu');
+      // Close the top layer — focus must hand back DOWN to the pause menu.
+      await page.keyboard.press('Escape');
+      await page.waitForSelector('.hud-dialog--lyrics', { state: 'detached', timeout: 5000 });
+      const backInMenu = await page.evaluate(() => !!document.activeElement?.closest('.hud-pause'));
+      if (!backInMenu) bad('hud: focus not restored to the pause menu after closing lyrics');
+      stackOk = trapped && backInMenu;
+    }
+  }
+}
+
+console.log(
+  `hud -> count=${countOk} noOverlap=${noOverlap} modalStack=${stackOk} errors=${failures()}`,
+);
 
 await ctx.close();
 await finish('\nhud checks passed.', `\n${failures()} hud check(s) FAILED`);
