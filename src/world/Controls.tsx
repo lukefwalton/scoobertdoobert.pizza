@@ -89,9 +89,12 @@ export function Controls() {
       last.current = { x: e.clientX, y: e.clientY };
     };
     const kd = (e: KeyboardEvent) => {
-      // Space is the jump key: stop it scrolling the page behind the canvas —
-      // but never when it's aimed at a form control / button (typing in the
-      // terminal, keyboard-activating a HUD button must keep working).
+      // Space is the jump key. When it's aimed at a focused form control / button /
+      // link, it BELONGS to that control (activate the button, type a space in the
+      // terminal) — so bail entirely: don't preventDefault AND don't record it into
+      // `keys`, or a UI Space would silently arm a world hop on the next frame
+      // (the "never steals Space from inputs/buttons" promise). Otherwise it's a
+      // world Space: stop it scrolling the page behind the canvas, and record it.
       if (e.key === ' ') {
         const t = e.target as HTMLElement | null;
         const interactive =
@@ -101,7 +104,8 @@ export function Controls() {
             t.tagName === 'BUTTON' ||
             t.tagName === 'A' ||
             t.isContentEditable);
-        if (!interactive) e.preventDefault();
+        if (interactive) return;
+        e.preventDefault();
       }
       keys.current[e.key.toLowerCase()] = true;
     };
@@ -143,6 +147,11 @@ export function Controls() {
     if (handoff) {
       yaw.current = handoff.yaw;
       pitch.current = handoff.pitch ?? -0.04;
+      // If you jumped INTO the slide, the hop arc froze mid-flight while the ride
+      // drove the camera; clear it so this first live frame can't resume that
+      // stale arc and fight the ride's scripted exit height.
+      hop.current = 0;
+      hopVy.current = 0;
     }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
