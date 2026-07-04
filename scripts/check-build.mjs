@@ -233,8 +233,18 @@ if (existsSync('dist/index.html')) {
     console.log(`  ok apple-touch-icon ${href} -> 180x180`);
   }
 }
+// Fail CLOSED on the manifest too: index.html links /site.webmanifest, so a copy or
+// rename regression that drops it from dist must fail the build, not skip validation.
 const manifestFile = 'dist/site.webmanifest';
-if (existsSync(manifestFile)) {
+const linksManifest =
+  existsSync('dist/index.html') &&
+  readFileSync('dist/index.html', 'utf8').includes('/site.webmanifest');
+if (linksManifest && !existsSync(manifestFile)) {
+  console.error(
+    `  x index.html links /site.webmanifest but ${manifestFile} is missing — installability broken`,
+  );
+  failed++;
+} else if (existsSync(manifestFile)) {
   const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
   for (const icon of icons) {
     const file = 'dist' + icon.src;
