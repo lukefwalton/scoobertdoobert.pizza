@@ -24,11 +24,20 @@ try {
 } catch (e) {
   bad(`world did not mount: ${e.message}`);
 }
-await page.waitForTimeout(1500);
+// A generous settle: this is the LAST heavy walk-smoke in shoot:all's sequential
+// run, so the CI box is warm and frame delivery is slowest here — give the scene
+// time to become interactive before the first walk (a cold first step was the flake).
+await page.waitForTimeout(3000);
 const startStreet = await roomIs('North Park');
 
+// The holds get a wide budget on purpose: movement is a CLAMPED per-frame delta, so
+// a slow runner covers less ground per wall-clock second — and this smoke chains
+// five room traversals, so it feels that most. 20s reliably reaches each door edge
+// even on a saturated runner (well under shoot:all's 180s per-suite cap).
+const WALK = 20000;
+
 // 1) North Park → Main Street: the +X edge at z≈-2 (forward + strafe right).
-if (!(await holdUntilDoorPrompt(page, ['d', 'w'], { timeout: 10000 })))
+if (!(await holdUntilDoorPrompt(page, ['d', 'w'], { timeout: WALK })))
   bad('main-street prompt never appeared heading +X off North Park');
 await page.keyboard.press('e');
 const inMain = await roomIs('Main Street');
@@ -38,7 +47,7 @@ await page.waitForTimeout(500);
 await page.screenshot({ path: '.shots/mainstreet.png' });
 
 // 2) Main Street → the diner: the -X doorway (the only lit thing), forward-left.
-if (!(await holdUntilDoorPrompt(page, ['a', 'w'], { timeout: 10000 })))
+if (!(await holdUntilDoorPrompt(page, ['a', 'w'], { timeout: WALK })))
   bad('diner prompt never appeared heading -X down Main Street');
 await page.keyboard.press('e');
 const inDiner = await roomIs('The All-Night Diner');
@@ -46,7 +55,7 @@ await page.waitForTimeout(1600); // the heads settle into their watch
 await page.screenshot({ path: '.shots/diner.png' });
 
 // 3) THE LIMINAL LOOP: through the diner's -Z swing door into the kitchen…
-if (!(await holdUntilDoorPrompt(page, ['w', 'd'], { timeout: 10000 })))
+if (!(await holdUntilDoorPrompt(page, ['w', 'd'], { timeout: WALK })))
   bad('kitchen prompt never appeared heading -X/-Z behind the counter');
 await page.keyboard.press('e');
 const inKitchen = await roomIs('The Kitchen');
@@ -55,7 +64,7 @@ const inKitchen = await roomIs('The Kitchen');
 //    BROAD DAYLIGHT — the day/night flip (same title, but the day variant; a
 //    fresh screenshot proves the palette shifted). Graph-validated in rooms.test
 //    as targeting `mainstreetday` specifically.
-if (!(await holdUntilDoorPrompt(page, 'w', { timeout: 10000 })))
+if (!(await holdUntilDoorPrompt(page, 'w', { timeout: WALK })))
   bad('back-door prompt never appeared walking -Z across the kitchen');
 await page.keyboard.press('e');
 const inDay = await roomIs('Main Street');

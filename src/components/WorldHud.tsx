@@ -6,7 +6,7 @@ import { HOTSPOTS } from '../data/hotspots';
 import { destById } from '../data/links';
 import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
-import { lyricFor } from '../data/lyrics';
+import { lyricFor, songsWithLyrics } from '../data/lyrics';
 import { useProgressStore } from '../state/progressStore';
 import { SPELLS } from '../data/spells';
 import { castSpell, castEquippedSpell } from '../lib/spellcast';
@@ -258,6 +258,18 @@ export function WorldHud() {
   useEffect(() => {
     exposeTestGlobal('__sdpCast', (id?: string) => (id ? castSpell(id) : castEquippedSpell()));
     return () => exposeTestGlobal('__sdpCast', undefined);
+  }, []);
+
+  // Test hook (?world / ?debug): open the lyrics reader on a known track so a smoke
+  // can STACK it over the pause menu (the one real modal-stack in the app) and assert
+  // the focus-trap discipline — that only the top dialog owns Tab. Benign (just opens
+  // a read-only reader), so it rides ?world like __sdpCast. First track with words.
+  useEffect(() => {
+    exposeTestGlobal('__sdpOpenLyrics', () => {
+      const slug = songsWithLyrics()[0];
+      if (slug) useSceneStore.getState().openLyrics(slug);
+    });
+    return () => exposeTestGlobal('__sdpOpenLyrics', undefined);
   }, []);
 
   // Auto-dismiss the announce toast after a READING-TIME-aware beat: long messages
