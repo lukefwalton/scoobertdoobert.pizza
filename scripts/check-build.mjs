@@ -165,6 +165,16 @@ if (existsSync(storefront)) {
     ...new Set([...html.matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)].map((m) => m[0])),
   ];
   let bundleBad = 0;
+  // Fail CLOSED: a standards-enforcement guard must never pass by finding nothing. If
+  // the storefront HTML no longer references any /assets/*.js (a build-output or
+  // base-path change broke discovery), the three.js/leva rule would silently stop
+  // being checked — so that's a failure, not a quiet success.
+  if (entryJs.length === 0) {
+    console.error(
+      `  x storefront bundle guard found no /assets/*.js in ${storefront} — initial-graph discovery broke; refusing to pass without asserting the three.js/leva rule`,
+    );
+    bundleBad++;
+  }
   for (const ref of entryJs) {
     const file = 'dist' + ref;
     const code = existsSync(file) ? readFileSync(file, 'utf8') : '';
