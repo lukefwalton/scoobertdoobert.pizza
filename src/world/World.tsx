@@ -68,6 +68,7 @@ import { PickupController } from './PickupController';
 import { DreadVisuals } from './DreadVisuals';
 import { RoomFireball } from './RoomFireball';
 import { RoomLight } from './RoomLight';
+import { CollectBursts } from './CollectBursts';
 
 // Per-room background + fog. The world graph (rooms.ts) carries each room's
 // palette; this pushes it onto the scene whenever the current room changes, so
@@ -345,6 +346,9 @@ export default function World() {
           on which spell). Read the live room for their dims (spread / mote height). */}
       <RoomFireball room={room} />
       <RoomLight room={room} />
+      {/* The collect-burst pool: a pop of light + sparks wherever anything is
+          grabbed (loot, items, skill orbs) — one place, all pickups get the juice. */}
+      <CollectBursts />
     </Canvas>
   );
 }

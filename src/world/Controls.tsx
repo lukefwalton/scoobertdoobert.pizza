@@ -6,7 +6,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useHeadingStore } from '../state/headingStore';
 import { useScoreStore } from '../state/scoreStore';
 import { useProgressStore } from '../state/progressStore';
-import { JUMP_SECRET } from '../data/abilities';
+import { JUMP_SECRET, DOUBLEJUMP_SECRET } from '../data/abilities';
 import { isTestEntrance } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 import { takeHeading } from './cameraRig';
@@ -41,6 +41,11 @@ export function Controls() {
   // hop === 0 and vy === 0; holding Space bunny-hops (deliberate — it feels good).
   const hop = useRef(0);
   const hopVy = useRef(0);
+  // How many hops used since last touching the ground (for the double-jump
+  // upgrade), plus a Space rising-edge latch so the mid-air second jump needs a
+  // FRESH press (holding Space bunny-hops off the ground but never auto-doubles).
+  const airJumps = useRef(0);
+  const spaceWasDown = useRef(false);
   // Throttle accumulator for publishing the camera pose to the heading store.
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
@@ -57,6 +62,8 @@ export function Controls() {
     pitch.current = -0.04;
     hop.current = 0;
     hopVy.current = 0;
+    airJumps.current = 0;
+    spaceWasDown.current = false;
     // Apply the heading NOW, not just in useFrame() — useFrame returns early
     // while `transitioning`, so without this the camera would keep its old
     // facing through the whole fade-in and snap to the spawn heading only when
@@ -152,6 +159,8 @@ export function Controls() {
       // stale arc and fight the ride's scripted exit height.
       hop.current = 0;
       hopVy.current = 0;
+      airJumps.current = 0;
+      spaceWasDown.current = false;
     }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
@@ -185,17 +194,31 @@ export function Controls() {
     camera.position.x = Math.max(-d.halfW + 0.6, Math.min(d.halfW - 0.6, camera.position.x));
     camera.position.z = Math.max(-d.halfD + 0.6, Math.min(d.halfD - 0.6, camera.position.z));
     // JUMP: Space hops (a little videogame joy). Simple ballistic arc on top of
-    // the eye line; grounded = arc finished. Holding Space bunny-hops on purpose.
-    // GATED: you LEARN TO JUMP at the Jumping Turtle (durable unlock) — before
-    // that Space does nothing (getState read only on the grounded keypress, not
-    // every frame). The reward for finding the old venue is a new verb.
-    if (
-      k[' '] &&
-      hop.current === 0 &&
-      hopVy.current === 0 &&
-      useProgressStore.getState().secretsFound.includes(JUMP_SECRET)
-    )
-      hopVy.current = 4.6;
+    // the eye line; grounded = arc finished. Both verbs are LEARNED, not given:
+    // JUMP in the first room (the shop orb), DOUBLE JUMP out at the Jumping Turtle
+    // (its stage orb). Before you've learned jump, Space does nothing.
+    const grounded = hop.current === 0 && hopVy.current === 0;
+    const spaceDown = !!k[' '];
+    const spaceEdge = spaceDown && !spaceWasDown.current; // a fresh press this frame
+    if (grounded) airJumps.current = 0;
+    if (spaceDown || !grounded) {
+      // Read the learned verbs once per relevant frame (cheap; only when airborne
+      // or Space is down), never every idle frame.
+      const secrets = useProgressStore.getState().secretsFound;
+      if (grounded && spaceDown && secrets.includes(JUMP_SECRET)) {
+        hopVy.current = 4.6; // ground jump (holding Space re-hops → bunny hop)
+        airJumps.current = 1;
+      } else if (
+        !grounded &&
+        spaceEdge && // a SECOND, deliberate press mid-air
+        airJumps.current < 2 &&
+        secrets.includes(DOUBLEJUMP_SECRET)
+      ) {
+        hopVy.current = 3.9; // the mid-air second hop (a touch softer)
+        airJumps.current = 2;
+      }
+    }
+    spaceWasDown.current = spaceDown;
     if (hop.current > 0 || hopVy.current !== 0) {
       hopVy.current -= 13.5 * dt; // floaty-fun gravity, not simulation
       hop.current += hopVy.current * dt;

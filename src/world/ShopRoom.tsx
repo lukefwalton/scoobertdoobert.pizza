@@ -2,6 +2,7 @@ import { Room } from './Room';
 import { Water } from './Water';
 import { Boids } from './Boids';
 import { Hotspots } from './Hotspots';
+import { SkillOrb } from './SkillOrb';
 
 // The beach pizza shop (ROOMS[0]) as a self-contained scene: its own lights
 // (warm sun + cyan bounce), the box interior, the sea + pizza-slice school out
@@ -17,6 +18,10 @@ export function ShopRoom() {
       <Water />
       <Boids />
       <Hotspots />
+      {/* The starter skill, right in the first room: a JUMP orb floating in view
+          of the spawn (which faces the sea). Walk into it → "ooo, a skill" — the
+          springy exploration verb, learned before you've even left the lobby. */}
+      <SkillOrb ability="jump" position={[1.5, 1.5, 1.2]} />
     </>
   );
 }

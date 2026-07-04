@@ -36,6 +36,13 @@ export const QUESTS: Quest[] = [
     done: (p) => p.everEnteredWorld,
   },
   {
+    id: 'learn-jump',
+    label: 'Learn to jump',
+    hint: 'A glowing skill orb floats in the shop — walk into it to learn the hop.',
+    room: 'shop',
+    done: (p) => p.secretsFound.includes('jump-unlocked'),
+  },
+  {
     id: 'earn-luck',
     label: 'Pay your respects',
     hint: 'Find the wayside shrine and clap twice at the offering box.',

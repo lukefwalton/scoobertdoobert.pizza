@@ -20,8 +20,8 @@ const { ctx, page, fail: bad, finish, failures } = await startSmoke();
 watchPageErrors(page, bad);
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail: bad, timeout });
 
-// Jump is UNLOCKED at the Jumping Turtle (see shoot-turtle for the gate test);
-// here we test the jump MECHANIC, so seed the unlock so Space hops in the park.
+// Jump is LEARNED in the shop (see shoot-skills for the earn-it-cold path); here
+// we test the jump MECHANIC, so seed the unlock so Space hops in the park.
 await page.addInitScript(() => {
   localStorage.setItem(
     'sdp_progress_v1',
@@ -60,6 +60,20 @@ const landed = await page
     () => false,
   );
 if (!landed) bad('the jump never landed back on the eye line');
+
+// 1b) Space must NOT steal focus from UI: with a HUD control focused, a Space
+//     press activates the control (or does nothing) — it must never arm a world
+//     hop (the review-flagged edge case). Focus the menu button, press Space,
+//     assert the camera did not rise, then close any menu it opened.
+await page.evaluate(() => document.querySelector('.hud-menu-btn')?.focus());
+const eyeYf = await page.evaluate(() => window.__sdpCam?.y ?? 0);
+await page.keyboard.press(' ');
+await page.waitForTimeout(400);
+const hoppedFromUi = await page.evaluate((y0) => (window.__sdpCam?.y ?? 0) > y0 + 0.25, eyeYf);
+if (hoppedFromUi) bad('Space on a focused HUD control armed a world jump (UI Space leaked)');
+await page.keyboard.press('Escape').catch(() => {}); // close the pause menu if Space opened it
+await page.waitForTimeout(200);
+await page.evaluate(() => document.querySelector('canvas')?.focus());
 
 // 2) The REAL balboa→garden edge: strafe straight left into the -X hedge gate
 //    (it sits level with the spawn row, like the boardwalk's side gates).
@@ -129,6 +143,31 @@ const rideDone = await page
 if (!rideDone) bad('the tube slide ride never finished (rides did not count)');
 await page.screenshot({ path: '.shots/garden-slide.png' });
 
+// 5b) Enter the slide WHILE MID-HOP (the review-flagged edge): jump, then start
+//     the ride mid-air. The ride must still complete and leave the camera at a
+//     sane height — the frozen hop arc must NOT resume and fling the camera (the
+//     hop-clear-on-handoff fix). Wait for the hook to re-arm after the last ride.
+await page.waitForFunction(() => typeof window.__sdpRideSlide === 'function', { timeout: 5000 });
+await page.keyboard.press(' '); // launch a hop
+await page.waitForTimeout(120); // now airborne, mid-arc
+await page.evaluate(() => window.__sdpRideSlide());
+const ride2Done = await page
+  .waitForFunction(
+    () => window.__sdpSlide && window.__sdpSlide.riding === false && window.__sdpSlide.rides >= 2,
+    {
+      timeout: 9000,
+    },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!ride2Done) bad('the mid-hop slide ride never finished');
+await page.waitForTimeout(300);
+const exitY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
+if (exitY > 3.4)
+  bad(`camera flung high after a mid-hop ride (y=${exitY.toFixed(2)}) — stale hop arc resumed`);
+
 // 6) The bamboo grove past the lion gate. IN via the debug teleport (one hop),
 //    BACK by walking the real bamboo→garden edge.
 await page.evaluate(() => window.__sdpGoToRoom?.('bamboo', 'fromGarden'));
@@ -141,8 +180,9 @@ await page.keyboard.press('e');
 const backFromBamboo = await roomIs('The Botanical Garden');
 
 console.log(
-  `garden -> park=${startPark} jump=${rose && landed} garden=${inGarden} frog=${frogOk} ` +
-    `grotto=${inGrotto}/${backFromGrotto} slide=${rideDone} bamboo=${inBamboo}/${backFromBamboo} ` +
+  `garden -> park=${startPark} jump=${rose && landed} uiSpace=${!hoppedFromUi} ` +
+    `garden=${inGarden} frog=${frogOk} grotto=${inGrotto}/${backFromGrotto} ` +
+    `slide=${rideDone} midHopRide=${ride2Done} bamboo=${inBamboo}/${backFromBamboo} ` +
     `errors=${failures()}`,
 );
 

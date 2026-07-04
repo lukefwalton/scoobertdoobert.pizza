@@ -42,7 +42,7 @@ await page.addInitScript(() => {
       // The surface-wing objectives (the garden slide, the Turtle's stage) sit
       // ahead of the rusted key in QUESTS order — seed them done so the chip
       // points at the poolrooms key this smoke walks toward.
-      secretsFound: ['garden-slide', 'turtle-stage'],
+      secretsFound: ['jump-unlocked', 'garden-slide', 'turtle-stage'],
       itemsHeld: [],
     }),
   );

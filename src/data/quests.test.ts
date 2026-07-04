@@ -48,6 +48,7 @@ describe('quests', () => {
     // turns done — proves the predicate is wired to a real, reachable signal.
     const flips: Record<string, Partial<Progress>> = {
       'enter-world': { everEnteredWorld: true },
+      'learn-jump': { secretsFound: ['jump-unlocked'] },
       'earn-luck': { luckEarned: 1 },
       'unlock-radio': { radioUnlocked: true },
       'ride-slide': { secretsFound: ['garden-slide'] },
