@@ -45,6 +45,7 @@ await page.addInitScript(() => {
         'tape-jolly-roger-bay',
       ],
       secretsFound: [
+        'jump-unlocked',
         'dice-monster',
         'grass-cleared',
         'danced:seed',

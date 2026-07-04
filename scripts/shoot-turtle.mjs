@@ -1,9 +1,13 @@
 // Verifies THE JUMPING TURTLE — the defunct all-ages venue off North Park.
 // Walks the REAL northpark→turtle edge, proves the left-behind drum kit still
 // plays (the reused DrumKit's strike hook only exists once the kit mounted),
-// pokes the BROKEN CRT (buzz + one soft flicker, never a picture), walks up to
-// the mic where the stage was (the ghost-cheer memory beat + its durable
-// objective), and walks back out — both directions of the edge.
+// pokes the BROKEN CRT (buzz + one soft flicker, never a picture), LEARNS THE
+// DOUBLE-JUMP upgrade off the stage orb and proves it reaches higher than a
+// single hop, walks up to the mic (the ghost-cheer memory beat), and walks back
+// out — both directions of the edge.
+//
+// Jump itself is learned in the SHOP (see shoot-skills), so we seed jump-unlocked
+// here (you'd arrive already able to hop) and let the venue grant the upgrade.
 import { mkdirSync } from 'node:fs';
 import {
   holdUntilDoorPrompt,
@@ -19,6 +23,27 @@ const { ctx, page, fail: bad, finish, failures } = await startSmoke();
 watchPageErrors(page, bad);
 const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail: bad, timeout });
 
+// Poll the live camera Y for `ms` and return the highest it reached — the peak of
+// whatever jump we drove. (Date.now is fine here; this is a node smoke, not the app.)
+const samplePeak = async (ms) => {
+  const end = Date.now() + ms;
+  let peak = 0;
+  while (Date.now() < end) {
+    const y = await page.evaluate(() => window.__sdpCam?.y ?? 0);
+    if (y > peak) peak = y;
+    await page.waitForTimeout(30);
+  }
+  return peak;
+};
+
+// Arrive already able to jump (the shop teaches that); the venue grants DOUBLE jump.
+await page.addInitScript(() => {
+  localStorage.setItem(
+    'sdp_progress_v1',
+    JSON.stringify({ everEnteredWorld: true, secretsFound: ['jump-unlocked'] }),
+  );
+});
+
 await page.goto(base + '/?room=northpark&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('canvas', { timeout: 15000 });
@@ -28,20 +53,6 @@ try {
 }
 await page.waitForTimeout(1500);
 const startStreet = await roomIs('North Park');
-
-// 0) THE GATE (the gag): jump is LOCKED until you enter the Jumping Turtle. In
-//    North Park, before ever setting foot in the venue, Space must do NOTHING.
-const streetY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
-await page.keyboard.down(' ');
-const hoppedLocked = await page
-  .waitForFunction((y0) => (window.__sdpCam?.y ?? 0) > y0 + 0.25, streetY, { timeout: 1200 })
-  .then(
-    () => true,
-    () => false,
-  );
-await page.keyboard.up(' ');
-const gateHeld = !hoppedLocked;
-if (!gateHeld) bad('jump worked BEFORE the Jumping Turtle — the unlock gate is open');
 
 // 1) The REAL edge in: strafe -X down the block to the dark doorway.
 if (!(await holdUntilDoorPrompt(page, 'a', { timeout: 10000 })))
@@ -75,23 +86,49 @@ await page.waitForTimeout(600); // let the flicker pulse run
 if ((await page.$('.tv-modal, .hud-tv')) !== null)
   bad('the BROKEN CRT opened a TV modal — it must never play');
 
-// 3b) THE PAYOFF: now that you've entered the Turtle, jump is UNLOCKED — Space
-//     must hop the camera (the same key that did nothing on the street).
-const venueY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
-await page.keyboard.down(' ');
-const hoppedUnlocked = await page
-  .waitForFunction((y0) => (window.__sdpCam?.y ?? 0) > y0 + 0.25, venueY, { timeout: 2000 })
-  .then(
-    () => true,
-    () => false,
-  );
+// 3b) THE UPGRADE: single-hop peak first (double not learned yet), then LEARN the
+//     double-jump off the stage orb and prove a mid-air second press goes HIGHER.
+await page.keyboard.down(' '); // a ground hop (bunny-hops while held)
+const singlePeak = await samplePeak(850);
 await page.keyboard.up(' ');
-if (!hoppedUnlocked) bad('jump did not work AFTER entering the Jumping Turtle (unlock failed)');
-// settle back down before the walk to the mic
 await page
-  .waitForFunction((y0) => Math.abs((window.__sdpCam?.y ?? 0) - y0) < 0.05, venueY, {
-    timeout: 2500,
-  })
+  .waitForFunction(() => (window.__sdpCam?.y ?? 0) < 2.5, { timeout: 2500 })
+  .catch(() => {}); // settle
+
+const learnedDouble = await page.evaluate(() => {
+  const fn = window['__sdpLearn:doublejump'];
+  if (typeof fn !== 'function') return false;
+  fn();
+  try {
+    return (
+      JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+    ).includes('doublejump-unlocked');
+  } catch {
+    return false;
+  }
+});
+if (!learnedDouble) bad('did not learn DOUBLE JUMP off the stage orb');
+
+// Sample across the WHOLE double-jump sequence (both apexes). Use held down/up
+// with an 80ms hold so a frame reliably sees Space (a bare press() can fire
+// down+up between frames and never register); a gap between them resets the
+// rising-edge latch so the second press counts as the mid-air double.
+const dblPromise = samplePeak(1200);
+await page.keyboard.down(' ');
+await page.waitForTimeout(80);
+await page.keyboard.up(' '); // ground jump
+await page.waitForTimeout(230); // rise toward apex, airborne
+await page.keyboard.down(' ');
+await page.waitForTimeout(80);
+await page.keyboard.up(' '); // the mid-air second hop → the double
+const doublePeak = await dblPromise;
+const doubleHigher = doublePeak > singlePeak + 0.25;
+if (!doubleHigher)
+  bad(
+    `double jump did not clear the single hop (single ${singlePeak.toFixed(2)} / double ${doublePeak.toFixed(2)})`,
+  );
+await page
+  .waitForFunction(() => (window.__sdpCam?.y ?? 0) < 2.5, { timeout: 2500 })
   .catch(() => {});
 
 // 4) Step up to the mic where the stage was: walking forward from the entry
@@ -114,8 +151,8 @@ await page.keyboard.press('e');
 const backOut = await roomIs('North Park');
 
 console.log(
-  `turtle -> street=${startStreet} jumpGate=${gateHeld} venue=${inVenue} ` +
-    `jumpUnlocked=${hoppedUnlocked} drums=${drumOk} crt=${crt !== null} ` +
+  `turtle -> street=${startStreet} venue=${inVenue} drums=${drumOk} crt=${crt !== null} ` +
+    `double=${learnedDouble}/${doubleHigher} (s${singlePeak.toFixed(2)}/d${doublePeak.toFixed(2)}) ` +
     `cheer=${cheered} back=${backOut} errors=${failures()}`,
 );
 

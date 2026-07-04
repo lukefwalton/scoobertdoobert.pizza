@@ -82,11 +82,17 @@ export function TubeSlide() {
   const { camera } = useThree();
 
   const curve = useMemo(() => new THREE.CatmullRomCurve3(PTS), []);
-  // The exit heading Controls resumes with: the direction of the last path leg.
-  const exitYaw = useMemo(() => {
+  // The exit heading Controls resumes with: yaw AND pitch of the last path leg,
+  // so the view doesn't snap to a default angle the instant the ride ends (the
+  // camera keeps looking the way the slide spat you). Pitch is the leg's rise
+  // over its run, clamped to the look range.
+  const [exitYaw, exitPitch] = useMemo(() => {
     const a = PTS[PTS.length - 2];
     const b = PTS[PTS.length - 1];
-    return Math.atan2(b.x - a.x, b.z - a.z);
+    const yaw = Math.atan2(b.x - a.x, b.z - a.z);
+    const run = Math.hypot(b.x - a.x, b.z - a.z);
+    const pitch = Math.max(-0.9, Math.min(0.9, Math.atan2(b.y - a.y, run)));
+    return [yaw, pitch] as const;
   }, []);
 
   // Ringed two-tone green along the tube length so the ride READS as speed —
@@ -133,7 +139,7 @@ export function TubeSlide() {
     whistle.current?.stop();
     whistle.current = null;
     setRiding(false);
-    handOffHeading(exitYaw);
+    handOffHeading(exitYaw, exitPitch);
     rides.current += 1;
     // The landing "boing" — a quick down-up pair through the shared bell engine
     // (mute-aware + limited like every other one-shot).

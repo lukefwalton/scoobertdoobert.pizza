@@ -493,16 +493,28 @@ commit + smoke:
 ## ✅ The day-off pass — jump, the garden wing + the Jumping Turtle (2026-07-04, from Luke's photo batch)
 The "make it feel fun like a video game" pass, built from Luke's reference photos
 (a Balboa-Park-ish garden walk + urbex footage of the real dead venue):
-- ✅ **JUMP (game feel), UNLOCKED at the Jumping Turtle (Luke's gag):** Space
-  hops the camera — a simple ballistic arc in `Controls` (holding Space bunny-hops
-  on purpose), clamped under each room's ceiling, never stealing Space from
-  inputs/buttons (terminal typing + HUD keyboard activation keep working). The
-  verb is **gated behind a durable unlock** (`data/abilities.ts` `JUMP_SECRET`):
-  you literally *learn to jump* the first time you set foot in the Jumping Turtle
-  (a big once-only "you learned to JUMP!" beat + fanfare there). Before that,
-  Space does nothing. `shoot:garden` seeds the unlock and drives the jump
-  mechanic; `shoot:turtle` tests the GATE both ways (no hop on the street → hop
-  after entering the venue).
+- ✅ **LEARNABLE SKILLS + JUMP (game feel):** movement verbs are now **earned
+  collectibles**, not silent grants — a glowing **skill orb** (`world/SkillOrb.tsx`)
+  you walk into for an "ooo, a skill" burst + rising fanfare + a durable once-only
+  grant (`data/abilities.ts` is the registry: id → secret/name/hint/glyph/colour).
+  The ladder:
+  - **JUMP** is learned in the **FIRST room** (the beach shop orb, in view of the
+    spawn) — the starter exploration verb, so the world is springy from the start.
+    A simple ballistic arc in `Controls` (holding Space bunny-hops), clamped under
+    each room's ceiling, and Space never steals focus from inputs/buttons (the
+    keydown handler fully bails on a focused control).
+  - **DOUBLE JUMP** is the upgrade, earned deep out at the **Jumping Turtle** (its
+    stage orb — the pun: it teaches you to jump *again*, in mid-air). Edge-triggered
+    (a fresh mid-air press), gated on its own secret.
+  - Coverage: `shoot:skills` (shop — no hop → learn orb → hop, cold), `shoot:turtle`
+    (learn double off the stage orb → proves it clears a single hop), `shoot:garden`
+    (jump mechanic + Space-on-focused-UI does-nothing + enter-the-slide-mid-hop).
+- ✅ **Pickup / learn JUICE:** a shared collect-burst pool (`world/CollectBursts.tsx`
+  + the `burstBus` mailbox) pops a flash + expanding ring + sparks wherever anything
+  is grabbed — loot, inventory items, and skill orbs all emit on the same signal
+  (so every collect path — click / walk-over / P / a skill orb — gets the juice).
+  WCAG-safe (one soft expand+fade, no strobe; world-only, already reduced-motion
+  gated).
 - ✅ **The garden wing** — three sweet SURFACE rooms west off the Park Path:
   - **The Botanical Garden (植物園):** trimmed hedge quadrants, pink-brick paths,
     a seeded scatter of random palms, the verdigris **FROG statue** with its

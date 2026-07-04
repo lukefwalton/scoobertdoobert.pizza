@@ -26,7 +26,7 @@ await page.addInitScript(() => {
       itemsHeld: ['pool-locker-key', 'hall-closet-key'],
       // The surface-wing objectives (garden slide / Turtle stage) come before
       // collect-tapes in QUESTS order — seed them done so the tapes chip is first.
-      secretsFound: ['garden-slide', 'turtle-stage'],
+      secretsFound: ['jump-unlocked', 'garden-slide', 'turtle-stage'],
     }),
   );
 });
