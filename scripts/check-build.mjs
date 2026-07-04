@@ -183,7 +183,16 @@ if (existsSync(storefront)) {
   }
   for (const ref of entryJs) {
     const file = 'dist' + ref;
-    const code = existsSync(file) ? readFileSync(file, 'utf8') : '';
+    // A referenced-but-missing chunk is itself a fail: inspecting '' would let the
+    // guard "pass" on a chunk it never actually read (a broken/inconsistent build).
+    if (!existsSync(file)) {
+      console.error(
+        `  x storefront references ${ref} but it's missing on disk — build output is inconsistent`,
+      );
+      bundleBad++;
+      continue;
+    }
+    const code = readFileSync(file, 'utf8');
     for (const { token, dep } of FORBIDDEN) {
       if (code.includes(token)) {
         console.error(
@@ -246,6 +255,11 @@ if (linksManifest && !existsSync(manifestFile)) {
   failed++;
 } else if (existsSync(manifestFile)) {
   const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
+  // Fail closed: a manifest with no icons is a broken install surface, not a pass.
+  if (icons.length === 0) {
+    console.error(`  x ${manifestFile} declares no icons — installability needs a square icon`);
+    failed++;
+  }
   for (const icon of icons) {
     const file = 'dist' + icon.src;
     const sz = existsSync(file) ? pngSize(file) : null;
