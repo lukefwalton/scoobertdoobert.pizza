@@ -45,6 +45,13 @@ import { CaliforniaRoom } from './CaliforniaRoom';
 import { TidepoolsRoom } from './TidepoolsRoom';
 import { ZooRoom } from './ZooRoom';
 import { NorthParkRoom } from './NorthParkRoom';
+import { GardenRoom } from './GardenRoom';
+import { GrottoRoom } from './GrottoRoom';
+import { BambooRoom } from './BambooRoom';
+import { TurtleRoom } from './TurtleRoom';
+import { TubesRoom } from './TubesRoom';
+import { MainStreetRoom } from './MainStreetRoom';
+import { DinerRoom } from './DinerRoom';
 import { LiveRoom } from './LiveRoom';
 import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
@@ -64,6 +71,7 @@ import { PickupController } from './PickupController';
 import { DreadVisuals } from './DreadVisuals';
 import { RoomFireball } from './RoomFireball';
 import { RoomLight } from './RoomLight';
+import { CollectBursts } from './CollectBursts';
 
 // Per-room background + fog. The world graph (rooms.ts) carries each room's
 // palette; this pushes it onto the scene whenever the current room changes, so
@@ -154,6 +162,13 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   tidepools: (room) => <TidepoolsRoom room={room} />,
   zoo: (room) => <ZooRoom room={room} />,
   northpark: (room) => <NorthParkRoom room={room} />,
+  garden: (room) => <GardenRoom room={room} />,
+  grotto: (room) => <GrottoRoom room={room} />,
+  bamboo: (room) => <BambooRoom room={room} />,
+  turtle: (room) => <TurtleRoom room={room} />,
+  tubes: (room) => <TubesRoom room={room} />,
+  mainstreet: (room) => <MainStreetRoom room={room} />,
+  diner: (room) => <DinerRoom room={room} />,
   // The Basement Sessions — the recording-studio wing (off the practice room).
   liveroom: (room) => <LiveRoom room={room} />,
   controlroom: (room) => <ControlRoom room={room} />,
@@ -337,6 +352,9 @@ export default function World() {
           on which spell). Read the live room for their dims (spread / mote height). */}
       <RoomFireball room={room} />
       <RoomLight room={room} />
+      {/* The collect-burst pool: a pop of light + sparks wherever anything is
+          grabbed (loot, items, skill orbs) — one place, all pickups get the juice. */}
+      <CollectBursts />
     </Canvas>
   );
 }

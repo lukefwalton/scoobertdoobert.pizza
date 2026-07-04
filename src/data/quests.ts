@@ -36,6 +36,13 @@ export const QUESTS: Quest[] = [
     done: (p) => p.everEnteredWorld,
   },
   {
+    id: 'learn-jump',
+    label: 'Learn to jump',
+    hint: 'A glowing skill orb floats in the shop — walk into it to learn the hop.',
+    room: 'shop',
+    done: (p) => p.secretsFound.includes('jump-unlocked'),
+  },
+  {
     id: 'earn-luck',
     label: 'Pay your respects',
     hint: 'Find the wayside shrine and clap twice at the offering box.',
@@ -48,6 +55,20 @@ export const QUESTS: Quest[] = [
     hint: 'Roll the bone at the jukebox to unlock the flip-through radio.',
     room: 'jukebox',
     done: (p) => p.radioUnlocked,
+  },
+  {
+    id: 'ride-slide',
+    label: 'Ride the tube slide',
+    hint: 'Through the hedges off the park path — walk right into the green mouth.',
+    room: 'garden',
+    done: (p) => p.secretsFound.includes('garden-slide'),
+  },
+  {
+    id: 'play-turtle',
+    label: 'Play the Turtle one more time',
+    hint: 'The old venue off North Park — step up to the mic where the stage was.',
+    room: 'turtle',
+    done: (p) => p.secretsFound.includes('turtle-stage'),
   },
   {
     id: 'find-locker-key',

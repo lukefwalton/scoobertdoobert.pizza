@@ -6,6 +6,7 @@ import { exposeTestGlobal } from '../lib/testHooks';
 import { flatMat } from './ps1';
 import { itemById, type ItemKind } from '../data/items';
 import { collectInventoryItem } from '../lib/pickups';
+import { emitBurst } from './burstBus';
 
 // Per-KIND art so a key, a cassette, and a scroll never read as the same gold box
 // (they used to). Cheap PS1 primitives + flat materials; each gets a faint emissive
@@ -91,6 +92,15 @@ export function ItemPickup({
 
   const art = useItemArt(item?.kind);
   useEffect(() => () => art.mats.forEach((m) => m.dispose()), [art]);
+
+  // Pop a collect burst on the false→true edge of `held` (any collect path flips
+  // it); the component then unmounts, but the burst lives on its own bus. A warm
+  // gold, the universal "got it" colour.
+  const prevHeld = useRef(held);
+  useEffect(() => {
+    if (held && !prevHeld.current) emitBurst(position, '#e8c66a');
+    prevHeld.current = held;
+  }, [held, position]);
 
   // Idle bob + slow spin — the universal "this is an item" language.
   useFrame((state) => {

@@ -39,7 +39,10 @@ await page.addInitScript(() => {
       luckEarned: 2,
       radioUnlocked: true,
       visitedRooms: ['shop', 'hallway', 'jukebox'],
-      secretsFound: [],
+      // The surface-wing objectives (the garden slide, the Turtle's stage) sit
+      // ahead of the rusted key in QUESTS order — seed them done so the chip
+      // points at the poolrooms key this smoke walks toward.
+      secretsFound: ['jump-unlocked', 'garden-slide', 'turtle-stage'],
       itemsHeld: [],
     }),
   );

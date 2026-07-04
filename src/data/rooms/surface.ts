@@ -125,6 +125,9 @@ export const SURFACE_ROOMS: Room[] = [
       // Back down off the coast road: by the -Z gate, facing +Z back into the park,
       // clear of every door radius.
       fromCalifornia: { position: [0, EYE, -4.5], yaw: 0 },
+      // Back out of the botanical garden: by the -X gate (level with the spawn
+      // row, like the boardwalk's side gates), facing +X into the park.
+      fromGarden: { position: [-4.45, EYE, 4.5], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -143,6 +146,157 @@ export const SURFACE_ROOMS: Room[] = [
         position: [0, 0, -8.95], // -Z — up the path to the coast road
         rotationY: Math.PI,
         label: 'up to the coast road',
+        radius: 3.2,
+      },
+      {
+        id: 'balboa-to-garden',
+        to: 'garden',
+        toSpawn: 'fromBalboa',
+        // -X gate, level with the spawn row (the boardwalk's side-gate pattern) —
+        // a straight walk left from the path goes through the hedges.
+        position: [-8.95, 0, 4.5],
+        rotationY: Math.PI / 2,
+        label: 'into the botanical garden',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'garden',
+    kind: 'garden',
+    title: 'The Botanical Garden',
+    // Big + open — room for the hedge quadrants, the palm scatter, and the tube
+    // slide's corkscrew in the NW corner. An outdoor room (no closed walls).
+    dims: { halfW: 10, halfD: 10, height: 7, eye: EYE },
+    // Lush garden noon: warm green-tinged sky, soft far fog into the greenery.
+    palette: { background: '#a3cf94', fog: '#bfe0ab', fogNear: 12, fogFar: 80 },
+    // A musicRoom: the garden sings for itself (birdsong + breeze + the resident
+    // bullfrog — see GardenRoom) while the carried song fades out.
+    musicRoom: true,
+    spawns: {
+      // Step in off the park at the +X gate, facing -X down the pink-brick path
+      // toward the frog. Clear of the gate's radius, facing away from it.
+      default: { position: [5.45, EYE, 0], yaw: -Math.PI / 2 },
+      fromBalboa: { position: [5.45, EYE, 0], yaw: -Math.PI / 2 },
+      // Back out of the grotto (-Z, x=6 — the gap in the north hedge), angled
+      // slightly across the garden so the +X park gate isn't dead ahead.
+      fromGrotto: { position: [5.5, EYE, -5.45], yaw: -0.25 },
+      // Back through the lion moon-gate (+Z, x=-5), facing -Z into the garden.
+      fromBamboo: { position: [-5, EYE, 5.45], yaw: Math.PI },
+      // Crawled back out of the tube warren: a step clear of the slide mouth
+      // (well outside its ~1.35 re-trigger reach), facing +Z into the garden so
+      // you don't immediately slide again.
+      fromTubes: { position: [-1, EYE, -2], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'garden-to-balboa',
+        to: 'balboa',
+        toSpawn: 'fromGarden',
+        position: [9.95, 0, 0], // +X — back out to the park path
+        rotationY: -Math.PI / 2,
+        label: 'back to the park path',
+        radius: 3.2,
+      },
+      {
+        id: 'garden-to-grotto',
+        to: 'grotto',
+        toSpawn: 'fromGarden',
+        position: [6, 0, -9.95], // -Z, through the gap in the north hedge
+        rotationY: Math.PI,
+        label: 'duck into the grotto',
+        radius: 3.2,
+      },
+      {
+        id: 'garden-to-bamboo',
+        to: 'bamboo',
+        toSpawn: 'fromGarden',
+        position: [-5, 0, 9.95], // +Z — the stone LION moon-gate
+        rotationY: 0,
+        label: 'step through the lion gate',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'grotto',
+    kind: 'grotto',
+    title: 'The Grotto',
+    // A small dark cave — tight on purpose (the mouth's glow is the whole show).
+    dims: { halfW: 7, halfD: 7, height: 5, eye: EYE },
+    // Near-black cool dark; close fog so the rock dissolves fast, while the
+    // unlit "outside" planes at the mouth burn bright through it.
+    palette: { background: '#141210', fog: '#191713', fogNear: 5, fogFar: 30 },
+    // A musicRoom: the waterfall hush + echoey drips own the space.
+    musicRoom: true,
+    spawns: {
+      // Arrive just inside, facing -Z at the glowing mouth (the photo's view).
+      default: { position: [0, EYE, 2.45], yaw: Math.PI },
+      fromGarden: { position: [0, EYE, 2.45], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'grotto-to-garden',
+        to: 'garden',
+        toSpawn: 'fromGrotto',
+        position: [0, 0, 6.95], // +Z — back out into the light
+        rotationY: 0,
+        label: 'back out to the garden',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'bamboo',
+    kind: 'bamboo',
+    title: 'The Bamboo Grove',
+    dims: { halfW: 9, halfD: 9, height: 8, eye: EYE },
+    // Dappled green everywhere — the grove closes around you (nearer fog than
+    // the open garden), gold-green light through the culms.
+    palette: { background: '#86b26c', fog: '#9cc37d', fogNear: 8, fogFar: 48 },
+    // A musicRoom: wind in the leaves + the shishi-odoshi keeping time (klok).
+    musicRoom: true,
+    spawns: {
+      // Step out of the moon-gate at the -Z edge, facing +Z into the stand.
+      default: { position: [0, EYE, -4.45], yaw: 0 },
+      fromGarden: { position: [0, EYE, -4.45], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'bamboo-to-garden',
+        to: 'garden',
+        toSpawn: 'fromBamboo',
+        position: [0, 0, -8.95], // -Z — back through the lion gate
+        rotationY: Math.PI,
+        label: 'back through the lion gate',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'tubes',
+    kind: 'tubes',
+    title: 'The Tubes',
+    // A soft, enclosed PlayPlace warren — walls close (nearer fog), padded floor.
+    dims: { halfW: 8, halfD: 8, height: 6, eye: EYE },
+    // Warm plastic dusk: a green-tinged glow, the translucent tubes catching light.
+    palette: { background: '#3b6b52', fog: '#4a7d60', fogNear: 7, fogFar: 40 },
+    // A musicRoom: soft squeaky-tube bloops own the space (see TubesRoom).
+    musicRoom: true,
+    spawns: {
+      // You SLID in: land at the -Z end, facing +Z into the warren toward the
+      // ball pit + the crawl-out mouth. Clear of the +Z exit door radius.
+      default: { position: [0, EYE, -5], yaw: 0 },
+      fromSlide: { position: [0, EYE, -5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'tubes-to-garden',
+        to: 'garden',
+        toSpawn: 'fromTubes',
+        position: [0, 0, 7.95], // +Z — the crawl-out tube mouth back to the garden
+        rotationY: 0,
+        label: 'crawl back out to the garden',
         radius: 3.2,
       },
     ],
@@ -373,6 +527,11 @@ export const SURFACE_ROOMS: Room[] = [
       // NORTH PARK sign. Clear of the +Z gate back to the zoo.
       default: { position: [0, EYE, 4.5], yaw: Math.PI },
       fromZoo: { position: [0, EYE, 4.5], yaw: Math.PI },
+      // Back out of the old venue: by the -X door, angled up the street so the
+      // zoo gate isn't dead ahead.
+      fromTurtle: { position: [-5.45, EYE, 2], yaw: Math.PI / 2 - 0.3 },
+      // Back off Main Street: by the +X corner, facing -X back onto the block.
+      fromMainstreet: { position: [5.45, EYE, -2], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -382,6 +541,172 @@ export const SURFACE_ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z — back to the zoo gate
         rotationY: 0,
         label: 'back to the zoo',
+        radius: 3.2,
+      },
+      {
+        id: 'northpark-to-turtle',
+        to: 'turtle',
+        toSpawn: 'fromNorthPark',
+        position: [-9.95, 0, 2], // -X — the dark doorway under the dead marquee
+        rotationY: Math.PI / 2,
+        label: 'slip into the old venue',
+        radius: 3.2,
+      },
+      {
+        id: 'northpark-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromNorthPark',
+        position: [9.95, 0, -2], // +X — the block thins out toward the edge of town
+        rotationY: -Math.PI / 2,
+        label: 'wander down the empty main street',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'turtle',
+    kind: 'turtle',
+    title: 'The Jumping Turtle',
+    // One long dark hall: the bar down one side, the little stage at the far end
+    // under the leaping-turtle sign, the loft over the door. Venue-sized.
+    dims: { halfW: 9, halfD: 10, height: 7, eye: EYE },
+    // Lights long cut: near-black with the old green paint barely holding on;
+    // close fog so the far corners stay swallowed until you walk them.
+    palette: { background: '#0e120e', fog: '#131812', fogNear: 6, fogFar: 36 },
+    // A musicRoom: the room's own ghost-soundcheck owns the space (a hum, a
+    // far-off thump, the sign's buzz) — the carried song politely steps out.
+    musicRoom: true,
+    spawns: {
+      // In through the flyer-crusted double door at the +X end, facing -X down
+      // the hall toward the stage.
+      default: { position: [4.45, EYE, 0], yaw: -Math.PI / 2 },
+      fromNorthPark: { position: [4.45, EYE, 0], yaw: -Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'turtle-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromTurtle',
+        position: [8.95, 0, 0], // +X — back out to the street
+        rotationY: -Math.PI / 2,
+        label: 'back out to the street',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'mainstreet',
+    kind: 'mainstreet',
+    title: 'Main Street',
+    // A long empty small-town street at dead of night. Runs along Z.
+    dims: { halfW: 7, halfD: 10, height: 8, eye: EYE },
+    // Deep sodium-lit night: near-black blue, a warm lamp-glow haze, close-ish fog
+    // so the far end of the street stays swallowed (the liminal emptiness).
+    palette: { background: '#0c1020', fog: '#141a2e', fogNear: 8, fogFar: 46 },
+    // A musicRoom: a low night hum + a lone cricket + the traffic light's tick
+    // own the space (see MainStreetRoom). Eerie-warm, never a scare.
+    musicRoom: true,
+    spawns: {
+      // Arrive at the +Z end (off the North Park corner), facing -Z down the dark
+      // street toward the diner's glow. Clear of the +Z gate back to the block.
+      default: { position: [0, EYE, 6.5], yaw: Math.PI },
+      fromNorthPark: { position: [0, EYE, 6.5], yaw: Math.PI },
+      // Back out of the diner: by the -X door, facing +X back onto the street.
+      fromDiner: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'mainstreet-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromMainstreet',
+        position: [0, 0, 9.95], // +Z — back toward the North Park block
+        rotationY: 0,
+        label: 'back toward the block',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreet-to-diner',
+        to: 'diner',
+        toSpawn: 'fromMainstreet',
+        position: [-6.95, 0, -2], // -X — the only lit doorway on the street
+        rotationY: Math.PI / 2,
+        label: 'step into the all-night diner',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'diner',
+    kind: 'diner',
+    title: 'The All-Night Diner',
+    dims: { halfW: 8, halfD: 7, height: 5, eye: EYE },
+    // Warm but wrong: amber diner light held close by dark fog — cozy, a little
+    // too still (the animal heads watching from the wall).
+    palette: { background: '#1a1206', fog: '#241a0c', fogNear: 7, fogFar: 34 },
+    // A musicRoom: a fridge hum, a ceiling-fan tick, the sign's neon buzz.
+    musicRoom: true,
+    spawns: {
+      // In the door at the +X end, facing -X across the counter into the booths.
+      default: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
+      fromMainstreet: { position: [3.45, EYE, 0], yaw: -Math.PI / 2 },
+      // Back out of the kitchen: by the -Z swing door, facing +Z into the room.
+      fromKitchen: { position: [-3, EYE, -3.5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'diner-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromDiner',
+        position: [7.95, 0, 0], // +X — back out onto Main Street
+        rotationY: -Math.PI / 2,
+        label: 'back out onto the street',
+        radius: 3.2,
+      },
+      {
+        id: 'diner-to-kitchen',
+        to: 'kitchen',
+        toSpawn: 'fromDiner',
+        position: [-3, 0, -6.95], // -Z swing door behind the counter — "the kitchen"
+        rotationY: 0,
+        label: 'through to the kitchen',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'mainstreetday',
+    kind: 'mainstreet',
+    title: 'Main Street',
+    // The SAME street as `mainstreet`, but the kitchen's back door drops you out
+    // here at a hazy, overexposed, just-as-empty NOON — the liminal day/night
+    // flip (MainStreetRoom renders the day variant off this id).
+    dims: { halfW: 7, halfD: 10, height: 8, eye: EYE },
+    // Overexposed noon: pale near-white sky, soft far haze.
+    palette: { background: '#c8d2d6', fog: '#d8e0e2', fogNear: 13, fogFar: 78 },
+    musicRoom: true,
+    spawns: {
+      // Step out of the kitchen's back door onto the -X sidewalk, facing +X into
+      // the sunstruck empty street.
+      default: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+      fromKitchen: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+    },
+    doors: [
+      {
+        id: 'mainstreetday-to-kitchen',
+        to: 'kitchen',
+        toSpawn: 'fromMainstreetDay',
+        position: [-6.95, 0, -2], // -X — back in the kitchen's back door
+        rotationY: Math.PI / 2,
+        label: 'back in the kitchen door',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreetday-to-northpark',
+        to: 'northpark',
+        toSpawn: 'fromMainstreet',
+        position: [0, 0, 9.95], // +Z — up the daylit block, back toward North Park
+        rotationY: 0,
+        label: 'up the block, into the day',
         radius: 3.2,
       },
     ],
