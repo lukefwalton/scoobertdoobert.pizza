@@ -83,6 +83,28 @@ export type RoomKind =
   // plays its own song (Room.song).
   | 'zoo'
   | 'northpark'
+  // The Botanical Garden (植物園) — a lush formal garden off the Park Path:
+  // trimmed hedges, pink-brick paths, seeded-random palms, the verdigris frog
+  // statue with its lily-pad parasol (click → ribbit; a nat 20 winks +1 luck),
+  // and a fast-food play-place TUBE SLIDE you actually ride (walk into the
+  // mouth → the camera is carried through the corkscrew; points per ride).
+  // Pure surface sweetness (taste-safe); a musicRoom — birdsong, breeze, and a
+  // distant bullfrog own the space.
+  | 'garden'
+  // The Grotto (洞窟) — the little cave behind the garden's north hedge: dark
+  // boulders inside, the mouth framing bright pond water + a waterfall + a palm.
+  // A cool hushed nook (still sweet — below SAFE); echoey drips ("extra reverb").
+  | 'grotto'
+  // The Bamboo Grove (竹林) — through the garden's stone LION moon-gate: a dense
+  // stand of tall bamboo in dappled green light, a stone lantern, and a
+  // shishi-odoshi keeping time (klok). Sweet; a musicRoom (wind + the knocker).
+  | 'bamboo'
+  // The Jumping Turtle — the defunct all-ages pub / music venue off North Park
+  // (San Marcos, where he played in high school). Abandoned-venue register:
+  // flyer-covered doors, a small stage under the leaping-turtle sign, left-behind
+  // concert gear you can still PLAY (the drum kit), a broken CRT that never turns
+  // on. Eerie-WARM nostalgia, never dread — the room remembers the shows.
+  | 'turtle'
   // The Basement Sessions — a recording-studio wing off the practice room (deeper
   // backstage, where the music actually gets MADE). A live room you can PLAY (a
   // drum kit + a keyboard), the control room's mixing desk + tape machines, a tape

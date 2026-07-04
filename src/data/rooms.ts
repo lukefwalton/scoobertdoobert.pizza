@@ -174,6 +174,14 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // top: it's not a descent, it's a stroll out to the beach + park).
   boardwalk: { x: 3, y: 0.3 },
   balboa: { x: 1.4, y: 0 },
+  // The garden wing — west through the hedges off the park path (surface):
+  // the botanical garden, its grotto cave, and the bamboo grove past the
+  // lion moon-gate.
+  garden: { x: 0.2, y: 0.5 },
+  grotto: { x: -1.1, y: 1.1 },
+  bamboo: { x: -1.2, y: 0 },
+  // The Jumping Turtle — the dead all-ages venue down the block in North Park.
+  turtle: { x: 0.4, y: -3.2 },
   oceanview: { x: 2.4, y: 1.1 },
   // moonlight wing — a night→day pair off the +X (east) end of the boardwalk,
   // trailing up and away from the descent (still pure surface).

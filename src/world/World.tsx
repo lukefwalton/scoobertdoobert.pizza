@@ -45,6 +45,10 @@ import { CaliforniaRoom } from './CaliforniaRoom';
 import { TidepoolsRoom } from './TidepoolsRoom';
 import { ZooRoom } from './ZooRoom';
 import { NorthParkRoom } from './NorthParkRoom';
+import { GardenRoom } from './GardenRoom';
+import { GrottoRoom } from './GrottoRoom';
+import { BambooRoom } from './BambooRoom';
+import { TurtleRoom } from './TurtleRoom';
 import { LiveRoom } from './LiveRoom';
 import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
@@ -154,6 +158,10 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   tidepools: (room) => <TidepoolsRoom room={room} />,
   zoo: (room) => <ZooRoom room={room} />,
   northpark: (room) => <NorthParkRoom room={room} />,
+  garden: (room) => <GardenRoom room={room} />,
+  grotto: (room) => <GrottoRoom room={room} />,
+  bamboo: (room) => <BambooRoom room={room} />,
+  turtle: (room) => <TurtleRoom room={room} />,
   // The Basement Sessions — the recording-studio wing (off the practice room).
   liveroom: (room) => <LiveRoom room={room} />,
   controlroom: (room) => <ControlRoom room={room} />,

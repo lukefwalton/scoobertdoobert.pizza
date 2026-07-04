@@ -50,6 +50,20 @@ export const QUESTS: Quest[] = [
     done: (p) => p.radioUnlocked,
   },
   {
+    id: 'ride-slide',
+    label: 'Ride the tube slide',
+    hint: 'Through the hedges off the park path — walk right into the green mouth.',
+    room: 'garden',
+    done: (p) => p.secretsFound.includes('garden-slide'),
+  },
+  {
+    id: 'play-turtle',
+    label: 'Play the Turtle one more time',
+    hint: 'The old venue off North Park — step up to the mic where the stage was.',
+    room: 'turtle',
+    done: (p) => p.secretsFound.includes('turtle-stage'),
+  },
+  {
     id: 'find-locker-key',
     label: 'Pocket the rusted key',
     hint: 'It rests on the poolrooms deck — then find the door it opens.',

@@ -64,6 +64,14 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a half-buried Walkman still warm. He caught Guillain-Barré at USC — lost his sight and his guitar hands for months, and clawed all the way back.',
   balboa:
     'a brass plaque by the path. “Walking Balboa” strolls this exact park — San Diego’s Balboa, the one in his backyard, organ pavilion and all.',
+  garden:
+    'a lily pad tipped like an umbrella. In Japanese the frog is 蛙 — kaeru — which also means “to return home.” That’s why he keeps the door open; you always come back.',
+  grotto:
+    'the cave answers you back a half-second late. Of course there’s a grotto behind the garden — the menu always promised a choice of toppings and even more reverb.',
+  bamboo:
+    'the knocker fills, tips, and cracks against its stone — 鹿威し, the deer-scarer. The lion on the gate outside insists, loudly, that it’s called a shishi-odoshi after him. 獅子.',
+  turtle:
+    'a set list still taped to the monitor wedge. The Jumping Turtle, San Marcos — all ages. He played this room in high school; if you stand where the stage was, it remembers.',
   moonlight:
     'a string of bulbs swaying over the floor. “Dancing in the Moonlight” was cut the way he cuts everything — every part himself, after dark.',
   bestday:
