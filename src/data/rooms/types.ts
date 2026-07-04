@@ -105,6 +105,15 @@ export type RoomKind =
   // stand of tall bamboo in dappled green light, a stone lantern, and a
   // shishi-odoshi keeping time (klok). Sweet; a musicRoom (wind + the knocker).
   | 'bamboo'
+  // Main Street — a liminal small-town-America street off North Park at dead of
+  // night: dark storefronts, a lone blinking traffic light, empty sidewalks, a
+  // flickering lamp. Eerie-WARM (the uncanny of an empty hometown, never a
+  // scare). A door leads into the diner.
+  | 'mainstreet'
+  // The Diner — an all-night small-town diner off Main Street: counter + stools,
+  // booths, a pie case, checker floor, buzzing sign — and a row of low-poly
+  // TAXIDERMY animal heads that watch the room. Warm-uncanny (funny, not grim).
+  | 'diner'
   // The Jumping Turtle — the defunct all-ages pub / music venue off North Park
   // (San Marcos, where he played in high school). Abandoned-venue register:
   // flyer-covered doors, a small stage under the leaping-turtle sign, left-behind
