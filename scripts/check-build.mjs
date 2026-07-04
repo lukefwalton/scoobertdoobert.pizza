@@ -255,10 +255,16 @@ if (linksManifest && !existsSync(manifestFile)) {
   failed++;
 } else if (existsSync(manifestFile)) {
   const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
-  // Fail closed: a manifest with no icons is a broken install surface, not a pass.
-  if (icons.length === 0) {
-    console.error(`  x ${manifestFile} declares no icons — installability needs a square icon`);
-    failed++;
+  // Fail closed: a manifest with no icons is a broken install surface, not a pass. And
+  // lock in the canonical PWA install set — a future manifest that dropped 192/512
+  // (or shrank to a token 32×32) would pass "valid square PNG" checks while quietly
+  // breaking installability, which is the whole point of this guard.
+  const declaredSizes = new Set(icons.map((i) => i.sizes));
+  for (const need of ['192x192', '512x512']) {
+    if (!declaredSizes.has(need)) {
+      console.error(`  x ${manifestFile} is missing the required ${need} install icon`);
+      failed++;
+    }
   }
   for (const icon of icons) {
     const file = 'dist' + icon.src;
