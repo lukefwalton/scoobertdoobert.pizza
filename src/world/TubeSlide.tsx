@@ -124,6 +124,11 @@ export function TubeSlide() {
   const pos = useRef(new THREE.Vector3());
   const look = useRef(new THREE.Vector3());
   const prev = useRef(new THREE.Vector3());
+  // The slide is a coin flip: about half the time it WARPS you down into the
+  // hidden tube warren; the rest it just loops you back out into the garden with
+  // a "care to ride again?" nudge. A debug hook can force the next outcome so the
+  // smoke can drive both branches deterministically.
+  const forcedWarp = useRef<boolean | null>(null);
 
   const startRide = () => {
     if (isRiding()) return;
@@ -139,7 +144,6 @@ export function TubeSlide() {
     whistle.current?.stop();
     whistle.current = null;
     setRiding(false);
-    handOffHeading(exitYaw, exitPitch);
     rides.current += 1;
     // The landing "boing" — a quick down-up pair through the shared bell engine
     // (mute-aware + limited like every other one-shot).
@@ -161,15 +165,36 @@ export function TubeSlide() {
       prog.gainLuck(2);
       announce('the slide approves — +2 LUCK', 'luck');
     }
-    exposeTestGlobal('__sdpSlide', { rides: rides.current, riding: false });
+    // The coin flip: WARP down into the tube warren, or loop back out here. The
+    // forced override (debug) wins; otherwise ~50/50.
+    const warp = forcedWarp.current ?? Math.random() < 0.5;
+    forcedWarp.current = null;
+    exposeTestGlobal('__sdpSlide', { rides: rides.current, riding: false, warped: warp });
+    if (warp) {
+      // down the rabbit-tube: a wipe into the hidden PlayPlace warren.
+      useSceneStore.getState().goToRoom('tubes', 'fromSlide');
+    } else {
+      // spat back out into the garden: keep the exit heading (yaw+pitch, so no
+      // snap) and nudge — the slide is a "maybe" you can try again.
+      handOffHeading(exitYaw, exitPitch);
+      announce('↺ the slide loops you back out — care to ride again?', 'info');
+    }
   };
 
   // Deterministic ride hook for the smoke (ACTION → the narrower ?debug gate:
   // it scores points + can bank luck, so it must never ride on plain ?world).
   useEffect(() => {
-    if (isDebugEntrance()) exposeTestGlobal('__sdpRideSlide', () => startRide());
+    if (isDebugEntrance()) {
+      exposeTestGlobal('__sdpRideSlide', () => startRide());
+      // Force the NEXT ride's coin flip (true = warp to the tubes, false = loop
+      // back), so the smoke can drive both branches without flaking on Math.random.
+      exposeTestGlobal('__sdpForceSlideWarp', (v: boolean | null) => {
+        forcedWarp.current = v;
+      });
+    }
     return () => {
       exposeTestGlobal('__sdpRideSlide', undefined);
+      exposeTestGlobal('__sdpForceSlideWarp', undefined);
       exposeTestGlobal('__sdpSlide', undefined);
       // Unmount mid-ride (door smoke-hook / world exit): never leave the world frozen.
       if (isRiding()) setRiding(false);

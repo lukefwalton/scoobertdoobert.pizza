@@ -111,64 +111,73 @@ if (!(await holdUntilDoorPrompt(page, 's', { timeout: 10000 })))
 await page.keyboard.press('e');
 const backFromGrotto = await roomIs('The Botanical Garden');
 
-// 5) THE SLIDE RIDE (deterministic hook — the walk-in trigger is the same
-//    startRide the hook calls). The ride must take over, run its course, and
-//    end with the ride counted; input is frozen while riding. The hook is
-//    (re)registered in TubeSlide's mount effect, which flushes AFTER the room
-//    label flips on the way back from the grotto — wait for it, don't race it.
-const hookReady = await page
-  .waitForFunction(() => typeof window.__sdpRideSlide === 'function', { timeout: 5000 })
-  .then(
-    () => true,
-    () => false,
-  );
-const rideStarted =
-  hookReady &&
-  (await page.evaluate(() => {
+// THE SLIDE RIDE is a coin flip: ~half the time it WARPS you into the hidden
+// tube warren, the rest it loops you back out with a "care to ride again?" nudge.
+// A debug hook forces the outcome so we can drive both branches deterministically.
+// Ride the slide, forcing `warp`, and return the run's `warped` flag once it ends.
+const rideSlide = async (warp) => {
+  await page.waitForFunction(() => typeof window.__sdpRideSlide === 'function', { timeout: 5000 });
+  await page.evaluate((w) => window.__sdpForceSlideWarp(w), warp);
+  const started = await page.evaluate(() => {
     window.__sdpRideSlide();
     return window.__sdpSlide?.riding === true;
-  }));
-if (!rideStarted) bad('the tube slide ride did not start (no hook / not riding)');
-const rideDone = await page
+  });
+  if (!started) return { started: false, warped: null };
+  const h = await page.waitForFunction(
+    () =>
+      window.__sdpSlide && window.__sdpSlide.riding === false
+        ? { w: window.__sdpSlide.warped }
+        : null,
+    { timeout: 9000 },
+  );
+  return { started: true, warped: (await h.jsonValue()).w };
+};
+
+// 5) LOOP-BACK branch: force no-warp — the ride runs but leaves you in the garden
+//    with the "ride again?" toast (not the tubes).
+const loop = await rideSlide(false);
+if (!loop.started) bad('the tube slide ride did not start (loop-back)');
+if (loop.warped !== false) bad('forced loop-back still warped away');
+const stillGarden = await roomIs('The Botanical Garden');
+if (!stillGarden) bad('loop-back ride left the garden');
+const rideAgainToast = await page
   .waitForFunction(
-    () => window.__sdpSlide && window.__sdpSlide.riding === false && window.__sdpSlide.rides >= 1,
-    {
-      timeout: 9000,
-    },
+    () => /ride again/i.test(document.querySelector('.hud-toast')?.textContent || ''),
+    { timeout: 3000 },
   )
   .then(
     () => true,
     () => false,
   );
-if (!rideDone) bad('the tube slide ride never finished (rides did not count)');
+if (!rideAgainToast) bad('no "care to ride again?" nudge on the loop-back');
 await page.screenshot({ path: '.shots/garden-slide.png' });
 
-// 5b) Enter the slide WHILE MID-HOP (the review-flagged edge): jump, then start
-//     the ride mid-air. The ride must still complete and leave the camera at a
-//     sane height — the frozen hop arc must NOT resume and fling the camera (the
-//     hop-clear-on-handoff fix). Wait for the hook to re-arm after the last ride.
+// 6) WARP branch: force warp — the ride DROPS you into the hidden tube warren.
+const warp = await rideSlide(true);
+if (warp.warped !== true) bad('forced warp did not warp');
+const inTubes = await roomIs('The Tubes');
+await page.waitForTimeout(1500); // the warren + ball pit settle
+await page.screenshot({ path: '.shots/tubes.png' });
+// crawl back out to the garden (the +Z tube mouth is straight ahead of the spawn).
+if (!(await holdUntilDoorPrompt(page, 'w', { timeout: 10000 })))
+  bad('tube-mouth prompt never appeared crawling out of the tubes');
+await page.keyboard.press('e');
+const backFromTubes = await roomIs('The Botanical Garden');
+
+// 6b) Enter the slide WHILE MID-HOP (the review-flagged edge), forcing loop-back
+//     so we stay in the garden to check it: the frozen hop arc must NOT resume
+//     and fling the camera (the hop-clear-on-handoff fix).
 await page.waitForFunction(() => typeof window.__sdpRideSlide === 'function', { timeout: 5000 });
 await page.keyboard.press(' '); // launch a hop
 await page.waitForTimeout(120); // now airborne, mid-arc
-await page.evaluate(() => window.__sdpRideSlide());
-const ride2Done = await page
-  .waitForFunction(
-    () => window.__sdpSlide && window.__sdpSlide.riding === false && window.__sdpSlide.rides >= 2,
-    {
-      timeout: 9000,
-    },
-  )
-  .then(
-    () => true,
-    () => false,
-  );
-if (!ride2Done) bad('the mid-hop slide ride never finished');
+const midRide = await rideSlide(false);
+if (!midRide.started) bad('the mid-hop slide ride did not start');
 await page.waitForTimeout(300);
 const exitY = await page.evaluate(() => window.__sdpCam?.y ?? 0);
 if (exitY > 3.4)
   bad(`camera flung high after a mid-hop ride (y=${exitY.toFixed(2)}) — stale hop arc resumed`);
 
-// 6) The bamboo grove past the lion gate. IN via the debug teleport (one hop),
+// 7) The bamboo grove past the lion gate. IN via the debug teleport (one hop),
 //    BACK by walking the real bamboo→garden edge.
 await page.evaluate(() => window.__sdpGoToRoom?.('bamboo', 'fromGarden'));
 const inBamboo = await roomIs('The Bamboo Grove');
@@ -182,8 +191,9 @@ const backFromBamboo = await roomIs('The Botanical Garden');
 console.log(
   `garden -> park=${startPark} jump=${rose && landed} uiSpace=${!hoppedFromUi} ` +
     `garden=${inGarden} frog=${frogOk} grotto=${inGrotto}/${backFromGrotto} ` +
-    `slide=${rideDone} midHopRide=${ride2Done} bamboo=${inBamboo}/${backFromBamboo} ` +
-    `errors=${failures()}`,
+    `slideLoop=${loop.warped === false && stillGarden && rideAgainToast} ` +
+    `slideWarp=${warp.warped === true && inTubes} tubesBack=${backFromTubes} ` +
+    `midHopRide=${midRide.started} bamboo=${inBamboo}/${backFromBamboo} errors=${failures()}`,
 );
 
 await ctx.close();

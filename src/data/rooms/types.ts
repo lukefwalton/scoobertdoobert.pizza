@@ -91,6 +91,12 @@ export type RoomKind =
   // Pure surface sweetness (taste-safe); a musicRoom — birdsong, breeze, and a
   // distant bullfrog own the space.
   | 'garden'
+  // The Tubes (チューブ) — a hidden PlayPlace crawl-warren the garden's tube slide
+  // DROPS you into (the ride is the entrance): translucent green tube walls,
+  // bubble portholes of coloured light, a padded floor, and a low-poly BALL PIT
+  // payoff. Sweet + nostalgic (below SAFE); a musicRoom (soft bloops). A tube
+  // mouth crawls back out to the garden.
+  | 'tubes'
   // The Grotto (洞窟) — the little cave behind the garden's north hedge: dark
   // boulders inside, the mouth framing bright pond water + a waterfall + a palm.
   // A cool hushed nook (still sweet — below SAFE); echoey drips ("extra reverb").

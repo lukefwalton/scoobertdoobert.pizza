@@ -183,6 +183,10 @@ export const SURFACE_ROOMS: Room[] = [
       fromGrotto: { position: [5.5, EYE, -5.45], yaw: -0.25 },
       // Back through the lion moon-gate (+Z, x=-5), facing -Z into the garden.
       fromBamboo: { position: [-5, EYE, 5.45], yaw: Math.PI },
+      // Crawled back out of the tube warren: a step clear of the slide mouth
+      // (well outside its ~1.35 re-trigger reach), facing +Z into the garden so
+      // you don't immediately slide again.
+      fromTubes: { position: [-1, EYE, -2], yaw: 0 },
     },
     doors: [
       {
@@ -265,6 +269,34 @@ export const SURFACE_ROOMS: Room[] = [
         position: [0, 0, -8.95], // -Z — back through the lion gate
         rotationY: Math.PI,
         label: 'back through the lion gate',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'tubes',
+    kind: 'tubes',
+    title: 'The Tubes',
+    // A soft, enclosed PlayPlace warren — walls close (nearer fog), padded floor.
+    dims: { halfW: 8, halfD: 8, height: 6, eye: EYE },
+    // Warm plastic dusk: a green-tinged glow, the translucent tubes catching light.
+    palette: { background: '#3b6b52', fog: '#4a7d60', fogNear: 7, fogFar: 40 },
+    // A musicRoom: soft squeaky-tube bloops own the space (see TubesRoom).
+    musicRoom: true,
+    spawns: {
+      // You SLID in: land at the -Z end, facing +Z into the warren toward the
+      // ball pit + the crawl-out mouth. Clear of the +Z exit door radius.
+      default: { position: [0, EYE, -5], yaw: 0 },
+      fromSlide: { position: [0, EYE, -5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'tubes-to-garden',
+        to: 'garden',
+        toSpawn: 'fromTubes',
+        position: [0, 0, 7.95], // +Z — the crawl-out tube mouth back to the garden
+        rotationY: 0,
+        label: 'crawl back out to the garden',
         radius: 3.2,
       },
     ],

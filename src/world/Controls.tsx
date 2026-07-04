@@ -64,6 +64,7 @@ export function Controls() {
     hopVy.current = 0;
     airJumps.current = 0;
     spaceWasDown.current = false;
+    takeHeading(); // drain any pending scripted heading so it can't leak across a room change
     // Apply the heading NOW, not just in useFrame() — useFrame returns early
     // while `transitioning`, so without this the camera would keep its old
     // facing through the whole fade-in and snap to the spawn heading only when

@@ -526,8 +526,16 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
     **pizza points through the loot combo path** (rides chain the combo) and the
     first ride banking a durable secret + luck ("Ride the tube slide" is a new
     pause-menu objective). The ride freezes world input (`rideState` →
-    `inputFrozen`) and hands its exit heading back to Controls (`cameraRig`) so
-    there's no snap-back. A `musicRoom` (birdsong / breeze / a distant bullfrog).
+    `inputFrozen`). **It's a COIN FLIP (Luke): ~half the time it WARPS you down
+    into the hidden tube warren (below), the rest it loops you back out into the
+    garden with a "↺ care to ride again?" nudge** (the loop-back keeps its exit
+    heading via `cameraRig`, so no snap; a `?debug` hook forces the outcome for
+    the smoke). A `musicRoom` (birdsong / breeze / a distant bullfrog).
+  - **The Tubes (チューブ):** the hidden PlayPlace crawl-warren the slide drops you
+    into — translucent green tube tunnels arcing overhead, glowing bubble
+    portholes, a low-poly BALL PIT, scattered pizza-point loot, first-drop luck.
+    Pure nostalgia (below SAFE); a `musicRoom` (soft rubbery bloops). A +Z tube
+    mouth crawls back out to the garden.
     The slide geometry is built **programmatically** (`buildPath`: a swallow leg
     + a ¾-turn descending helix around an explicit tower) so the tube can't
     self-intersect into a blob — replaced a hand-authored path that did.
