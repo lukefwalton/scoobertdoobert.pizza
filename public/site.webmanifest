@@ -1,0 +1,18 @@
+{
+  "name": "Scoobert Doobert — Electronic Pizza Storefront",
+  "short_name": "Scoobert",
+  "description": "A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/PIZZA.png",
+      "sizes": "479x470",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
