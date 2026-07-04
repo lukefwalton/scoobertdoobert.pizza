@@ -89,39 +89,56 @@ export function MainStreetRoom({ room }: { room: Room }) {
   }, [W, D]);
 
   // ── ambient + the slow blinks ───────────────────────────────────────────
+  // The bed is time-of-day aware: NIGHT is a low hum + a lone cricket + the
+  // caution light's tick; DAY swaps to a hazy, quiet noon — a lazy cicada drone
+  // + the odd bird, no cricket, no night hum (a true day flip, not half-night).
   const amber = useRef(0);
-  const night = useRef(2.0);
-  const cricket = useRef(3.5);
+  const bedA = useRef(2.0); // night hum / day cicada bed
+  const bedB = useRef(3.5); // cricket / bird
   useEffect(() => {
     audio.unlock();
-    audio.playColony(noteToFreq('E', 1), 0, 0.05); // the low night hum, straight away
-  }, []);
+    audio.playColony(noteToFreq(day ? 'A' : 'E', day ? 2 : 1), 0, 0.05); // set the tone at once
+  }, [day]);
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
-    // caution light: a slow amber blink (~0.7s on/off), a gentle fade not a strobe
-    const blink = (Math.sin(t * 4.4) + 1) / 2; // ~0.7Hz, smooth
+    // the caution light still blinks by day (realistic) but the streetlamp only
+    // reads at night — leave the lamp bulb steady/off in daylight.
+    const blink = (Math.sin(t * 4.4) + 1) / 2; // ~0.7Hz, smooth (WCAG-safe)
     amberMat.color.setRGB(0.16 + blink * 0.72, 0.1 + blink * 0.5, 0.04 + blink * 0.06);
-    // streetlamp: a faint uneasy brightness wobble (never off)
-    const wob = 0.82 + Math.sin(t * 2.3) * 0.06 + Math.sin(t * 7.1) * 0.03;
-    lampMat.color.setRGB(0.94 * wob, 0.84 * wob, 0.6 * wob);
+    if (!day) {
+      const wob = 0.82 + Math.sin(t * 2.3) * 0.06 + Math.sin(t * 7.1) * 0.03;
+      lampMat.color.setRGB(0.94 * wob, 0.84 * wob, 0.6 * wob);
+    }
 
     const sc = useSceneStore.getState();
     if (sc.paused || sc.transitioning) return;
     const dt = Math.min(delta, 0.05);
     amber.current -= dt;
     if (amber.current <= 0) {
-      audio.playChime(noteToFreq('C', 3), 0.3, 0.03, 0.2); // the light's soft tick
+      audio.playChime(noteToFreq('C', 3), 0.3, 0.03, 0.2); // the light's soft tick (both)
       amber.current = 1.4;
     }
-    night.current -= dt;
-    if (night.current <= 0) {
-      audio.playColony(noteToFreq(Math.random() < 0.5 ? 'E' : 'B', 1), 0, 0.045);
-      night.current = 8 + Math.random() * 5;
+    bedA.current -= dt;
+    if (bedA.current <= 0) {
+      // night: the low hum; day: a lazy cicada drone up an octave
+      audio.playColony(
+        noteToFreq(day ? 'A' : Math.random() < 0.5 ? 'E' : 'B', day ? 2 : 1),
+        0,
+        0.045,
+      );
+      bedA.current = day ? 5 + Math.random() * 3 : 8 + Math.random() * 5;
     }
-    cricket.current -= dt;
-    if (cricket.current <= 0) {
-      audio.playChime(noteToFreq('B', 6), (Math.random() - 0.5) * 1.8, 0.03, 0.3); // a lone cricket
-      cricket.current = 4 + Math.random() * 6;
+    bedB.current -= dt;
+    if (bedB.current <= 0) {
+      if (day) {
+        // a distant midday bird, panned
+        audio.playChime(noteToFreq('E', 6), (Math.random() - 0.5) * 1.6, 0.03, 0.28);
+        window.setTimeout(() => audio.playChime(noteToFreq('C', 6), 0, 0.025, 0.3), 130);
+        bedB.current = 5 + Math.random() * 5;
+      } else {
+        audio.playChime(noteToFreq('B', 6), (Math.random() - 0.5) * 1.8, 0.03, 0.3); // a lone cricket
+        bedB.current = 4 + Math.random() * 6;
+      }
     }
   });
 
@@ -230,10 +247,13 @@ export function MainStreetRoom({ room }: { room: Room }) {
         </group>
       ))}
 
-      {/* the diner's warm doorway glow on the -X wall (marks the way in) */}
-      <mesh material={glowMat} position={[-W + 0.15, 1.4, -2]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[2.0, 2.8]} />
-      </mesh>
+      {/* the diner's warm doorway glow on the -X wall (marks the way in) — a
+          NIGHT tell only; by day the doorway is just a dark opening */}
+      {!day && (
+        <mesh material={glowMat} position={[-W + 0.15, 1.4, -2]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[2.0, 2.8]} />
+        </mesh>
+      )}
 
       {/* the sky cap so you don't see out the top into void — dark at night, a
           flat overexposed haze by day */}

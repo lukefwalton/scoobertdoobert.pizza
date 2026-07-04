@@ -7,7 +7,7 @@ import { useHeadingStore } from '../state/headingStore';
 import { useScoreStore } from '../state/scoreStore';
 import { useProgressStore } from '../state/progressStore';
 import { JUMP_SECRET, DOUBLEJUMP_SECRET } from '../data/abilities';
-import { isTestEntrance } from '../lib/testHooks';
+import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 import { takeHeading } from './cameraRig';
 
@@ -65,6 +65,9 @@ export function Controls() {
     airJumps.current = 0;
     spaceWasDown.current = false;
     takeHeading(); // drain any pending scripted heading so it can't leak across a room change
+    // Expose the current room id for smokes that need to tell same-titled rooms
+    // apart (e.g. the night vs day Main Street, both titled "Main Street").
+    exposeTestGlobal('__sdpRoom', currentRoom);
     // Apply the heading NOW, not just in useFrame() — useFrame returns early
     // while `transitioning`, so without this the camera would keep its old
     // facing through the whole fade-in and snap to the spawn heading only when

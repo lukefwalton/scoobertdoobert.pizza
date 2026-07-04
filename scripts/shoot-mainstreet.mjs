@@ -59,12 +59,21 @@ if (!(await holdUntilDoorPrompt(page, 'w', { timeout: 10000 })))
   bad('back-door prompt never appeared walking -Z across the kitchen');
 await page.keyboard.press('e');
 const inDay = await roomIs('Main Street');
+// Both variants are titled "Main Street" — prove it's the DAY room specifically
+// (not that the back door accidentally looped to the night street).
+const isDayRoom = await page
+  .waitForFunction(() => window.__sdpRoom === 'mainstreetday', { timeout: 4000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (!isDayRoom) bad('kitchen back door did not land in mainstreetday (the day variant)');
 await page.waitForTimeout(1600); // the noon haze settles
 await page.screenshot({ path: '.shots/mainstreet-day.png' });
 
 console.log(
   `mainstreet -> np=${startStreet} main=${inMain} diner=${inDiner} ` +
-    `kitchen=${inKitchen} dayFlip=${inDay} errors=${failures()}`,
+    `kitchen=${inKitchen} dayFlip=${inDay && isDayRoom} errors=${failures()}`,
 );
 
 await ctx.close();
