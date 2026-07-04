@@ -1,47 +1,60 @@
 import { useEffect, useState } from 'react';
 
-// The single "can't / shouldn't run the WebGL world" predicate: true on small
-// viewports OR when the user asked for reduced motion. These users descend
-// through the flat era floors but skip the 3D world (and the machine-room CRT),
-// handing off to the /text list instead. Centralized so the gate can't drift
-// between the descent entry (OrderForm), the install (MachineRoomFloor), etc.
+// Two conditions that USED to be OR'd into one "skip the 3D world" gate, now
+// deliberately kept apart — they mean different things:
+//
+//   • SMALL SCREEN — a phone/handheld. The 3D world now RUNS here (on-screen
+//     touch controls), so a small screen is no longer a reason to skip it; it
+//     only decides whether we render the touch HUD.
+//   • REDUCED MOTION — a stated accessibility preference. The world is full of
+//     motion, so we never AUTO-drop a reduced-motion user into it; an entry
+//     point offers an explicit opt-in (MotionConsent) with the flat /text list
+//     as the safe default. The preference is honored again INSIDE the world
+//     (softer motion — see the REDUCED caps in Controls/WorldHud/dread).
+//
+// Centralized so the gate can't drift between the descent entry (OrderForm),
+// the install (MachineRoomFloor), and the trap door.
 const SMALL_SCREEN_QUERY = '(max-width: 768px)';
-const LOW_POWER_QUERIES = [SMALL_SCREEN_QUERY, '(prefers-reduced-motion: reduce)'] as const;
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-/** Imperative read of the *current* state. Safe in event handlers and on the
- *  server (returns false where matchMedia is unavailable). */
-export function isLowPower(): boolean {
+function mediaMatches(query: string): boolean {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return LOW_POWER_QUERIES.some((q) => window.matchMedia(q).matches);
+  return window.matchMedia(query).matches;
 }
+
+/** True when the user asked for reduced motion — the one condition that should
+ *  gate AUTO-entry into the 3D world (offer an opt-in instead). SSR-safe. */
+export function prefersReducedMotion(): boolean {
+  return mediaMatches(REDUCED_MOTION_QUERY);
+}
+
+/** Back-compat alias. "Low power" now means exactly "reduced motion": small
+ *  screens are no longer excluded from the world. Prefer `prefersReducedMotion`
+ *  in new code — this stays only for callers that still read the old name. */
+export const isLowPower = prefersReducedMotion;
 
 /** True on a small TOUCH device — a phone/handheld, not merely a narrow viewport.
- *  The machine-room install uses this to fire the "phones didn't exist in 1996"
- *  desktop-invite gag on real handhelds only: the `pointer: coarse` half keeps a
- *  RESIZED desktop window (narrow but mouse-driven) out of it — that user IS on a
- *  desktop, so they get the plain /text handoff instead of a nonsensical "try
- *  desktop." A handheld that somehow reports a fine pointer just falls back to that
- *  same /text handoff (it's still low-power), so the gate degrades gracefully. */
+ *  Decides whether to render the on-screen touch controls and which install path
+ *  a phone takes. The `pointer: coarse` half keeps a RESIZED desktop window
+ *  (narrow but mouse-driven) out of it — that user is on a desktop and gets the
+ *  normal keyboard/mouse world. A handheld that somehow reports a fine pointer
+ *  just misses the touch HUD but can still descend (its drag-look works). */
 export function isSmallScreen(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
-  return (
-    window.matchMedia(SMALL_SCREEN_QUERY).matches && window.matchMedia('(pointer: coarse)').matches
-  );
+  return mediaMatches(SMALL_SCREEN_QUERY) && mediaMatches('(pointer: coarse)');
 }
 
-/** Reactive hook — re-renders when the viewport crosses the breakpoint or the
- *  reduced-motion setting flips, so render-time gating (e.g. whether to mount
- *  the machine-room CRT) stays in sync instead of freezing at mount time. */
-export function useLowPower(): boolean {
-  const [low, setLow] = useState(isLowPower);
+// A reactive matchMedia hook shared by the exported hooks below: re-renders when
+// the query flips (viewport crossing the breakpoint, reduced-motion toggled), so
+// render-time gating stays in sync instead of freezing at mount. Guards the
+// deprecated addListener/removeListener path for older Safari/iOS (<14) — the
+// very devices the mobile gate exists to serve, so it must never throw there.
+function useMediaQuery(queries: readonly string[], read: () => boolean): boolean {
+  const [value, setValue] = useState(read);
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
-    const mqls = LOW_POWER_QUERIES.map((q) => window.matchMedia(q));
-    const update = () => setLow(isLowPower());
+    const mqls = queries.map((q) => window.matchMedia(q));
+    const update = () => setValue(read());
     update(); // resync in case state changed between first render and effect
-    // Older Safari/iOS (<14) MediaQueryList only has the deprecated
-    // addListener/removeListener — guard so the mobile gate never throws on the
-    // very devices it exists to serve.
     const attach = (m: MediaQueryList) =>
       typeof m.addEventListener === 'function'
         ? m.addEventListener('change', update)
@@ -52,6 +65,18 @@ export function useLowPower(): boolean {
         : m.removeListener(update);
     mqls.forEach(attach);
     return () => mqls.forEach(detach);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  return low;
+  return value;
+}
+
+/** Reactive `prefersReducedMotion()`. */
+export function useReducedMotion(): boolean {
+  return useMediaQuery([REDUCED_MOTION_QUERY], prefersReducedMotion);
+}
+
+/** Reactive `isSmallScreen()` — re-renders when the viewport crosses 768px or the
+ *  pointer type changes, so the touch HUD mounts/unmounts to match. */
+export function useSmallScreen(): boolean {
+  return useMediaQuery([SMALL_SCREEN_QUERY, '(pointer: coarse)'], isSmallScreen);
 }

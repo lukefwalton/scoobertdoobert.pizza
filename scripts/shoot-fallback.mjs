@@ -1,6 +1,12 @@
-// Verifies the step-6 contract: on mobile OR with reduced motion, the descent
-// and 3D are skipped entirely, and Continue just navigates to the flat /text
-// destination list. Fails non-zero if 3D leaks in or the boot card shows.
+// Verifies the mobile/reduced-motion contract AFTER the world went cross-platform:
+//   • MOBILE now runs the full descent (the 3D world at the bottom uses touch
+//     controls), so Continue starts the descent in-page — it no longer shunts to
+//     /arcade, and the 3D world does NOT mount instantly (that's post-install).
+//   • REDUCED MOTION is ASKED, not auto-routed: Continue raises the MotionConsent
+//     gate, which carries a real <a href="/text"> as the safe, motion-free default
+//     and never auto-mounts a canvas.
+// Fails non-zero if the 3D world leaks in early, the boot card shows, or the
+// reduced-motion opt-in/its /text escape hatch is missing.
 import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
@@ -9,8 +15,9 @@ mkdirSync('.shots', { recursive: true });
 
 const { browser, fail, finish, failures } = await launchSmoke();
 
-// --- Mobile: no descent, no 3D — Continue lands in the ARCADE (mobile's reward,
-//     the minigames ARE the mobile experience), not the 3D world. ---
+// --- Mobile: Continue now DESCENDS (the world runs on phones with touch), it no
+//     longer redirects to /arcade. The descent is in-page — a floor marker
+//     appears, the URL stays on '/', and the 3D world hasn't mounted yet. ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -25,27 +32,30 @@ const { browser, fail, finish, failures } = await launchSmoke();
     fail('MOBILE: boot overlay present (should skip on small screens)');
   }
   await page.click('#order-form button[type="submit"]');
-  await page.waitForTimeout(900);
+  const descended = await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!descended) {
+    fail('MOBILE: Continue did not start the descent (the 1999 floor never appeared)');
+  }
   const url = page.url();
-  if (!url.includes('/arcade')) {
-    fail(`MOBILE: Continue did not navigate to /arcade -> ${url}`);
+  if (url.includes('/arcade')) {
+    fail(`MOBILE: Continue wrongly redirected to /arcade -> ${url}`);
   }
-  // The arcade's 2D game canvas is expected; what must NOT appear is the 3D
-  // world (its HUD room label). Distinguish by selector, not by "any canvas".
-  const arcadeCanvas = await page.$('.arcade-canvas');
+  // The 3D world (its HUD room label) must NOT be up at floor 1 — it only mounts
+  // after the machine-room install, several floors down.
   const worldHud = await page.$('.hud-room');
-  if (!arcadeCanvas) {
-    fail('MOBILE: arcade game canvas missing on /arcade');
-  }
   if (worldHud) {
-    fail('MOBILE: the 3D world mounted (should be skipped)');
+    fail('MOBILE: the 3D world mounted at the top of the descent (should be post-install)');
   }
   await page.screenshot({ path: '.shots/fallback-mobile.png', fullPage: true });
-  console.log(`mobile    -> ${url}  arcadeCanvas=${!!arcadeCanvas} worldHud=${!!worldHud}`);
+  console.log(`mobile    -> descended=${descended} url=${url} worldHud=${!!worldHud}`);
   await ctx.close();
 }
 
-// --- Reduced motion (desktop): no boot, no descent, no canvas, Continue -> /text ---
+// --- Reduced motion (desktop): Continue raises the opt-in gate, not a redirect.
+//     No boot, no auto-canvas; the gate carries a real /text escape hatch. ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -58,16 +68,62 @@ const { browser, fail, finish, failures } = await launchSmoke();
     fail('REDUCED: boot card showed (should self-skip)');
   }
   await page.click('#order-form button[type="submit"]');
-  await page.waitForTimeout(900);
+  const gated = await page.waitForSelector('.mcons', { timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!gated) {
+    fail('REDUCED: the motion-consent gate did not appear on Continue');
+  }
   const url = page.url();
+  if (url.includes('/text')) {
+    fail(`REDUCED: Continue auto-navigated instead of asking first -> ${url}`);
+  }
   const canvas = await page.$('canvas');
-  if (!url.includes('/text')) {
-    fail(`REDUCED: Continue did not navigate to /text -> ${url}`);
-  }
   if (canvas) {
-    fail('REDUCED: a 3D canvas appeared (should be skipped)');
+    fail('REDUCED: a 3D canvas appeared (must wait for explicit opt-in)');
   }
-  console.log(`reduced   -> ${url}  boot=${!!boot} canvas=${!!canvas}`);
+  // The safe default is a REAL anchor to /text — follow it to prove it's not a dead end.
+  const textHref = await page.getAttribute('.mcons-text', 'href').catch(() => null);
+  if (textHref !== '/text') {
+    fail(`REDUCED: the gate's text-menu link is not a real /text anchor -> ${textHref}`);
+  }
+  await page.click('.mcons-text');
+  const reachedText = await page.waitForURL('**/text', { timeout: 6000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!reachedText) {
+    fail("REDUCED: the gate's /text escape hatch did not navigate to /text");
+  }
+  console.log(`reduced   -> gated=${gated} textHref=${textHref} reachedText=${reachedText}`);
+  await ctx.close();
+}
+
+// --- Reduced motion, the OPT-IN side: "Enter the world anyway" must actually
+//     start the descent (the consent gate is a real choice, not a soft wall). ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'reduce',
+  });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  await page.click('#order-form button[type="submit"]');
+  await page.waitForSelector('.mcons', { timeout: 3000 }).catch(() => {});
+  await page.click('.mcons-go');
+  const descended = await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!descended) {
+    fail('REDUCED opt-in: "Enter the world anyway" did not start the descent');
+  }
+  const gateGone = (await page.$('.mcons')) === null;
+  if (!gateGone) {
+    fail('REDUCED opt-in: the consent gate stayed up after opting in');
+  }
+  console.log(`reduced+  -> optInDescended=${descended} gateGone=${gateGone}`);
   await ctx.close();
 }
 

@@ -18,7 +18,7 @@ unless the work is genuinely ambiguous.
 |------|------|-------|
 | 1 | Storefront fallback + descent gag + first 3D room | ✅ done |
 | 2 | Data-driven era-floor descent + SGI machine room | ✅ done |
-| 3 | The world grows — rooms graph, rat, the one secret, jukebox | ✅ done (mobile/README tail open) |
+| 3 | The world grows — rooms graph, rat, the one secret, jukebox | ✅ done |
 | 4 | The terminal (hidden command line) | ✅ done |
 | 5 | The dread conductor (`unease` modulation layer) | ✅ built (steps 1–5 live) |
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
@@ -50,7 +50,7 @@ word-art, a corner **CRT showing a live mini-render** of water+boids). The Calzo
 install **relocated here**; on complete the camera pushes through the CRT into the
 beach shop. Lazy three.js throughout.
 
-## ✅ Phase 3 — THE WORLD GROWS (COMPLETE; mobile/README tail open)
+## ✅ Phase 3 — THE WORLD GROWS (COMPLETE)
 The world went from one room to a **graph joined by 3D doors** (`src/data/
 rooms.ts`, three-free). beach shop (`ROOMS[0]`) ⇄ **rat hallway** (3D-Maze brick)
 ⇄ **jukebox room**, with the hidden **classified room** the rat knocks open.
@@ -66,7 +66,14 @@ rooms.ts`, three-free). beach shop (`ROOMS[0]`) ⇄ **rat hallway** (3D-Maze bri
 - ✅ ckpt3 the rat (`src/world/Rat.tsx`, one steering agent — leads, then flees).
 - ✅ ckpt4 the secret (rat knocks a panel → `revealSecret()` → hidden door → the
   X-Files **classified room** of rejected demos).
-- ⬜ **ckpt5 — mobile pass + README** (the open tail of the rooms PR).
+- ✅ **ckpt5 — mobile pass + README.** Closed by the **"make the whole thing work
+  on mobile"** work: the 3D world now runs on phones with on-screen touch controls
+  (`TouchControls` + `touchInput.ts` → the shared `Controls`/`worldActions`), the
+  `lib/lowPower` gate is split so `isSmallScreen()` only picks the touch HUD, and
+  `prefers-reduced-motion` became an opt-in (`MotionConsent`, `/text` as the safe
+  default) instead of a hard `/text` redirect. Also fixed a stray leva default
+  panel that overlapped the ☰ menu button on phones. Covered by `shoot:touch`
+  (drives the world at 390×844) + updated `shoot:descent` / `shoot:fallback`.
 
 ---
 
@@ -432,11 +439,13 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   the floor's light text gains contrast). Verified no horizontal overflow at 390px.
 - ✅ **Mobile "try desktop" gag (`MachineRoomFloor`, PR #77):** on a real handheld
   (`isSmallScreen()` = `≤768px` + `pointer: coarse`), the Calzone Player install pops
-  a period "Setup" error — the plug-in needs a desktop, *pocket phones didn't exist
-  in 1996* — instead of silently dumping to `/text`. It still links onward to `/text`
-  (a real `<a>`, never a dead end — the constitution's rule holds). Accessible modal:
-  focus trap, Escape, backdrop dismiss, focus restore; a resized desktop window (fine
-  pointer) skips it. `shoot:descent` covers both sides of the boundary + every
+  a period "Setup" notice — the plug-in was built for a desktop, *pocket phones didn't
+  exist in 1996*. **UPDATE ("make the whole thing work on mobile"):** now that the 3D
+  world runs on phones, the gag is a **wave-through pre-roll** — its primary button is
+  "Enter the world ▶" (fires the real install), with `/text` kept as the secondary
+  link (a real `<a>`, never a dead end). Accessible modal: focus trap, Escape,
+  backdrop dismiss, focus restore; a resized desktop window (fine pointer) skips it and
+  enters the world directly. `shoot:descent` covers both sides of the boundary + every
   dismissal path.
 - ✅ **"Sign My Guestbook!" — a real anchor, not décor (follow-up PR):** the 1999
   marquee has teased "★ SIGN OUR GUESTBOOK ★" since launch with nowhere to go; the
@@ -658,11 +667,13 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
 ## What's next (planned, as of 2026-06-26)
 Candidate next chunks — no fixed order, pick by appetite (and re-check the SCOPE
 guardrail before anything that adds a place/NPC/system):
-- **Mobile polish sweep.** The era floors are universal, so phones are a first-class
-  surface. Audit every mobile view (storefront, 1999/2000 floors, machine room,
-  `/text`, jukebox, the standalone arcade routes) for other letdowns like the
-  install one — overflow, contrast, tap-target size, the descent flow — and fix
-  them. Screenshot-driven; pairs naturally with a `shoot:*` mobile pass.
+- **Mobile polish sweep.** ✅ Largely done in **"make the whole thing work on
+  mobile"**: the 3D WORLD itself now runs on phones (touch controls), and
+  `shoot:mobile` passes with zero horizontal overflow across every URL-addressable
+  surface (storefront, 1999/2000 floors, `/text`, jukebox, the arcade routes).
+  Still open (nice-to-have): fine-tune the in-world HUD crowding at phone scale
+  (the objective chip / menu button / combo readouts sit close together up top) and
+  add per-room touch-walk coverage beyond the beach shop that `shoot:touch` drives.
 - **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`), the
   **"NEW!" blinky**, and the printed **@-mail envelope** GIF all shipped (above).
   Still open: more **blinkies** on other surfaces, a spinning-globe / flame divider —
@@ -674,8 +685,9 @@ guardrail before anything that adds a place/NPC/system):
   "exploration's reward is sound"
   spine on desktop — another easter-egg, a room touch, or an NPC beat. The biggest
   open backlog (Phase 8 tail) is **further album-themed wings.**
-- **Close the small tails.** The Phase 3 mobile/README note and the Phase 7
-  instruments tail are the loose ends still flagged in the table above.
+- **Close the small tails.** ✅ The Phase 3 mobile/README note is closed (the
+  mobile 3D + touch-controls work above). The Phase 7 instruments tail is the loose
+  end still flagged in the table above.
 - **Tooling DRY — the smoke harness.** ✅ Shipped — the Playwright bootstrap +
   teardown now live in `scripts/lib/smoke.mjs` (`launchSmoke` / `startSmoke` +
   the `fail`/`finish` counter), and every `shoot:*` smoke routes through them. The

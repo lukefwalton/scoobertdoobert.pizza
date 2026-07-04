@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import '../styles/trapdoor.css';
 import { useMounted } from '../lib/useMounted';
-import { useLowPower } from '../lib/lowPower';
+import { useReducedMotion } from '../lib/lowPower';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
@@ -24,10 +24,11 @@ import { rollD20, critLabel, type Crit } from '../lib/luck';
 //     the Calzone installer), so the ceremony IS the loading screen.
 //
 // HARD constraints honored: pure progressive enhancement — useMounted-gated so
-// it's NEVER in the prerendered / JS-off HTML, and desktop + motion-OK only
-// (useLowPower covers mobile + reduced-motion), because it drops you into the
-// 3D world, which is gated off those by construction. It never touches a real
-// link or the crawlable front door; it's an additive, hidden affordance.
+// it's NEVER in the prerendered / JS-off HTML, and hidden under reduced motion
+// (the surprise drop IS motion — a phone gets it, a reduced-motion user must
+// not). Phones now enter the 3D world with touch controls, so the trap door is
+// live there. It never touches a real link or the crawlable front door; it's an
+// additive, hidden affordance.
 // ───────────────────────────────────────────────────────────────────────────
 
 type Phase = 'idle' | 'rolling' | 'dropping' | 'error';
@@ -36,7 +37,7 @@ const ROLL_MS = 1500; // the tumble; long enough to mask the chunk load, short e
 
 export function TrapDoor() {
   const mounted = useMounted();
-  const low = useLowPower();
+  const low = useReducedMotion();
 
   const enterWorld = useSceneStore((s) => s.enterWorld);
   const findSecret = useProgressStore((s) => s.findSecret);
@@ -118,8 +119,8 @@ export function TrapDoor() {
   }, [phase]);
 
   // Gate LAST so the hooks above always run in the same order. Pure progressive
-  // enhancement: nothing here exists in the prerendered HTML, and the whole
-  // affordance is absent on mobile / reduced-motion.
+  // enhancement: nothing here exists in the prerendered HTML, and the affordance
+  // is absent under reduced motion (the drop is motion). Phones keep it.
   if (!mounted || low) return null;
 
   return (

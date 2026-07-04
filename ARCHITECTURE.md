@@ -29,16 +29,18 @@ flowchart TD
   end
   SF -->|"Order Online"| DESC
   DESC -->|"Calzone Player install"| WORLD
-  SF -. mobile + reduced-motion .-> TXT
-  DESC -. mobile + reduced-motion .-> TXT
+  SF -. "reduced-motion: decline opt-in" .-> TXT
+  DESC -. "reduced-motion: decline opt-in" .-> TXT
 ```
 
 - **Layer 0** is prerendered by `vite-react-ssg` and ships **no three.js**. A
   postbuild guard (`scripts/check-build.mjs`) fails the build if `/` or `/text`
   ever lose their real content.
 - **Layer 2** arrives via a dynamic `import()` fired by the fake plug-in install,
-  so the storefront downloads none of it up front. Mobile and
-  `prefers-reduced-motion` never load it — they get the flat `/text` list instead.
+  so the storefront downloads none of it up front. It now loads on phones too
+  (on-screen touch controls). `prefers-reduced-motion` is the one hard gate: an
+  opt-in gate (`MotionConsent`) asks first, with the flat `/text` list as the safe
+  default if declined.
 
 ## Everything is data
 
