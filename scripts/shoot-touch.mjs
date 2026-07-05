@@ -133,6 +133,14 @@ const assertTopHud = (h, where) => {
 const hud = await topHudProbe(page);
 assertTopHud(hud, 'portrait');
 
+// CURSOR: the other half of this fix — a coarse-pointer device must NOT paint the custom
+// /cursor.cur (it surfaced as a stuck "pizza slice" over the HUD, since a touch device has
+// no pointer). global.css resets it to `auto` under @media (pointer: coarse); prove the
+// computed cursor resolved to auto (a desktop would resolve to the url(...cursor.cur)).
+const bodyCursor = await page.evaluate(() => getComputedStyle(document.body).cursor);
+if (bodyCursor !== 'auto')
+  fail(`CURSOR: custom cursor not reset on a coarse-pointer device (body cursor=${bodyCursor})`);
+
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
 let walked = false;
@@ -390,7 +398,21 @@ let hudNarrow;
   );
   if (!mounted) fail('NARROW-DESKTOP: the world/menu button did not mount at 480px (non-touch)');
   await dp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
-  await dp.waitForTimeout(200);
+  // Concrete state wait (repo standard: no fixed sleeps in smokes) — block until the exact
+  // elements this path asserts on exist AND the label has actually collapsed to display:none
+  // under the width breakpoint, instead of sleeping a fixed 200ms and hoping layout settled.
+  await dp
+    .waitForFunction(
+      () => {
+        const obj = document.querySelector('.hud-objective');
+        const score = document.querySelector('.hud-score');
+        const label = document.querySelector('.hud-menu-btn__label');
+        return !!obj && !!score && !!label && getComputedStyle(label).display === 'none';
+      },
+      null,
+      { timeout: 8000 },
+    )
+    .catch(() => {}); // let assertTopHud below produce the precise failure if this never settles
   hudNarrow = await topHudProbe(dp);
   // Same fail-closed contract as the phone: objective present, no overlaps, label collapsed
   // — here driven by the WIDTH arm, not the pointer arm.
@@ -405,7 +427,7 @@ let hudNarrow;
 console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
-    `stickHidesOnPause=${stickGone} realPathStick=${realStick} ` +
+    `stickHidesOnPause=${stickGone} realPathStick=${realStick} cursor=${bodyCursor} ` +
     `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},label=${hud.labelDisplay},menu=${hud.menuWidth}px) ` +
     `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},label=${hudLandscape.labelDisplay},menu=${hudLandscape.menuWidth}px) ` +
     `topHud[narrowDesktop](obj=${hudNarrow.hasObjective},noOverlap=${!hudNarrow.objMenu && !hudNarrow.menuScore && !hudNarrow.objScore},label=${hudNarrow.labelDisplay},menu=${hudNarrow.menuWidth}px) ` +
