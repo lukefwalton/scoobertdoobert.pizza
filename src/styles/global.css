@@ -43,6 +43,22 @@ summary {
   cursor: url('/cursor.cur'), pointer;
 }
 
+/* …but a TOUCH device has no pointer, so the custom cursor is meaningless there and
+   can surface as a stuck sprite over the HUD (the "pizza slice" on the menu button in
+   phone screenshots). Reset it to auto on coarse-pointer devices. */
+@media (pointer: coarse) {
+  body,
+  a,
+  button,
+  input,
+  label,
+  summary,
+  textarea,
+  select {
+    cursor: auto;
+  }
+}
+
 /* Period-accurate link colors. */
 a {
   color: #0000ee;
