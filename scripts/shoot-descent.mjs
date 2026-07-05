@@ -306,11 +306,33 @@ if (!atmailRm)
   fail(
     'the @-mail envelope did not swap to its static twin, or its exact mailto/aria-label contract changed, under reduced motion',
   );
+
+// The machine-room Install under reduced motion raises the SAME MotionConsent
+// opt-in as the order form — a SECOND, independent entry point (it changed apart
+// from the order-form gate, so it gets its own assertion). Descend the last floor
+// and confirm Install → the gate (never an auto-redirect), with its real /text out.
+await rp.click('.floor-door--down');
+const rmMachine = await floor(rp, 'machine');
+let rmInstallGate = false;
+let rmGateTextHref = null;
+if (rmMachine) {
+  await rp.click('.mr__install');
+  rmInstallGate = await rp.waitForSelector('.mcons', { timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!rmInstallGate)
+    fail('reduced-motion machine-room Install did not raise the MotionConsent gate');
+  rmGateTextHref = await rp.getAttribute('.mcons-text', 'href').catch(() => null);
+  if (rmGateTextHref !== '/text')
+    fail(`reduced-motion install gate: /text anchor missing (got ${rmGateTextHref})`);
+}
 await rctx.close();
 
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} ` +
+    `rmInstallGate=${rmInstallGate} rmGateText=${rmGateTextHref} | mobile: noCanvas=${mobileNoCanvas} ` +
     `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowToWorld=${narrowToWorld} | errors=${failures()}`,
 );
 await finish();
