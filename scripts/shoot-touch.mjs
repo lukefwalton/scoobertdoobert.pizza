@@ -14,7 +14,9 @@
 //      the camera drifting after the modal closes,
 //   5. the ☰ menu button opens the pause menu (the always-reachable nav), which
 //      hides the touch HUD,
-//   6. no horizontal overflow in either orientation.
+//   6. no horizontal overflow in either orientation,
+//   7. REAL PATH: a fresh mobile context walks order form → descent → install gag →
+//      "Enter the world" and confirms the touch HUD mounts (the mobile handoff).
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
@@ -87,22 +89,39 @@ if (stick) {
     const r = el.getBoundingClientRect();
     return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
   });
-  const camBefore = await page.evaluate(() => window.__sdpCam);
+  // Stamp the start pose in-page, then poll until the camera has actually traveled
+  // — a STATE wait (walks as long as it needs, up to a cap) rather than a fixed hold.
+  const camBefore = await page.evaluate(() => {
+    window.__t0 = window.__sdpCam ? { ...window.__sdpCam } : null;
+    return window.__t0;
+  });
   await page.mouse.move(box.cx, box.cy);
   await page.mouse.down();
   await page.mouse.move(box.cx, box.cy - 44, { steps: 6 }); // full-forward push
-  await page.waitForTimeout(1400);
+  walked = await page
+    .waitForFunction(
+      () => {
+        const c = window.__sdpCam;
+        const a = window.__t0;
+        return !!(a && c) && Math.hypot(c.x - a.x, c.z - a.z) > 0.15;
+      },
+      null,
+      { timeout: 4000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
   const camMid = await page.evaluate(() => window.__sdpCam);
   await page.mouse.up();
-  if (camBefore && camMid) {
-    const moved = Math.hypot(camMid.x - camBefore.x, camMid.z - camBefore.z);
-    walked = moved > 0.1;
-    if (!walked)
-      fail(
-        `STICK DID NOT WALK: camera barely moved (${moved.toFixed(3)}) ${JSON.stringify(camBefore)} → ${JSON.stringify(camMid)}`,
-      );
-  } else {
-    fail('STICK WALK: __sdpCam not exposed (test entrance regression?)');
+  if (!walked) {
+    const moved =
+      camBefore && camMid ? Math.hypot(camMid.x - camBefore.x, camMid.z - camBefore.z) : 0;
+    fail(
+      camBefore
+        ? `STICK DID NOT WALK: camera barely moved (${moved.toFixed(3)})`
+        : 'STICK WALK: __sdpCam not exposed (test entrance regression?)',
+    );
   }
   // Releasing the stick must STOP the camera (the reset zeroed the vector). Let
   // the pointerup propagate first — reading the pose in the same tick as up()
@@ -241,9 +260,56 @@ const stickGone = (await page.$('.touch-stick')) === null;
 if (!stickGone) fail('TOUCH HUD: the stick stayed visible under the pause menu');
 await page.screenshot({ path: '.shots/touch-pause.png' });
 
+// REAL-PATH coverage: the mechanics above enter via ?world (required — __sdpCam is
+// gated to the test entrance by testHooks.ts). This block proves the ACTUAL mobile
+// journey — order form → descent floors → machine-room install gag → "Enter the
+// world" — lands on the touch HUD, so the mobile handoff can't regress unnoticed.
+// (Fresh context; no camera asserts here, just that the real path shows the stick.)
+let realStick;
+{
+  const rctx = await ctx
+    .browser()
+    .newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const rp = await rctx.newPage();
+  rp.on('pageerror', (e) => fail(`real-path pageerror: ${e.message}`));
+  await rp.goto(base + '/', { waitUntil: 'networkidle' });
+  const floor = (id) =>
+    rp.waitForSelector(`[data-floor="${id}"]`, { timeout: 8000 }).then(
+      () => true,
+      () => false,
+    );
+  await rp.click('#order-form button[type="submit"]'); // Continue → descend
+  if (!(await floor('y1999'))) fail('REAL PATH: order form did not start the mobile descent');
+  await rp.click('.floor-door--down');
+  await floor('y2000');
+  await rp.click('.floor-door--down');
+  await floor('machine');
+  await rp.click('.mr__install'); // phone → the "pocket computer" pre-roll
+  const gag = await rp.waitForSelector('.mr__gag', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!gag) fail('REAL PATH: mobile install did not show the pocket-computer pre-roll');
+  await rp.getByRole('button', { name: /enter the world/i }).click(); // wave-through
+  const mounted = await rp.waitForSelector('.hud-menu-btn', { timeout: 18000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!mounted) fail('REAL PATH: world did not mount after the mobile install handoff');
+  realStick = await rp.waitForSelector('.touch-stick', { timeout: 6000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!realStick)
+    fail('REAL PATH: touch HUD (stick) absent after entering the world via the real mobile flow');
+  await rp.screenshot({ path: '.shots/touch-realpath.png' });
+  await rctx.close();
+}
+
 console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
-    `stickHidesOnPause=${stickGone} overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
+    `stickHidesOnPause=${stickGone} realPathStick=${realStick} ` +
+    `overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);

@@ -72,9 +72,15 @@ longer-form rules live in [`CLAUDE.md`](../CLAUDE.md) (the constitution),
   `?debug` gate.
 - **A smoke per feature.** Every `shoot`/`shoot:*` script in `package.json` is a
   CI-gating Playwright smoke (auto-discovered by `shoot:all`). New in-world
-  behavior gets a smoke that walks the REAL path (real door edges, real pickups),
-  not just a `?room=` mount. Prefer waiting on concrete DOM/state over fixed
-  sleeps.
+  behavior gets a smoke that walks the REAL entry path (real door edges, real
+  pickups), not just a `?room=` mount — the real path must be covered by *some*
+  smoke. A smoke that must read the `?world`/`?debug` test globals (e.g.
+  `__sdpCam`, gated to the test entrance by `testHooks.ts`) may ENTER via that
+  entrance for its mechanics **provided the real entry path is covered by a sibling
+  smoke** (e.g. `shoot:touch` proves the HUD mechanics under `?world` and also
+  carries a real-path `order form → install → world` check; `shoot:descent` /
+  `shoot:fallback` cover the mobile journey). Prefer concrete DOM/state waits over
+  fixed sleeps.
 
 ## What CI enforces (`.github/workflows/ci.yml`)
 
