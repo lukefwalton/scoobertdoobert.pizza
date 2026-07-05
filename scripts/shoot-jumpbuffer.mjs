@@ -1,7 +1,12 @@
 // Verifies JUMP-BUFFERING (Controls.tsx): a Space tap made a hair BEFORE landing —
 // pressed AND released while still airborne — is remembered and fired on touchdown,
-// instead of being swallowed. We seed ONLY the jump verb (not double-jump), so an
-// airborne tap can't double-jump — the ONLY way a second hop can appear is the buffer.
+// instead of being swallowed.
+//
+// This is a FOCUSED TIMING SUPPLEMENT: shoot:skills already covers earning the jump
+// verb through the REAL orb-pickup path, so here we deliberately SEED progress instead
+// — and seed ONLY jump (not double-jump), so an airborne tap has no other way to make a
+// hop and the ONLY thing that can produce a second one is the buffer. Isolating the
+// mechanic that way is the whole point; the real earn-path stays covered by skills.
 // The hop-start count is read from the test-gated __sdpJumps global; the tap is driven
 // off OBSERVED near-landing state (not a fixed delay), so it stays deterministic.
 import { mkdirSync } from 'node:fs';
