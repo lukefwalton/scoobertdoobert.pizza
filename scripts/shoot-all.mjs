@@ -16,6 +16,7 @@
 //   npm run shoot:all -- --shard=1/4
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { parseShard, selectShard } from './lib/shard.mjs';
 
 const args = process.argv.slice(2);
 const BASE = args.find((a) => !a.startsWith('--')) || 'http://localhost:4173';
@@ -24,13 +25,12 @@ let shardIdx = 0;
 let shardCount = 1;
 const shardArg = args.find((a) => a.startsWith('--shard='))?.slice('--shard='.length);
 if (shardArg) {
-  const [i, n] = shardArg.split('/').map(Number);
-  if (!Number.isInteger(i) || !Number.isInteger(n) || i < 1 || n < 1 || i > n) {
-    console.error(`shoot:all: bad --shard "${shardArg}" (want i/N with 1 <= i <= N)`);
+  try {
+    ({ shardIdx, shardCount } = parseShard(shardArg));
+  } catch (e) {
+    console.error(`shoot:all: ${e.message}`);
     process.exit(1);
   }
-  shardIdx = i - 1;
-  shardCount = n;
 }
 
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
@@ -42,7 +42,7 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url))
 const allSmokes = Object.keys(pkg.scripts)
   .filter((s) => (s === 'shoot' || s.startsWith('shoot:')) && s !== 'shoot:all')
   .sort();
-const smokes = allSmokes.filter((_, k) => k % shardCount === shardIdx);
+const smokes = selectShard(allSmokes, shardIdx, shardCount);
 
 const shardLabel = shardCount > 1 ? ` [shard ${shardIdx + 1}/${shardCount}]` : '';
 console.log(
