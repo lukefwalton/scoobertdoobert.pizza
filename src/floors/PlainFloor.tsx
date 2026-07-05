@@ -2,6 +2,8 @@ import { SampleMenu } from '../components/SampleMenu';
 import { SocialLinks } from '../components/SocialLinks';
 import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
+import { Marquee } from '../components/Marquee';
+import { HitCounter } from '../components/HitCounter';
 import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { CASSETTE_IDS } from '../data/items';
 import type { Floor } from '../data/floors';
@@ -68,37 +70,47 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             width="84"
             height="74"
           />
-          <h1>{floor.title}</h1>
+          <div className="store-titlebar__text">
+            <h1>{floor.title}</h1>
+            <p className="logline">
+              A pizza shop off the coast of San Diego &mdash; secretly a philosopher&rsquo;s solo
+              music project.
+            </p>
+          </div>
         </div>
-        <p className="logline">
-          A pizza shop off the coast of San Diego.
-          <br />
-          (It is actually a solo music project by a philosopher.)
-        </p>
-        <p className="netscape">
-          This page is best viewed in Netscape Navigator 3.0 at 800&times;600.
-        </p>
       </header>
+
+      {/* The animated GeoCities "chrome": a hazard-stripe construction bar, the
+          period "best viewed" boast, and the odometer hit counter. Adds a lot of
+          period LIFE for very few words. The blink is a slow 1.1s step (well under
+          WCAG 2.3.1's 3/sec) and the whole strip goes still under reduced-motion. */}
+      <div className="chrome-strip" aria-hidden="true">
+        <span className="chrome-strip__const">
+          <span className="chrome-strip__blink">&#9888; UNDER CONSTRUCTION &#9888;</span>
+        </span>
+        <span className="chrome-strip__netscape">Best viewed in Netscape Navigator 3.0</span>
+      </div>
 
       <hr />
 
+      {/* The news, as a scrolling headline instead of a paragraph block — the
+          RAT gag plus the slogan fold into one live marquee (fewer words, more
+          life). The "inside scoop" stays a real, crawlable <a>. */}
       <section className="news" aria-label="Announcements">
-        <figure className="snapshot snapshot--right">
-          <img
-            src="/press/scoobert-shades.jpg"
-            alt="Scoobert Doobert reclining in red wraparound sunglasses, two long braids fanned out behind his head."
-            width="150"
-            height="150"
-          />
-          <figcaption>Management.</figcaption>
-        </figure>
-        <p>
-          <b>RAT SPOTTED IN WALL &mdash; MANAGEMENT INSISTS HE PAYS RENT.</b>
-          <br />
+        <Marquee label="Storefront headline">
+          <b>&#9733; RAT SPOTTED IN WALL &mdash; MANAGEMENT INSISTS HE PAYS RENT &#9733;</b>
+          {'  '}
           <a href={insideScoop} target="_blank" rel="noopener noreferrer">
             Click here for the inside scoop.
           </a>
-        </p>
+          {'  ·  '}
+          Now serving six unreleased demos under one roof.
+          {'  ·  '}
+          <b>The Best Songs Under One Roof!&trade;</b>
+          {'  ·  '}
+          Lo-Fi &bull; Hi-Fi &bull; Stuffed Crust.
+          {'  ·  '}
+        </Marquee>
         {remembersYou && (
           <p className="news-returning">
             <i>&mdash; The rat says: &ldquo;{remembersYou}&rdquo;</i>
@@ -133,6 +145,17 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       <hr />
 
       <main>
+        {/* Management floats beside the menu (the marquee above stays clean full-
+            width). Period placement: the topping list wraps to its left. */}
+        <figure className="snapshot snapshot--right">
+          <img
+            src="/press/scoobert-shades.jpg"
+            alt="Scoobert Doobert reclining in red wraparound sunglasses, two long braids fanned out behind his head."
+            width="150"
+            height="150"
+          />
+          <figcaption>Management.</figcaption>
+        </figure>
         <SampleMenu dests={dests} />
 
         <hr />
@@ -152,12 +175,8 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             <figcaption>Your host.</figcaption>
           </figure>
           <p>
-            It&rsquo;s one thin crust piled with six unreleased demos, then sealed with another thin
-            crust, reverb, choice of toppings, and even more reverb.
-          </p>
-          <p className="slogan">
-            <b>The Best Songs Under One Roof!&trade;</b> &nbsp; Lo-Fi &bull; Hi-Fi &bull; Stuffed
-            Crust
+            One thin crust piled with six unreleased demos, sealed with another thin crust, reverb,
+            choice of toppings, and even more reverb.
           </p>
           <p className="recipe">
             <a href="/about">Our Secret Recipe &raquo;</a>
@@ -243,6 +262,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
               height="111"
             />
           </a>
+        </p>
+        <p className="counter-line">
+          <HitCounter /> <span className="counter-line__label">visitors served since 1997</span>
         </p>
         <p className="copyright">
           &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
