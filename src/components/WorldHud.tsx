@@ -18,9 +18,7 @@ import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { enterDoor } from '../lib/doorTravel';
-import { collectInventoryItem } from '../lib/pickups';
-import { collectLootById } from '../lib/loot';
+import { interactNearby, grabNearby } from '../lib/worldActions';
 import { ScoreHud } from './ScoreHud';
 import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
@@ -30,7 +28,6 @@ import { ratDialogue } from '../data/dialogue';
 import { itemById } from '../data/items';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
-import { launchRandomArcade } from '../lib/arcade';
 
 // DOM heads-up display for the world: the proximity prompt, the hotspot dialog
 // (98.css, with the real anchor), and the pause menu — the always-reachable
@@ -186,50 +183,14 @@ export function WorldHud() {
         return;
       }
       if (e.key === 'e' || e.key === 'E') {
-        if (st.paused || st.openHotspot || st.tvVideo || st.arcadeGame || st.openNpc) return;
-        // A door takes priority over a hotspot if you're somehow near both.
-        if (st.nearDoor) {
-          // enterDoor honors a key lock (shared with the click path), then dives
-          // into a painting portal or wipes through a plain door.
-          enterDoor({
-            to: st.nearDoor.to,
-            spawn: st.nearDoor.spawn,
-            albumSlug: st.nearDoor.albumSlug,
-            requiresKey: st.nearDoor.requiresKey,
-          });
-        } else if (st.nearTv) {
-          // Switch on the CRT — the same modal the TV's click opens (keyboard parity).
-          // nearTv already holds the resolved clip (TvSet did the lookup).
-          st.openTv(st.nearTv);
-        } else if (st.nearArcade) {
-          // Fire up the cabinet — rolls a random game (same as clicking it).
-          launchRandomArcade();
-        } else if (st.nearHotspot) {
-          st.openHotspotDialog(st.nearHotspot);
-        } else if (st.nearNpc) {
-          // Talk to the settled rat — the guide opens its dialogue box.
-          st.openNpcDialog(st.nearNpc.id);
-        } else if (st.nearEntity) {
-          // Start the dance rhythm minigame with the entity you're near.
-          useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
-        }
+        // The context verb (door / TV / cabinet / hotspot / NPC / dance), shared
+        // with the on-screen touch button so the two never drift.
+        interactNearby();
       }
       // P grabs the nearest collectible (the keyboard path; walking onto it also
-      // auto-grabs, and clicking still works). collectInventoryItem is idempotent.
+      // auto-grabs, and clicking still works). Shared with the touch grab button.
       if (e.key === 'p' || e.key === 'P') {
-        if (
-          st.paused ||
-          st.openHotspot ||
-          st.tvVideo ||
-          st.arcadeGame ||
-          st.openNpc ||
-          st.lyricsSong
-        )
-          return;
-        if (st.nearPickup) {
-          if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);
-          else collectInventoryItem(st.nearPickup.id);
-        }
+        grabNearby();
         return;
       }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any

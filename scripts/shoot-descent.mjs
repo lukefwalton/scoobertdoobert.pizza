@@ -4,7 +4,8 @@
 // desktop: storefront → 1999 → 2000 → machine room via the era-floor doors, the
 // up-door round-trip, the relocated install (machine room → installer → 3D
 // world), and exiting the world rewinding to floor 0. Then a mobile pass: the
-// machine room skips the WebGL CRT and Install hands off to /text.
+// machine room skips the WebGL CRT, and Install pops the "pocket computer"
+// pre-roll gag that still offers /text (the world itself now runs on phones).
 import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
@@ -136,7 +137,7 @@ const mctx = await browser.newContext({
 const mp = await mctx.newPage();
 mp.on('pageerror', (e) => fail(`mobile pageerror: ${e.message}`));
 await mp.goto(base + '/', { waitUntil: 'networkidle' });
-await mp.click('.floor-door--plain'); // descend via the door (order form -> /text on mobile)
+await mp.click('.floor-door--plain'); // descend via the era-floor door (universal on mobile)
 await floor(mp, 'y1999');
 await mp.click('.floor-door--down');
 await floor(mp, 'y2000');
@@ -214,11 +215,12 @@ if (mobileGag) {
 }
 await mctx.close();
 
-// ── narrow FINE-pointer window (a resized desktop) — the complement of the gag ──
-// isSmallScreen() requires a coarse pointer, so a small mouse-driven window must
-// SKIP the gag and hand off straight to /text (it's on a desktop already). This
-// locks the negative side of the boundary: a regression that broadened the gate
-// back to pure max-width would wrongly show the gag here and fail this assertion.
+// ── narrow FINE-pointer window (a resized desktop) — now ENTERS THE WORLD ──────
+// The 3D world used to be desktop-ONLY, so a merely-narrow fine-pointer window
+// was handed off to /text. It runs everywhere now, so a narrow desktop window
+// must enter the world like any other desktop — no gag (that's the coarse-pointer
+// handheld pre-roll), no /text handoff. isTouchDevice() keys off `pointer: coarse`,
+// so this fine-pointer window is NOT a touch device: install goes straight in.
 const nctx = await browser.newContext({ viewport: { width: 500, height: 820 } }); // no touch → fine pointer
 const np = await nctx.newPage();
 np.on('pageerror', (e) => fail(`narrow-window pageerror: ${e.message}`));
@@ -230,16 +232,17 @@ await floor(np, 'y2000');
 await np.click('.floor-door--down');
 await floor(np, 'machine');
 await np.click('.mr__install');
-let narrowToText = false;
+let narrowToWorld = false;
 try {
-  // Reaching /text IS the proof there was no gag — a wrongly-shown modal blocks
-  // navigation, so this wait would time out instead.
-  await np.waitForURL('**/text', { timeout: 6000 });
-  narrowToText = (await np.locator('.mr__gag').count()) === 0;
+  // The world's HUD button IS the proof it entered; a wrongly-shown phone gag
+  // would block that instead.
+  await np.waitForSelector('.hud-menu-btn', { timeout: 18000 });
+  narrowToWorld = (await np.locator('.mr__gag').count()) === 0;
 } catch {
-  fail('a narrow fine-pointer window showed the gag instead of going straight to /text');
+  fail('a narrow fine-pointer window did not enter the 3D world after install');
 }
-if (!narrowToText) fail('the gag leaked into a narrow fine-pointer (desktop) window');
+if (!narrowToWorld)
+  fail('the phone-only pre-roll gag leaked into a narrow fine-pointer (desktop) window');
 await nctx.close();
 
 // ── reduced-motion: the NEW! blinky must serve its STATIC twin ──────────────────
@@ -303,11 +306,33 @@ if (!atmailRm)
   fail(
     'the @-mail envelope did not swap to its static twin, or its exact mailto/aria-label contract changed, under reduced motion',
   );
+
+// The machine-room Install under reduced motion raises the SAME MotionConsent
+// opt-in as the order form — a SECOND, independent entry point (it changed apart
+// from the order-form gate, so it gets its own assertion). Descend the last floor
+// and confirm Install → the gate (never an auto-redirect), with its real /text out.
+await rp.click('.floor-door--down');
+const rmMachine = await floor(rp, 'machine');
+let rmInstallGate = false;
+let rmGateTextHref = null;
+if (rmMachine) {
+  await rp.click('.mr__install');
+  rmInstallGate = await rp.waitForSelector('.mcons', { timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!rmInstallGate)
+    fail('reduced-motion machine-room Install did not raise the MotionConsent gate');
+  rmGateTextHref = await rp.getAttribute('.mcons-text', 'href').catch(() => null);
+  if (rmGateTextHref !== '/text')
+    fail(`reduced-motion install gate: /text anchor missing (got ${rmGateTextHref})`);
+}
 await rctx.close();
 
 console.log(
   `descent: 1999=${on1999} 2000=${on2000} machine=${onMachine} upDoor=${upDoor} crt=${crtCanvas} ` +
-    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} | mobile: noCanvas=${mobileNoCanvas} ` +
-    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowSkipsGag=${narrowToText} | errors=${failures()}`,
+    `world=${world} exitToFloor0=${exitToFloor0} reusable=${reusable} guestbook=${guestbookOk} rmStatic=${rmStatic} atmailAnim=${atmailAnimated} atmail=${atmailRm} ` +
+    `rmInstallGate=${rmInstallGate} rmGateText=${rmGateTextHref} | mobile: noCanvas=${mobileNoCanvas} ` +
+    `gag=${mobileGag} tab=${tabTraps} esc=${gagEscapes} focus=${focusReturned} backdrop=${backdropCloses} install→text=${mobileToText} | narrowToWorld=${narrowToWorld} | errors=${failures()}`,
 );
 await finish();

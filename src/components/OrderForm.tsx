@@ -1,15 +1,11 @@
-import type { FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore, selectDeepDiver } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
 import { audio } from '../audio/engine';
-import { isLowPower } from '../lib/lowPower';
-import { TEXT_ONLY_PATH } from '../data/links';
-
-// On a phone the order button lands in the arcade (mobile's reward), not the 3D
-// descent. Kept as a literal here (links.ts destinations are external/content
-// links; /arcade is an app route).
-const ARCADE_PATH = '/arcade';
+import { prefersReducedMotion } from '../lib/lowPower';
+import { hasMotionConsent, grantMotionConsent } from '../lib/motionConsent';
+import { MotionConsent } from './MotionConsent';
 
 // The easter-egg entrance — a loud period "ORDER ONLINE!" callout. Simplified to
 // Favorite Cheese + an OPTIONAL, opt-in Email.
@@ -32,6 +28,14 @@ export function OrderForm() {
   const mounted = useMounted();
   const deep = useProgressStore(selectDeepDiver);
   const curdled = mounted && deep;
+  // Reduced-motion users get an opt-in before the (motion-heavy) descent, once
+  // per visit. Phones now descend outright — the world runs there with touch.
+  const [motionGate, setMotionGate] = useState(false);
+
+  function startDescent() {
+    audio.unlock();
+    descend();
+  }
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -53,23 +57,16 @@ export function OrderForm() {
       });
     }
 
-    // Mobile / reduced-motion can't run the 3D world, so they don't descend.
-    // But mobile's reward IS the arcade (the minigames are the whole mobile
-    // experience), so on a phone the order button lands in the arcade — "order's
-    // in, play while it bakes." Reduced-motion (desktop) still gets the flat
-    // /text list, since the arcade is an animated game. The no-JS form GET still
-    // targets /text (action="/text"), and the flat list stays one tap away via
-    // the "text only version" link up top.
-    if (isLowPower()) {
-      const onPhone =
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(max-width: 768px)').matches;
-      window.location.assign(onPhone ? ARCADE_PATH : TEXT_ONLY_PATH);
-    } else {
-      audio.unlock();
-      descend();
+    // Phones now descend into the 3D world (touch controls), same as desktop.
+    // A reduced-motion user, though, is asked first (unless they already opted in
+    // this visit) — the descent is motion-heavy, and the consent modal offers the
+    // flat /text list as the safe alternative. The no-JS form GET still targets
+    // /text (action="/text"), and the flat list stays one tap away up top.
+    if (prefersReducedMotion() && !hasMotionConsent()) {
+      setMotionGate(true);
+      return;
     }
+    startDescent();
   }
 
   return (
@@ -126,6 +123,16 @@ export function OrderForm() {
             : 'Place an order to see the kitchen. (You may need a plug-in.)'}
         </p>
       </form>
+
+      <MotionConsent
+        open={motionGate}
+        onClose={() => setMotionGate(false)}
+        onEnter={() => {
+          grantMotionConsent();
+          setMotionGate(false);
+          startDescent();
+        }}
+      />
     </div>
   );
 }

@@ -74,8 +74,11 @@ progressive enhancement layered on top:
   per-route canonicals, and a `sitemap.xml` + `robots.txt` underneath are
   pristine. (The OG card is a real 1.91:1 image; the sitemap is kept in sync with
   the routes by a test.)
-- **Mobile / `prefers-reduced-motion`** skip the descent and 3D entirely and get
-  the storefront + the flat `/text` list.
+- **Mobile** runs the whole thing now — the descent AND the 3D world, with
+  on-screen touch controls (a virtual stick + context/jump buttons; drag-to-look).
+  **`prefers-reduced-motion`** is the one hard gate, and it's an opt-in: an entry
+  point asks ("this has motion — enter anyway?") with the flat `/text` list as the
+  safe default. JS-off always gets the storefront + `/text`.
 
 See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how it's wired,
 [`CLAUDE.md`](./CLAUDE.md) for the rules + PS1 hard constraints,
@@ -195,9 +198,12 @@ scene code. The rot transition (`FloorTransition`) and progressive audio decay
   calls `requestInstall()`, which jumps `Descent` straight to the installer →
   boot log → world. `exitWorld()` rewinds to floor 0.
 - **Mobile / reduced-motion:** the era floors are universal (responsive; the rot
-  is instant under reduced-motion). The 3D world is the one feature they skip —
-  the machine room's CRT live render isn't mounted and Install hands off to
-  `/text` (`TEXT_ONLY_PATH`) instead of the 3D world.
+  is instant under reduced-motion). The 3D world now runs on phones too, with
+  on-screen touch controls (`TouchControls` + `touchInput.ts`); only the machine
+  room's CRT **live** render stays desktop-only. `prefers-reduced-motion` is the
+  one hard gate, and it's an opt-in — Install/Continue raise the `MotionConsent`
+  gate with `/text` (`TEXT_ONLY_PATH`) as the safe default rather than dropping
+  the user straight into the motion.
 
 ## The 3D world — rooms
 
