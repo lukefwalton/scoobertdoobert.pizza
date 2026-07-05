@@ -3,6 +3,13 @@ name: CI
 # Typecheck, build, and the full Playwright smoke suite on every PR and on pushes
 # to main. This is the safety net the repo was missing: regressions in nav, audio,
 # the JS-off storefront, etc. now fail here instead of silently shipping.
+#
+# Structure (for speed): the fast static checks and the build run as INDEPENDENT
+# parallel jobs, and the smoke suite is SHARDED across runners (build once → share
+# dist → each shard runs its slice on its own full-CPU runner). The frame-timed WebGL
+# smokes need that CPU headroom, so we fan out across machines rather than crowd many
+# browsers onto one. A final `verify` gate stays green iff every job passed — keep it
+# as the required status check so the split is invisible to branch protection.
 
 on:
   push:
@@ -15,54 +22,126 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  checks:
+    name: Static checks
     runs-on: ubuntu-latest
-    # 30 (from 20): the runner has been demonstrably slow lately — the WebGL smoke
-    # suite (esp. shoot:mainstreet's chained traversals) needs headroom so a slow
-    # but PASSING run isn't killed mid-suite. Paired with the raised per-suite cap
-    # in shoot-all.mjs.
-    timeout-minutes: 30
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-
       - run: npm ci
-
-      # Chromium only — the smoke scripts (and the audio/image render tooling)
-      # drive headless Chromium; no need for firefox/webkit.
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
       - name: Typecheck
         run: npm run typecheck
-
       - name: Lint
         run: npm run lint
-
       - name: Format check
         run: npm run format:check
-
       - name: Unit tests (Vitest — pure logic)
         run: npm test
 
-      - name: Build (+ post-build asset/notice checks)
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build (+ post-build asset/notice/bundle checks)
         run: npm run build
+      - name: Upload dist for the smoke shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+          include-hidden-files: true # dist/.vite/manifest.json lives in a dot dir
 
-      # shoot:all starts one `vite preview` and runs every shoot:* suite against
-      # it (discovered from package.json, so new smokes are covered automatically).
-      - name: Smoke suite
-        run: npm run shoot:all
+  # Single source of truth for the shard count: the matrix list AND the `/N` in the
+  # label + CLI arg all derive from `count`, so they can't drift into a silent
+  # mis-shard (a wrong N skips suites and still goes green — see scripts/lib/shard.mjs).
+  plan:
+    name: Plan shards
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      count: ${{ steps.p.outputs.count }}
+      shards: ${{ steps.p.outputs.shards }}
+    steps:
+      - id: p
+        run: |
+          count=4
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "shards=[$(seq -s, 1 "$count")]" >> "$GITHUB_OUTPUT"
 
-      # Keep failure screenshots for debugging a red run.
+  smoke:
+    name: Smoke shard ${{ matrix.shard }}/${{ needs.plan.outputs.count }}
+    # Both: build gives us dist to serve, and gating on checks too means a failing
+    # typecheck/lint/test short-circuits the browser runners instead of wasting them on
+    # a doomed PR. Near-zero wall-clock cost on green (build is the longer gate).
+    needs: [checks, build, plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      # Don't cancel the other shards when one fails — surface every failure at once.
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # Chromium only — the smoke scripts drive headless Chromium; no firefox/webkit.
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Download the prebuilt dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      # shoot:all serves the downloaded dist via `vite preview` and runs only THIS
+      # shard's slice of the suite (round-robin, so heavy suites spread across shards).
+      - name: Smoke suite (shard ${{ matrix.shard }})
+        run: npm run shoot:all -- --shard=${{ matrix.shard }}/${{ needs.plan.outputs.count }}
+      # Keep failure screenshots for debugging a red run (per shard → names don't collide).
       - name: Upload smoke screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-shots
+          name: smoke-shots-shard-${{ matrix.shard }}
           path: .shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  # Single required-status gate: green iff every job above succeeded. Keeping one
+  # check named `verify` means the job split stays invisible to branch protection.
+  verify:
+    name: verify
+    needs: [checks, build, smoke]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Require all CI jobs to have passed
+        run: |
+          echo "checks=${{ needs.checks.result }} build=${{ needs.build.result }} smoke=${{ needs.smoke.result }}"
+          if [ "${{ needs.checks.result }}" != "success" ] \
+            || [ "${{ needs.build.result }}" != "success" ] \
+            || [ "${{ needs.smoke.result }}" != "success" ]; then
+            echo "::error::One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed."

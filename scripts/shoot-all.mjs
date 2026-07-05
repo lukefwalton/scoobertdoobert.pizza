@@ -6,21 +6,78 @@
 // non-zero if any suite fails. This is the aggregate gate the CI workflow runs.
 //
 //   npm run build && npm run shoot:all
+//
+// Sharding (CI fan-out): `--shard=i/N` runs only this shard's slice of the suite, so
+// the smokes can be spread across N runners — each with a FULL CPU, which the
+// frame-timed WebGL walk-smokes need (in-process concurrency would starve their frame
+// budget and reintroduce flakiness). The split is ROUND-ROBIN over the sorted list so
+// the heavy suites land in different shards. No flag → run everything (local default).
+//
+//   npm run shoot:all -- --shard=1/4
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { parseShard, selectShard } from './lib/shard.mjs';
 
-const BASE = process.argv[2] || 'http://localhost:4173';
+const args = process.argv.slice(2);
+
+// Strict, fail-loud CLI (this is a CI gate, so an ambiguous invocation should error,
+// not silently pick the first of a duplicate): exactly one optional positional (the
+// base URL) and at most one --shard=i/N. Anything else — an unknown flag, extra
+// positionals, a repeated --shard — is surfaced instead of quietly ignored.
+const positionals = args.filter((a) => !a.startsWith('--'));
+const shardFlags = args.filter((a) => a.startsWith('--shard='));
+const unknown = args.find((a) => a.startsWith('--') && !a.startsWith('--shard='));
+const cliError = unknown
+  ? `unknown flag "${unknown}" (only --shard=i/N is supported)`
+  : positionals.length > 1
+    ? `too many positional args (${positionals.join(' ')}) — expected just a base URL`
+    : shardFlags.length > 1
+      ? `--shard given more than once (${shardFlags.join(' ')})`
+      : null;
+if (cliError) {
+  console.error(`shoot:all: ${cliError}`);
+  process.exit(1);
+}
+
+const BASE = positionals[0] || 'http://localhost:4173';
+let shardIdx = 0;
+let shardCount = 1;
+if (shardFlags.length) {
+  try {
+    ({ shardIdx, shardCount } = parseShard(shardFlags[0].slice('--shard='.length)));
+  } catch (e) {
+    console.error(`shoot:all: ${e.message}`);
+    process.exit(1);
+  }
+}
+
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
 
 // The naming contract (also in README): `shoot` and every `shoot:*` script IS a
 // CI smoke gate, discovered by name alone. So a non-gating helper/debug script
 // must NOT use that prefix (name it `make-*`, put it in `lib/`, etc.) or it
 // silently becomes a merge blocker.
-const smokes = Object.keys(pkg.scripts)
+const allSmokes = Object.keys(pkg.scripts)
   .filter((s) => (s === 'shoot' || s.startsWith('shoot:')) && s !== 'shoot:all')
   .sort();
+const smokes = selectShard(allSmokes, shardIdx, shardCount);
 
-console.log(`shoot:all — ${smokes.length} smoke suites against ${BASE}\n`);
+// Fail CLOSED on an empty selection: a shard that runs nothing would exit 0 (no
+// failures) — a false green. Over-sharding (count > suite total) or a discovery
+// regression is a loud error, not a quiet pass.
+if (smokes.length === 0) {
+  console.error(
+    `shoot:all: shard ${shardIdx + 1}/${shardCount} selected 0 of ${allSmokes.length} suites — nothing to run; refusing to pass an empty shard`,
+  );
+  process.exit(1);
+}
+
+const shardLabel = shardCount > 1 ? ` [shard ${shardIdx + 1}/${shardCount}]` : '';
+console.log(
+  `shoot:all — ${smokes.length}/${allSmokes.length} smoke suites${shardLabel} against ${BASE}`,
+);
+// Log THIS run's suite names up front — cheap CI forensics for "did shard N cover X?".
+console.log(`  ${smokes.join(' ')}\n`);
 
 // One preview server for all of them. Capture its output so a startup failure is
 // debuggable (rather than a bare "never came up").
