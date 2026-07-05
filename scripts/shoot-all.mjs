@@ -66,13 +66,22 @@ if (!(await up())) {
 }
 
 // Run one suite once. Per-suite timeout so a hung smoke fails on its own (a clear
-// "[timed out]" line) instead of stalling until the workflow's 20-min job cap.
+// "[timed out]" line) instead of stalling until the workflow's job cap. Raised to
+// 300s (from 180s) to fit the heaviest walk smoke (shoot:mainstreet, 5 chained
+// traversals at up to 45s/hop) on a slow/saturated CI runner where the WebGL loop
+// drops to a few FPS and the CLAMPED per-frame movement covers less ground per
+// wall-clock second. A PASSING suite releases early and never approaches this; the
+// cap only bounds a genuinely-stuck run.
+const PER_SUITE_TIMEOUT_MS = 300000;
 const runOnce = (name) => {
   const t0 = Date.now();
   // Invoke the package script as declared (`npm run <name> -- <BASE>`) rather than
   // parsing out `node <file>`, so any future arg/env wrapper is preserved and the
   // "auto-discovered" claim can't silently drift from how the scripts actually run.
-  const r = spawnSync('npm', ['run', name, '--', BASE], { encoding: 'utf8', timeout: 180000 });
+  const r = spawnSync('npm', ['run', name, '--', BASE], {
+    encoding: 'utf8',
+    timeout: PER_SUITE_TIMEOUT_MS,
+  });
   const timedOut = r.error?.code === 'ETIMEDOUT';
   return {
     ok: !timedOut && r.status === 0,
