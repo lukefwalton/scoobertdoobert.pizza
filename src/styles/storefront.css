@@ -418,6 +418,22 @@ footer {
   white-space: nowrap;
   padding-left: 100%;
 }
+/* The rat's "downstairs" trigger — a real button (it starts the descent), drawn
+   to match the period blue underlined links around it. */
+.marquee__link {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: #0000ee;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.marquee__link:hover,
+.marquee__link:focus {
+  color: #551a8b;
+}
 .marquee:hover .marquee__run,
 .marquee:focus-within .marquee__run {
   animation-play-state: paused;
