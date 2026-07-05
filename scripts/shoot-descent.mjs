@@ -219,8 +219,8 @@ await mctx.close();
 // The 3D world used to be desktop-ONLY, so a merely-narrow fine-pointer window
 // was handed off to /text. It runs everywhere now, so a narrow desktop window
 // must enter the world like any other desktop — no gag (that's the coarse-pointer
-// phone pre-roll), no /text handoff. isSmallScreen() still requires a coarse
-// pointer, so this fine-pointer window is NOT "small": install goes straight in.
+// handheld pre-roll), no /text handoff. isTouchDevice() keys off `pointer: coarse`,
+// so this fine-pointer window is NOT a touch device: install goes straight in.
 const nctx = await browser.newContext({ viewport: { width: 500, height: 820 } }); // no touch → fine pointer
 const np = await nctx.newPage();
 np.on('pageerror', (e) => fail(`narrow-window pageerror: ${e.message}`));

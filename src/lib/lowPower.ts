@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react';
 // Two conditions that USED to be OR'd into one "skip the 3D world" gate, now
 // deliberately kept apart — they mean different things:
 //
-//   • SMALL SCREEN — a phone/handheld. The 3D world now RUNS here (on-screen
-//     touch controls), so a small screen is no longer a reason to skip it; it
-//     only decides whether we render the touch HUD.
+//   • TOUCH DEVICE — a phone/tablet whose primary pointer is coarse. The 3D world
+//     now RUNS here (on-screen touch controls); this only decides whether we
+//     render the touch HUD (and which install-flavor a handheld gets).
 //   • REDUCED MOTION — a stated accessibility preference. The world is full of
 //     motion, so we never AUTO-drop a reduced-motion user into it; an entry
 //     point offers an explicit opt-in (MotionConsent) with the flat /text list
@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 //
 // Centralized so the gate can't drift between the descent entry (OrderForm),
 // the install (MachineRoomFloor), and the trap door.
-const SMALL_SCREEN_QUERY = '(max-width: 768px)';
+const TOUCH_DEVICE_QUERY = '(pointer: coarse)';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 function mediaMatches(query: string): boolean {
@@ -28,19 +28,16 @@ export function prefersReducedMotion(): boolean {
   return mediaMatches(REDUCED_MOTION_QUERY);
 }
 
-/** Back-compat alias. "Low power" now means exactly "reduced motion": small
- *  screens are no longer excluded from the world. Prefer `prefersReducedMotion`
- *  in new code — this stays only for callers that still read the old name. */
-export const isLowPower = prefersReducedMotion;
-
-/** True on a small TOUCH device — a phone/handheld, not merely a narrow viewport.
+/** True on a TOUCH device — a phone/tablet whose PRIMARY pointer is coarse.
  *  Decides whether to render the on-screen touch controls and which install path
- *  a phone takes. The `pointer: coarse` half keeps a RESIZED desktop window
- *  (narrow but mouse-driven) out of it — that user is on a desktop and gets the
- *  normal keyboard/mouse world. A handheld that somehow reports a fine pointer
- *  just misses the touch HUD but can still descend (its drag-look works). */
-export function isSmallScreen(): boolean {
-  return mediaMatches(SMALL_SCREEN_QUERY) && mediaMatches('(pointer: coarse)');
+ *  a handheld takes. Deliberately NOT width-based: a phone in LANDSCAPE is wider
+ *  than 768px but still needs the controls (a width gate would strand the user in
+ *  the world with no way to walk). `pointer: coarse` also naturally excludes a
+ *  mouse-driven desktop (narrow or not) — its primary pointer is fine — so that
+ *  user keeps the keyboard/mouse world. A touch laptop reports a FINE primary
+ *  pointer, so it too gets the desktop controls (it has a keyboard). */
+export function isTouchDevice(): boolean {
+  return mediaMatches(TOUCH_DEVICE_QUERY);
 }
 
 // A reactive matchMedia hook shared by the exported hooks below: re-renders when
@@ -75,8 +72,8 @@ export function useReducedMotion(): boolean {
   return useMediaQuery([REDUCED_MOTION_QUERY], prefersReducedMotion);
 }
 
-/** Reactive `isSmallScreen()` — re-renders when the viewport crosses 768px or the
- *  pointer type changes, so the touch HUD mounts/unmounts to match. */
-export function useSmallScreen(): boolean {
-  return useMediaQuery([SMALL_SCREEN_QUERY, '(pointer: coarse)'], isSmallScreen);
+/** Reactive `isTouchDevice()` — re-renders if the primary pointer type changes,
+ *  so the touch HUD mounts/unmounts to match (orientation-independent). */
+export function useTouchDevice(): boolean {
+  return useMediaQuery([TOUCH_DEVICE_QUERY], isTouchDevice);
 }

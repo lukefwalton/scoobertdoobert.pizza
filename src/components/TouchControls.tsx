@@ -128,12 +128,35 @@ export function TouchControls() {
                 ? 'Grab'
                 : 'Use';
   const idle = !hasInteract && !near.pickup;
+  // A words-only accessible name for the context button (its visible label can be
+  // a bare glyph like 🔒). A phone screen-reader user taps this, so it must read.
+  const actionAria = near.door
+    ? near.door.requiresKey
+      ? 'Locked door'
+      : 'Enter door'
+    : near.tv
+      ? 'Watch TV'
+      : near.arcade
+        ? 'Play cabinet'
+        : near.hotspot
+          ? 'Look'
+          : near.npc
+            ? 'Talk'
+            : near.entity
+              ? 'Dance'
+              : near.pickup
+                ? 'Grab item'
+                : 'Interact';
 
+  // NOTE: no aria-hidden on the container — these are focusable buttons a phone
+  // screen-reader user can tap, so hiding the subtree would be the aria-hidden-focus
+  // anti-pattern. Only the stick (a non-interactive drag surface) is hidden from AT.
   return (
-    <div className="touch-controls" aria-hidden="true">
+    <div className="touch-controls">
       <div
         ref={stickRef}
         className="touch-stick"
+        aria-hidden="true"
         onPointerDown={stickDown}
         onPointerMove={stickMove}
         onPointerUp={stickUp}
@@ -150,18 +173,20 @@ export function TouchControls() {
           <button
             type="button"
             className="touch-btn touch-btn--spell"
+            aria-label="Cast spell"
             onPointerDown={(e) => {
               e.preventDefault();
               castEquippedSpell();
             }}
           >
-            ✦
+            <span aria-hidden="true">✦</span>
           </button>
         )}
         {canJump && (
           <button
             type="button"
             className="touch-btn touch-btn--jump"
+            aria-label="Jump"
             onPointerDown={(e) => {
               e.preventDefault();
               queueTouchJump();
@@ -173,13 +198,14 @@ export function TouchControls() {
         <button
           type="button"
           className={`touch-btn touch-btn--action${idle ? ' is-idle' : ''}`}
+          aria-label={actionAria}
           onPointerDown={(e) => {
             e.preventDefault();
             if (hasInteract) interactNearby();
             else grabNearby();
           }}
         >
-          {label}
+          <span aria-hidden="true">{label}</span>
         </button>
       </div>
     </div>
