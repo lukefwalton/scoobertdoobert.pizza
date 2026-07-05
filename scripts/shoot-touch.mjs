@@ -361,7 +361,8 @@ console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
     `stickHidesOnPause=${stickGone} realPathStick=${realStick} ` +
-    `topHud(obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},menu=${hud.menuWidth}px) ` +
+    `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},menu=${hud.menuWidth}px) ` +
+    `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},menu=${hudLandscape.menuWidth}px) ` +
     `overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);

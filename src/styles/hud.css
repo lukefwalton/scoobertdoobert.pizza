@@ -261,7 +261,11 @@
    objective with a width that clears the right-hand cluster (the ☰ button plus the
    score/%-tall chip beneath it; ~110px reserves room for both at ~75px + gaps).
    Applies on ANY coarse-pointer device (a landscape phone is wider than 640px but
-   still keyboard-less and still overlaps) OR any narrow window. */
+   still keyboard-less and still overlaps) OR any narrow window. The `max-width: 640px`
+   arm is DELIBERATE, not just a phone fallback: it also collapses the label on a narrow
+   NON-touch desktop window, which has a keyboard but the same horizontal collision — the
+   "(Esc)" hint is worth trading for a HUD that doesn't overlap in a skinny browser pane.
+   (A wide desktop window keeps the full "menu (Esc)" label — neither arm matches there.) */
 @media (pointer: coarse), (max-width: 640px) {
   .hud-menu-btn__label {
     display: none;
