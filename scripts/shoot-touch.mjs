@@ -86,37 +86,13 @@ if (portraitOverflow > 1) {
 // — the menu button and score shared the same top-right anchor, and the centered
 // objective chip reached under the menu. Assert none of the three intersect, and that
 // the menu shrank to just its glyph ("(Esc)" is hidden without a keyboard).
-const hud = await page.evaluate(() => {
-  const box = (s) => {
-    const e = document.querySelector(s);
-    if (!e) return null;
-    const r = e.getBoundingClientRect();
-    return { l: r.left, r: r.right, t: r.top, b: r.bottom };
-  };
-  const ov = (a, c) => (a && c ? a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b : false);
-  const obj = box('.hud-objective');
-  const menu = box('.hud-menu-btn');
-  const score = box('.hud-score');
-  return {
-    hasObjective: !!obj,
-    objMenu: ov(obj, menu),
-    menuScore: ov(menu, score),
-    objScore: ov(obj, score),
-    menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0,
-  };
-});
-// Fail closed if the objective chip is absent — otherwise the overlap checks below
-// pass vacuously (ov(null, …) is false), so a vanished chip would read as "no overlap".
-if (!hud.hasObjective) fail('TOP-HUD: the objective chip is missing — cannot verify no-overlap');
-if (hud.objMenu) fail('TOP-HUD: the objective chip overlaps the ☰ menu button on a phone');
-if (hud.menuScore) fail('TOP-HUD: the ☰ menu button overlaps the score / %-tall chip');
-if (hud.objScore) fail('TOP-HUD: the objective chip overlaps the score chip');
-if (hud.menuWidth > 90)
-  fail(`TOP-HUD: the menu button didn't collapse to its glyph (${hud.menuWidth}px wide)`);
-
-// Reusable top-HUD overlap probe (run again in landscape below — a coarse-pointer
-// landscape phone is wider than the 640px breakpoint but must still collapse the menu).
-const topHudOverlap = (p) =>
+//
+// One structured probe, reused for BOTH orientations (portrait now, landscape below):
+// returns whether the objective chip exists, the three pairwise overlaps, and the
+// collapsed menu width. A single assert helper then fails closed the same way in each —
+// so landscape can't pass just because nothing happened to intersect while the chip
+// vanished or the menu quietly re-expanded.
+const topHudProbe = (p) =>
   p.evaluate(() => {
     const box = (s) => {
       const e = document.querySelector(s);
@@ -126,12 +102,29 @@ const topHudOverlap = (p) =>
     };
     const ov = (a, c) => (a && c ? a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b : false);
     const obj = box('.hud-objective');
-    return (
-      ov(obj, box('.hud-menu-btn')) ||
-      ov(box('.hud-menu-btn'), box('.hud-score')) ||
-      ov(obj, box('.hud-score'))
-    );
+    const menu = box('.hud-menu-btn');
+    const score = box('.hud-score');
+    return {
+      hasObjective: !!obj,
+      objMenu: ov(obj, menu),
+      menuScore: ov(menu, score),
+      objScore: ov(obj, score),
+      menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0,
+    };
   });
+// Assert a probe result fails closed: the objective chip must exist (else the overlap
+// checks are vacuously true — ov(null, …) is false — and a vanished chip reads as clean),
+// no pair may intersect, and the menu must have collapsed to just its glyph.
+const assertTopHud = (h, where) => {
+  if (!h.hasObjective) fail(`TOP-HUD: the objective chip is missing (${where}) — cannot verify`);
+  if (h.objMenu) fail(`TOP-HUD: the objective chip overlaps the ☰ menu button (${where})`);
+  if (h.menuScore) fail(`TOP-HUD: the ☰ menu button overlaps the score / %-tall chip (${where})`);
+  if (h.objScore) fail(`TOP-HUD: the objective chip overlaps the score chip (${where})`);
+  if (h.menuWidth > 90)
+    fail(`TOP-HUD: the menu button didn't collapse to its glyph (${where}, ${h.menuWidth}px wide)`);
+};
+const hud = await topHudProbe(page);
+assertTopHud(hud, 'portrait');
 
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
@@ -296,8 +289,11 @@ if (landscapeOverflow > 1) {
   fail(`VIEWPORT: horizontal overflow with the touch HUD up (landscape, ${landscapeOverflow}px)`);
 }
 // Landscape is wider than the 640px breakpoint, so the coarse-pointer rule (not width
-// alone) is what keeps the menu collapsed here — assert the top HUD still doesn't overlap.
-if (await topHudOverlap(page)) fail('TOP-HUD: elements overlap in landscape (coarse-pointer rule)');
+// alone) is what keeps this clean. Re-run the SAME structured probe and full assert set —
+// the objective must still be present, nothing may overlap, and the menu must still be
+// collapsed (a landscape phone is keyboard-less too).
+const hudLandscape = await topHudProbe(page);
+assertTopHud(hudLandscape, 'landscape');
 const stickInLandscape = (await page.$('.touch-stick')) !== null;
 if (!stickInLandscape) fail('VIEWPORT: the touch stick vanished in landscape');
 await page.screenshot({ path: '.shots/touch-landscape.png' });
