@@ -146,6 +146,148 @@ for (const p of identityPages) {
   }
 }
 
+// Bundle-discipline guard: the storefront's INITIAL JS graph must ship zero three.js
+// and no debug-only `leva` — both are lazy (three behind the install gag, leva behind
+// ?debug). We assert against the storefront HTML's OWN script graph, keyed on
+// fingerprint tokens that survive minification (a class name / a hook name) rather
+// than the word "leva" (which also hides inside "relevant" — a known false positive)
+// or a chunk filename (which the bundler is free to rename). A static-import
+// regression that pulls either dep into the entry chunk then fails the build.
+// Several fingerprints per dep, not one: a tree-shaken subset of three that happened
+// to exclude BufferGeometry would still violate the standard, but any real use pulls
+// the renderer or the scene-graph base too — so we trip on ANY of them. All are absent
+// from the legit storefront entry chunk today (verified), so no false positives.
+const FORBIDDEN = [
+  { token: 'BufferGeometry', dep: 'three.js' },
+  { token: 'WebGLRenderer', dep: 'three.js' },
+  { token: 'Object3D', dep: 'three.js' },
+  { token: 'LevaPanel', dep: 'leva' },
+  { token: 'useControls', dep: 'leva' },
+];
+const storefront = 'dist/index.html';
+if (existsSync(storefront)) {
+  const html = readFileSync(storefront, 'utf8');
+  const entryJs = [
+    ...new Set([...html.matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)].map((m) => m[0])),
+  ];
+  let bundleBad = 0;
+  // Fail CLOSED: a standards-enforcement guard must never pass by finding nothing. If
+  // the storefront HTML no longer references any /assets/*.js (a build-output or
+  // base-path change broke discovery), the three.js/leva rule would silently stop
+  // being checked — so that's a failure, not a quiet success.
+  if (entryJs.length === 0) {
+    console.error(
+      `  x storefront bundle guard found no /assets/*.js in ${storefront} — initial-graph discovery broke; refusing to pass without asserting the three.js/leva rule`,
+    );
+    bundleBad++;
+  }
+  for (const ref of entryJs) {
+    const file = 'dist' + ref;
+    // A referenced-but-missing chunk is itself a fail: inspecting '' would let the
+    // guard "pass" on a chunk it never actually read (a broken/inconsistent build).
+    if (!existsSync(file)) {
+      console.error(
+        `  x storefront references ${ref} but it's missing on disk — build output is inconsistent`,
+      );
+      bundleBad++;
+      continue;
+    }
+    const code = readFileSync(file, 'utf8');
+    for (const { token, dep } of FORBIDDEN) {
+      if (code.includes(token)) {
+        console.error(
+          `  x storefront chunk ${ref} contains ${dep} (${token}) — it must stay lazy, out of the initial bundle`,
+        );
+        bundleBad++;
+      }
+    }
+  }
+  failed += bundleBad;
+  if (!bundleBad) {
+    console.log(
+      `  ok storefront initial JS graph (${entryJs.length} chunk) ships no three.js / leva`,
+    );
+  }
+}
+
+// Installability guard: every icon the manifest DECLARES must actually ship at the
+// declared square dimensions, so a manifest/asset drift (a renamed or wrong-sized
+// icon) fails the build instead of quietly breaking install / home-screen behavior.
+// Reads the PNG IHDR directly — no image dep — and requires square.
+function pngSize(file) {
+  const buf = readFileSync(file);
+  if (buf.length < 24 || buf.toString('ascii', 12, 16) !== 'IHDR') return null;
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+// The apple-touch-icon is a SEPARATE contract in index.html (outside the manifest),
+// so size-check it on its own — a rename or wrong-size there would otherwise slip past
+// the manifest-icon loop below. Apple expects 180×180.
+if (existsSync('dist/index.html')) {
+  const linkTag = readFileSync('dist/index.html', 'utf8').match(
+    /<link[^>]*apple-touch-icon[^>]*>/i,
+  );
+  const href = linkTag?.[0].match(/href="([^"]+)"/)?.[1];
+  const file = href ? 'dist' + href : null;
+  const sz = file && existsSync(file) ? pngSize(file) : null;
+  if (!href) {
+    console.error('  x index.html declares no apple-touch-icon');
+    failed++;
+  } else if (!sz) {
+    console.error(`  x apple-touch-icon ${href} -> missing or not a PNG at dist${href}`);
+    failed++;
+  } else if (sz.w !== 180 || sz.h !== 180) {
+    console.error(`  x apple-touch-icon ${href} -> is ${sz.w}x${sz.h}, expected 180x180`);
+    failed++;
+  } else {
+    console.log(`  ok apple-touch-icon ${href} -> 180x180`);
+  }
+}
+// Fail CLOSED on the manifest too: index.html links /site.webmanifest, so a copy or
+// rename regression that drops it from dist must fail the build, not skip validation.
+const manifestFile = 'dist/site.webmanifest';
+const linksManifest =
+  existsSync('dist/index.html') &&
+  readFileSync('dist/index.html', 'utf8').includes('/site.webmanifest');
+if (linksManifest && !existsSync(manifestFile)) {
+  console.error(
+    `  x index.html links /site.webmanifest but ${manifestFile} is missing — installability broken`,
+  );
+  failed++;
+} else if (existsSync(manifestFile)) {
+  const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
+  // Fail closed: a manifest with no icons is a broken install surface, not a pass. And
+  // lock in the canonical PWA install set — a future manifest that dropped 192/512
+  // (or shrank to a token 32×32) would pass "valid square PNG" checks while quietly
+  // breaking installability, which is the whole point of this guard.
+  const declaredSizes = new Set(icons.map((i) => i.sizes));
+  for (const need of ['192x192', '512x512']) {
+    if (!declaredSizes.has(need)) {
+      console.error(`  x ${manifestFile} is missing the required ${need} install icon`);
+      failed++;
+    }
+  }
+  for (const icon of icons) {
+    const file = 'dist' + icon.src;
+    const sz = existsSync(file) ? pngSize(file) : null;
+    if (!sz) {
+      console.error(`  x manifest icon ${icon.src} -> missing or not a PNG at dist${icon.src}`);
+      failed++;
+    } else if (`${sz.w}x${sz.h}` !== icon.sizes) {
+      console.error(
+        `  x manifest icon ${icon.src} -> is ${sz.w}x${sz.h} but the manifest declares ${icon.sizes}`,
+      );
+      failed++;
+    } else if (sz.w !== sz.h) {
+      console.error(
+        `  x manifest icon ${icon.src} -> ${sz.w}x${sz.h} is not square (install wants square)`,
+      );
+      failed++;
+    } else {
+      console.log(`  ok manifest icon ${icon.src} -> ${icon.sizes}, square`);
+    }
+  }
+}
+
 if (failed) {
   console.error(`\npost-build check FAILED (${failed}).`);
   process.exit(1);
