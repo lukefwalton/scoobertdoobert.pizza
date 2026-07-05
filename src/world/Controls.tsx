@@ -50,6 +50,9 @@ export function Controls() {
   // useFrame). Small forgiveness window so a hop tapped a hair before landing fires on
   // touchdown instead of being swallowed.
   const jumpBuffer = useRef(0);
+  // Monotonic count of hops STARTED (ground / double / buffered re-hop), exposed under
+  // the test entrance as __sdpJumps so a smoke can prove the buffered path fired.
+  const jumpCount = useRef(0);
   // Throttle accumulator for publishing the camera pose to the heading store.
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
@@ -147,14 +150,17 @@ export function Controls() {
     // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
     // frame, and the global stays off the normal runtime surface.
     if (EXPOSE_CAM) {
-      (
-        window as Window & { __sdpCam?: { x: number; y: number; z: number; yaw: number } }
-      ).__sdpCam = {
+      const w = window as Window & {
+        __sdpCam?: { x: number; y: number; z: number; yaw: number };
+        __sdpJumps?: number;
+      };
+      w.__sdpCam = {
         x: camera.position.x,
         y: camera.position.y,
         z: camera.position.z,
         yaw: yaw.current,
       };
+      w.__sdpJumps = jumpCount.current;
     }
     if (inputFrozen()) return;
     // A scripted camera move (the tube-slide ride) just ended: adopt the heading
@@ -225,6 +231,7 @@ export function Controls() {
         hopVy.current = 4.6; // ground jump (holding Space re-hops → bunny hop)
         airJumps.current = 1;
         jumpBuffer.current = 0;
+        jumpCount.current++;
       } else if (
         !grounded &&
         spaceEdge && // a SECOND, deliberate press mid-air
@@ -234,6 +241,7 @@ export function Controls() {
         hopVy.current = 3.9; // the mid-air second hop (a touch softer)
         airJumps.current = 2;
         jumpBuffer.current = 0; // consumed by the double-jump; don't also re-hop on land
+        jumpCount.current++;
       }
     }
     spaceWasDown.current = spaceDown;
@@ -252,6 +260,7 @@ export function Controls() {
           hopVy.current = 4.6;
           airJumps.current = 1;
           jumpBuffer.current = 0;
+          jumpCount.current++;
         }
       }
     }
