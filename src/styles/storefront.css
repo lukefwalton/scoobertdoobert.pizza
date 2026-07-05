@@ -398,34 +398,33 @@ footer {
   font-style: italic;
 }
 
-/* ── Scrolling headline (a CSS <marquee>) ──────────────────────────────────
-   Real, selectable text with real links. Two identical runs slide left for a
-   seamless loop; hover/focus pauses it (WCAG 2.2.2). Under reduced-motion it
-   stops, drops the duplicate run, and wraps like an ordinary line. */
+/* ── Scrolling headline (a classic CSS <marquee>) ──────────────────────────
+   Real, selectable text with a real link. The run is pushed one full container
+   width to the right (padding-left: 100%), so the bar starts EMPTY and the
+   headline scrolls in from the right edge, crosses, exits left, then repeats —
+   the classic <marquee behavior="scroll"> feel, and a clean first impression
+   (no text jammed against the edge at rest). Hover/focus pauses it (WCAG 2.2.2);
+   under reduced-motion it stops and wraps like an ordinary line. */
 .marquee {
   overflow: hidden;
-  white-space: nowrap;
   border-top: 1px solid #808080;
   border-bottom: 1px solid #808080;
   background: #fbfbe8;
   padding: 5px 0;
   margin: 6px 0;
 }
-.marquee__track {
-  display: flex;
-  width: max-content;
+.marquee__run {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
 }
-.marquee:hover .marquee__track,
-.marquee:focus-within .marquee__track {
+.marquee:hover .marquee__run,
+.marquee:focus-within .marquee__run {
   animation-play-state: paused;
 }
-.marquee__run {
-  flex: none;
-  padding-right: 3rem;
-}
 @media (prefers-reduced-motion: no-preference) {
-  .marquee__track {
-    animation: sdp-marquee 32s linear infinite;
+  .marquee__run {
+    animation: sdp-marquee 26s linear infinite;
   }
 }
 @keyframes sdp-marquee {
@@ -433,22 +432,17 @@ footer {
     transform: translateX(0);
   }
   to {
-    transform: translateX(-50%);
+    transform: translateX(-100%);
   }
 }
+/* No motion (or a browser that stalls the animation) → no scroll: the whole
+   headline sits static and wraps, fully readable. */
 @media (prefers-reduced-motion: reduce) {
-  .marquee {
-    white-space: normal;
-  }
-  .marquee__track {
-    display: block;
-    width: auto;
-  }
   .marquee__run {
-    padding-right: 0;
-  }
-  .marquee__run[aria-hidden='true'] {
-    display: none;
+    display: block;
+    white-space: normal;
+    padding-left: 0;
+    animation: none;
   }
 }
 
@@ -517,9 +511,11 @@ footer {
     padding: 6px 0;
   }
 
-  /* The marquee can pick up speed on a narrow screen so it doesn't crawl. */
-  .marquee__track {
-    animation-duration: 22s;
+  /* The classic marquee crosses a shorter box on a phone — quicken it so the
+     headline doesn't dawdle. (It starts empty and scrolls in from the right, so
+     there's no clipped-text-at-rest problem on narrow screens.) */
+  .marquee__run {
+    animation-duration: 16s;
   }
 
   /* Keep the loud order + arcade callouts comfortably inside the gutter. */
