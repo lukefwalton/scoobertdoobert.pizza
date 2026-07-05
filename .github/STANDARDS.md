@@ -10,7 +10,16 @@ longer-form rules live in [`CLAUDE.md`](../CLAUDE.md) (the constitution),
 - **JS-off storefront is the fallback and must stay fully crawlable.** Every
   primary destination is a real `<a href>` to a real URL — never `#`, never a
   geometry-only link. `src/data/links.ts` is the single source; every `href` is
-  real. Reduced-motion / mobile get the plain page, not the 3D world.
+  real. **JS-off** always gets the plain page (no descent, no 3D). **Mobile** now
+  runs the full descent + 3D world with on-screen touch controls
+  (`src/components/TouchControls.tsx`; gated on `isTouchDevice()` = `pointer:
+  coarse`). **`prefers-reduced-motion`** is the one hard gate, and it's an
+  **opt-in**, not a redirect: an entry point raises the `MotionConsent` gate
+  ("this has motion — enter anyway?") with the flat `/text` list as the safe
+  default (`src/lib/motionConsent.ts`); motion stays softened inside the world.
+  The hidden trap door stays hidden under reduced-motion (a surprise drop is
+  motion). (Policy lifted 2026-07 per CLAUDE.md's Mobile policy — "make the whole
+  thing work on mobile.")
 - **No copyrighted assets, copy, logos, or marks.** Original parody only (no
   Nintendo/SGI/Domino's/etc.). Steal the grammar, never the artifact.
 - **Content is All Rights Reserved.** Music, lyrics, prose, art, likeness under
@@ -25,8 +34,9 @@ longer-form rules live in [`CLAUDE.md`](../CLAUDE.md) (the constitution),
   ships **zero three.js** (asserted by `scripts/check-build.mjs`). Other heavy,
   debug-only deps (e.g. `leva`) are lazy too.
 - **WCAG 2.3.1:** ≤3 flashes/sec, no full-field luminance flash. Blinks/flickers
-  are slow smooth fades, gated behind `!prefers-reduced-motion` (the 3D world is
-  off there anyway). Audio dropouts fade, never spike (output limiter in
+  are slow smooth fades, gated behind `!prefers-reduced-motion` (a reduced-motion
+  user only reaches the world by explicit opt-in, and motion is softened for them
+  inside via the REDUCED caps). Audio dropouts fade, never spike (output limiter in
   `src/audio/engine.ts`).
 - **The "machine sees you" dread beat is always FAKED** — never real camera/mic.
   (The only camera use permitted is a consensual, fully-local, never-transmitted
@@ -62,9 +72,15 @@ longer-form rules live in [`CLAUDE.md`](../CLAUDE.md) (the constitution),
   `?debug` gate.
 - **A smoke per feature.** Every `shoot`/`shoot:*` script in `package.json` is a
   CI-gating Playwright smoke (auto-discovered by `shoot:all`). New in-world
-  behavior gets a smoke that walks the REAL path (real door edges, real pickups),
-  not just a `?room=` mount. Prefer waiting on concrete DOM/state over fixed
-  sleeps.
+  behavior gets a smoke that walks the REAL entry path (real door edges, real
+  pickups), not just a `?room=` mount — the real path must be covered by *some*
+  smoke. A smoke that must read the `?world`/`?debug` test globals (e.g.
+  `__sdpCam`, gated to the test entrance by `testHooks.ts`) may ENTER via that
+  entrance for its mechanics **provided the real entry path is covered by a sibling
+  smoke** (e.g. `shoot:touch` proves the HUD mechanics under `?world` and also
+  carries a real-path `order form → install → world` check; `shoot:descent` /
+  `shoot:fallback` cover the mobile journey). Prefer concrete DOM/state waits over
+  fixed sleeps.
 
 ## What CI enforces (`.github/workflows/ci.yml`)
 

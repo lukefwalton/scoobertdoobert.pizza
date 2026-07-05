@@ -10,6 +10,7 @@ import { JUMP_SECRET, DOUBLEJUMP_SECRET } from '../data/abilities';
 import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 import { takeHeading } from './cameraRig';
+import { getTouchMove, takeTouchJump } from './touchInput';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
@@ -36,6 +37,10 @@ export function Controls() {
   const pitch = useRef(-0.04);
   const keys = useRef<Record<string, boolean>>({});
   const dragging = useRef(false);
+  // Which pointer owns the look-drag. Tracked so a SECOND finger (the touch
+  // joystick, whose pointermove events also reach the window handler) can't
+  // corrupt the look — walk-thumb + look-thumb coexist.
+  const dragPointer = useRef<number | null>(null);
   const last = useRef({ x: 0, y: 0 });
   // Jump: bonus height above the eye line + its vertical velocity. Grounded when
   // hop === 0 and vy === 0; holding Space bunny-hops (deliberate — it feels good).
@@ -92,14 +97,20 @@ export function Controls() {
     const el = gl.domElement;
     const down = (e: PointerEvent) => {
       if (inputFrozen()) return;
+      // Claim this pointer for look; a later finger (joystick) is a different
+      // pointerId and is ignored by move/up below.
       dragging.current = true;
+      dragPointer.current = e.pointerId;
       last.current = { x: e.clientX, y: e.clientY };
     };
-    const up = () => {
+    const up = (e: PointerEvent) => {
+      if (dragPointer.current !== null && e.pointerId !== dragPointer.current) return;
       dragging.current = false;
+      dragPointer.current = null;
     };
     const move = (e: PointerEvent) => {
       if (!dragging.current || inputFrozen()) return;
+      if (dragPointer.current !== null && e.pointerId !== dragPointer.current) return;
       yaw.current -= (e.clientX - last.current.x) * 0.005;
       pitch.current = Math.max(
         -0.9,
@@ -184,12 +195,19 @@ export function Controls() {
     }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
+    // Touch joystick vector (y = forward, x = strafe), folded into the same
+    // fwd/strafe the keys produce so the two input methods just add. Clamped to
+    // [-1,1] per axis (same cap as a single key) so touch can't out-run WASD.
+    const tm = getTouchMove();
+    const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
     // SPRINT: hold Shift to move faster, with a little FOV kick for speed-feel
     // (the kick is dropped under reduced motion). Pure feel — the world clamps
     // still hold. W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT = TURN.
-    const fwd = (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0);
-    const strafe = (k['d'] ? 1 : 0) - (k['a'] ? 1 : 0);
-    const moving = fwd !== 0 || strafe !== 0;
+    const fwd = clamp1(
+      (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0) + tm.y,
+    );
+    const strafe = clamp1((k['d'] ? 1 : 0) - (k['a'] ? 1 : 0) + tm.x);
+    const moving = Math.abs(fwd) > 0.001 || Math.abs(strafe) > 0.001;
     const sprinting = !!k['shift'] && moving;
     const speed = 6 * (sprinting ? 1.7 : 1) * dt;
     const pcam = camera as THREE.PerspectiveCamera;
@@ -219,26 +237,32 @@ export function Controls() {
     // (its stage orb). Before you've learned jump, Space does nothing.
     const grounded = hop.current === 0 && hopVy.current === 0;
     const spaceDown = !!k[' '];
-    const spaceEdge = spaceDown && !spaceWasDown.current; // a fresh press this frame
+    // The touch jump button feeds the same logic as Space: a one-frame rising
+    // edge (read-and-cleared here) that both triggers a ground jump and counts
+    // as a fresh mid-air press for the double-jump.
+    const touchJump = takeTouchJump();
+    const jumpDown = spaceDown || touchJump;
+    const jumpEdge = (spaceDown && !spaceWasDown.current) || touchJump; // fresh press this frame
     if (grounded) airJumps.current = 0;
     // Age any buffered tap; a fresh airborne press that can't act yet (no air-jump
     // left, or double-jump unlearned) is REMEMBERED for a short window and fired on
     // touchdown below — so a hop tapped a hair early isn't swallowed. (No coyote-time
-    // counterpart: the world is a flat floor, you never walk off a ledge.)
+    // counterpart: the world is a flat floor, you never walk off a ledge.) A touch tap
+    // buffers exactly like Space — jumpEdge / jumpDown fold both inputs together.
     jumpBuffer.current = Math.max(0, jumpBuffer.current - dt);
-    if (spaceEdge && !grounded) jumpBuffer.current = 0.13;
-    if (spaceDown || !grounded) {
+    if (jumpEdge && !grounded) jumpBuffer.current = 0.13;
+    if (jumpDown || !grounded) {
       // Read the learned verbs once per relevant frame (cheap; only when airborne
-      // or Space is down), never every idle frame.
+      // or a jump is down), never every idle frame.
       const secrets = useProgressStore.getState().secretsFound;
-      if (grounded && spaceDown && secrets.includes(JUMP_SECRET)) {
+      if (grounded && jumpDown && secrets.includes(JUMP_SECRET)) {
         hopVy.current = 4.6; // ground jump (holding Space re-hops → bunny hop)
         airJumps.current = 1;
         jumpBuffer.current = 0;
         jumpCount.current++;
       } else if (
         !grounded &&
-        spaceEdge && // a SECOND, deliberate press mid-air
+        jumpEdge && // a SECOND, deliberate press mid-air
         airJumps.current < 2 &&
         secrets.includes(DOUBLEJUMP_SECRET)
       ) {

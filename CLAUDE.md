@@ -40,8 +40,10 @@ a liminal/backrooms/90s dive whose reward is sound; read it.
 
 - **The plain HTML storefront IS the fallback layer.** It must fully work with
   JavaScript disabled: real `<a href>` links to real destinations, crawlable,
-  semantic. With `prefers-reduced-motion` or on mobile, the user just gets this
-  page — no descent, no 3D. Everything else is progressive enhancement on top.
+  semantic. With JavaScript disabled the user gets exactly this page — no descent,
+  no 3D. (With JS on, mobile now gets the full descent + touch-driven 3D world;
+  `prefers-reduced-motion` gets an explicit opt-in to it — see the Mobile policy
+  below.) Everything else is progressive enhancement on top.
 - **Every primary destination is a real anchor in the DOM, always** — even when
   it is also a 3D object. A link that exists only as geometry is invisible to
   crawlers and screen readers and does not count. **Loaders/minigames never gate
@@ -215,14 +217,34 @@ dread.** (The one camera exception is a consensual, fully-local, never-transmitt
 - **Self-verify with Playwright** (`npm run shoot*`), including the JS-disabled
   storefront, before committing visual checkpoints.
 
-## Mobile / reduced-motion policy (Luke: "don't forget mobile, less features OK")
+## Mobile / reduced-motion policy (Luke: "don't forget mobile" → 2026-07: "make the whole thing work on mobile")
+
+The old policy ("the 3D world is the one feature mobile skips → /text") is
+**LIFTED**. The world runs on phones now; the only hard gate left is reduced
+motion, and even that is an opt-in.
 
 - The era FLOORS are universal — responsive; the descent through web history
   works on a phone (the rot transition is instant under reduced-motion).
-- The 3D WORLD is the one "less feature" mobile/reduced-motion skips: the
-  machine-room CRT live render isn't mounted, and Install hands off to `/text`
-  instead of the 3D world. Desktop + motion-OK gets the full world. All dread is
-  therefore gated off mobile/reduced-motion by construction.
+- **The 3D WORLD now runs on phones**, with on-screen touch controls
+  (`src/components/TouchControls.tsx`: a virtual stick + a context/jump/spell
+  cluster; drag-to-look already worked under touch). Input bridges through
+  `src/world/touchInput.ts` into the same `Controls` `useFrame` the keyboard
+  drives; the verbs go through the shared `src/lib/worldActions.ts`. The gate now
+  lives split in `src/lib/lowPower.ts`: `isTouchDevice()` (`pointer: coarse` —
+  orientation-independent, so a landscape phone keeps its controls) only decides
+  whether the touch HUD mounts — it no longer skips the world. The machine-room
+  CRT **live** render stays desktop-only (a second WebGL context on a phone isn't
+  worth it), and the "pocket computer" install gag is now a wave-through pre-roll,
+  never a dead end.
+- **`prefers-reduced-motion` is the one hard gate — as an OPT-IN, not a redirect.**
+  The world is motion-heavy, so a reduced-motion user is never auto-dropped in: an
+  entry point (order form / machine-room install) raises the `MotionConsent` gate
+  ("this has motion — enter anyway?") with the flat `/text` list as the safe
+  default (remembered per visit via `src/lib/motionConsent.ts`). Motion stays
+  softened INSIDE the world (the existing REDUCED caps). The hidden trap door
+  stays hidden under reduced-motion (a surprise drop IS motion). So dread rides
+  the world everywhere it runs; declining the opt-in (→ `/text`) is how a
+  reduced-motion user gets none of it.
 
 ## Starter content (reference)
 

@@ -3,8 +3,10 @@
 //   1. Desktop + JS: the "soft spot in the floor" seam exists; clicking it runs
 //      the d20 roll interstitial and DROPS you into the 3D world (canvas mounts)
 //      at one of the DEEP back rooms — never the safe surface.
-//   2. It's a desktop-only progressive enhancement: ABSENT on mobile, and ABSENT
-//      from the crawlable / JS-off HTML (so the dead-plain front door is intact).
+//   2. It's a post-hydration PE, ABSENT from the crawlable / JS-off HTML (so the
+//      dead-plain front door is intact) and HIDDEN under prefers-reduced-motion (a
+//      surprise 3D drop is motion). It now RENDERS on touch phones — the world runs
+//      there, so a tap drops you the same way.
 import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
@@ -29,7 +31,8 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
   await ctx.close();
 }
 
-// --- 2. MOBILE: the seam must be absent (desktop-only PE) ---
+// --- 2. MOBILE (touch, motion OK): the seam RENDERS now — the world runs on
+//     phones, so the trap door drops you there too. A tap starts the d20 roll. ---
 {
   const ctx = await browser.newContext({
     viewport: { width: 390, height: 844 },
@@ -39,12 +42,33 @@ const { browser, fail: bad, finish, failures } = await launchSmoke();
   const page = await ctx.newPage();
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   const seam = await page.$('.trapdoor-seam');
-  if (seam) bad('mobile: trapdoor seam present (should be desktop-only)');
-  console.log(`mobile   -> seam=${!!seam}`);
+  if (!seam) bad('mobile: trapdoor seam missing (the world runs on phones now — it should render)');
+  let rolled = false;
+  if (seam) {
+    await seam.click();
+    rolled = !!(await page.waitForSelector('.trapdoor-fall', { timeout: 4000 }).catch(() => null));
+    if (!rolled) bad('mobile: tapping the seam did not start the d20 roll');
+  }
+  console.log(`mobile   -> seam=${!!seam} rolled=${rolled}`);
   await ctx.close();
 }
 
-// --- 3. DESKTOP + JS: seam present; clicking it drops into a DEEP room ---
+// --- 3. REDUCED MOTION: the seam is HIDDEN (a surprise 3D drop is itself motion,
+//     so a reduced-motion user must never be dropped without asking). ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'reduce',
+  });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  const seam = await page.$('.trapdoor-seam');
+  if (seam) bad('reduced-motion: trapdoor seam present (a surprise drop is motion — must hide)');
+  console.log(`reduced  -> seam=${!!seam}`);
+  await ctx.close();
+}
+
+// --- 4. DESKTOP + JS: seam present; clicking it drops into a DEEP room ---
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
