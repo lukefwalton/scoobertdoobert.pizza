@@ -4,7 +4,7 @@ import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
 import { Marquee } from '../components/Marquee';
 import { HitCounter } from '../components/HitCounter';
-import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
+import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { CASSETTE_IDS } from '../data/items';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
@@ -24,9 +24,6 @@ import { TrapDoor } from '../components/TrapDoor';
 // of the dead-plain furniture is the template's signature.
 // ───────────────────────────────────────────────────────────────────────────
 export function PlainFloor({ floor }: { floor: Floor }) {
-  // The "inside scoop" points at the podcast (the behind-the-scenes talk show),
-  // not at lukefwalton.com — that stays a subtle footer/schema backlink.
-  const insideScoop = destById('podcast')?.href ?? TEXT_ONLY_PATH;
   const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
   // Surface-safe returning-visitor wink (the rat clocks you) — now HISTORY-AWARE:
@@ -93,20 +90,25 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
       <hr />
 
-      {/* The news, as a scrolling headline instead of a paragraph block — the
-          RAT gag plus the slogan fold into one live marquee (fewer words, more
-          life). The "inside scoop" stays a real, crawlable <a>. */}
+      {/* The news, as a short scrolling headline. The RAT gag stays (he pays
+          rent), but he no longer links off to a blog — clicking him ducks you
+          downstairs into the building (the descent → the 3D world). */}
       <section className="news" aria-label="Announcements">
         <Marquee label="Storefront headline">
-          <b>&#9733; RAT SPOTTED IN WALL &mdash; MANAGEMENT INSISTS HE PAYS RENT &#9733;</b>
+          <b>&#9733; RAT SPOTTED IN WALL &#9733;</b>
           {'  '}
-          <a href={insideScoop} target="_blank" rel="noopener noreferrer">
-            Click here for the inside scoop.
-          </a>
+          <button
+            type="button"
+            className="marquee__link"
+            onClick={() => {
+              audio.unlock();
+              descend();
+            }}
+          >
+            Follow him downstairs &raquo;
+          </button>
           {'  ·  '}
-          Now serving six unreleased demos under one roof.
-          {'  ·  '}
-          <b>The Best Songs Under One Roof!&trade;</b>
+          Six unreleased demos under one roof.
           {'  ·  '}
           Lo-Fi &bull; Hi-Fi &bull; Stuffed Crust.
           {'  ·  '}
@@ -186,24 +188,6 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
       <hr />
 
-      <aside className="coupon" aria-label="DistroKid coupon">
-        <span className="coupon__cut" aria-hidden="true">
-          &#9986; - - - - - - - - - - - - - - - -
-        </span>
-        <p>
-          <b>COUPON:</b> Are you a musician? Distribute your music and{' '}
-          <a
-            href="https://distrokid.com/vip/lovemusicmore"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            get a discount on DistroKid &raquo;
-          </a>
-        </p>
-      </aside>
-
-      <hr />
-
       <aside className="arcade-callout" aria-label="The Pizza Arcade">
         <p className="arcade-callout__head">
           <span className="arcade-callout__new">NEW!</span> THE PIZZA ARCADE
@@ -250,17 +234,6 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         <p className="directory">
           <a href="/about/jp" hrefLang="ja" lang="ja">
             日本語版のご案内 (About, in Japanese) &raquo;
-          </a>
-        </p>
-        <p className="lmm">
-          <a href="https://lovemusicmore.substack.com/" target="_blank" rel="noopener noreferrer">
-            <img
-              src="/brand/gg_ScoobertDoobert_LoveMusicMore.png"
-              alt="Love Music More"
-              className="lmm-logo"
-              width="110"
-              height="111"
-            />
           </a>
         </p>
         <p className="counter-line">
