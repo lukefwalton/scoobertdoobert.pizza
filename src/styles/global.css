@@ -45,17 +45,20 @@ summary {
 
 /* …but a TOUCH device has no pointer, so the custom cursor is meaningless there and
    can surface as a stuck sprite over the HUD (the "pizza slice" on the menu button in
-   phone screenshots). Reset it to auto on coarse-pointer devices. */
+   phone screenshots). Reset it to auto on coarse-pointer devices.
+
+   This MUST be a universal `!important` reset, not an element-selector list: the HUD
+   re-applies `cursor: url('/cursor.cur'), pointer` via CLASS selectors (.hud-menu-btn
+   et al.), whose specificity (0,1,0) beats a bare `button` reset (0,0,1), so the sprite
+   survived on exactly the elements it was reported over. On a pointer-less device no
+   cursor value is visible anyway, so overriding every rule to `auto` is safe and is the
+   only thing that reliably wins the cascade. Scoped to (pointer: coarse) → desktop keeps
+   the pizza cursor untouched. */
 @media (pointer: coarse) {
-  body,
-  a,
-  button,
-  input,
-  label,
-  summary,
-  textarea,
-  select {
-    cursor: auto;
+  *,
+  *::before,
+  *::after {
+    cursor: auto !important;
   }
 }
 
