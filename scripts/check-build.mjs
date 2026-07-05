@@ -174,7 +174,16 @@ if (existsSync(storefront)) {
   const files = new Set();
   let bundleBad = 0;
   const manifestPath = 'dist/.vite/manifest.json';
-  if (existsSync(manifestPath)) {
+  // The manifest is the AUTHORITATIVE eager graph and is always emitted by the
+  // vite-react-ssg build — so REQUIRE it. If it's absent, the guard would degrade to
+  // HTML-only discovery (which can miss a non-preloaded static-initial chunk), quietly
+  // reopening the exact hole this walk closes. A missing manifest is a build failure.
+  if (!existsSync(manifestPath)) {
+    console.error(
+      `  x ${manifestPath} is missing — the authoritative eager-graph source for the three.js/leva guard; failing closed`,
+    );
+    bundleBad++;
+  } else {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     // The storefront entry is specifically keyed 'index.html'. Don't fall back to an
     // arbitrary isEntry node — in a future multi-entry manifest that could walk the
@@ -201,7 +210,7 @@ if (existsSync(storefront)) {
       // unasserted. Treat it like a resolved-chunk-missing-on-disk failure.
       if (!node) {
         console.error(
-          `  x manifest import '${key}' has no entry — broken import graph; failing closed`,
+          `  x manifest import ${JSON.stringify(key)} has no entry — broken import graph; failing closed`,
         );
         bundleBad++;
         return;
