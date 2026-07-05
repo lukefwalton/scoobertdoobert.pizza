@@ -1,0 +1,119 @@
+/* On-screen touch controls for the 3D world (src/components/TouchControls).
+   Mounted only on small touch devices. Two thumbs: a virtual stick bottom-left
+   for walking, a context/jump/spell cluster bottom-right for the verbs. Borrows
+   the arcade's chunky beveled push-button grammar (src/styles/arcade.css) so it
+   reads as the same period hardware. */
+
+.touch-controls {
+  position: fixed;
+  inset: 0;
+  z-index: 65; /* above the Canvas (z 60); below the pause menu, which hides us */
+  pointer-events: none; /* empty space passes taps to the canvas for look-drag */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Left thumb: the walk stick ── */
+.touch-stick {
+  position: fixed;
+  left: calc(22px + env(safe-area-inset-left, 0px));
+  bottom: calc(26px + env(safe-area-inset-bottom, 0px));
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  pointer-events: auto;
+  touch-action: none;
+  background: radial-gradient(circle at 50% 42%, rgba(40, 30, 16, 0.5), rgba(12, 8, 4, 0.62));
+  border: 3px solid rgba(242, 196, 118, 0.55);
+  box-shadow:
+    inset 0 0 14px rgba(0, 0, 0, 0.5),
+    0 2px 6px rgba(0, 0, 0, 0.4);
+}
+.touch-stick__nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  background: #e2a13b;
+  border: 4px outset #f2c476;
+  will-change: transform;
+}
+
+/* ── Right thumb: the verb cluster (stacked above the spell hotbar) ── */
+.touch-actions {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  /* clear the .hud-hotbar (bottom:14px, ~64px tall) when spells are learned */
+  bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  pointer-events: none; /* the buttons opt back in individually */
+}
+
+.touch-btn {
+  appearance: none;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  min-width: 66px;
+  min-height: 66px; /* WCAG 2.5.5 tap target */
+  padding: 0 12px;
+  border-radius: 50%;
+  font:
+    bold 15px 'Courier New',
+    monospace;
+  letter-spacing: 1px;
+  color: #2a0606;
+  cursor: pointer;
+}
+.touch-btn:active {
+  border-style: inset;
+}
+
+.touch-btn--action {
+  background: #e2a13b;
+  border: 4px outset #f2c476;
+}
+.touch-btn--action:active {
+  background: #c4862a;
+}
+/* Nothing to interact with: dimmed but still tappable (grab falls through). */
+.touch-btn--action.is-idle {
+  opacity: 0.4;
+}
+
+.touch-btn--jump {
+  min-width: 60px;
+  min-height: 60px;
+  background: #e23b2e;
+  border: 4px outset #f2766b;
+}
+.touch-btn--jump:active {
+  background: #c43226;
+}
+
+.touch-btn--spell {
+  min-width: 54px;
+  min-height: 54px;
+  font-size: 22px;
+  color: #26123a;
+  background: #b98ce0;
+  border: 4px outset #d6b8f0;
+}
+.touch-btn--spell:active {
+  background: #9a6fc4;
+}
+
+/* Reduced motion: no press-transition flourishes needed; the buttons are static
+   already. Kept explicit so future hover/scale effects never leak in here. */
+@media (prefers-reduced-motion: reduce) {
+  .touch-stick__nub {
+    will-change: auto;
+  }
+}

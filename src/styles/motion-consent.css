@@ -1,0 +1,51 @@
+/* The reduced-motion opt-in modal (src/components/MotionConsent). A centered
+   98.css window over a dimmed backdrop. No entrance animation — a motion warning
+   that itself animated in would be a bad joke. */
+
+.mcons-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.mcons.window {
+  width: min(420px, 92vw);
+  max-height: 88dvh;
+  overflow: auto;
+}
+
+.mcons .window-body p {
+  margin: 8px 4px;
+  line-height: 1.4;
+}
+
+.mcons-soft {
+  color: #333;
+}
+
+.mcons-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 4px 4px;
+}
+
+.mcons-go {
+  min-height: 44px; /* WCAG 2.5.5 tap target */
+  padding: 8px 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.mcons-text {
+  align-self: center;
+  padding: 6px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}

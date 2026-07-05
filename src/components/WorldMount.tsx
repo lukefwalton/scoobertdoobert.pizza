@@ -1,7 +1,9 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { useMounted } from '../lib/useMounted';
+import { useTouchDevice } from '../lib/lowPower';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
+import { TouchControls } from './TouchControls';
 import { PerceptionWhisper } from './PerceptionWhisper';
 import { DreadVignette } from './DreadVignette';
 import { LevelLoader } from './LevelLoader';
@@ -12,9 +14,13 @@ import '../styles/world.css';
 // The initial storefront bundle stays three-free.
 const World = lazy(() => import('../world/World'));
 
-// leva (the ~2 MB debug tuning GUI) is ALSO lazy — it only ever shows under
-// ?debug, so there's no reason for its runtime to sit in the storefront's initial
-// bundle. Fetched on demand the moment ?debug mounts it, three-free otherwise.
+// leva (the ~2 MB debug tuning GUI) is lazy — its runtime never sits in the
+// storefront's initial bundle; it rides the world chunk (Water.tsx's useControls
+// already pulls leva in there). We render it whenever the world is up but keep it
+// HIDDEN unless ?debug: `useControls` auto-mounts a default leva panel if no
+// <Leva> exists, which would otherwise float over the world for every visitor —
+// harmless off-screen on desktop, but it covered the ☰ menu button on phones once
+// the world went cross-platform. `hidden` suppresses that stray panel.
 const Leva = lazy(() => import('leva').then((m) => ({ default: m.Leva })));
 
 export function WorldMount() {
@@ -22,6 +28,9 @@ export function WorldMount() {
   const active = useSceneStore((s) => s.worldActive);
   const enter = useSceneStore((s) => s.enterWorld);
   const setPaused = useSceneStore((s) => s.setPaused);
+  // Touch controls mount on a touch device (coarse primary pointer), any
+  // orientation; a mouse-driven desktop keeps its keyboard/mouse world untouched.
+  const touch = useTouchDevice();
 
   const debug =
     mounted &&
@@ -46,11 +55,11 @@ export function WorldMount() {
 
   return (
     <>
-      {/* leva shader/scene tuning panel — only MOUNTED under ?debug (and lazily,
-          so its runtime never lands in the storefront's initial bundle). */}
-      {debug && (
+      {/* leva shader/scene tuning panel — mounted with the world (so its default
+          auto-panel is suppressed), VISIBLE only under ?debug. */}
+      {active && (
         <Suspense fallback={null}>
-          <Leva collapsed />
+          <Leva hidden={!debug} collapsed />
         </Suspense>
       )}
       {active && (
@@ -60,6 +69,7 @@ export function WorldMount() {
           <DreadVignette />
           <WorldHud />
           <PerceptionWhisper />
+          {touch && <TouchControls />}
           <button
             type="button"
             className="hud-menu-btn"

@@ -2,7 +2,9 @@ import { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import '../styles/machineroom.css';
 import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
-import { useLowPower, isSmallScreen } from '../lib/lowPower';
+import { useReducedMotion, useTouchDevice } from '../lib/lowPower';
+import { hasMotionConsent, grantMotionConsent } from '../lib/motionConsent';
+import { MotionConsent } from '../components/MotionConsent';
 import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
 import type { Floor } from '../data/floors';
@@ -27,32 +29,41 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const worldActive = useSceneStore((s) => s.worldActive);
   const dests = resolveLinks(floor.links);
 
-  // The 3D world (and the CRT's live WebGL render) is desktop + motion-OK only.
-  // Mobile / reduced-motion can still WALK the machine room — it's a normal page
-  // — but the CRT shows a static screen and Install hands off to the flat menu.
-  // Reactive: if the viewport crosses the breakpoint or reduced-motion flips
-  // after this floor has mounted, the CRT and the install behavior follow suit.
-  const lowPower = useLowPower();
+  // The 3D world now runs on phones (touch controls), so the ONLY hard gate left
+  // is reduced motion — and even that is an opt-in, not a redirect. The CRT's
+  // LIVE render stays desktop-motion-OK, though: a tiny second WebGL context on a
+  // phone before you even enter is not worth it, and reduced-motion should stay
+  // still. Reactive: crossing the breakpoint or toggling reduced-motion updates
+  // the CRT and the install path live.
+  const reduced = useReducedMotion();
+  const touch = useTouchDevice();
+  const crtLive = !worldActive && !reduced && !touch;
 
-  // The cheeky payoff for phones: instead of silently dumping a mobile visitor on
-  // the flat /text page (a letdown), the Calzone Player "install" pops a period
-  // setup-error — the plug-in needs a desktop, because pocket phones didn't exist
-  // in 1996. It still offers a real link onward to /text, so it never dead-ends.
+  // The cheeky phone payoff: the Calzone Player "install" still pops a period
+  // setup notice — the plug-in was built for a desktop, because pocket phones
+  // didn't exist in 1996 — but it now WAVES YOU THROUGH (the world runs on a
+  // phone after all), and still offers the /text link as an alternative.
   const [gag, setGag] = useState(false);
   const gagRef = useRef<HTMLDivElement>(null);
   const installRef = useRef<HTMLButtonElement>(null);
+  // Reduced-motion opt-in (once per visit), shared with the storefront order form.
+  const [motionGate, setMotionGate] = useState(false);
 
-  const install = () => {
-    if (isSmallScreen()) {
-      setGag(true); // mobile → the desktop-invite gag
-      return;
-    }
-    if (lowPower) {
-      window.location.assign(TEXT_ONLY_PATH); // reduced-motion on a real desktop → flat handoff
-      return;
-    }
+  const enterWorld = () => {
     audio.unlock();
     requestInstall();
+  };
+
+  const install = () => {
+    if (reduced && !hasMotionConsent()) {
+      setMotionGate(true); // reduced-motion → ask first (opt-in), /text is the safe out
+      return;
+    }
+    if (touch) {
+      setGag(true); // handheld → the "pocket computer" pre-roll, which then enters
+      return;
+    }
+    enterWorld();
   };
 
   // Modal hygiene for the gag: focus the first control on open, trap Tab within the
@@ -115,7 +126,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
 
         <aside className="mr__crt" aria-label="Live render preview">
           <div className="mr__crt-screen">
-            {!worldActive && !lowPower && (
+            {crtLive && (
               <Suspense
                 fallback={<span className="mr__crt-boot">&#9679; BOOTING /dev/world&hellip;</span>}
               >
@@ -124,7 +135,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
             )}
             <span className="mr__crt-scanlines" aria-hidden="true" />
             <span className="mr__crt-label">
-              {lowPower ? '● /dev/world (desktop)' : '● LIVE — /dev/world'}
+              {crtLive ? '● LIVE — /dev/world' : '● /dev/world (desktop)'}
             </span>
           </div>
           <p className="mr__crt-cap">Pizza Graphics Workstation, rendering the dream.</p>
@@ -174,25 +185,42 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
                 <span className="mr__gag-icon" aria-hidden="true">
                   &#9888;
                 </span>
-                Cannot download the Calzone Player&trade; plug-in.
+                Calzone Player&trade; was built for a <b>desktop computer</b>.
               </p>
               <p>
-                Navigable 3D worlds require a <b>desktop computer</b>. Pocket telephones did not
-                exist in 1996. We checked.
+                Pocket telephones did not exist in 1996 &mdash; the plug-in never expected to run in
+                your hand. We checked. It should work anyway.
               </p>
-              <p className="mr__fine">Please revisit on a desktop to step through the screen.</p>
+              <p className="mr__fine">Step through the screen, or take the text-only version.</p>
               <div className="mr__gag-actions">
-                <a className="mr__gag-go" href={TEXT_ONLY_PATH}>
-                  View the text-only version &rarr;
-                </a>
-                <button className="mr__gag-back" type="button" onClick={() => setGag(false)}>
-                  Back
+                <button
+                  className="mr__gag-go"
+                  type="button"
+                  onClick={() => {
+                    setGag(false);
+                    enterWorld();
+                  }}
+                >
+                  Enter the world &#9654;
                 </button>
+                <a className="mr__gag-back" href={TEXT_ONLY_PATH}>
+                  Text-only version &rarr;
+                </a>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <MotionConsent
+        open={motionGate}
+        onClose={() => setMotionGate(false)}
+        onEnter={() => {
+          grantMotionConsent();
+          setMotionGate(false);
+          enterWorld();
+        }}
+      />
     </div>
   );
 }
