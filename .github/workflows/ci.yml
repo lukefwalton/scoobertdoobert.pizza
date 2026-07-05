@@ -17,7 +17,11 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 30 (from 20): the runner has been demonstrably slow lately — the WebGL smoke
+    # suite (esp. shoot:mainstreet's chained traversals) needs headroom so a slow
+    # but PASSING run isn't killed mid-suite. Paired with the raised per-suite cap
+    # in shoot-all.mjs.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 

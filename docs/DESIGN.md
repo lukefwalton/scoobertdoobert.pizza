@@ -109,8 +109,12 @@ This is the heart of **Phase 5** (see `docs/PHASES.md`): one `unease` value
 - **The audio injury vector is the *return*, not the silence:** a sudden loud
   onset after a dropout is an audio strobe. Dropouts always **fade back in,
   never spike.**
-- **`prefers-reduced-motion` gates the whole 3D world (and thus all dread) off.**
-  Camera shake amplitude is capped; the breathing bob is subtle.
+- **`prefers-reduced-motion` gates the 3D world (and thus all dread) behind an
+  explicit opt-in** (the `MotionConsent` gate — "this has motion, enter anyway?"),
+  never an auto-drop; declining hands off to the motion-free `/text` list. If the
+  user opts in, camera shake amplitude is still capped and the breathing bob stays
+  subtle (the REDUCED caps hold inside the world). Small screens are NOT gated —
+  phones run the world with touch controls.
 - **NEVER real camera/mic for dread.** The "machine sees you" beat is *faked* —
   a stylized low-poly figure rendered to texture, never a real feed. (See
   "Webcam policy" for the one narrow, consensual exception, which is firewalled
@@ -415,10 +419,11 @@ storefront has a soft spot in the floor, and if you find it, you fall.
   interstitial is the ceremony (cf. the loader's "tap to enter").
 - **HARD constraints (carry these into the build thread):** pure progressive
   enhancement — JS-only, `useMounted`-gated, **never** in the prerendered / JS-off
-  HTML, and **desktop + motion-OK only** (it drops you into the 3D world, which is
-  gated off mobile/reduced-motion by construction). It must not alter the
-  crawlable dead-plain front door or tax any real link. Surface zone stays safe;
-  the *wrongness* is the wink, the *landing* is where the dread can begin.
+  HTML, and **hidden under reduced-motion** (the sudden drop IS motion — a
+  reduced-motion user must never be surprised into the world; phones DO get it now,
+  since the world runs there with touch controls). It must not alter the crawlable
+  dead-plain front door or tax any real link. Surface zone stays safe; the
+  *wrongness* is the wink, the *landing* is where the dread can begin.
 - Status: **design captured, not built.** Its own thread (after the arcade).
 
 ### The Wayside Shrine — the Japan level (world-content; SHIPPED as scaffold)
@@ -522,9 +527,17 @@ which sit fine over the 3D world.
   each.
 
 ### A mobile "level" — a cheeky game, not the cold shoulder (Luke, backlog)
-We gate the *3D world* off mobile/reduced-motion (the WebGL descent → `/text`),
-and that's the right call for the heavy stuff. But "blocked" shouldn't mean
-"boring." Mobile should still get **one small, cheeky, fun thing** of its own —
+> **UPDATE (2026-07, "make the whole thing work on mobile"):** the 3D world now
+> runs on phones with touch controls, so the arcade is no longer mobile's *only*
+> reward — mobile gets the full descent AND the games. The arcade is still worth
+> having as the lighter, three-free, JS-off-friendly path (and the reduced-motion
+> user who declines the world lands somewhere fun). The original rationale below
+> is kept for context; wherever it says the 3D world is "gated off mobile" or
+> "desktop-only," that no longer holds.
+
+We used to gate the *3D world* off mobile/reduced-motion (the WebGL descent →
+`/text`), and that was the right call for the heavy stuff. But "blocked" shouldn't
+mean "boring." Mobile should still get **one small, cheeky, fun thing** of its own —
 a phone-shaped Scoobert microgame (2D canvas, touch-first, the same loader-game
 engine we already have), so a mobile visitor gets a wink and a reason to share,
 not a dead end. Think the loader runner promoted to a tiny standalone "mobile
@@ -536,7 +549,9 @@ a playable goof. Surface zone = stays safe + silly (no dread on the phone game).
 
 **Stronger version (Luke): the minigames ARE the mobile experience.** Not one
 token game — mobile's whole "beyond the normal site" layer is the minigame
-arcade. The 3D world stays desktop-only, but the loader-runner family (the
+arcade. (The 3D world was desktop-only when this was written; it runs on phones
+now, so treat the arcade as a parallel light path, not a replacement.) The
+loader-runner family (the
 broken-web-button runner, a Snake, a breakout) becomes a small touch-first arcade
 you reach from the storefront on a phone — the mobile reward *is* the games,
 where desktop's reward is the descent. Same engine, same no-marks/CC0 rules; the

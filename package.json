@@ -18,6 +18,7 @@
     "shoot:all": "node scripts/shoot-all.mjs",
     "shoot": "node scripts/shoot.mjs",
     "shoot:world": "node scripts/shoot-world.mjs",
+    "shoot:touch": "node scripts/shoot-touch.mjs",
     "shoot:descent": "node scripts/shoot-descent.mjs",
     "shoot:fallback": "node scripts/shoot-fallback.mjs",
     "shoot:mobile": "node scripts/shoot-mobile.mjs",
