@@ -437,6 +437,72 @@ let hudNarrow;
   await dctx.close();
 }
 
+// WIDE DESKTOP (full-label, fine pointer): the score↔menu collision this PR fixes was
+// latent on EVERY viewport (both were anchored top:12/right:12), not just phones — every
+// case above exercises the COLLAPSED-label layout, so the full-label desktop state had no
+// guard. Open a wide, non-touch context and assert the INVERSE contract:
+//   - the stacking fix still holds (objective present, nothing overlaps — the latent bug),
+//   - the label stays VISIBLE here (neither the pointer nor the width arm fires), and
+//   - the custom /cursor.cur STILL resolves (the coarse-pointer reset must not leak to a
+//     fine-pointer desktop) — the symmetric half of the touch cursor-reset check.
+let hudWide;
+let wideCursor;
+{
+  const wctx = await ctx.browser().newContext({ viewport: { width: 1280, height: 800 } });
+  const wp = await wctx.newPage();
+  wp.on('pageerror', (e) => fail(`wide-desktop pageerror: ${e.message}`));
+  await wp.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp_booted', '1');
+    } catch {
+      /* ignore */
+    }
+  });
+  await wp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  const wmounted = await wp.waitForSelector('.hud-menu-btn', { timeout: 12000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!wmounted) fail('WIDE-DESKTOP: the world/menu button did not mount at 1280px');
+  await wp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+  // Concrete state wait: block until the HUD is present AND the label is actually VISIBLE
+  // (display !== none) — the wide-desktop, no-collapse state this path asserts.
+  await wp
+    .waitForFunction(
+      () => {
+        const obj = document.querySelector('.hud-objective');
+        const score = document.querySelector('.hud-score');
+        const label = document.querySelector('.hud-menu-btn__label');
+        return !!obj && !!score && !!label && getComputedStyle(label).display !== 'none';
+      },
+      null,
+      { timeout: 8000 },
+    )
+    .catch(() => {});
+  hudWide = await topHudProbe(wp);
+  // The core stacking fix must hold on desktop too (this was the latent every-viewport bug).
+  if (!hudWide.hasObjective) fail('WIDE-DESKTOP: the objective chip is missing');
+  if (hudWide.objMenu)
+    fail('WIDE-DESKTOP: objective overlaps the ☰ menu button (latent every-viewport bug)');
+  if (hudWide.menuScore)
+    fail(
+      'WIDE-DESKTOP: the ☰ menu button overlaps the score chip (the latent every-viewport bug)',
+    );
+  if (hudWide.objScore) fail('WIDE-DESKTOP: objective overlaps the score chip');
+  // …but here the full label must STAY visible (neither collapse arm applies on wide desktop).
+  if (hudWide.labelDisplay === 'none')
+    fail('WIDE-DESKTOP: the "menu (Esc)" label collapsed on a wide desktop (should stay full)');
+  // …and the custom cursor must STILL resolve on a fine-pointer desktop — proving the broad
+  // coarse-pointer reset did not bleed onto desktop (the "desktop unchanged" claim).
+  wideCursor = await wp.evaluate(
+    () => getComputedStyle(document.querySelector('.hud-menu-btn') || document.body).cursor,
+  );
+  if (!/cursor\.cur/.test(wideCursor))
+    fail(`WIDE-DESKTOP: the custom cursor no longer resolves on desktop (cursor=${wideCursor})`);
+  await wp.screenshot({ path: '.shots/touch-wide-desktop.png' });
+  await wctx.close();
+}
+
 console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
@@ -444,6 +510,7 @@ console.log(
     `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},label=${hud.labelDisplay},menu=${hud.menuWidth}px) ` +
     `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},label=${hudLandscape.labelDisplay},menu=${hudLandscape.menuWidth}px) ` +
     `topHud[narrowDesktop](obj=${hudNarrow.hasObjective},noOverlap=${!hudNarrow.objMenu && !hudNarrow.menuScore && !hudNarrow.objScore},label=${hudNarrow.labelDisplay},menu=${hudNarrow.menuWidth}px) ` +
+    `topHud[wideDesktop](obj=${hudWide.hasObjective},noOverlap=${!hudWide.objMenu && !hudWide.menuScore && !hudWide.objScore},label=${hudWide.labelDisplay},cursorKept=${/cursor\.cur/.test(wideCursor)}) ` +
     `overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);
