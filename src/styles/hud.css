@@ -46,7 +46,9 @@
    tall the snacks made you). Mirrors the objective chip's quiet HUD voice. */
 .hud-score {
   position: fixed;
-  top: 12px;
+  /* Sit BELOW the menu button (also top-right) instead of stacking under it — they
+     shared the same top:12/right:12 anchor and overlapped on every viewport. */
+  top: 54px;
   right: 12px;
   z-index: 66;
   display: flex;
@@ -251,6 +253,29 @@
 }
 .hud-menu-btn:hover {
   background: rgba(0, 0, 0, 0.82);
+}
+
+/* Phone top-HUD: the centered objective chip and the top-right menu/score cluster
+   have no room to coexist (they overlapped in the shipped build). Shrink the menu to
+   just its ☰ glyph — "(Esc)" means nothing without a keyboard — and left-anchor the
+   objective with a width that clears the right-hand cluster (the ☰ button plus the
+   score/%-tall chip beneath it; ~110px reserves room for both at ~75px + gaps).
+   Applies on ANY coarse-pointer device (a landscape phone is wider than 640px but
+   still keyboard-less and still overlaps) OR any narrow window. The `max-width: 640px`
+   arm is DELIBERATE, not just a phone fallback: it also collapses the label on a narrow
+   NON-touch desktop window, which has a keyboard but the same horizontal collision — the
+   "(Esc)" hint is worth trading for a HUD that doesn't overlap in a skinny browser pane.
+   (A wide desktop window keeps the full "menu (Esc)" label — neither arm matches there.) */
+@media (pointer: coarse), (max-width: 640px) {
+  .hud-menu-btn__label {
+    display: none;
+  }
+  .hud-objective {
+    left: 8px;
+    right: auto;
+    transform: none;
+    max-width: calc(100vw - 110px);
+  }
 }
 
 /* The spell hotbar — a single slot, bottom-right (mirrors the menu button up
