@@ -3,6 +3,13 @@ name: CI
 # Typecheck, build, and the full Playwright smoke suite on every PR and on pushes
 # to main. This is the safety net the repo was missing: regressions in nav, audio,
 # the JS-off storefront, etc. now fail here instead of silently shipping.
+#
+# Structure (for speed): the fast static checks and the build run as INDEPENDENT
+# parallel jobs, and the smoke suite is SHARDED across runners (build once → share
+# dist → each shard runs its slice on its own full-CPU runner). The frame-timed WebGL
+# smokes need that CPU headroom, so we fan out across machines rather than crowd many
+# browsers onto one. A final `verify` gate stays green iff every job passed — keep it
+# as the required status check so the split is invisible to branch protection.
 
 on:
   push:
@@ -15,50 +22,106 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  verify:
+  checks:
+    name: Static checks
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-
       - run: npm ci
-
-      # Chromium only — the smoke scripts (and the audio/image render tooling)
-      # drive headless Chromium; no need for firefox/webkit.
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
       - name: Typecheck
         run: npm run typecheck
-
       - name: Lint
         run: npm run lint
-
       - name: Format check
         run: npm run format:check
-
       - name: Unit tests (Vitest — pure logic)
         run: npm test
 
-      - name: Build (+ post-build asset/notice checks)
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build (+ post-build asset/notice/bundle checks)
         run: npm run build
+      - name: Upload dist for the smoke shards
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+          include-hidden-files: true # dist/.vite/manifest.json lives in a dot dir
 
-      # shoot:all starts one `vite preview` and runs every shoot:* suite against
-      # it (discovered from package.json, so new smokes are covered automatically).
-      - name: Smoke suite
-        run: npm run shoot:all
-
-      # Keep failure screenshots for debugging a red run.
+  smoke:
+    name: Smoke shard ${{ matrix.shard }}/4
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      # Don't cancel the other shards when one fails — surface every failure at once.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      # Chromium only — the smoke scripts drive headless Chromium; no firefox/webkit.
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Download the prebuilt dist
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      # shoot:all serves the downloaded dist via `vite preview` and runs only THIS
+      # shard's slice of the suite (round-robin, so heavy suites spread across shards).
+      - name: Smoke suite (shard ${{ matrix.shard }})
+        run: npm run shoot:all -- --shard=${{ matrix.shard }}/4
+      # Keep failure screenshots for debugging a red run (per shard → names don't collide).
       - name: Upload smoke screenshots on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: smoke-shots
+          name: smoke-shots-shard-${{ matrix.shard }}
           path: .shots/
           if-no-files-found: ignore
           retention-days: 7
+
+  # Single required-status gate: green iff every job above succeeded. Keeping one
+  # check named `verify` means the job split stays invisible to branch protection.
+  verify:
+    name: verify
+    needs: [checks, build, smoke]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Require all CI jobs to have passed
+        run: |
+          echo "checks=${{ needs.checks.result }} build=${{ needs.build.result }} smoke=${{ needs.smoke.result }}"
+          if [ "${{ needs.checks.result }}" != "success" ] \
+            || [ "${{ needs.build.result }}" != "success" ] \
+            || [ "${{ needs.smoke.result }}" != "success" ]; then
+            echo "::error::One or more CI jobs failed"
+            exit 1
+          fi
+          echo "All CI jobs passed."
