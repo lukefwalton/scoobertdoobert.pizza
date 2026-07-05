@@ -110,5 +110,8 @@
     "vite": "^6.4.3",
     "vite-react-ssg": "^0.9.1-beta.1",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "tsx": "4.23.0"
   }
 }

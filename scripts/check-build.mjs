@@ -146,17 +146,16 @@ for (const p of identityPages) {
   }
 }
 
-// Bundle-discipline guard: the storefront's INITIAL JS graph must ship zero three.js
+// Bundle-discipline guard: the storefront's EAGER JS graph must ship zero three.js
 // and no debug-only `leva` — both are lazy (three behind the install gag, leva behind
-// ?debug). We assert against the storefront HTML's OWN script graph, keyed on
-// fingerprint tokens that survive minification (a class name / a hook name) rather
-// than the word "leva" (which also hides inside "relevant" — a known false positive)
-// or a chunk filename (which the bundler is free to rename). A static-import
-// regression that pulls either dep into the entry chunk then fails the build.
+// ?debug). We key on fingerprint tokens that survive minification (a class name / a
+// hook name) rather than the word "leva" (which also hides inside "relevant" — a known
+// false positive) or a chunk filename (which the bundler is free to rename). A
+// static-import regression that pulls either dep into the eager graph then fails.
 // Several fingerprints per dep, not one: a tree-shaken subset of three that happened
 // to exclude BufferGeometry would still violate the standard, but any real use pulls
 // the renderer or the scene-graph base too — so we trip on ANY of them. All are absent
-// from the legit storefront entry chunk today (verified), so no false positives.
+// from the legit storefront eager chunks today (verified), so no false positives.
 const FORBIDDEN = [
   { token: 'BufferGeometry', dep: 'three.js' },
   { token: 'WebGLRenderer', dep: 'three.js' },
@@ -166,29 +165,48 @@ const FORBIDDEN = [
 ];
 const storefront = 'dist/index.html';
 if (existsSync(storefront)) {
-  const html = readFileSync(storefront, 'utf8');
-  const entryJs = [
-    ...new Set([...html.matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)].map((m) => m[0])),
-  ];
+  // The eager graph, resolved from TWO sources so a shift in either can't quietly drop
+  // coverage: (a) Vite's build manifest — the authoritative import graph: walk the
+  // index.html entry's STATIC `imports` edges (never `dynamicImports`, which ARE the
+  // lazy chunks we require to stay out), following edges even when a chunk isn't
+  // preloaded in the HTML; and (b) the /assets/*.js the storefront HTML references
+  // (entry script + modulepreloads). We scan the UNION as disk paths.
+  const files = new Set();
+  const manifestPath = 'dist/.vite/manifest.json';
+  if (existsSync(manifestPath)) {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    const entry = manifest['index.html'] ?? Object.values(manifest).find((n) => n?.isEntry);
+    const seen = new Set();
+    const walk = (key) => {
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      const node = manifest[key];
+      if (!node) return;
+      if (node.file) files.add('dist/' + node.file);
+      for (const imp of node.imports ?? []) walk(imp); // static edges only
+    };
+    if (entry?.file) files.add('dist/' + entry.file);
+    for (const imp of entry?.imports ?? []) walk(imp);
+  }
+  for (const m of readFileSync(storefront, 'utf8').matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)) {
+    files.add('dist' + m[0]);
+  }
+
   let bundleBad = 0;
-  // Fail CLOSED: a standards-enforcement guard must never pass by finding nothing. If
-  // the storefront HTML no longer references any /assets/*.js (a build-output or
-  // base-path change broke discovery), the three.js/leva rule would silently stop
-  // being checked — so that's a failure, not a quiet success.
-  if (entryJs.length === 0) {
+  // Fail CLOSED: a standards guard must never pass by finding nothing. If both the
+  // manifest and the HTML yield no eager JS, discovery broke — that's a failure, not a
+  // quiet success.
+  if (files.size === 0) {
     console.error(
-      `  x storefront bundle guard found no /assets/*.js in ${storefront} — initial-graph discovery broke; refusing to pass without asserting the three.js/leva rule`,
+      `  x storefront bundle guard resolved no eager JS (manifest + HTML both empty) — discovery broke; refusing to pass without asserting the three.js/leva rule`,
     );
     bundleBad++;
   }
-  for (const ref of entryJs) {
-    const file = 'dist' + ref;
-    // A referenced-but-missing chunk is itself a fail: inspecting '' would let the
-    // guard "pass" on a chunk it never actually read (a broken/inconsistent build).
+  for (const file of files) {
+    // A resolved-but-missing chunk is itself a fail: inspecting '' would let the guard
+    // "pass" on a chunk it never actually read (a broken/inconsistent build).
     if (!existsSync(file)) {
-      console.error(
-        `  x storefront references ${ref} but it's missing on disk — build output is inconsistent`,
-      );
+      console.error(`  x storefront eager chunk ${file} is missing on disk — build inconsistent`);
       bundleBad++;
       continue;
     }
@@ -196,7 +214,7 @@ if (existsSync(storefront)) {
     for (const { token, dep } of FORBIDDEN) {
       if (code.includes(token)) {
         console.error(
-          `  x storefront chunk ${ref} contains ${dep} (${token}) — it must stay lazy, out of the initial bundle`,
+          `  x storefront chunk ${file} contains ${dep} (${token}) — it must stay lazy, out of the eager bundle`,
         );
         bundleBad++;
       }
@@ -205,7 +223,7 @@ if (existsSync(storefront)) {
   failed += bundleBad;
   if (!bundleBad) {
     console.log(
-      `  ok storefront initial JS graph (${entryJs.length} chunk) ships no three.js / leva`,
+      `  ok storefront eager JS graph (${files.size} chunk${files.size === 1 ? '' : 's'}) ships no three.js / leva`,
     );
   }
 }
