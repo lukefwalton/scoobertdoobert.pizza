@@ -6,21 +6,48 @@
 // non-zero if any suite fails. This is the aggregate gate the CI workflow runs.
 //
 //   npm run build && npm run shoot:all
+//
+// Sharding (CI fan-out): `--shard=i/N` runs only this shard's slice of the suite, so
+// the smokes can be spread across N runners — each with a FULL CPU, which the
+// frame-timed WebGL walk-smokes need (in-process concurrency would starve their frame
+// budget and reintroduce flakiness). The split is ROUND-ROBIN over the sorted list so
+// the heavy suites land in different shards. No flag → run everything (local default).
+//
+//   npm run shoot:all -- --shard=1/4
 import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const BASE = process.argv[2] || 'http://localhost:4173';
+const args = process.argv.slice(2);
+const BASE = args.find((a) => !a.startsWith('--')) || 'http://localhost:4173';
+
+let shardIdx = 0;
+let shardCount = 1;
+const shardArg = args.find((a) => a.startsWith('--shard='))?.slice('--shard='.length);
+if (shardArg) {
+  const [i, n] = shardArg.split('/').map(Number);
+  if (!Number.isInteger(i) || !Number.isInteger(n) || i < 1 || n < 1 || i > n) {
+    console.error(`shoot:all: bad --shard "${shardArg}" (want i/N with 1 <= i <= N)`);
+    process.exit(1);
+  }
+  shardIdx = i - 1;
+  shardCount = n;
+}
+
 const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)));
 
 // The naming contract (also in README): `shoot` and every `shoot:*` script IS a
 // CI smoke gate, discovered by name alone. So a non-gating helper/debug script
 // must NOT use that prefix (name it `make-*`, put it in `lib/`, etc.) or it
 // silently becomes a merge blocker.
-const smokes = Object.keys(pkg.scripts)
+const allSmokes = Object.keys(pkg.scripts)
   .filter((s) => (s === 'shoot' || s.startsWith('shoot:')) && s !== 'shoot:all')
   .sort();
+const smokes = allSmokes.filter((_, k) => k % shardCount === shardIdx);
 
-console.log(`shoot:all — ${smokes.length} smoke suites against ${BASE}\n`);
+const shardLabel = shardCount > 1 ? ` [shard ${shardIdx + 1}/${shardCount}]` : '';
+console.log(
+  `shoot:all — ${smokes.length}/${allSmokes.length} smoke suites${shardLabel} against ${BASE}\n`,
+);
 
 // One preview server for all of them. Capture its output so a startup failure is
 // debuggable (rather than a bare "never came up").
