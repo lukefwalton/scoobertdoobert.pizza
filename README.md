@@ -256,15 +256,23 @@ npm run shoot:rooms     # shop → hall (rat knocks the secret) → classified �
 npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text + /about route
 ```
 
-**`shoot:all` is the CI gate** (`.github/workflows/ci.yml`): it builds, starts
-one `vite preview`, and runs every `shoot:*` script — **auto-discovered from
-`package.json`**, so the rule is simply: *a `shoot` or `shoot:*` script is a smoke
-suite and runs in CI; anything else under `scripts/` (e.g. `make-*`, `lib/`) is a
-helper and isn't.* Add a new `shoot:<name>` script and it's covered automatically.
-A failed suite is **retried once** (these are full-browser, frame-timed smokes on
-a shared runner — a real regression still fails the retry; a one-off slow-runner
-blip self-heals, and the retry is logged). The repeated GLB-loader entry +
-hold-and-poll door-walk flows live once in `scripts/lib/smoke.mjs`.
+**`shoot:all` is the CI gate** (`.github/workflows/ci.yml`): it starts one `vite
+preview` and runs every `shoot:*` script — **auto-discovered from `package.json`**,
+so the rule is simply: *a `shoot` or `shoot:*` script is a smoke suite and runs in
+CI; anything else under `scripts/` (e.g. `make-*`, `lib/`) is a helper and isn't.*
+Add a new `shoot:<name>` script and it's covered automatically. A failed suite is
+**retried once** (these are full-browser, frame-timed smokes — a real regression
+still fails the retry; a one-off slow-runner blip self-heals, and the retry is
+logged). The repeated GLB-loader entry + hold-and-poll door-walk flows live once in
+`scripts/lib/smoke.mjs`.
+
+In CI the suite is **sharded across runners** for speed: `build` compiles once and
+uploads `dist/`; the static checks run as a parallel job; then a `smoke` matrix of
+four runners each downloads `dist/` and runs its slice via `shoot:all --shard=i/4`
+(round-robin, so the heavy WebGL walk-smokes spread out — each shard gets a full CPU,
+which frame-timed smokes need). A final `verify` job is green iff every job passed —
+that's the one required status check. Locally, plain `npm run shoot:all` still runs
+the whole suite against one preview.
 
 Screenshots land in `.shots/` (gitignored). The `postbuild` step
 (`scripts/check-build.mjs`) fails the build if `/` or `/text` lose their real
