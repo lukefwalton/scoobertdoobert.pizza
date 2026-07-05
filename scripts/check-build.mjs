@@ -195,7 +195,17 @@ if (existsSync(storefront)) {
       if (!key || seen.has(key)) return;
       seen.add(key);
       const node = manifest[key];
-      if (!node) return;
+      // Fail CLOSED on a broken import graph: a referenced key with no manifest node
+      // means the walk can't see that (possibly eager) subtree — and HTML refs are only
+      // a secondary source, so silently skipping it could leave part of the eager graph
+      // unasserted. Treat it like a resolved-chunk-missing-on-disk failure.
+      if (!node) {
+        console.error(
+          `  x manifest import '${key}' has no entry — broken import graph; failing closed`,
+        );
+        bundleBad++;
+        return;
+      }
       if (node.file) files.add('dist/' + node.file);
       for (const imp of node.imports ?? []) walk(imp); // static edges only
     };

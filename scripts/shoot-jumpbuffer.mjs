@@ -122,6 +122,13 @@ const secondArc = await page
     () => false,
   );
 if (!secondArc) bad('buffered re-hop was counted but the camera never rose a second time');
+// The buffered re-hop must leave the usual airborne entitlement intact: airJumps === 1
+// (not clobbered to 0), so a learned double-jump would still be available after it. If
+// the landing frame's `hop.current === 0` let the NEXT frame read as grounded, this
+// would read 0 — the exact regression the review worried about. Sampled mid-second-arc.
+const airJumps = await page.evaluate(() => window.__sdpAirJumps ?? -1);
+if (airJumps !== 1)
+  bad(`airJumps was clobbered after the buffered re-hop (got ${airJumps}, want 1)`);
 
 // 4) It settles back down and does NOT keep hopping (no phantom extra jumps).
 const settled = await page
@@ -139,7 +146,7 @@ await page.screenshot({ path: '.shots/jumpbuffer.png' });
 
 console.log(
   `jumpbuffer -> shop=${inShop} groundHop=${oneHop} tapped=${tapped} ` +
-    `buffered=${reHopped} secondArc=${secondArc} settled=${settled} ` +
+    `buffered=${reHopped} secondArc=${secondArc} airJumps=${airJumps} settled=${settled} ` +
     `hops=${finalJumps - jumps0} errors=${failures()}`,
 );
 
