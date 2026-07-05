@@ -76,7 +76,7 @@ export function WorldMount() {
             onClick={() => setPaused(true)}
             aria-label="Open menu"
           >
-            &#9776; menu (Esc)
+            &#9776;<span className="hud-menu-btn__label"> menu (Esc)</span>
           </button>
         </Suspense>
       )}
