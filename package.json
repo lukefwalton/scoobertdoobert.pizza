@@ -53,6 +53,7 @@
     "shoot:turtle": "node scripts/shoot-turtle.mjs",
     "shoot:mainstreet": "node scripts/shoot-mainstreet.mjs",
     "shoot:skills": "node scripts/shoot-skills.mjs",
+    "shoot:jumpbuffer": "node scripts/shoot-jumpbuffer.mjs",
     "shoot:boardwalk": "node scripts/shoot-boardwalk.mjs",
     "shoot:gallery": "node scripts/shoot-gallery.mjs",
     "shoot:theremin": "node scripts/shoot-theremin.mjs",
@@ -110,5 +111,8 @@
     "vite": "^6.4.3",
     "vite-react-ssg": "^0.9.1-beta.1",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "tsx": "4.23.0"
   }
 }
