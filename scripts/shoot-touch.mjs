@@ -81,6 +81,36 @@ if (portraitOverflow > 1) {
   fail(`VIEWPORT: horizontal overflow with the touch HUD up (portrait, ${portraitOverflow}px)`);
 }
 
+// TOP-HUD LAYOUT: the objective chip (left), the ☰ menu (right), and the score / %-tall
+// chip beneath it must not overlap on a phone. They shipped stacked on top of each other
+// — the menu button and score shared the same top-right anchor, and the centered
+// objective chip reached under the menu. Assert none of the three intersect, and that
+// the menu shrank to just its glyph ("(Esc)" is hidden without a keyboard).
+const hud = await page.evaluate(() => {
+  const box = (s) => {
+    const e = document.querySelector(s);
+    if (!e) return null;
+    const r = e.getBoundingClientRect();
+    return { l: r.left, r: r.right, t: r.top, b: r.bottom };
+  };
+  const ov = (a, c) => (a && c ? a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b : false);
+  const obj = box('.hud-objective');
+  const menu = box('.hud-menu-btn');
+  const score = box('.hud-score');
+  return {
+    hasObjective: !!obj,
+    objMenu: ov(obj, menu),
+    menuScore: ov(menu, score),
+    objScore: ov(obj, score),
+    menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0,
+  };
+});
+if (hud.objMenu) fail('TOP-HUD: the objective chip overlaps the ☰ menu button on a phone');
+if (hud.menuScore) fail('TOP-HUD: the ☰ menu button overlaps the score / %-tall chip');
+if (hud.objScore) fail('TOP-HUD: the objective chip overlaps the score chip');
+if (hud.menuWidth > 90)
+  fail(`TOP-HUD: the menu button didn't collapse to its glyph (${hud.menuWidth}px wide)`);
+
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
 let walked = false;
@@ -310,6 +340,7 @@ console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
     `stickHidesOnPause=${stickGone} realPathStick=${realStick} ` +
+    `topHud(obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},menu=${hud.menuWidth}px) ` +
     `overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);
