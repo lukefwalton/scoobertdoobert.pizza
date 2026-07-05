@@ -28,7 +28,11 @@ try {
 } catch (e) {
   bad(`world did not mount: ${e.message}`);
 }
-await page.waitForTimeout(1500);
+// Sync on controls being live (Controls exposes __sdpRoom once mounted) instead of a
+// fixed settle, then dismiss the welcome overlay.
+await page
+  .waitForFunction(() => window.__sdpRoom === 'shop', { timeout: 15000 })
+  .catch(() => bad('world controls never came live in the shop'));
 await page.click('.hud-welcome__close', { timeout: 1500 }).catch(() => {});
 // The welcome-close button keeps focus, and Controls deliberately ignores Space while
 // a button is focused ("never steal Space from buttons") — so blur it, or every hop

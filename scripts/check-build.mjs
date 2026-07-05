@@ -172,14 +172,24 @@ if (existsSync(storefront)) {
   // preloaded in the HTML; and (b) the /assets/*.js the storefront HTML references
   // (entry script + modulepreloads). We scan the UNION as disk paths.
   const files = new Set();
+  let bundleBad = 0;
   const manifestPath = 'dist/.vite/manifest.json';
   if (existsSync(manifestPath)) {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
     // The storefront entry is specifically keyed 'index.html'. Don't fall back to an
     // arbitrary isEntry node — in a future multi-entry manifest that could walk the
-    // WRONG page's graph. If the key is gone, the manifest contributes nothing and the
-    // HTML refs below (+ the fail-closed empty check) carry it.
+    // WRONG page's graph.
     const entry = manifest['index.html'];
+    // Fail CLOSED: the manifest is the AUTHORITATIVE eager graph, so if it exists but no
+    // longer carries the 'index.html' entry, that source silently broke — and HTML refs
+    // alone can miss a static-initial chunk that isn't preloaded (exactly what this walk
+    // was added to catch). Don't quietly fall back to HTML-only.
+    if (!entry) {
+      console.error(
+        `  x ${manifestPath} exists but has no 'index.html' entry — the authoritative eager-graph source broke; failing closed`,
+      );
+      bundleBad++;
+    }
     const seen = new Set();
     const walk = (key) => {
       if (!key || seen.has(key)) return;
@@ -196,7 +206,6 @@ if (existsSync(storefront)) {
     files.add('dist' + m[0]);
   }
 
-  let bundleBad = 0;
   // Fail CLOSED: a standards guard must never pass by finding nothing. If both the
   // manifest and the HTML yield no eager JS, discovery broke — that's a failure, not a
   // quiet success.
