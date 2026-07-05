@@ -97,16 +97,22 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         <Marquee label="Storefront headline">
           <b>&#9733; RAT SPOTTED IN WALL &#9733;</b>
           {'  '}
-          <button
-            type="button"
+          <a
+            href={TEXT_ONLY_PATH}
             className="marquee__link"
-            onClick={() => {
+            onClick={(e) => {
+              // Progressive enhancement: with JS, following the rat ducks you
+              // into the descent (toward the 3D world). It stays a REAL,
+              // crawlable <a> so JS-off / no-CSS visitors get the flat index
+              // (/text) instead of a dead control — never a link that only
+              // exists as behavior.
+              e.preventDefault();
               audio.unlock();
               descend();
             }}
           >
             Follow him downstairs &raquo;
-          </button>
+          </a>
           {'  ·  '}
           Six unreleased demos under one roof.
           {'  ·  '}

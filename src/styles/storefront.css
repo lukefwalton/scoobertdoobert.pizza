@@ -418,8 +418,9 @@ footer {
   white-space: nowrap;
   padding-left: 100%;
 }
-/* The rat's "downstairs" trigger — a real button (it starts the descent), drawn
-   to match the period blue underlined links around it. */
+/* The rat's "downstairs" trigger — a real <a> (crawlable, works JS-off) that
+   JS enhances into the descent. Drawn to match the period blue underlined
+   links around it; the resets keep it neutral if it ever renders as a button. */
 .marquee__link {
   background: none;
   border: 0;
