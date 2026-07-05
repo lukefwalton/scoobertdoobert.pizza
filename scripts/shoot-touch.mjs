@@ -137,9 +137,22 @@ assertTopHud(hud, 'portrait');
 // /cursor.cur (it surfaced as a stuck "pizza slice" over the HUD, since a touch device has
 // no pointer). global.css resets it to `auto` under @media (pointer: coarse); prove the
 // computed cursor resolved to auto (a desktop would resolve to the url(...cursor.cur)).
-const bodyCursor = await page.evaluate(() => getComputedStyle(document.body).cursor);
-if (bodyCursor !== 'auto')
-  fail(`CURSOR: custom cursor not reset on a coarse-pointer device (body cursor=${bodyCursor})`);
+// Check BOTH body AND the ☰ menu button: the reported artifact was specifically over the
+// menu button, and `button` carries its own `cursor: url(...), pointer` rule — so a
+// selector-specific regression could re-break the button while body still reads auto.
+const cursors = await page.evaluate(() => {
+  const menu = document.querySelector('.hud-menu-btn');
+  return {
+    body: getComputedStyle(document.body).cursor,
+    menu: menu ? getComputedStyle(menu).cursor : 'absent',
+  };
+});
+if (cursors.body !== 'auto')
+  fail(`CURSOR: custom cursor not reset on body (coarse-pointer, cursor=${cursors.body})`);
+if (cursors.menu !== 'auto')
+  fail(
+    `CURSOR: custom cursor still on the ☰ menu button — the exact reported artifact (cursor=${cursors.menu})`,
+  );
 
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
@@ -427,7 +440,7 @@ let hudNarrow;
 console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
-    `stickHidesOnPause=${stickGone} realPathStick=${realStick} cursor=${bodyCursor} ` +
+    `stickHidesOnPause=${stickGone} realPathStick=${realStick} cursor(body=${cursors.body},menu=${cursors.menu}) ` +
     `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},label=${hud.labelDisplay},menu=${hud.menuWidth}px) ` +
     `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},label=${hudLandscape.labelDisplay},menu=${hudLandscape.menuWidth}px) ` +
     `topHud[narrowDesktop](obj=${hudNarrow.hasObjective},noOverlap=${!hudNarrow.objMenu && !hudNarrow.menuScore && !hudNarrow.objScore},label=${hudNarrow.labelDisplay},menu=${hudNarrow.menuWidth}px) ` +
