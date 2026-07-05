@@ -230,11 +230,12 @@ motion, and even that is an opt-in.
   cluster; drag-to-look already worked under touch). Input bridges through
   `src/world/touchInput.ts` into the same `Controls` `useFrame` the keyboard
   drives; the verbs go through the shared `src/lib/worldActions.ts`. The gate now
-  lives split in `src/lib/lowPower.ts`: `isSmallScreen()` (≤768px + coarse
-  pointer) only decides whether the touch HUD mounts — it no longer skips the
-  world. The machine-room CRT **live** render stays desktop-only (a second WebGL
-  context on a phone isn't worth it), and the "pocket computer" install gag is now
-  a wave-through pre-roll, never a dead end.
+  lives split in `src/lib/lowPower.ts`: `isTouchDevice()` (`pointer: coarse` —
+  orientation-independent, so a landscape phone keeps its controls) only decides
+  whether the touch HUD mounts — it no longer skips the world. The machine-room
+  CRT **live** render stays desktop-only (a second WebGL context on a phone isn't
+  worth it), and the "pocket computer" install gag is now a wave-through pre-roll,
+  never a dead end.
 - **`prefers-reduced-motion` is the one hard gate — as an OPT-IN, not a redirect.**
   The world is motion-heavy, so a reduced-motion user is never auto-dropped in: an
   entry point (order form / machine-room install) raises the `MotionConsent` gate

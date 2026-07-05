@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, useRef, useEffect } from 'react';
 import '../styles/machineroom.css';
 import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { useSceneStore } from '../state/sceneStore';
-import { useReducedMotion, useSmallScreen } from '../lib/lowPower';
+import { useReducedMotion, useTouchDevice } from '../lib/lowPower';
 import { hasMotionConsent, grantMotionConsent } from '../lib/motionConsent';
 import { MotionConsent } from '../components/MotionConsent';
 import { audio } from '../audio/engine';
@@ -36,8 +36,8 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   // still. Reactive: crossing the breakpoint or toggling reduced-motion updates
   // the CRT and the install path live.
   const reduced = useReducedMotion();
-  const small = useSmallScreen();
-  const crtLive = !worldActive && !reduced && !small;
+  const touch = useTouchDevice();
+  const crtLive = !worldActive && !reduced && !touch;
 
   // The cheeky phone payoff: the Calzone Player "install" still pops a period
   // setup notice — the plug-in was built for a desktop, because pocket phones
@@ -59,8 +59,8 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
       setMotionGate(true); // reduced-motion → ask first (opt-in), /text is the safe out
       return;
     }
-    if (small) {
-      setGag(true); // phone → the "pocket computer" pre-roll, which then enters
+    if (touch) {
+      setGag(true); // handheld → the "pocket computer" pre-roll, which then enters
       return;
     }
     enterWorld();

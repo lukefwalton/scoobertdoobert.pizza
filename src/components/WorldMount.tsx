@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { useMounted } from '../lib/useMounted';
-import { useSmallScreen } from '../lib/lowPower';
+import { useTouchDevice } from '../lib/lowPower';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
 import { TouchControls } from './TouchControls';
@@ -28,9 +28,9 @@ export function WorldMount() {
   const active = useSceneStore((s) => s.worldActive);
   const enter = useSceneStore((s) => s.enterWorld);
   const setPaused = useSceneStore((s) => s.setPaused);
-  // Touch controls mount only on a real phone (coarse pointer + small screen);
-  // a resized desktop window keeps its keyboard/mouse world untouched.
-  const touch = useSmallScreen();
+  // Touch controls mount on a touch device (coarse primary pointer), any
+  // orientation; a mouse-driven desktop keeps its keyboard/mouse world untouched.
+  const touch = useTouchDevice();
 
   const debug =
     mounted &&

@@ -69,7 +69,8 @@ rooms.ts`, three-free). beach shop (`ROOMS[0]`) ⇄ **rat hallway** (3D-Maze bri
 - ✅ **ckpt5 — mobile pass + README.** Closed by the **"make the whole thing work
   on mobile"** work: the 3D world now runs on phones with on-screen touch controls
   (`TouchControls` + `touchInput.ts` → the shared `Controls`/`worldActions`), the
-  `lib/lowPower` gate is split so `isSmallScreen()` only picks the touch HUD, and
+  `lib/lowPower` gate is split so `isTouchDevice()` (coarse pointer, any
+  orientation) only picks the touch HUD, and
   `prefers-reduced-motion` became an opt-in (`MotionConsent`, `/text` as the safe
   default) instead of a hard `/text` redirect. Also fixed a stray leva default
   panel that overlapped the ☰ menu button on phones. Covered by `shoot:touch`
@@ -438,7 +439,8 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   anchors), a spinning @-mail. The 1999 floor wears the starfield wallpaper (dark →
   the floor's light text gains contrast). Verified no horizontal overflow at 390px.
 - ✅ **Mobile "try desktop" gag (`MachineRoomFloor`, PR #77):** on a real handheld
-  (`isSmallScreen()` = `≤768px` + `pointer: coarse`), the Calzone Player install pops
+  (`isTouchDevice()` = `pointer: coarse`; originally `≤768px` + coarse), the Calzone
+  Player install pops
   a period "Setup" notice — the plug-in was built for a desktop, *pocket phones didn't
   exist in 1996*. **UPDATE ("make the whole thing work on mobile"):** now that the 3D
   world runs on phones, the gag is a **wave-through pre-roll** — its primary button is

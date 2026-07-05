@@ -1,6 +1,6 @@
 // Touch-controls smoke: proves the 3D world — previously desktop-only — is
 // actually WALKABLE on a phone. Enters via the ?world debug trigger in a small
-// TOUCH viewport (so useSmallScreen() is true and TouchControls mounts), then:
+// TOUCH viewport (so useTouchDevice() is true and TouchControls mounts), then:
 //   1. the on-screen stick + context button render,
 //   2. pushing the stick forward moves the camera (the whole point),
 //   3. the ☰ menu button opens the pause menu (the always-reachable nav).
@@ -58,6 +58,15 @@ if (welcomeUp) {
 await page.waitForTimeout(2500);
 await page.screenshot({ path: '.shots/touch-world.png' });
 
+// VIEWPORT: the touch HUD (fixed, inset:0, safe-area insets) must never push the
+// page wider than the screen — a horizontal scrollbar on a phone is the classic
+// mobile regression. Check portrait now, and landscape below.
+const hOverflow = (p) => p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+const portraitOverflow = await hOverflow(page);
+if (portraitOverflow > 1) {
+  fail(`VIEWPORT: horizontal overflow with the touch HUD up (portrait, ${portraitOverflow}px)`);
+}
+
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
 let walked = false;
@@ -96,6 +105,19 @@ if (stick) {
   await page.screenshot({ path: '.shots/touch-world-walked.png' });
 }
 
+// VIEWPORT (landscape): rotate to a short, wide phone and confirm the HUD still
+// fits with no horizontal overflow — the stick + action cluster must not spill.
+await page.setViewportSize({ width: 844, height: 390 });
+await page.waitForTimeout(400);
+const landscapeOverflow = await hOverflow(page);
+if (landscapeOverflow > 1) {
+  fail(`VIEWPORT: horizontal overflow with the touch HUD up (landscape, ${landscapeOverflow}px)`);
+}
+const stickInLandscape = (await page.$('.touch-stick')) !== null;
+if (!stickInLandscape) fail('VIEWPORT: the touch stick vanished in landscape');
+await page.screenshot({ path: '.shots/touch-landscape.png' });
+await page.setViewportSize({ width: 390, height: 844 }); // back to portrait for the pause check
+
 // The ☰ menu button opens the pause menu — the always-reachable nav on a phone.
 await page.click('.hud-menu-btn');
 const paused = await page.waitForSelector('.hud-pause', { timeout: 4000 }).then(
@@ -109,6 +131,7 @@ if (!stickGone) fail('TOUCH HUD: the stick stayed visible under the pause menu')
 await page.screenshot({ path: '.shots/touch-pause.png' });
 
 console.log(
-  `touch: stick=${stick} action=${actionBtn} walked=${walked} paused=${paused} stickHidesOnPause=${stickGone} | errors=${failures()}`,
+  `touch: stick=${stick} action=${actionBtn} walked=${walked} paused=${paused} ` +
+    `stickHidesOnPause=${stickGone} overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);
