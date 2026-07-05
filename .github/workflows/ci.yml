@@ -65,7 +65,10 @@ jobs:
 
   smoke:
     name: Smoke shard ${{ matrix.shard }}/4
-    needs: build
+    # Both: build gives us dist to serve, and gating on checks too means a failing
+    # typecheck/lint/test short-circuits the four browser runners instead of wasting
+    # them on a doomed PR. Near-zero wall-clock cost on green (build is the longer gate).
+    needs: [checks, build]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
