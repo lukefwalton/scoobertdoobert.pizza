@@ -104,24 +104,31 @@ const topHudProbe = (p) =>
     const obj = box('.hud-objective');
     const menu = box('.hud-menu-btn');
     const score = box('.hud-score');
+    // The collapse is "the ' menu (Esc)' label is hidden". Read that DIRECTLY off the
+    // label span's computed display, not off the button's pixel width — a width
+    // threshold drifts with font/rendering, but display:none is the actual contract.
+    const label = document.querySelector('.hud-menu-btn__label');
     return {
       hasObjective: !!obj,
       objMenu: ov(obj, menu),
       menuScore: ov(menu, score),
       objScore: ov(obj, score),
-      menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0,
+      labelDisplay: label ? getComputedStyle(label).display : 'absent',
+      menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0, // logged, not asserted
     };
   });
 // Assert a probe result fails closed: the objective chip must exist (else the overlap
 // checks are vacuously true — ov(null, …) is false — and a vanished chip reads as clean),
-// no pair may intersect, and the menu must have collapsed to just its glyph.
+// no pair may intersect, and the menu label must have collapsed (display:none).
 const assertTopHud = (h, where) => {
   if (!h.hasObjective) fail(`TOP-HUD: the objective chip is missing (${where}) — cannot verify`);
   if (h.objMenu) fail(`TOP-HUD: the objective chip overlaps the ☰ menu button (${where})`);
   if (h.menuScore) fail(`TOP-HUD: the ☰ menu button overlaps the score / %-tall chip (${where})`);
   if (h.objScore) fail(`TOP-HUD: the objective chip overlaps the score chip (${where})`);
-  if (h.menuWidth > 90)
-    fail(`TOP-HUD: the menu button didn't collapse to its glyph (${where}, ${h.menuWidth}px wide)`);
+  if (h.labelDisplay === 'absent')
+    fail(`TOP-HUD: the menu label span is missing (${where}) — cannot verify collapse`);
+  else if (h.labelDisplay !== 'none')
+    fail(`TOP-HUD: the menu label didn't collapse (${where}, display:${h.labelDisplay})`);
 };
 const hud = await topHudProbe(page);
 assertTopHud(hud, 'portrait');
@@ -357,12 +364,51 @@ let realStick;
   await rctx.close();
 }
 
+// NARROW NON-TOUCH DESKTOP: the collapse rule has a SECOND arm — `@media (max-width: 640px)`
+// — that is deliberate for skinny keyboard windows too (a non-touch browser pane narrow
+// enough to hit the same horizontal collision; documented in hud.css). Everything above
+// runs in a coarse-pointer/touch context, so that width arm was untested. Open a fresh
+// NON-touch, narrow context (no hasTouch → `pointer: coarse` does NOT match, so ONLY the
+// width breakpoint can collapse the label) and assert the same top-HUD contract. No touch
+// stick is expected here (non-touch device); we only check the top band.
+let hudNarrow;
+{
+  const dctx = await ctx.browser().newContext({ viewport: { width: 480, height: 900 } });
+  const dp = await dctx.newPage();
+  dp.on('pageerror', (e) => fail(`narrow-desktop pageerror: ${e.message}`));
+  await dp.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp_booted', '1');
+    } catch {
+      /* ignore */
+    }
+  });
+  await dp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  const mounted = await dp.waitForSelector('.hud-menu-btn', { timeout: 12000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!mounted) fail('NARROW-DESKTOP: the world/menu button did not mount at 480px (non-touch)');
+  await dp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+  await dp.waitForTimeout(200);
+  hudNarrow = await topHudProbe(dp);
+  // Same fail-closed contract as the phone: objective present, no overlaps, label collapsed
+  // — here driven by the WIDTH arm, not the pointer arm.
+  assertTopHud(hudNarrow, 'narrow-desktop');
+  const noOverflow =
+    (await dp.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)) <= 1;
+  if (!noOverflow) fail('NARROW-DESKTOP: horizontal overflow at 480px');
+  await dp.screenshot({ path: '.shots/touch-narrow-desktop.png' });
+  await dctx.close();
+}
+
 console.log(
   `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
     `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
     `stickHidesOnPause=${stickGone} realPathStick=${realStick} ` +
-    `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},menu=${hud.menuWidth}px) ` +
-    `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},menu=${hudLandscape.menuWidth}px) ` +
+    `topHud[portrait](obj=${hud.hasObjective},noOverlap=${!hud.objMenu && !hud.menuScore && !hud.objScore},label=${hud.labelDisplay},menu=${hud.menuWidth}px) ` +
+    `topHud[landscape](obj=${hudLandscape.hasObjective},noOverlap=${!hudLandscape.objMenu && !hudLandscape.menuScore && !hudLandscape.objScore},label=${hudLandscape.labelDisplay},menu=${hudLandscape.menuWidth}px) ` +
+    `topHud[narrowDesktop](obj=${hudNarrow.hasObjective},noOverlap=${!hudNarrow.objMenu && !hudNarrow.menuScore && !hudNarrow.objScore},label=${hudNarrow.labelDisplay},menu=${hudNarrow.menuWidth}px) ` +
     `overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);
