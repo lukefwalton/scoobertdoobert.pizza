@@ -146,6 +146,198 @@ for (const p of identityPages) {
   }
 }
 
+// Bundle-discipline guard: the storefront's EAGER JS graph must ship zero three.js
+// and no debug-only `leva` — both are lazy (three behind the install gag, leva behind
+// ?debug). We key on fingerprint tokens that survive minification (a class name / a
+// hook name) rather than the word "leva" (which also hides inside "relevant" — a known
+// false positive) or a chunk filename (which the bundler is free to rename). A
+// static-import regression that pulls either dep into the eager graph then fails.
+// Several fingerprints per dep, not one: a tree-shaken subset of three that happened
+// to exclude BufferGeometry would still violate the standard, but any real use pulls
+// the renderer or the scene-graph base too — so we trip on ANY of them. All are absent
+// from the legit storefront eager chunks today (verified), so no false positives.
+const FORBIDDEN = [
+  { token: 'BufferGeometry', dep: 'three.js' },
+  { token: 'WebGLRenderer', dep: 'three.js' },
+  { token: 'Object3D', dep: 'three.js' },
+  { token: 'LevaPanel', dep: 'leva' },
+  { token: 'useControls', dep: 'leva' },
+];
+const storefront = 'dist/index.html';
+if (existsSync(storefront)) {
+  // The eager graph, resolved from TWO sources so a shift in either can't quietly drop
+  // coverage: (a) Vite's build manifest — the authoritative import graph: walk the
+  // index.html entry's STATIC `imports` edges (never `dynamicImports`, which ARE the
+  // lazy chunks we require to stay out), following edges even when a chunk isn't
+  // preloaded in the HTML; and (b) the /assets/*.js the storefront HTML references
+  // (entry script + modulepreloads). We scan the UNION as disk paths.
+  const files = new Set();
+  let bundleBad = 0;
+  const manifestPath = 'dist/.vite/manifest.json';
+  // The manifest is the AUTHORITATIVE eager graph and is always emitted by the
+  // vite-react-ssg build — so REQUIRE it. If it's absent, the guard would degrade to
+  // HTML-only discovery (which can miss a non-preloaded static-initial chunk), quietly
+  // reopening the exact hole this walk closes. A missing manifest is a build failure.
+  if (!existsSync(manifestPath)) {
+    console.error(
+      `  x ${manifestPath} is missing — the authoritative eager-graph source for the three.js/leva guard; failing closed`,
+    );
+    bundleBad++;
+  } else {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    // The storefront entry is specifically keyed 'index.html'. Don't fall back to an
+    // arbitrary isEntry node — in a future multi-entry manifest that could walk the
+    // WRONG page's graph.
+    const entry = manifest['index.html'];
+    // Fail CLOSED: the manifest is the AUTHORITATIVE eager graph, so if it exists but no
+    // longer carries the 'index.html' entry, that source silently broke — and HTML refs
+    // alone can miss a static-initial chunk that isn't preloaded (exactly what this walk
+    // was added to catch). Don't quietly fall back to HTML-only.
+    if (!entry) {
+      console.error(
+        `  x ${manifestPath} exists but has no 'index.html' entry — the authoritative eager-graph source broke; failing closed`,
+      );
+      bundleBad++;
+    }
+    const seen = new Set();
+    const walk = (key) => {
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      const node = manifest[key];
+      // Fail CLOSED on a broken import graph: a referenced key with no manifest node
+      // means the walk can't see that (possibly eager) subtree — and HTML refs are only
+      // a secondary source, so silently skipping it could leave part of the eager graph
+      // unasserted. Treat it like a resolved-chunk-missing-on-disk failure.
+      if (!node) {
+        console.error(
+          `  x manifest import ${JSON.stringify(key)} has no entry — broken import graph; failing closed`,
+        );
+        bundleBad++;
+        return;
+      }
+      if (node.file) files.add('dist/' + node.file);
+      for (const imp of node.imports ?? []) walk(imp); // static edges only
+    };
+    if (entry?.file) files.add('dist/' + entry.file);
+    for (const imp of entry?.imports ?? []) walk(imp);
+  }
+  for (const m of readFileSync(storefront, 'utf8').matchAll(/\/assets\/[A-Za-z0-9._-]+\.js/g)) {
+    files.add('dist' + m[0]);
+  }
+
+  // Fail CLOSED: a standards guard must never pass by finding nothing. If both the
+  // manifest and the HTML yield no eager JS, discovery broke — that's a failure, not a
+  // quiet success.
+  if (files.size === 0) {
+    console.error(
+      `  x storefront bundle guard resolved no eager JS (manifest + HTML both empty) — discovery broke; refusing to pass without asserting the three.js/leva rule`,
+    );
+    bundleBad++;
+  }
+  for (const file of files) {
+    // A resolved-but-missing chunk is itself a fail: inspecting '' would let the guard
+    // "pass" on a chunk it never actually read (a broken/inconsistent build).
+    if (!existsSync(file)) {
+      console.error(`  x storefront eager chunk ${file} is missing on disk — build inconsistent`);
+      bundleBad++;
+      continue;
+    }
+    const code = readFileSync(file, 'utf8');
+    for (const { token, dep } of FORBIDDEN) {
+      if (code.includes(token)) {
+        console.error(
+          `  x storefront chunk ${file} contains ${dep} (${token}) — it must stay lazy, out of the eager bundle`,
+        );
+        bundleBad++;
+      }
+    }
+  }
+  failed += bundleBad;
+  if (!bundleBad) {
+    console.log(
+      `  ok storefront eager JS graph (${files.size} chunk${files.size === 1 ? '' : 's'}) ships no three.js / leva`,
+    );
+  }
+}
+
+// Installability guard: every icon the manifest DECLARES must actually ship at the
+// declared square dimensions, so a manifest/asset drift (a renamed or wrong-sized
+// icon) fails the build instead of quietly breaking install / home-screen behavior.
+// Reads the PNG IHDR directly — no image dep — and requires square.
+function pngSize(file) {
+  const buf = readFileSync(file);
+  if (buf.length < 24 || buf.toString('ascii', 12, 16) !== 'IHDR') return null;
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+}
+// The apple-touch-icon is a SEPARATE contract in index.html (outside the manifest),
+// so size-check it on its own — a rename or wrong-size there would otherwise slip past
+// the manifest-icon loop below. Apple expects 180×180.
+if (existsSync('dist/index.html')) {
+  const linkTag = readFileSync('dist/index.html', 'utf8').match(
+    /<link[^>]*apple-touch-icon[^>]*>/i,
+  );
+  const href = linkTag?.[0].match(/href="([^"]+)"/)?.[1];
+  const file = href ? 'dist' + href : null;
+  const sz = file && existsSync(file) ? pngSize(file) : null;
+  if (!href) {
+    console.error('  x index.html declares no apple-touch-icon');
+    failed++;
+  } else if (!sz) {
+    console.error(`  x apple-touch-icon ${href} -> missing or not a PNG at dist${href}`);
+    failed++;
+  } else if (sz.w !== 180 || sz.h !== 180) {
+    console.error(`  x apple-touch-icon ${href} -> is ${sz.w}x${sz.h}, expected 180x180`);
+    failed++;
+  } else {
+    console.log(`  ok apple-touch-icon ${href} -> 180x180`);
+  }
+}
+// Fail CLOSED on the manifest too: index.html links /site.webmanifest, so a copy or
+// rename regression that drops it from dist must fail the build, not skip validation.
+const manifestFile = 'dist/site.webmanifest';
+const linksManifest =
+  existsSync('dist/index.html') &&
+  readFileSync('dist/index.html', 'utf8').includes('/site.webmanifest');
+if (linksManifest && !existsSync(manifestFile)) {
+  console.error(
+    `  x index.html links /site.webmanifest but ${manifestFile} is missing — installability broken`,
+  );
+  failed++;
+} else if (existsSync(manifestFile)) {
+  const icons = JSON.parse(readFileSync(manifestFile, 'utf8')).icons ?? [];
+  // Fail closed: a manifest with no icons is a broken install surface, not a pass. And
+  // lock in the canonical PWA install set — a future manifest that dropped 192/512
+  // (or shrank to a token 32×32) would pass "valid square PNG" checks while quietly
+  // breaking installability, which is the whole point of this guard.
+  const declaredSizes = new Set(icons.map((i) => i.sizes));
+  for (const need of ['192x192', '512x512']) {
+    if (!declaredSizes.has(need)) {
+      console.error(`  x ${manifestFile} is missing the required ${need} install icon`);
+      failed++;
+    }
+  }
+  for (const icon of icons) {
+    const file = 'dist' + icon.src;
+    const sz = existsSync(file) ? pngSize(file) : null;
+    if (!sz) {
+      console.error(`  x manifest icon ${icon.src} -> missing or not a PNG at dist${icon.src}`);
+      failed++;
+    } else if (`${sz.w}x${sz.h}` !== icon.sizes) {
+      console.error(
+        `  x manifest icon ${icon.src} -> is ${sz.w}x${sz.h} but the manifest declares ${icon.sizes}`,
+      );
+      failed++;
+    } else if (sz.w !== sz.h) {
+      console.error(
+        `  x manifest icon ${icon.src} -> ${sz.w}x${sz.h} is not square (install wants square)`,
+      );
+      failed++;
+    } else {
+      console.log(`  ok manifest icon ${icon.src} -> ${icon.sizes}, square`);
+    }
+  }
+}
+
 if (failed) {
   console.error(`\npost-build check FAILED (${failed}).`);
   process.exit(1);
