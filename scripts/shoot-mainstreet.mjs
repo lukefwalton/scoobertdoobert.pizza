@@ -34,6 +34,29 @@ await page
   .catch(() => bad('world controls never came live in North Park'));
 const startStreet = await roomIs('North Park');
 
+// Warm-up (flake guard for the saturated CI runner): __sdpRoom fires from the
+// re-spawn effect, but the world's entry fade can still be lifting (input frozen)
+// and a cold WebGL loop is at low FPS — so the FIRST timed hop below could spend
+// its whole budget on a not-yet-moving world and time out (seen twice on CI, never
+// locally). Nudge forward until the camera actually travels, proving movement is
+// live, so every hop's budget is spent walking. __sdpCam rides the ?debug entrance.
+await page.evaluate(() => {
+  window.__wu0 = window.__sdpCam ? { ...window.__sdpCam } : null;
+});
+await page.keyboard.down('w');
+await page
+  .waitForFunction(
+    () => {
+      const c = window.__sdpCam;
+      const a = window.__wu0;
+      return !!(a && c) && Math.hypot(c.x - a.x, c.z - a.z) > 0.3;
+    },
+    null,
+    { timeout: 15000 },
+  )
+  .catch(() => bad('movement never came live in North Park (warm-up nudge saw no travel)'));
+await page.keyboard.up('w');
+
 // Each hold is itself state-based — holdUntilDoorPrompt polls for `.hud-prompt--door`
 // and releases the INSTANT it shows, so this budget is a CEILING, not a sleep. It's
 // wide because movement is a CLAMPED per-frame delta: a slow runner covers less
