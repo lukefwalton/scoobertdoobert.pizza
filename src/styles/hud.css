@@ -256,11 +256,13 @@
 }
 
 /* Phone top-HUD: the centered objective chip and the top-right menu/score cluster
-   have no room to coexist on a narrow screen (they overlapped in the shipped build).
-   Shrink the menu to just its ☰ glyph — "(Esc)" means nothing without a keyboard —
-   and left-anchor the objective with a width that clears the right-hand cluster (the
-   ☰ button plus the score/% -tall chip beneath it). */
-@media (max-width: 640px) {
+   have no room to coexist (they overlapped in the shipped build). Shrink the menu to
+   just its ☰ glyph — "(Esc)" means nothing without a keyboard — and left-anchor the
+   objective with a width that clears the right-hand cluster (the ☰ button plus the
+   score/%-tall chip beneath it; ~110px reserves room for both at ~75px + gaps).
+   Applies on ANY coarse-pointer device (a landscape phone is wider than 640px but
+   still keyboard-less and still overlaps) OR any narrow window. */
+@media (pointer: coarse), (max-width: 640px) {
   .hud-menu-btn__label {
     display: none;
   }

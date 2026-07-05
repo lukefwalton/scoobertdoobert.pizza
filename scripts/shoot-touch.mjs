@@ -105,11 +105,33 @@ const hud = await page.evaluate(() => {
     menuWidth: document.querySelector('.hud-menu-btn')?.offsetWidth ?? 0,
   };
 });
+// Fail closed if the objective chip is absent — otherwise the overlap checks below
+// pass vacuously (ov(null, …) is false), so a vanished chip would read as "no overlap".
+if (!hud.hasObjective) fail('TOP-HUD: the objective chip is missing — cannot verify no-overlap');
 if (hud.objMenu) fail('TOP-HUD: the objective chip overlaps the ☰ menu button on a phone');
 if (hud.menuScore) fail('TOP-HUD: the ☰ menu button overlaps the score / %-tall chip');
 if (hud.objScore) fail('TOP-HUD: the objective chip overlaps the score chip');
 if (hud.menuWidth > 90)
   fail(`TOP-HUD: the menu button didn't collapse to its glyph (${hud.menuWidth}px wide)`);
+
+// Reusable top-HUD overlap probe (run again in landscape below — a coarse-pointer
+// landscape phone is wider than the 640px breakpoint but must still collapse the menu).
+const topHudOverlap = (p) =>
+  p.evaluate(() => {
+    const box = (s) => {
+      const e = document.querySelector(s);
+      if (!e) return null;
+      const r = e.getBoundingClientRect();
+      return { l: r.left, r: r.right, t: r.top, b: r.bottom };
+    };
+    const ov = (a, c) => (a && c ? a.l < c.r && c.l < a.r && a.t < c.b && c.t < a.b : false);
+    const obj = box('.hud-objective');
+    return (
+      ov(obj, box('.hud-menu-btn')) ||
+      ov(box('.hud-menu-btn'), box('.hud-score')) ||
+      ov(obj, box('.hud-score'))
+    );
+  });
 
 // Push the stick FORWARD (up = negative screen-y) and hold — the camera should
 // travel. __sdpCam is exposed under the ?world test entrance.
@@ -273,6 +295,9 @@ const landscapeOverflow = await hOverflow(page);
 if (landscapeOverflow > 1) {
   fail(`VIEWPORT: horizontal overflow with the touch HUD up (landscape, ${landscapeOverflow}px)`);
 }
+// Landscape is wider than the 640px breakpoint, so the coarse-pointer rule (not width
+// alone) is what keeps the menu collapsed here — assert the top HUD still doesn't overlap.
+if (await topHudOverlap(page)) fail('TOP-HUD: elements overlap in landscape (coarse-pointer rule)');
 const stickInLandscape = (await page.$('.touch-stick')) !== null;
 if (!stickInLandscape) fail('VIEWPORT: the touch stick vanished in landscape');
 await page.screenshot({ path: '.shots/touch-landscape.png' });
