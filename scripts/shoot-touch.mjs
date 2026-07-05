@@ -1,11 +1,18 @@
 // Touch-controls smoke: proves the 3D world — previously desktop-only — is
-// actually WALKABLE on a phone. Enters via the ?world debug trigger in a small
-// TOUCH viewport (so useTouchDevice() is true and TouchControls mounts), then:
-//   1. the on-screen stick + context button render,
-//   2. pushing the stick forward moves the camera (the whole point),
-//   3. the ☰ menu button opens the pause menu (the always-reachable nav).
-// Driven with page.mouse over the controls — they use React pointer events, which
-// fire for a mouse pointer too, so the DOM→input bridge is exercised regardless.
+// actually WALKABLE on a phone. This is the HUD-MECHANICS smoke; it enters via the
+// ?world trigger (same shortcut the desktop shoot:world uses) so the touch rig can
+// be exercised deterministically. The REAL mobile journey — order form → descent →
+// machine-room install/consent → world — is covered by shoot:descent (the phone
+// install gag) and shoot:fallback (mobile descends + the reduced-motion consent
+// gate). Here, in a small TOUCH viewport (so useTouchDevice() is true and
+// TouchControls mounts), we check:
+//   1. the on-screen stick + context button render (portrait AND landscape),
+//   2. the stick walks the camera, and releasing it stops the camera,
+//   3. MULTI-TOUCH: a walk thumb + a look thumb at once (two real CDP pointers) —
+//      the headline dragPointer-ownership path,
+//   4. the ☰ menu button opens the pause menu (the always-reachable nav), which
+//      hides the touch HUD,
+//   5. no horizontal overflow in either orientation.
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
@@ -55,7 +62,10 @@ if (welcomeUp) {
     .click({ timeout: 3000 })
     .catch(() => {});
 }
-await page.waitForTimeout(2500);
+// Wait on STATE, not a fixed sleep: __sdpCam is published from the render loop
+// (exposed under ?world), so its presence proves the world is actually running.
+await page.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+await page.waitForTimeout(300); // a few frames so the first pose is settled
 await page.screenshot({ path: '.shots/touch-world.png' });
 
 // VIEWPORT: the touch HUD (fixed, inset:0, safe-area insets) must never push the
@@ -105,6 +115,61 @@ if (stick) {
   await page.screenshot({ path: '.shots/touch-world-walked.png' });
 }
 
+// MULTI-TOUCH — the headline of this change: a walk thumb AND a look thumb at the
+// same time. page.mouse is single-pointer, so drive two REAL touch pointers via
+// CDP: finger 0 holds the stick forward (walk), finger 1 drags the bare canvas
+// sideways (look). If the pointer-ownership (dragPointer) is wrong, one finger
+// corrupts the other — so assert BOTH the position advanced AND the yaw turned in
+// the one gesture. This is the regression the whole feature hinges on.
+let multiWalk = 0;
+let multiTurn = 0;
+if (walked) {
+  const cdp = await page.context().newCDPSession(page);
+  const s = await page.$eval('.touch-stick', (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  const lookX = 300;
+  const lookY = 300; // upper-right: over the bare canvas, clear of the HUD clusters
+  const before = await page.evaluate(() => ({ ...window.__sdpCam }));
+  await cdp.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [
+      { x: s.x, y: s.y, id: 0 },
+      { x: lookX, y: lookY, id: 1 },
+    ],
+  });
+  // Hold the stick forward while sweeping the look finger left, in small steps.
+  for (let i = 1; i <= 6; i++) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [
+        { x: s.x, y: s.y - 40, id: 0 },
+        { x: lookX - i * 18, y: lookY, id: 1 },
+      ],
+    });
+    await page.waitForTimeout(60);
+  }
+  const after = await page.evaluate(() => ({ ...window.__sdpCam }));
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  if (before && after) {
+    multiWalk = Math.hypot(after.x - before.x, after.z - before.z);
+    multiTurn = Math.abs(after.yaw - before.yaw);
+    if (multiWalk <= 0.1)
+      fail(`MULTI-TOUCH: no walk while looking (moved ${multiWalk.toFixed(3)})`);
+    if (multiTurn <= 0.05)
+      fail(`MULTI-TOUCH: no look while walking (yaw Δ ${multiTurn.toFixed(3)})`);
+  }
+  // The stick must release cleanly on touchEnd (its pointerup zeroes the vector).
+  await page.waitForTimeout(400);
+  const restA = await page.evaluate(() => ({ ...window.__sdpCam }));
+  await page.waitForTimeout(500);
+  const restB = await page.evaluate(() => ({ ...window.__sdpCam }));
+  if (restA && restB && Math.hypot(restB.x - restA.x, restB.z - restA.z) > 0.05) {
+    fail('MULTI-TOUCH: camera kept drifting after both fingers lifted');
+  }
+}
+
 // VIEWPORT (landscape): rotate to a short, wide phone and confirm the HUD still
 // fits with no horizontal overflow — the stick + action cluster must not spill.
 await page.setViewportSize({ width: 844, height: 390 });
@@ -131,7 +196,8 @@ if (!stickGone) fail('TOUCH HUD: the stick stayed visible under the pause menu')
 await page.screenshot({ path: '.shots/touch-pause.png' });
 
 console.log(
-  `touch: stick=${stick} action=${actionBtn} walked=${walked} paused=${paused} ` +
+  `touch: stick=${stick} action=${actionBtn} walked=${walked} ` +
+    `multitouch(walk=${multiWalk.toFixed(2)},turn=${multiTurn.toFixed(2)}) paused=${paused} ` +
     `stickHidesOnPause=${stickGone} overflow(portrait=${portraitOverflow},landscape=${landscapeOverflow}) | errors=${failures()}`,
 );
 await finish('touch controls smoke passed.', `touch controls smoke: ${failures()} failure(s).`);
