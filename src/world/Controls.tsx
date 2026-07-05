@@ -46,6 +46,13 @@ export function Controls() {
   // FRESH press (holding Space bunny-hops off the ground but never auto-doubles).
   const airJumps = useRef(0);
   const spaceWasDown = useRef(false);
+  // Jump-buffer: seconds left on a remembered Space tap that couldn't act yet (see
+  // useFrame). Small forgiveness window so a hop tapped a hair before landing fires on
+  // touchdown instead of being swallowed.
+  const jumpBuffer = useRef(0);
+  // Monotonic count of hops STARTED (ground / double / buffered re-hop), exposed under
+  // the test entrance as __sdpJumps so a smoke can prove the buffered path fired.
+  const jumpCount = useRef(0);
   // Throttle accumulator for publishing the camera pose to the heading store.
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
@@ -64,6 +71,7 @@ export function Controls() {
     hopVy.current = 0;
     airJumps.current = 0;
     spaceWasDown.current = false;
+    jumpBuffer.current = 0;
     takeHeading(); // drain any pending scripted heading so it can't leak across a room change
     // Expose the current room id for smokes that need to tell same-titled rooms
     // apart (e.g. the night vs day Main Street, both titled "Main Street").
@@ -142,14 +150,21 @@ export function Controls() {
     // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
     // frame, and the global stays off the normal runtime surface.
     if (EXPOSE_CAM) {
-      (
-        window as Window & { __sdpCam?: { x: number; y: number; z: number; yaw: number } }
-      ).__sdpCam = {
+      const w = window as Window & {
+        __sdpCam?: { x: number; y: number; z: number; yaw: number };
+        __sdpJumps?: number;
+        __sdpAirJumps?: number;
+      };
+      w.__sdpCam = {
         x: camera.position.x,
         y: camera.position.y,
         z: camera.position.z,
         yaw: yaw.current,
       };
+      w.__sdpJumps = jumpCount.current;
+      // Air-jumps used since last touching ground — a smoke asserts this is still 1
+      // (not clobbered to 0) right after a buffered re-hop, proving double-jump survives.
+      w.__sdpAirJumps = airJumps.current;
     }
     if (inputFrozen()) return;
     // A scripted camera move (the tube-slide ride) just ended: adopt the heading
@@ -165,6 +180,7 @@ export function Controls() {
       hopVy.current = 0;
       airJumps.current = 0;
       spaceWasDown.current = false;
+      jumpBuffer.current = 0;
     }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
@@ -205,6 +221,12 @@ export function Controls() {
     const spaceDown = !!k[' '];
     const spaceEdge = spaceDown && !spaceWasDown.current; // a fresh press this frame
     if (grounded) airJumps.current = 0;
+    // Age any buffered tap; a fresh airborne press that can't act yet (no air-jump
+    // left, or double-jump unlearned) is REMEMBERED for a short window and fired on
+    // touchdown below — so a hop tapped a hair early isn't swallowed. (No coyote-time
+    // counterpart: the world is a flat floor, you never walk off a ledge.)
+    jumpBuffer.current = Math.max(0, jumpBuffer.current - dt);
+    if (spaceEdge && !grounded) jumpBuffer.current = 0.13;
     if (spaceDown || !grounded) {
       // Read the learned verbs once per relevant frame (cheap; only when airborne
       // or Space is down), never every idle frame.
@@ -212,6 +234,8 @@ export function Controls() {
       if (grounded && spaceDown && secrets.includes(JUMP_SECRET)) {
         hopVy.current = 4.6; // ground jump (holding Space re-hops → bunny hop)
         airJumps.current = 1;
+        jumpBuffer.current = 0;
+        jumpCount.current++;
       } else if (
         !grounded &&
         spaceEdge && // a SECOND, deliberate press mid-air
@@ -220,6 +244,8 @@ export function Controls() {
       ) {
         hopVy.current = 3.9; // the mid-air second hop (a touch softer)
         airJumps.current = 2;
+        jumpBuffer.current = 0; // consumed by the double-jump; don't also re-hop on land
+        jumpCount.current++;
       }
     }
     spaceWasDown.current = spaceDown;
@@ -229,6 +255,17 @@ export function Controls() {
       if (hop.current <= 0) {
         hop.current = 0;
         hopVy.current = 0; // landed
+        // A tap buffered just before touchdown re-hops now (JUMP must be learned),
+        // so rhythmic tap-hopping stays smooth instead of eating the early press.
+        if (
+          jumpBuffer.current > 0 &&
+          useProgressStore.getState().secretsFound.includes(JUMP_SECRET)
+        ) {
+          hopVy.current = 4.6;
+          airJumps.current = 1;
+          jumpBuffer.current = 0;
+          jumpCount.current++;
+        }
       }
     }
     // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
