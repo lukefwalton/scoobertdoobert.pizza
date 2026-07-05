@@ -19,22 +19,32 @@ import { readFileSync } from 'node:fs';
 import { parseShard, selectShard } from './lib/shard.mjs';
 
 const args = process.argv.slice(2);
-const BASE = args.find((a) => !a.startsWith('--')) || 'http://localhost:4173';
 
-// Reject unknown flags so a typo (e.g. --shrad=1/4) fails LOUD instead of silently
-// falling through to running the whole suite as if unsharded.
-const badFlag = args.find((a) => a.startsWith('--') && !a.startsWith('--shard='));
-if (badFlag) {
-  console.error(`shoot:all: unknown flag "${badFlag}" (only --shard=i/N is supported)`);
+// Strict, fail-loud CLI (this is a CI gate, so an ambiguous invocation should error,
+// not silently pick the first of a duplicate): exactly one optional positional (the
+// base URL) and at most one --shard=i/N. Anything else — an unknown flag, extra
+// positionals, a repeated --shard — is surfaced instead of quietly ignored.
+const positionals = args.filter((a) => !a.startsWith('--'));
+const shardFlags = args.filter((a) => a.startsWith('--shard='));
+const unknown = args.find((a) => a.startsWith('--') && !a.startsWith('--shard='));
+const cliError = unknown
+  ? `unknown flag "${unknown}" (only --shard=i/N is supported)`
+  : positionals.length > 1
+    ? `too many positional args (${positionals.join(' ')}) — expected just a base URL`
+    : shardFlags.length > 1
+      ? `--shard given more than once (${shardFlags.join(' ')})`
+      : null;
+if (cliError) {
+  console.error(`shoot:all: ${cliError}`);
   process.exit(1);
 }
 
+const BASE = positionals[0] || 'http://localhost:4173';
 let shardIdx = 0;
 let shardCount = 1;
-const shardArg = args.find((a) => a.startsWith('--shard='))?.slice('--shard='.length);
-if (shardArg) {
+if (shardFlags.length) {
   try {
-    ({ shardIdx, shardCount } = parseShard(shardArg));
+    ({ shardIdx, shardCount } = parseShard(shardFlags[0].slice('--shard='.length)));
   } catch (e) {
     console.error(`shoot:all: ${e.message}`);
     process.exit(1);
@@ -52,10 +62,22 @@ const allSmokes = Object.keys(pkg.scripts)
   .sort();
 const smokes = selectShard(allSmokes, shardIdx, shardCount);
 
+// Fail CLOSED on an empty selection: a shard that runs nothing would exit 0 (no
+// failures) — a false green. Over-sharding (count > suite total) or a discovery
+// regression is a loud error, not a quiet pass.
+if (smokes.length === 0) {
+  console.error(
+    `shoot:all: shard ${shardIdx + 1}/${shardCount} selected 0 of ${allSmokes.length} suites — nothing to run; refusing to pass an empty shard`,
+  );
+  process.exit(1);
+}
+
 const shardLabel = shardCount > 1 ? ` [shard ${shardIdx + 1}/${shardCount}]` : '';
 console.log(
-  `shoot:all — ${smokes.length}/${allSmokes.length} smoke suites${shardLabel} against ${BASE}\n`,
+  `shoot:all — ${smokes.length}/${allSmokes.length} smoke suites${shardLabel} against ${BASE}`,
 );
+// Log THIS run's suite names up front — cheap CI forensics for "did shard N cover X?".
+console.log(`  ${smokes.join(' ')}\n`);
 
 // One preview server for all of them. Capture its output so a startup failure is
 // debuggable (rather than a bare "never came up").
