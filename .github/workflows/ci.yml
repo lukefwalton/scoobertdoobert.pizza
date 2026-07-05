@@ -63,19 +63,36 @@ jobs:
           retention-days: 1
           include-hidden-files: true # dist/.vite/manifest.json lives in a dot dir
 
+  # Single source of truth for the shard count: the matrix list AND the `/N` in the
+  # label + CLI arg all derive from `count`, so they can't drift into a silent
+  # mis-shard (a wrong N skips suites and still goes green — see scripts/lib/shard.mjs).
+  plan:
+    name: Plan shards
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      count: ${{ steps.p.outputs.count }}
+      shards: ${{ steps.p.outputs.shards }}
+    steps:
+      - id: p
+        run: |
+          count=4
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "shards=[$(seq -s, 1 "$count")]" >> "$GITHUB_OUTPUT"
+
   smoke:
-    name: Smoke shard ${{ matrix.shard }}/4
+    name: Smoke shard ${{ matrix.shard }}/${{ needs.plan.outputs.count }}
     # Both: build gives us dist to serve, and gating on checks too means a failing
-    # typecheck/lint/test short-circuits the four browser runners instead of wasting
-    # them on a doomed PR. Near-zero wall-clock cost on green (build is the longer gate).
-    needs: [checks, build]
+    # typecheck/lint/test short-circuits the browser runners instead of wasting them on
+    # a doomed PR. Near-zero wall-clock cost on green (build is the longer gate).
+    needs: [checks, build, plan]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     strategy:
       # Don't cancel the other shards when one fails — surface every failure at once.
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,7 +116,7 @@ jobs:
       # shoot:all serves the downloaded dist via `vite preview` and runs only THIS
       # shard's slice of the suite (round-robin, so heavy suites spread across shards).
       - name: Smoke suite (shard ${{ matrix.shard }})
-        run: npm run shoot:all -- --shard=${{ matrix.shard }}/4
+        run: npm run shoot:all -- --shard=${{ matrix.shard }}/${{ needs.plan.outputs.count }}
       # Keep failure screenshots for debugging a red run (per shard → names don't collide).
       - name: Upload smoke screenshots on failure
         if: failure()
