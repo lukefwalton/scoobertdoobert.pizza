@@ -248,25 +248,31 @@ motion, and even that is an opt-in.
 
 ## Starter content (reference)
 
-`src/data/links.ts` destinations (storefront-voice label → points to):
+`src/data/links.ts` destinations (storefront-voice label → points to). Labels
+are **cheeky-but-clear**: you always know where a link goes. Every destination is
+**Scoobert Doobert work only** — never Luke F. Walton or other-project (FEiN, etc.)
+links. `lukefwalton.com` stays a subtle identity backlink only (ADDENDUM #6), never
+a menu/archive destination.
 
 | id | label | points to |
 |----|-------|-----------|
-| listen | what's hot @ the .pizza? | streaming |
-| videos | see the TV spots | music videos |
-| catalog | more about our menu | full catalog |
-| podcast | community involvement | Love Music More |
-| about | the inside scoop | the project / bio |
-| beformer | the usual corporate stuff | beformer.co — the label (deadpan) |
-| contact | submit a comment to the webmaster | contact |
+| listen | Listen on Spotify | streaming |
+| videos | Watch on YouTube | music videos |
+| catalog | Full catalog on Bandcamp | full catalog |
+| podcast | The Love Music More podcast | Love Music More |
+| beformer | Beformer Records (the label) | beformer.co — the label (deadpan) |
+| contact | Email the webmaster | contact mailto |
 
-Storefront copy, 1999 register (original — never Pizza Hut's words):
+**No duplicate destinations** — a given place is linked one way, not repeated
+across a second joke. The `/about` "Secret Recipe" page is the one narrative
+retelling of the same links.
 
-> **RAT SPOTTED IN WALL — MANAGEMENT INSISTS HE PAYS RENT**
-> Click here for the inside scoop.
-> It's one thin crust piled with six unreleased demos, then sealed with another
-> thin crust, reverb, choice of toppings, and even more reverb.
-> **The Best Songs Under One Roof!™**  Lo-Fi • Hi-Fi • Stuffed Crust
+Storefront copy, 1999 register (original — never Pizza Hut's words). The RAT gag
+stays but is **terse and links downstairs into the building (the descent → the 3D
+world), NEVER to the blog/podcast or to Luke**:
+
+> **★ RAT SPOTTED IN WALL ★**  Follow him downstairs »
+> Six unreleased demos under one roof.  Lo-Fi • Hi-Fi • Stuffed Crust.
 > ©1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
 
 ---

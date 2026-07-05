@@ -3,8 +3,8 @@ import { ExternalLink } from './ExternalLink';
 
 // Compact "find Scoobert everywhere" row — the secondary platform links the
 // curated Sample Menu leaves out (Apple Music, SoundCloud, TikTok, Threads,
-// Reddit, merch, podcast feed). Restored from the live site so the rebuild
-// drops no real backlink or merch link. Driven by links.ts like everything else.
+// Reddit, merch). All Scoobert Doobert profiles. Driven by links.ts like
+// everything else.
 export function SocialLinks() {
   return (
     <nav className="socials" aria-label="More places to find Scoobert Doobert">
