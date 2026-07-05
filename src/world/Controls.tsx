@@ -153,6 +153,7 @@ export function Controls() {
       const w = window as Window & {
         __sdpCam?: { x: number; y: number; z: number; yaw: number };
         __sdpJumps?: number;
+        __sdpAirJumps?: number;
       };
       w.__sdpCam = {
         x: camera.position.x,
@@ -161,6 +162,9 @@ export function Controls() {
         yaw: yaw.current,
       };
       w.__sdpJumps = jumpCount.current;
+      // Air-jumps used since last touching ground — a smoke asserts this is still 1
+      // (not clobbered to 0) right after a buffered re-hop, proving double-jump survives.
+      w.__sdpAirJumps = airJumps.current;
     }
     if (inputFrozen()) return;
     // A scripted camera move (the tube-slide ride) just ended: adopt the heading
