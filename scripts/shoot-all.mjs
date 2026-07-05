@@ -21,6 +21,14 @@ import { parseShard, selectShard } from './lib/shard.mjs';
 const args = process.argv.slice(2);
 const BASE = args.find((a) => !a.startsWith('--')) || 'http://localhost:4173';
 
+// Reject unknown flags so a typo (e.g. --shrad=1/4) fails LOUD instead of silently
+// falling through to running the whole suite as if unsharded.
+const badFlag = args.find((a) => a.startsWith('--') && !a.startsWith('--shard='));
+if (badFlag) {
+  console.error(`shoot:all: unknown flag "${badFlag}" (only --shard=i/N is supported)`);
+  process.exit(1);
+}
+
 let shardIdx = 0;
 let shardCount = 1;
 const shardArg = args.find((a) => a.startsWith('--shard='))?.slice('--shard='.length);
