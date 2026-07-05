@@ -517,9 +517,23 @@ footer {
     padding: 6px 0;
   }
 
-  /* The marquee can pick up speed on a narrow screen so it doesn't crawl. */
+  /* On a phone a scrolling ticker just reads as clipped, cut-off text (and iOS
+     can stall the animation outright), so drop the scroll on narrow screens and
+     show the headline static + wrapped — fully readable, same treatment as the
+     reduced-motion path. Desktop keeps the marquee. */
+  .marquee {
+    white-space: normal;
+  }
   .marquee__track {
-    animation-duration: 22s;
+    display: block;
+    width: auto;
+    animation: none;
+  }
+  .marquee__run {
+    padding-right: 0;
+  }
+  .marquee__run[aria-hidden='true'] {
+    display: none;
   }
 
   /* Keep the loud order + arcade callouts comfortably inside the gutter. */
