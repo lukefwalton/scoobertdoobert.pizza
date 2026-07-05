@@ -58,9 +58,34 @@ export function TouchControls() {
   const center = useRef<{ x: number; y: number } | null>(null);
   const stickPointer = useRef<number | null>(null);
 
+  // Hidden whenever a modal / pause / room-transition owns the screen. Computed
+  // BEFORE the early return so the reset effect below can watch it.
+  const hidden =
+    gate.paused ||
+    gate.openHotspot ||
+    gate.tvVideo ||
+    gate.arcadeGame ||
+    gate.openNpc ||
+    gate.lyricsSong ||
+    gate.pendingRoom;
+
   // Belt-and-suspenders: if this unmounts (leaving the world) mid-push, zero the
   // shared input so a stale vector can't keep the camera drifting.
   useEffect(() => () => resetTouchInput(), []);
+
+  // The stick can vanish mid-hold when the HUD hides (open pause while walking):
+  // returning null below does NOT run the unmount cleanup, and the removed element
+  // fires no pointerup, so `touchInput` would keep its last non-zero vector and the
+  // camera would drift the moment the modal closes. Zero it whenever we hide (and
+  // clear the local pointer/thumb state so a later reappear starts clean).
+  useEffect(() => {
+    if (hidden) {
+      resetTouchInput();
+      stickPointer.current = null;
+      center.current = null;
+      setThumb({ x: 0, y: 0 });
+    }
+  }, [hidden]);
 
   const stickDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = stickRef.current;
@@ -94,17 +119,7 @@ export function TouchControls() {
     setTouchMove(0, 0);
   };
 
-  if (
-    gate.paused ||
-    gate.openHotspot ||
-    gate.tvVideo ||
-    gate.arcadeGame ||
-    gate.openNpc ||
-    gate.lyricsSong ||
-    gate.pendingRoom
-  ) {
-    return null;
-  }
+  if (hidden) return null;
 
   // Context button: the nearest interaction, in the SAME priority as the DOM
   // prompts. Interact targets fall to interactNearby; a lone pickup to grabNearby.
@@ -151,6 +166,10 @@ export function TouchControls() {
   // NOTE: no aria-hidden on the container — these are focusable buttons a phone
   // screen-reader user can tap, so hiding the subtree would be the aria-hidden-focus
   // anti-pattern. Only the stick (a non-interactive drag surface) is hidden from AT.
+  // The buttons fire on `onClick`, not `onPointerDown`: click is the activation
+  // event assistive tech (VoiceOver/TalkBack) and the keyboard synthesize, so a
+  // pointer-only handler would leave them named-but-inert for AT. `touch-action:
+  // manipulation` (touch.css) removes the 300ms tap delay, so a finger stays snappy.
   return (
     <div className="touch-controls">
       <div
@@ -174,10 +193,7 @@ export function TouchControls() {
             type="button"
             className="touch-btn touch-btn--spell"
             aria-label="Cast spell"
-            onPointerDown={(e) => {
-              e.preventDefault();
-              castEquippedSpell();
-            }}
+            onClick={() => castEquippedSpell()}
           >
             <span aria-hidden="true">✦</span>
           </button>
@@ -187,10 +203,7 @@ export function TouchControls() {
             type="button"
             className="touch-btn touch-btn--jump"
             aria-label="Jump"
-            onPointerDown={(e) => {
-              e.preventDefault();
-              queueTouchJump();
-            }}
+            onClick={() => queueTouchJump()}
           >
             Jump
           </button>
@@ -199,8 +212,7 @@ export function TouchControls() {
           type="button"
           className={`touch-btn touch-btn--action${idle ? ' is-idle' : ''}`}
           aria-label={actionAria}
-          onPointerDown={(e) => {
-            e.preventDefault();
+          onClick={() => {
             if (hasInteract) interactNearby();
             else grabNearby();
           }}

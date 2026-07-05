@@ -10,9 +10,11 @@
 //   2. the stick walks the camera, and releasing it stops the camera,
 //   3. MULTI-TOUCH: a walk thumb + a look thumb at once (two real CDP pointers) —
 //      the headline dragPointer-ownership path,
-//   4. the ☰ menu button opens the pause menu (the always-reachable nav), which
+//   4. STUCK-INPUT: holding the stick while the HUD hides (pause) must not leave
+//      the camera drifting after the modal closes,
+//   5. the ☰ menu button opens the pause menu (the always-reachable nav), which
 //      hides the touch HUD,
-//   5. no horizontal overflow in either orientation.
+//   6. no horizontal overflow in either orientation.
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
@@ -167,6 +169,50 @@ if (walked) {
   const restB = await page.evaluate(() => ({ ...window.__sdpCam }));
   if (restA && restB && Math.hypot(restB.x - restA.x, restB.z - restA.z) > 0.05) {
     fail('MULTI-TOUCH: camera kept drifting after both fingers lifted');
+  }
+}
+
+// STUCK-INPUT lifecycle: if the HUD hides mid-hold (open pause while walking), the
+// stick element unmounts with no pointerup, so the shared move vector must be reset
+// on hide — otherwise the camera drifts the instant the modal closes. Hold the
+// stick forward via a CDP touch, open pause (unmounts the stick), resume, and
+// assert the camera is stationary.
+if (walked) {
+  const cdp2 = await page.context().newCDPSession(page);
+  const sp = await page.$eval('.touch-stick', (el) => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+  await cdp2.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x: sp.x, y: sp.y, id: 0 }],
+  });
+  await cdp2.send('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: [{ x: sp.x, y: sp.y - 40, id: 0 }],
+  });
+  await page.waitForTimeout(250); // walking now
+  await page.keyboard.press('Escape'); // open pause → TouchControls returns null → stick unmounts
+  const pausedMid = await page.waitForSelector('.hud-pause', { timeout: 3000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!pausedMid) fail('STUCK-INPUT: could not open pause to exercise the hidden-reset');
+  // The finger never lifted from the now-gone stick; end it so CDP state is clean.
+  await cdp2.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  // Resume and prove the camera does NOT drift from a stale vector.
+  await page
+    .getByRole('button', { name: /^resume/i })
+    .click({ timeout: 3000 })
+    .catch(() => page.keyboard.press('Escape'));
+  await page.waitForSelector('.touch-stick', { timeout: 4000 }).catch(() => {});
+  await page.waitForTimeout(300);
+  const s1 = await page.evaluate(() => ({ ...window.__sdpCam }));
+  await page.waitForTimeout(600);
+  const s2 = await page.evaluate(() => ({ ...window.__sdpCam }));
+  const drift = s1 && s2 ? Math.hypot(s2.x - s1.x, s2.z - s1.z) : 0;
+  if (drift > 0.05) {
+    fail(`STUCK-INPUT: camera drifted ${drift.toFixed(3)} after pause closed (stale touch vector)`);
   }
 }
 
