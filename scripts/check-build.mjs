@@ -175,7 +175,11 @@ if (existsSync(storefront)) {
   const manifestPath = 'dist/.vite/manifest.json';
   if (existsSync(manifestPath)) {
     const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    const entry = manifest['index.html'] ?? Object.values(manifest).find((n) => n?.isEntry);
+    // The storefront entry is specifically keyed 'index.html'. Don't fall back to an
+    // arbitrary isEntry node — in a future multi-entry manifest that could walk the
+    // WRONG page's graph. If the key is gone, the manifest contributes nothing and the
+    // HTML refs below (+ the fail-closed empty check) carry it.
+    const entry = manifest['index.html'];
     const seen = new Set();
     const walk = (key) => {
       if (!key || seen.has(key)) return;
