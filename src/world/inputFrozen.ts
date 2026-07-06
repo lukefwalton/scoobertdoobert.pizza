@@ -17,6 +17,7 @@ export function inputFrozen(): boolean {
     st.openNpc !== null ||
     st.transitioning ||
     st.tvVideo !== null ||
+    st.levelOverlay !== null || // a full-screen level (the 1101 adventure) owns input
     st.divingTo !== null ||
     useRhythmStore.getState().active ||
     isRiding()

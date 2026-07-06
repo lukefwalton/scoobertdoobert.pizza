@@ -29,6 +29,7 @@ import { ratDialogue } from '../data/dialogue';
 import { itemById } from '../data/items';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
+import { SaveSanDiegoLevel } from './SaveSanDiegoLevel';
 
 // DOM heads-up display for the world: the proximity prompt, the hotspot dialog
 // (98.css, with the real anchor), and the pause menu — the always-reachable
@@ -60,6 +61,10 @@ export function WorldHud() {
   const nearArcade = useSceneStore((s) => s.nearArcade);
   const arcadeGame = useSceneStore((s) => s.arcadeGame);
   const closeArcade = useSceneStore((s) => s.closeArcade);
+  // A full-screen LEVEL overlay a door opened into (the 1101 text adventure), or
+  // null. Same modal grammar as arcadeGame — Esc / the back button drops it.
+  const levelOverlay = useSceneStore((s) => s.levelOverlay);
+  const closeLevel = useSceneStore((s) => s.closeLevel);
   // Which song's lyrics the reader panel is showing (null = closed). In the store
   // (like tvVideo) so Esc closes it before the pause menu.
   const lyricsSong = useSceneStore((s) => s.lyricsSong);
@@ -180,7 +185,8 @@ export function WorldHud() {
       // mid-dive and stranding you in the old room after the album already started.
       if (st.transitioning || st.divingTo) return;
       if (e.key === 'Escape') {
-        if (st.arcadeGame) st.closeArcade();
+        if (st.levelOverlay) st.closeLevel();
+        else if (st.arcadeGame) st.closeArcade();
         else if (st.tvVideo) st.closeTv();
         else if (st.lyricsSong) st.closeLyrics();
         else if (st.openNpc) st.closeNpcDialog();
@@ -255,7 +261,7 @@ export function WorldHud() {
   // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
   // music video, or the call-and-response rhythm game — so their audio doesn't fight
   // the music. Restores the moment it closes; composes with music-room ducking.
-  const soundMakerActive = !!arcadeGame || !!tvVideo || rhythmActive;
+  const soundMakerActive = !!arcadeGame || !!tvVideo || rhythmActive || !!levelOverlay;
   useEffect(() => {
     audio.suppressMusic(soundMakerActive);
   }, [soundMakerActive]);
@@ -325,7 +331,8 @@ export function WorldHud() {
   // is actually on screen it can stand two rows tall, so drop the toast below it
   // (a modifier class) instead of letting them overlap. Mirror ObjectiveHud's own
   // visibility test so the toast only moves when the chip is really there.
-  const objectiveHidden = paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame;
+  const objectiveHidden =
+    paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame || !!levelOverlay;
   const objectiveShowing = objectiveChipVisible(progress, {
     on: objectiveHudOn,
     hidden: objectiveHidden,
@@ -561,6 +568,9 @@ export function WorldHud() {
       )}
 
       {arcadeGame && <ArcadeModal id={arcadeGame} onClose={closeArcade} />}
+
+      {/* A door opened a full-screen LEVEL — the 1101 text adventure. */}
+      {levelOverlay === 'save-san-diego' && <SaveSanDiegoLevel onClose={closeLevel} />}
 
       {/* The lyric reader — opened from the pause menu's "read the words". A plain
           98.css window over the menu; the words scroll. (Luke's copyright, shown

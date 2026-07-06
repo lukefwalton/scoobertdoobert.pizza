@@ -69,6 +69,8 @@ type SceneState = {
     spawn: string;
     albumSlug?: string;
     requiresKey?: string;
+    /** This door OPENS A LEVEL overlay instead of traveling (the 1101 adventure). */
+    opensLevel?: string;
   } | null;
   /** the collectible the camera is near (its id + how it reads + which collector
    *  owns it), or null — drives the "Press P to grab …" prompt + the P action.
@@ -129,6 +131,14 @@ type SceneState = {
    *  this is just the visual trigger. */
   castingSpell: string | null;
   castNonce: number;
+  /** ESCAPE-ROOM triggers fired this session — an interactable/pickup fires one and
+   *  a `hidden` door with a matching `revealOnTrigger` appears. Ephemeral (per world
+   *  session, re-armed on reload) so the "do something → the way opens" grammar
+   *  re-teaches each visit; the durable equivalent is progressStore.secretsFound. */
+  triggersFired: string[];
+  /** A full-screen LEVEL overlay is open (e.g. 'save-san-diego' → the 1101 text
+   *  adventure a door opens INTO), or null. Same modal grammar as arcadeGame. */
+  levelOverlay: string | null;
 
   /** Go down one floor (forward in web time), clamped to the bottom. */
   descend: () => void;
@@ -182,6 +192,7 @@ type SceneState = {
       spawn: string;
       albumSlug?: string;
       requiresKey?: string;
+      opensLevel?: string;
     } | null,
   ) => void;
   setNearPickup: (
@@ -206,6 +217,11 @@ type SceneState = {
   /** Fire a spell's world effect (RoomFireball watches castNonce). Pure visual
    *  trigger — lib/spellcast already spent the slot + announced. */
   triggerCastFx: (spellId: string) => void;
+  /** Fire an escape-room trigger (idempotent) — reveals matching revealOnTrigger doors. */
+  fireTrigger: (id: string) => void;
+  /** Raise / drop a full-screen level overlay (e.g. the 1101 text adventure). */
+  openLevel: (id: string) => void;
+  closeLevel: () => void;
 };
 
 export const useSceneStore = create<SceneState>((set) => ({
@@ -244,6 +260,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   roomNonce: 0,
   castingSpell: null,
   castNonce: 0,
+  triggersFired: [],
+  levelOverlay: null,
 
   descend: () => set((s) => ({ currentFloor: Math.min(s.currentFloor + 1, BOTTOM_FLOOR) })),
   ascend: () => set((s) => ({ currentFloor: Math.max(s.currentFloor - 1, 0) })),
@@ -267,6 +285,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       tvVideo: null,
       secretRevealed: false,
       mobiusLoops: 0,
+      triggersFired: [],
+      levelOverlay: null,
       paused: false,
       openHotspot: null,
       nearHotspot: null,
@@ -305,6 +325,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearArcade: false,
       arcadeGame: null,
       lyricsSong: null,
+      triggersFired: [],
+      levelOverlay: null,
       pendingRoom: null,
       queuedRoom: null,
       transitioning: false,
@@ -327,6 +349,10 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeTv: () => set({ tvVideo: null }),
   openArcade: (id) => set({ arcadeGame: id }),
   closeArcade: () => set({ arcadeGame: null }),
+  fireTrigger: (id) =>
+    set((s) => (s.triggersFired.includes(id) ? {} : { triggersFired: [...s.triggersFired, id] })),
+  openLevel: (id) => set({ levelOverlay: id }),
+  closeLevel: () => set({ levelOverlay: null }),
   openLyrics: (slug) => set({ lyricsSong: slug }),
   closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near) => set({ nearArcade: near }),

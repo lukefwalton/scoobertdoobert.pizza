@@ -32,6 +32,14 @@ export function collectInventoryItem(itemId: string): boolean {
   prog.collectItem(itemId);
   // Trinkets (the cassettes) tip a little luck; keys' reward is the door.
   if (item?.kind === 'trinket') prog.gainLuck(1);
+  // ESCAPE-ROOM reveal: some items open a way when pocketed (the "1101" reel →
+  // the Save San Diego level door). Bank the DURABLE secret so the matching
+  // `revealSecret` door manifests (Doors' doorRevealed), + an evocative toast.
+  if (item?.revealsSecret) {
+    prog.findSecret(item.revealsSecret);
+    audio.playChime(noteToFreq('B', 5), 0, 0.18, 0.9); // a low hum — a way opens
+    announce('🔓 the reel decodes… a doorway hums open', 'luck');
+  }
   // A TOME (spell scroll): learn its spell — the reward IS the magic. A short
   // arcane flourish over the pickup ring, then point them at the cast key.
   if (item?.teachesSpell) {

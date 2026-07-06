@@ -14,6 +14,21 @@ export const CORE_ROOMS: Room[] = [
     props: [{ url: '/models/palm-tree.glb', position: [5.6, 0, -5.4], fit: 4.4, rotationY: 0.5 }],
     // A lost cassette sits on the counter — the first rung of the music ladder.
     pickups: [{ itemId: 'tape-mystery-machine', position: [-4, 0.7, 0] }],
+    // ROOM ONE = the teacher for the site's escape-room grammar (Luke, 2026-07):
+    // a glowing COUNTER BELL you ring, and the "EMPLOYEES ONLY" back-hall door
+    // (the way deeper) shimmers into the wall. "Do something → the way opens" —
+    // trivially easy, in view of the spawn, so the whole world's interact-to-
+    // progress language is set here on the very first room. (The two SIDE doors —
+    // boardwalk / kitchen — stay visible, so you're never blocked while you orient.)
+    interactables: [
+      {
+        id: 'shop-bell',
+        position: [-2.2, 0, -0.5],
+        label: 'ring the counter bell',
+        revealsTrigger: 'shop-open',
+        kind: 'bell',
+      },
+    ],
     spawns: {
       // The establishing shot: facing the window/sea (-Z), the boids out the
       // glass. Kept clear of the back-hall door's 3.2 radius so the door is
@@ -44,6 +59,10 @@ export const CORE_ROOMS: Room[] = [
         rotationY: 0,
         label: 'enter the back hall',
         radius: 3.2,
+        // HIDDEN until you ring the counter bell (interactables above) — the site's
+        // escape-room teach. Ephemeral trigger, so it re-teaches on a fresh visit.
+        hidden: true,
+        revealOnTrigger: 'shop-open',
       },
       {
         id: 'shop-to-boardwalk',

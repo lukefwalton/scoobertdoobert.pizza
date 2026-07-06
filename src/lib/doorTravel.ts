@@ -17,6 +17,9 @@ export type DoorTravel = {
   albumSlug?: string;
   /** items.ts key id required to pass — undefined for an ordinary door. */
   requiresKey?: string;
+  /** If set, this door OPENS A FULL-SCREEN LEVEL overlay (the 1101 text adventure)
+   *  instead of traveling to a 3D room. Honors the key lock first, like any door. */
+  opensLevel?: string;
 };
 
 /** True when the player is missing the key this door needs. */
@@ -36,7 +39,10 @@ export function enterDoor(door: DoorTravel): boolean {
     return false;
   }
   audio.unlock();
-  if (door.albumSlug) diveInto(door.albumSlug, door.to, door.spawn);
+  // A LEVEL door raises its full-screen overlay in place (the 1101 text adventure)
+  // rather than wiping to a 3D room — you "step through" into the level.
+  if (door.opensLevel) useSceneStore.getState().openLevel(door.opensLevel);
+  else if (door.albumSlug) diveInto(door.albumSlug, door.to, door.spawn);
   else useSceneStore.getState().goToRoom(door.to, door.spawn);
   return true;
 }

@@ -156,6 +156,20 @@ export function Controls() {
     };
   }, [gl]);
 
+  // Project a WORLD point to normalized screen coords [0..1] (y-down) via the LIVE
+  // camera, so a smoke can click the exact pixel of a world object (e.g. the shop
+  // bell) and exercise its REAL onClick raycast — not just its action hook. Read-only
+  // (isTestEntrance, like __sdpCam); returns null-ish z only matters to the caller.
+  useEffect(() => {
+    if (!EXPOSE_CAM) return;
+    const v = new THREE.Vector3();
+    exposeTestGlobal('__sdpProject', (p: [number, number, number]) => {
+      v.set(p[0], p[1], p[2]).project(camera);
+      return [v.x * 0.5 + 0.5, -v.y * 0.5 + 0.5];
+    });
+    return () => exposeTestGlobal('__sdpProject', undefined);
+  }, [camera]);
+
   useFrame((_, delta) => {
     // Expose camera position + heading for automated checks (pause-freeze, turn).
     // Gate computed once (EXPOSE_CAM) so the test entrance isn't re-detected every
