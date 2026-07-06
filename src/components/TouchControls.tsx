@@ -132,12 +132,20 @@ export function TouchControls() {
     near.hotspot ||
     near.npc ||
     near.entity;
+  // The visible touch verb for an interactable, DERIVED from its kind (not hardcoded
+  // "Ring") so a switch/orb reads right; the accessible name uses the full label.
+  const interactVerb =
+    near.interactable?.kind === 'switch'
+      ? 'Flip'
+      : near.interactable?.kind === 'orb'
+        ? 'Touch'
+        : 'Ring';
   const label = near.door
     ? near.door.requiresKey
       ? '🔒'
       : 'Enter'
     : near.interactable
-      ? 'Ring'
+      ? interactVerb
       : near.tv
         ? 'TV'
         : near.arcade
