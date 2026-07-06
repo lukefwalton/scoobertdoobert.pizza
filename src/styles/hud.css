@@ -41,6 +41,12 @@
   border-color: rgba(255, 196, 92, 0.9);
   color: #ffe6b0;
 }
+/* ring-the-bell / escape-room interactable cue — bright amber, the "do this and a
+   way opens" gold (matches the glowing bell/switch mesh). */
+.hud-prompt--interact {
+  border-color: rgba(255, 207, 77, 0.9);
+  color: #ffedb0;
+}
 
 /* the arcade SCORE readout — top-right, stacked chips (points · live combo · how
    tall the snacks made you). Mirrors the objective chip's quiet HUD voice. */

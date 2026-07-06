@@ -42,6 +42,7 @@ export function TouchControls() {
   const near = useSceneStore(
     useShallow((s) => ({
       door: s.nearDoor,
+      interactable: s.nearInteractable,
       tv: s.nearTv,
       arcade: s.nearArcade,
       hotspot: s.nearHotspot,
@@ -124,24 +125,32 @@ export function TouchControls() {
   // Context button: the nearest interaction, in the SAME priority as the DOM
   // prompts. Interact targets fall to interactNearby; a lone pickup to grabNearby.
   const hasInteract =
-    near.door || near.tv || near.arcade || near.hotspot || near.npc || near.entity;
+    near.door ||
+    near.interactable ||
+    near.tv ||
+    near.arcade ||
+    near.hotspot ||
+    near.npc ||
+    near.entity;
   const label = near.door
     ? near.door.requiresKey
       ? '🔒'
       : 'Enter'
-    : near.tv
-      ? 'TV'
-      : near.arcade
-        ? 'Play'
-        : near.hotspot
-          ? 'Look'
-          : near.npc
-            ? 'Talk'
-            : near.entity
-              ? 'Dance'
-              : near.pickup
-                ? 'Grab'
-                : 'Use';
+    : near.interactable
+      ? 'Ring'
+      : near.tv
+        ? 'TV'
+        : near.arcade
+          ? 'Play'
+          : near.hotspot
+            ? 'Look'
+            : near.npc
+              ? 'Talk'
+              : near.entity
+                ? 'Dance'
+                : near.pickup
+                  ? 'Grab'
+                  : 'Use';
   const idle = !hasInteract && !near.pickup;
   // A words-only accessible name for the context button (its visible label can be
   // a bare glyph like 🔒). A phone screen-reader user taps this, so it must read.
@@ -149,19 +158,21 @@ export function TouchControls() {
     ? near.door.requiresKey
       ? 'Locked door'
       : 'Enter door'
-    : near.tv
-      ? 'Watch TV'
-      : near.arcade
-        ? 'Play cabinet'
-        : near.hotspot
-          ? 'Look'
-          : near.npc
-            ? 'Talk'
-            : near.entity
-              ? 'Dance'
-              : near.pickup
-                ? 'Grab item'
-                : 'Interact';
+    : near.interactable
+      ? near.interactable.label
+      : near.tv
+        ? 'Watch TV'
+        : near.arcade
+          ? 'Play cabinet'
+          : near.hotspot
+            ? 'Look'
+            : near.npc
+              ? 'Talk'
+              : near.entity
+                ? 'Dance'
+                : near.pickup
+                  ? 'Grab item'
+                  : 'Interact';
 
   // NOTE: no aria-hidden on the container — these are focusable buttons a phone
   // screen-reader user can tap, so hiding the subtree would be the aria-hidden-focus
