@@ -9,7 +9,7 @@
 </head>
 <body>
 <tw-story><noscript><tw-noscript>JavaScript needs to be enabled to play 1101 (Save San Diego).</tw-noscript></noscript></tw-story>
-<tw-storydata name="1101 (Save San Diego)" startnode="1" creator="Twine" creator-version="2.3.15" ifid="30716893-44CC-4DCF-B10B-8BE5A7137082" zoom="0.25" format="Harlowe" format-version="3.2.3" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript">(function(){var sent=false;function check(){if(sent)return;var s=document.querySelector('tw-story');if(s&&/SAN DIEGO IS SAVED/i.test(s.textContent||'')){sent=true;try{window.parent.postMessage({source:'1101',type:'ending',result:'win'},location.origin);}catch(e){}}}function start(){try{new MutationObserver(check).observe(document.body,{childList:true,subtree:true});}catch(e){}check();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();})();</script><tw-passagedata pid="1" name="Int" tags="" position="0,0" size="100,100">(set: $name to (prompt: &quot;Enter your name:&quot;, &quot;Type your name here&quot;))
+<tw-storydata name="1101 (Save San Diego)" startnode="1" creator="Twine" creator-version="2.3.15" ifid="30716893-44CC-4DCF-B10B-8BE5A7137082" zoom="0.25" format="Harlowe" format-version="3.2.3" options="" hidden><style role="stylesheet" id="twine-user-stylesheet" type="text/twine-css"></style><script role="script" id="twine-user-script" type="text/twine-javascript">(function(){var sent=false;function check(){if(sent)return;if(document.querySelector('[data-sdp-ending="win"]')){sent=true;try{window.parent.postMessage({source:'1101',type:'ending',result:'win'},location.origin);}catch(e){}}}function start(){try{new MutationObserver(check).observe(document.body,{childList:true,subtree:true});}catch(e){}check();}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();})();</script><tw-passagedata pid="1" name="Int" tags="" position="0,0" size="100,100">(set: $name to (prompt: &quot;Enter your name:&quot;, &quot;Type your name here&quot;))
 $name, I&#39;m so glad you&#39;re here.
 (after:3s)[&quot;I need your help... &#39;&#39;to save San Diego&#39;&#39;.]
 (after:5s)[There&#39;s a powerful and menacing force here.]
@@ -515,7 +515,7 @@ Cat (magical, warlock polymorph)]
 
 Enlightenment (x2)]
 (after: 36s)[*The cat purrs.*]
-(after: 39s) [CONGRATULATIONS, SAN DIEGO IS SAVED.]
+(after: 39s) [CONGRATULATIONS, SAN DIEGO IS SAVED<span data-sdp-ending="win"></span>.]
 (after: 42s) [Visit www.ScoobertDoobert.Pizza/reward to claim your treasure.]</tw-passagedata><tw-passagedata pid="70" name="pizza" tags="" position="3925,3250" size="100,100">You use the powers of the amulet to teleport to Blind Lady Ale House.
 (after: 2s)[&quot;Mountain Meadow Mushroom for me&quot; Scoobert Doobert says.]
 (after: 4s)[[[Order pizza.-&gt;orderpizza]]]</tw-passagedata><tw-passagedata pid="71" name="orderpizza" tags="" position="3925,3400" size="100,100">(set: $pizza to (prompt: &quot;Enter your order:&quot;, &quot;Type your order here&quot;))
@@ -538,7 +538,7 @@ $name, I&#39;m so glad you&#39;re here.
 Enlightenment]
 
 (after: 36s)[*The cat purrs.*]
-(after: 39s) [CONGRATULATIONS, SAN DIEGO IS SAVED.]
+(after: 39s) [CONGRATULATIONS, SAN DIEGO IS SAVED<span data-sdp-ending="win"></span>.]
 (after: 42s) [Visit www.ScoobertDoobert.Pizza/reward to claim your treasure.]
 (after: 45s)(link: &quot;Play again?&quot;)[(restart:)]</tw-passagedata><tw-passagedata pid="72" name="impact" tags="" position="4425,3000" size="100,100">Scoobert Doobert catches the dagger in midair.
 (after: 2s)[Scoobert Doobert touches your shoulder and says,]
@@ -583,7 +583,7 @@ Enlightenment]
 (after: 2s)[You waive your hand and the warlock turns to dust.]
 (after: 4s)[You ascend to Mount Solidad, to watch over San Diego for eternity.]
 (after: 6s)[Scoobert Doobert visits you every day with a dank burrito to say thanks.]
-(after: 9s) [CONGRATULATIONS, SAN DIEGO IS SAVED.]
+(after: 9s) [CONGRATULATIONS, SAN DIEGO IS SAVED<span data-sdp-ending="win"></span>.]
 (after: 12s) [Visit www.ScoobertDoobert.Pizza/reward to claim your treasure.]
 (after: 16s)(link: &quot;Play again?&quot;)[(restart:)]</tw-passagedata><tw-passagedata pid="76" name="attackgob" tags="" position="400,3400" size="100,100">Your hair rushes forth, overwhelming the goblin before he can call out for help.
 [[Go the other direction.-&gt;another scene3]]</tw-passagedata><tw-passagedata pid="77" name="seducegob" tags="" position="200,3400" size="100,100">You do a sexy little dance.

@@ -82,39 +82,70 @@ const { browser, fail, finish, failures } = await launchSmoke();
         );
       if (!storyLoaded) fail('JS: the embedded 1101 (Save San Diego) Twine story did not load');
 
-      // The ARG WIN → progression hook: when the win terminus ("SAN DIEGO IS SAVED")
-      // renders, 1101.html postMessages the win and the page's useSaveSanDiegoWin banks
-      // the durable 'saved-san-diego' BONUS secret. Simulate the terminus by injecting
-      // that exact line into the story (detection is text-based — this is what the win
-      // passage renders), then assert the PARENT actually banked it.
+      // The ARG WIN → progression hook: the win terminus renders a dedicated MARKER
+      // element (<span data-sdp-ending="win">) that ONLY the real win passage emits;
+      // 1101.html sees it, postMessages the win, and the page's useSaveSanDiegoWin banks
+      // the durable 'saved-san-diego' BONUS secret. We inject to simulate the terminus,
+      // then assert the PARENT banked it.
       if (storyLoaded) {
+        const secretBanked = () =>
+          page
+            .waitForFunction(
+              () => {
+                try {
+                  return (
+                    JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+                  ).includes('saved-san-diego');
+                } catch {
+                  return false;
+                }
+              },
+              null,
+              { timeout: 4000 },
+            )
+            .then(
+              () => true,
+              () => false,
+            );
+
+        // NEGATIVE (forgery guard): the win keys off the marker ELEMENT, never free-form
+        // text — so echoed player input can't fake it (the name prompt renders $name,
+        // which Harlowe escapes to inert text). Inject the win PHRASE as plain text with
+        // NO marker; it must NOT bank. Runs BEFORE the positive since banking is durable +
+        // idempotent (can't be un-banked once set).
         await frame.evaluate(() => {
           const s = document.querySelector('tw-story');
           if (s)
             s.insertAdjacentHTML(
               'beforeend',
-              '<tw-passage>CONGRATULATIONS, SAN DIEGO IS SAVED.</tw-passage>',
+              '<tw-passage>CONGRATULATIONS, SAN DIEGO IS SAVED. — typed as a name</tw-passage>',
             );
         });
-        banked = await page
+        const forged = await page
           .waitForFunction(
-            () => {
-              try {
-                return (
-                  JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
-                ).includes('saved-san-diego');
-              } catch {
-                return false;
-              }
-            },
+            () =>
+              (
+                JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+              ).includes('saved-san-diego'),
             null,
-            { timeout: 4000 },
+            { timeout: 1500 },
           )
           .then(
             () => true,
             () => false,
           );
-        if (!banked) fail('JS: the 1101 win did not bank the saved-san-diego secret in the parent');
+        if (forged)
+          fail('JS: win phrase as plain TEXT forged saved-san-diego (must require the marker)');
+        else console.log('forgery guard: win text alone does not bank (marker required)');
+
+        // POSITIVE: emit the real marker element the win passage renders → banks.
+        await frame.evaluate(() => {
+          const s = document.querySelector('tw-story');
+          if (s) s.insertAdjacentHTML('beforeend', '<span data-sdp-ending="win"></span>');
+        });
+        banked = await secretBanked();
+        if (!banked)
+          fail('JS: the 1101 win marker did not bank the saved-san-diego secret in the parent');
       }
     }
   }
