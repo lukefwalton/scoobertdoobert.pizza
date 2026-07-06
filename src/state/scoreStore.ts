@@ -17,8 +17,14 @@ const COMBO_WINDOW_MS = 2500;
 /** Combo multiplier is capped here so a long streak is great, not infinite. */
 const MAX_COMBO_MULT = 9;
 /** You can only get SO tall — kept under any room's ceiling (Controls also clamps
- *  per-room so you never poke through the roof). */
-export const MAX_TALLNESS = 2.6;
+ *  per-room so you never poke through the roof). Tuned DOWN (was 2.6): a full
+ *  stack used to nearly double the 2.4 eye height and you'd feel enormous — this
+ *  keeps "the snacks make you taller" a fun, gentle lift, not a giant. */
+export const MAX_TALLNESS = 1.2;
+/** How fast the loot-height wears off (units/sec) once you stop hoovering — so
+ *  "too tall" is always temporary and you get small again on your own, no menu.
+ *  A full stack (MAX_TALLNESS) settles back to normal in ~10s. */
+const TALL_DECAY = 0.12;
 
 export type LootAward = {
   awarded: number;
@@ -53,6 +59,9 @@ type ScoreState = {
   collectLoot: (id: string, points: number, grow: number) => LootAward | null;
   /** Start a fresh run (World mount): zero the score/combo/height + clear taken. */
   resetRun: () => void;
+  /** Gently shrink the loot-height back toward normal (called each frame while
+   *  you're not paused). No-op at 0 so idle frames never churn the store. */
+  decayTallness: (dt: number) => void;
 };
 
 // The live combo expires on its own so the HUD meter doesn't linger after a streak
@@ -110,5 +119,11 @@ export const useScoreStore = create<ScoreState>((set, get) => ({
       startBest: useProgressStore.getState().pizzaPointsBest,
       nudged: false,
     });
+  },
+
+  decayTallness: (dt) => {
+    const t = get().tallness;
+    if (t <= 0) return; // already normal — don't touch the store on idle frames
+    set({ tallness: Math.max(0, t - TALL_DECAY * dt) });
   },
 }));

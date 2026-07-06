@@ -6,9 +6,13 @@ import { useScoreStore, MAX_TALLNESS } from '../state/scoreStore';
 export function ScoreHud({ hidden }: { hidden?: boolean }) {
   const score = useScoreStore((s) => s.score);
   const combo = useScoreStore((s) => s.combo);
-  const tallness = useScoreStore((s) => s.tallness);
+  // Select the ROUNDED percent, not the raw height: tallness now decays a hair
+  // every frame (it wears off), so subscribing to the raw value would re-render
+  // this HUD 60×/sec. Bucketing to an integer % re-renders only on a real step.
+  const heightPct = useScoreStore((s) =>
+    Math.round((Math.min(s.tallness, MAX_TALLNESS) / MAX_TALLNESS) * 100),
+  );
   if (hidden) return null;
-  const heightPct = Math.round((tallness / MAX_TALLNESS) * 100);
   return (
     <div className="hud-score" aria-hidden="true">
       <div className="hud-score__pts">🍕 {score.toLocaleString()}</div>
@@ -19,7 +23,7 @@ export function ScoreHud({ hidden }: { hidden?: boolean }) {
           COMBO ×{combo}
         </div>
       )}
-      {tallness > 0.02 && <div className="hud-score__tall">📏 {heightPct}% tall</div>}
+      {heightPct > 1 && <div className="hud-score__tall">📏 {heightPct}% tall</div>}
     </div>
   );
 }

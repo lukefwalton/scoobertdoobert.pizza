@@ -51,7 +51,7 @@ const shots = [
     viewport: DESKTOP,
     js: true,
     skipBoot: true,
-    assert: ["what's hot @ the .pizza?", 'open.spotify.com', 'Text-Only Menu', 'canonical'],
+    assert: ['Listen on Spotify', 'open.spotify.com', 'Text-Only Menu', 'canonical'],
   },
   // The storefront no longer renders a boot card — the PIZZA-DOS loading screen
   // moved to the descent (the level load). shoot-descent.mjs asserts it there.

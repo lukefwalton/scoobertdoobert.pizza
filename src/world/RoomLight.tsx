@@ -21,8 +21,11 @@ import { type Room } from '../data/rooms';
 // ───────────────────────────────────────────────────────────────────────────
 
 const LIGHT_MS = 16000; // a long, useful glow (it's your "see in the dark" tool)
-const AMBIENT_PEAK = 0.55;
-const POINT_PEAK = 1.9;
+// It's your "see in the dark" tool, so it needs to actually lift a dark room's
+// surfaces — bumped up from 0.55 / 1.9 so the glow reads even in the dimmest,
+// darkest-albedo rooms (e.g. Main Street at night).
+const AMBIENT_PEAK = 0.8;
+const POINT_PEAK = 2.6;
 
 // Smooth attack → long hold → smooth release. No discontinuities (WCAG-safe), and
 // crucially NO flicker term — Light is a calm, steady glow.

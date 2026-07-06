@@ -4,6 +4,7 @@ import { useModalFocus } from '../lib/useModalFocus';
 import '../styles/hud.css';
 import { HOTSPOTS } from '../data/hotspots';
 import { destById } from '../data/links';
+import { lookableById } from '../data/lookables';
 import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { lyricFor, songsWithLyrics } from '../data/lyrics';
@@ -62,6 +63,9 @@ export function WorldHud() {
   // Which song's lyrics the reader panel is showing (null = closed). In the store
   // (like tvVideo) so Esc closes it before the pause menu.
   const lyricsSong = useSceneStore((s) => s.lyricsSong);
+  const nearLookable = useSceneStore((s) => s.nearLookable);
+  const openLookable = useSceneStore((s) => s.openLookable);
+  const closeLookable = useSceneStore((s) => s.closeLookableDialog);
 
   // Modal a11y for the in-world dialogs: focus-trap while open + restore on close.
   // Escape is handled by the global key handler below (priority-ordered), so no
@@ -70,10 +74,12 @@ export function WorldHud() {
   const npcRef = useRef<HTMLDivElement>(null);
   const tvRef = useRef<HTMLDivElement>(null);
   const lyricsRef = useRef<HTMLDivElement>(null);
+  const lookableRef = useRef<HTMLDivElement>(null);
   useModalFocus(hotspotRef, !!open);
   useModalFocus(npcRef, openNpc === 'rat');
   useModalFocus(tvRef, !!tvVideo);
   useModalFocus(lyricsRef, !!lyricsSong);
+  useModalFocus(lookableRef, !!openLookable);
   // One shallow-compared snapshot of the durable progress drives the whole
   // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
   // door prompt). useShallow so re-rendering only happens when a field actually
@@ -179,6 +185,7 @@ export function WorldHud() {
         else if (st.lyricsSong) st.closeLyrics();
         else if (st.openNpc) st.closeNpcDialog();
         else if (st.openHotspot) st.closeHotspotDialog();
+        else if (st.openLookable) st.closeLookableDialog();
         else st.togglePaused();
         return;
       }
@@ -419,6 +426,27 @@ export function WorldHud() {
           </div>
         )}
 
+      {/* Flavor curios are the LOWEST-priority prompt: only when nothing else
+          (door / TV / cabinet / hotspot / NPC / dance / pickup) is in reach. */}
+      {nearLookable &&
+        !nearDoor &&
+        !nearTv &&
+        !nearArcade &&
+        !nearHs &&
+        !nearNpc &&
+        !nearEntity &&
+        !nearPickup &&
+        !open &&
+        !openLookable &&
+        !paused &&
+        !pendingRoom &&
+        (() => {
+          const L = lookableById(nearLookable);
+          return (
+            <div className="hud-prompt hud-prompt--look">{L?.prompt ?? 'Press E to look'}</div>
+          );
+        })()}
+
       {openDest && (
         <div
           className={`hud-dialog window${openDest.id === 'videos' ? ' hud-dialog--tv' : ''}`}
@@ -449,6 +477,37 @@ export function WorldHud() {
           </div>
         </div>
       )}
+
+      {/* A lookable's short story — a plain 98.css window, no link, just flavor. */}
+      {openLookable &&
+        (() => {
+          const L = lookableById(openLookable);
+          if (!L) return null;
+          return (
+            <div
+              className="hud-dialog window"
+              role="dialog"
+              aria-modal="true"
+              aria-label={L.label}
+              ref={lookableRef}
+            >
+              <div className="title-bar">
+                <div className="title-bar-text">
+                  {L.glyph} {L.label}
+                </div>
+                <div className="title-bar-controls">
+                  <button aria-label="Close" onClick={closeLookable} />
+                </div>
+              </div>
+              <div className="window-body">
+                <p>{L.story}</p>
+                <p>
+                  <button onClick={closeLookable}>…huh</button>
+                </p>
+              </div>
+            </div>
+          );
+        })()}
 
       {openNpc === 'rat' &&
         (() => {
