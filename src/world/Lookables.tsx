@@ -1,9 +1,10 @@
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { type Room } from '../data/rooms';
 import { lookablesForRoom, resolveLookablePos, type Lookable } from '../data/lookables';
 import { useSceneStore } from '../state/sceneStore';
+import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 
@@ -28,6 +29,15 @@ export function Lookables({ room }: { room: Room }) {
     () => lookablesForRoom(room.id).map((l) => ({ l, pos: resolveLookablePos(l, room.dims) })),
     [room.id, room.dims],
   );
+
+  // Belt-and-suspenders for the custom hover cursor: if a hovered curio unmounts
+  // during a room change (its onPointerOut never fires), reset the body cursor so
+  // it can't stay stuck in the pizza-pointer state. Runs on room swap + unmount.
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = '';
+    };
+  }, [room.id]);
 
   useFrame(() => {
     const st = useSceneStore.getState();
@@ -93,6 +103,7 @@ function Curio() {
       }),
     [],
   );
+  useDispose(mat); // free the GPU material on unmount (repo resource-lifetime rule)
   useFrame((s) => {
     if (ref.current) {
       ref.current.rotation.y = s.clock.elapsedTime * 0.8;
