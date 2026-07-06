@@ -73,4 +73,17 @@ describe('quests', () => {
     const p: Progress = { ...COLD, everEnteredWorld: true, secretsFound: ['jukebox-roll'] };
     expect(questsDone(p)).toBe(2);
   });
+
+  it('the shrine/jukebox objectives ignore the coarse progress flags (the audit fix)', () => {
+    const earnLuck = QUESTS.find((q) => q.id === 'earn-luck')!;
+    const unlockRadio = QUESTS.find((q) => q.id === 'unlock-radio')!;
+    // NEGATIVE: luck earned elsewhere (a tape / a dance) must NOT complete "Pay your
+    // respects", and a tape that flips radioUnlocked must NOT complete "Tune the
+    // radio" — the exact false-positives this fix removes.
+    expect(earnLuck.done({ ...COLD, luckEarned: 5 })).toBe(false);
+    expect(unlockRadio.done({ ...COLD, radioUnlocked: true })).toBe(false);
+    // POSITIVE: they complete off the ritual secret set at the actual site.
+    expect(earnLuck.done({ ...COLD, secretsFound: ['shrine-clap'] })).toBe(true);
+    expect(unlockRadio.done({ ...COLD, secretsFound: ['jukebox-roll'] })).toBe(true);
+  });
 });

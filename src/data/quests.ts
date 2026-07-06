@@ -48,7 +48,10 @@ export const QUESTS: Quest[] = [
     hint: 'Find the wayside shrine and clap twice at the offering box.',
     room: 'shrine',
     // Keys off the shrine clap specifically (set in ShrineRoom.doClap), NOT any
-    // luck — so the ✓ can't tick from a tape/dance you found elsewhere.
+    // luck — so the ✓ can't tick from a tape/dance you found elsewhere. A legacy
+    // save that clapped before this secret existed self-heals by re-clapping once
+    // (trivially replayable); a luckEarned/radioUnlocked backfill is deliberately
+    // NOT done — it would re-introduce the very false-positive this fixes.
     done: (p) => p.secretsFound.includes('shrine-clap'),
   },
   {

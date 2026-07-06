@@ -29,8 +29,7 @@ const GLYPH: Record<NonNullable<RoomInteractable['kind']>, string> = {
   orb: '✦',
 };
 
-const REACH = 3; // proximity radius (world units) for the "Press E to …" prompt
-const _v = new THREE.Vector3();
+const REACH = 3; // proximity radius (world units, horizontal) for the "Press E" prompt
 
 function InteractableMesh({ it }: { it: RoomInteractable }) {
   const { gl } = useThree();
@@ -193,8 +192,12 @@ export function Interactables() {
     let nd = Infinity;
     for (const it of items) {
       if (st.triggersFired.includes(it.revealsTrigger)) continue; // fired → no prompt
-      _v.set(it.position[0], it.position[1], it.position[2]);
-      const d = camera.position.distanceTo(_v);
+      // HORIZONTAL (XZ) distance, like Doors — the bell/switch sits on the floor
+      // (y=0), so the camera's eye height must not count against reaching it (a full
+      // 3D distance put a floor object just out of a walk-up player's REACH).
+      const dx = camera.position.x - it.position[0];
+      const dz = camera.position.z - it.position[2];
+      const d = Math.hypot(dx, dz);
       if (d < REACH && d < nd) {
         nearest = it.id;
         nd = d;

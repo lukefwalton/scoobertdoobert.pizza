@@ -40,12 +40,11 @@ await roomHas('Beach Pizza Shop');
 const promptBefore = await holdUntilDoorPrompt(page, 's', { timeout: 2500 });
 if (promptBefore) fail('the back-hall door prompted BEFORE the bell was rung (should be hidden)');
 
-// Force proximity to the bell (the __sdpNearInteractable scanner hook, mirroring
-// lookables) so the interact prompt shows deterministically without pixel-walking.
-await page.waitForFunction(() => typeof window.__sdpNearInteractable === 'function', null, {
-  timeout: 6000,
-});
-await page.evaluate(() => window.__sdpNearInteractable());
+// Walk FORWARD to the counter — the REAL proximity scan (the Interactables REACH
+// distance check) publishes nearInteractable and its "Press E" prompt appears
+// naturally, so this covers the actual discovery path, not just the verb. (The
+// shop is open, so a straight forward walk crosses the bell's radius.)
+await page.keyboard.down('w');
 const bellPrompt = await page
   .waitForFunction(
     () =>
@@ -53,13 +52,15 @@ const bellPrompt = await page
         document.querySelector('.hud-prompt--interact')?.textContent ?? '',
       ),
     null,
-    { timeout: 5000 },
+    { timeout: 7000, polling: 150 },
   )
   .then(
     () => true,
     () => false,
   );
-if (!bellPrompt) fail('the counter bell never showed its "Press E" interact prompt on approach');
+await page.keyboard.up('w');
+if (!bellPrompt)
+  fail('walking up to the counter never surfaced the bell interact prompt (real proximity scan)');
 
 // Ring it via the SHARED VERB — keyboard E, not a mouse click. This IS the fix.
 let rang = false;
