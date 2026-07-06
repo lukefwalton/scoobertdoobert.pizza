@@ -9,6 +9,7 @@ import { announce } from '../state/toastStore';
 import { useSceneStore } from '../state/sceneStore';
 import { roomById, type RoomInteractable } from '../data/rooms';
 import { emitBurst } from './burstBus';
+import { inputFrozen } from './inputFrozen';
 import { isDebugEntrance, exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -63,11 +64,16 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
     st.fireTrigger(it.revealsTrigger);
     audio.unlock();
     emitBurst(it.position, '#ffcf4d');
-    // a bright ding → a soft "a way opens" fifth above it (the rise is scheduled,
-    // and cancelled on unmount so it can't outlive the room that rang it)
+    // a bright ding → a soft "a way opens" fifth above it. The rise is scheduled a
+    // beat later; it's cancelled on unmount (room change) AND its callback bails if
+    // input has since been yielded to a modal/pause/transition (inputFrozen), so the
+    // note can never land after the world stopped owning input.
     audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.7);
     clearTimeout(chimeTimer.current);
-    chimeTimer.current = setTimeout(() => audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95), 130);
+    chimeTimer.current = setTimeout(() => {
+      if (inputFrozen()) return;
+      audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95);
+    }, 130);
     announce(`🔓 ${it.label} — a way opens`, 'luck');
   };
 
