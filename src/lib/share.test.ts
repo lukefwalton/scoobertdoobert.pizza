@@ -27,6 +27,15 @@ describe('shareResult', () => {
     expect(writeText).not.toHaveBeenCalled();
   });
 
+  it('falls back to the clipboard when share exists but rejects for a non-cancel reason', async () => {
+    const share = vi.fn().mockRejectedValue(new DOMException('boom', 'NotAllowedError'));
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { share, clipboard: { writeText } });
+    const out = await shareResult('scored 999', 'https://x.test/');
+    expect(out).toBe('copied');
+    expect(writeText).toHaveBeenCalledWith('scored 999 https://x.test/');
+  });
+
   it('copies to the clipboard + toasts when share is unavailable', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', { clipboard: { writeText } });

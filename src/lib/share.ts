@@ -20,15 +20,18 @@ export async function shareResult(text: string, url?: string): Promise<ShareOutc
   const full = shareUrl ? `${text} ${shareUrl}` : text;
   const nav = typeof navigator !== 'undefined' ? navigator : undefined;
 
-  // Web Share (mobile, some desktops): the native sheet. A cancel throws (AbortError)
-  // — treat that as done rather than falling back to a surprise clipboard write.
+  // Web Share (mobile, some desktops): the native sheet. A cancel throws AbortError
+  // — treat THAT as done (their choice; no surprise clipboard write). Any OTHER
+  // failure (Web Share present but rejecting — permissions, an unsupported payload)
+  // falls through to the clipboard so the user still gets their link.
   if (nav && typeof nav.share === 'function') {
     try {
       await nav.share({ text, url: shareUrl || undefined, title: 'scoobertdoobert.pizza' });
-    } catch {
-      /* user dismissed the sheet — their choice; nothing more to do */
+      return 'shared';
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return 'shared';
+      /* a real share failure — fall through to the clipboard fallback below */
     }
-    return 'shared';
   }
 
   // Clipboard fallback (desktop): copy the whole line + confirm.

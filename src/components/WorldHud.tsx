@@ -15,6 +15,7 @@ import { QUESTS, allQuestsDone, objectiveChipVisible } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
 import { ControlHint } from './ControlHint';
+import { FinaleCard } from './FinaleCard';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
@@ -358,6 +359,7 @@ export function WorldHud() {
 
       <WelcomeOverlay />
       <ControlHint />
+      <FinaleCard />
 
       {!pendingRoom && (
         <div className="hud-room" aria-hidden="true">

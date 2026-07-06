@@ -81,17 +81,27 @@ const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 })
 );
 if (!hintUp) fail('CONTROL HINT MISSING on touch entry');
 else {
-  // NEGATIVE first: a bare right-side BUTTON tap (not the stick) is neither move nor
-  // look, so it must NOT durably teach — the legend has to stay up. Pins the narrowed
-  // ControlHint contract (only stick/drag/keys teach), the reviewer's distinction.
+  // NEGATIVE first: neither a right-side BUTTON tap nor a bare zero-travel STICK press
+  // is move/look, so neither may durably teach — the legend must stay up. Only an
+  // actual stick push / drag / key teaches (the narrowed ControlHint contract).
   const actEl = await page.$('.touch-btn--action');
   if (actEl) {
     await actEl.click();
-    await page.waitForTimeout(400);
-    if ((await page.$('.hud-controlhint')) === null)
-      fail('CONTROL HINT: a bare action-button tap wrongly dismissed the move/look legend');
-    else console.log('control hint survives a non-stick button tap (buttons don’t teach)');
+    await page.waitForTimeout(300);
   }
+  const tapBox = await (await page.$('.touch-stick'))?.boundingBox();
+  if (tapBox) {
+    // a press + release at the stick centre with NO travel — must not teach
+    await page.mouse.move(tapBox.x + tapBox.width / 2, tapBox.y + tapBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+  }
+  if ((await page.$('.hud-controlhint')) === null)
+    fail(
+      'CONTROL HINT: a bare button/zero-travel-stick tap wrongly dismissed the move/look legend',
+    );
+  else console.log('control hint survives non-move taps (button + zero-travel stick)');
   const box = await (await page.$('.touch-stick'))?.boundingBox();
   if (box) {
     // A real stick DISPLACEMENT, not a bare centre tap: press the nub, push it

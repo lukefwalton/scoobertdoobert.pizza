@@ -82,7 +82,8 @@
     "shoot:lookables": "node scripts/shoot-lookables.mjs",
     "shoot:whisper": "node scripts/shoot-whisper.mjs",
     "shoot:score": "node scripts/shoot-score.mjs",
-    "shoot:leaderboard": "node scripts/shoot-leaderboard.mjs"
+    "shoot:leaderboard": "node scripts/shoot-leaderboard.mjs",
+    "shoot:share": "node scripts/shoot-share.mjs"
   },
   "engines": {
     "node": ">=20.19"

@@ -7,10 +7,11 @@ import { controlHintSeen, markControlHintSeen } from '../lib/controlHintSeen';
 // LOOK. The welcome card is pure tone ("You have entered the Scoobertverse…"), so
 // a first-timer can land at spawn with no idea WASD/drag even do anything.
 //
-// A small, non-blocking legend that fades out on the player's first real INPUT —
-// a movement key (walk), or a pointerdown on the canvas (drag-look) or inside the
-// on-screen touch controls (stick/buttons, on mobile). Watching input, not the
-// camera pose, means the world's own entry settle/reveal motion never trips it.
+// A small, non-blocking legend that fades out on the player's first real MOVE/LOOK
+// — a movement key (walk), a drag-LOOK on the canvas, or a push of the on-screen
+// stick (a real displacement, not a bare tap/click; see the listener below).
+// Watching input, not the camera pose, means the world's own entry settle/reveal
+// motion never trips it.
 //
 // Truly FIRST-RUN: a durable flag (controlHintSeen) means a returning player who's
 // already been taught never sees it again. Captured at mount so marking it seen
@@ -54,20 +55,18 @@ export function ControlHint() {
       if (MOVE_KEYS.has(e.key.toLowerCase())) hideRef.current(true); // moved → taught
     };
     // The hint teaches MOVE + LOOK, so only ACTUAL move/look durably marks it taught —
-    // NOT a bare hotspot click or a right-side button tap (a first-timer shouldn't be
-    // able to hide the one movement legend without having moved). Touch: engaging the
-    // STICK (not the jump/spell/action buttons) is the move intent. Desktop look is a
-    // DRAG on the canvas: arm on pointerdown, teach only once the pointer travels past
-    // a small threshold (a real drag) — a plain click (down → up, no travel) disarms.
+    // NOT a bare hotspot click, a right-side button tap, or a zero-travel press on the
+    // stick (a first-timer shouldn't be able to hide the one movement legend without
+    // having moved). Both surfaces resolve the same way: arm a displacement watch on
+    // pointerdown over the look-CANVAS or the move-STICK, and teach only once the
+    // pointer TRAVELS past a small threshold (a real look-drag or stick push). A plain
+    // tap (down → up, no travel) disarms without teaching.
     let drag: { x: number; y: number } | null = null;
     const onPointerDown = (e: PointerEvent) => {
       const t = e.target as Element | null;
       if (!t) return;
-      if (t.closest('.touch-stick')) {
-        hideRef.current(true); // the stick = starting to move
-        return;
-      }
-      if (t.tagName === 'CANVAS') drag = { x: e.clientX, y: e.clientY }; // arm drag-look watch
+      if (t.tagName === 'CANVAS' || t.closest('.touch-stick'))
+        drag = { x: e.clientX, y: e.clientY };
     };
     const onPointerMove = (e: PointerEvent) => {
       if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) {

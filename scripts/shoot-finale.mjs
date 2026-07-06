@@ -94,6 +94,7 @@ await page.waitForTimeout(600);
 
 let finaleToast = false;
 let finaleSecret = false;
+let finaleCard = false;
 let badge = false;
 if (hasClap) {
   if ((await secrets()).includes('finale'))
@@ -120,6 +121,27 @@ if (hasClap) {
   finaleSecret = (await secrets()).includes('finale');
   if (!finaleSecret) bad('finale: durable finale secret not recorded');
 
+  // The persistent 100% CAPSTONE card appears (in-room, wherever you are) carrying
+  // the share button — the legible, shareable finale, not just the fleeting toast.
+  // Dismiss it and confirm it retires (a durable once-ever flag).
+  finaleCard = await page.waitForSelector('.hud-finale', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!finaleCard) bad('finale: the 100% capstone card did not appear');
+  else {
+    if ((await page.$('.hud-finale__share')) === null)
+      bad('finale: the capstone card has no share button');
+    await page.click('.hud-finale__close', { timeout: 3000 }).catch(() => {});
+    const gone = await page
+      .waitForSelector('.hud-finale', { state: 'detached', timeout: 3000 })
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!gone) bad('finale: the capstone card did not dismiss');
+  }
+
   // Pause menu shows the ★ 100% badge.
   await page.keyboard.press('Escape');
   const count = await page
@@ -132,7 +154,7 @@ if (hasClap) {
 }
 
 console.log(
-  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} badge=${badge} errors=${failures()}`,
+  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} card=${finaleCard} badge=${badge} errors=${failures()}`,
 );
 
 await ctx.close();

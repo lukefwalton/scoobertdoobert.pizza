@@ -423,6 +423,8 @@ export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7
  */
 export function selectRatGreeting(s: Progress): string | null {
   if (!selectReturning(s)) return null; // a cold/first-time visitor gets no wink
+  if (s.secretsFound.includes('finale'))
+    return 'There you are — the one who saw ALL of it. Every floor, every wrong room, the works. …I kept you a slice. On the house.';
   if (s.secretsFound.includes('dice-monster'))
     return 'You beat the thing at dice. Nobody beats the thing at dice. …The usual?';
   if (s.maxUnease >= 0.7)
