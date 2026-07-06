@@ -16,7 +16,6 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
   const descend = useSceneStore((s) => s.descend);
   const ascend = useSceneStore((s) => s.ascend);
   const dests = resolveLinks(floor.links);
-  const inside = destById('podcast')?.href ?? TEXT_ONLY_PATH;
   const ext = (d: Dest) =>
     d.external ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
 
@@ -34,7 +33,7 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
           <span className="sb__star-text">NEW!</span>
         </div>
         <h1 className="sb__title">{floor.title}</h1>
-        <p className="sb__sub">est. 1996 &middot; still online &middot; the {floor.era} edition</p>
+        <p className="sb__sub">still online &middot; the {floor.era} edition</p>
       </header>
 
       {/* a GeoCities rainbow <hr>, made by our own GIF encoder; decorative (alt=""),
@@ -64,11 +63,22 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
         <main className="sb__main">
           <div className="sb__news">
             <p className="sb__rat">
-              <b>RAT SPOTTED IN WALL &mdash; MANAGEMENT INSISTS HE PAYS RENT</b>
+              <b>&#9733; RAT SPOTTED IN WALL &#9733;</b>
             </p>
             <p>
-              <a href={inside} target="_blank" rel="noopener noreferrer">
-                Click here for the inside scoop.
+              {/* The rat ducks you downstairs into the descent (toward the 3D
+                  world), never off to a blog. A real, crawlable <a> to the flat
+                  index that JS enhances into descend() — same as the plain floor. */}
+              <a
+                href={TEXT_ONLY_PATH}
+                className="sb__ratlink"
+                onClick={(e) => {
+                  e.preventDefault();
+                  audio.unlock();
+                  descend();
+                }}
+              >
+                Follow him downstairs &raquo;
               </a>
             </p>
             {floor.copy && <p className="sb__copy">{floor.copy}</p>}

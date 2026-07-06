@@ -38,14 +38,14 @@
   gap: 6px;
 }
 .hud-board__initials {
-  width: 4ch;
+  width: 5ch;
   text-transform: uppercase;
   text-align: center;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.15em;
   font-family: inherit;
-  font-size: 1.05em;
+  font-size: 1.5em;
   font-weight: bold;
-  padding: 3px 4px;
+  padding: 6px 8px;
   background: #120c08;
   color: #ffe24a;
   border: 1px solid rgba(255, 196, 92, 0.9);
@@ -53,8 +53,9 @@
 .hud-board__go {
   font-family: inherit;
   font-weight: bold;
+  font-size: 1.1em;
   letter-spacing: 0.08em;
-  padding: 3px 10px;
+  padding: 7px 16px;
   background: #2a1c0a;
   color: #ffe6b0;
   border: 1px solid rgba(255, 196, 92, 0.9);
