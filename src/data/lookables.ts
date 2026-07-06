@@ -410,6 +410,16 @@ export const LOOKABLES: Lookable[] = [
       'Mounted by the register. Press the button. It knows a song you almost remember. Almost.',
   },
   {
+    id: 'bar-look',
+    room: 'bar',
+    anchor: 'back',
+    height: 1.5,
+    label: 'a book left on the bar',
+    glyph: '📖',
+    story:
+      'RAY TRACING, hardcover, spine uncracked. A mirror that reflects nothing, bottles that never quite line up — someone here is aspirational. Buy them a drink.',
+  },
+  {
     id: 'mainstreetday-look',
     room: 'mainstreetday',
     anchor: 'right',

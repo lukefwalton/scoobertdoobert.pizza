@@ -120,6 +120,12 @@ export type RoomKind =
   // booths, a pie case, checker floor, buzzing sign — and a row of low-poly
   // TAXIDERMY animal heads that watch the room. Warm-uncanny (funny, not grim).
   | 'diner'
+  // Doobert's — a warm PS1 dive bar at the dark far end of Main Street: a long bar
+  // under a bottle-wall backbar + a dead MIRROR that reflects nothing (PS1 has no
+  // reflections — the gag), buzzing pink neon, red-vinyl stools, string lights, a
+  // dartboard, and a hardcover of RAY TRACING propped among the liquor (deadpan).
+  // A cozy-WARM relief beat off the eerie street — never a scare (the taste holds).
+  | 'bar'
   // The Jumping Turtle — the defunct all-ages pub / music venue off North Park
   // (San Marcos, where he played in high school). Abandoned-venue register:
   // flyer-covered doors, a small stage under the leaping-turtle sign, left-behind

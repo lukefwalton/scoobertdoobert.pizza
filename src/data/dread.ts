@@ -92,6 +92,9 @@ export const DREAD: DreadConfig = {
     //                     (a touch below the night version; you can see your way out)
     diner: 0.07, // the all-night diner — cozy-wrong, back down near the turtle's
     //              warmth (the animal heads watch, but it's funny-uncanny, not grim)
+    bar: 0.06, // Doobert's — the warm dive at the far end of the street; a relief
+    //            beat (right at SAFE): someone's still open, the neon's still on
+
     theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:
     //                 a SWEET relief beat (below SAFE so it DECAYS), a cosmic exhale
     //                 you play with your body, not a dread room (taste guardrail)

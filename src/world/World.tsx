@@ -53,6 +53,7 @@ import { TurtleRoom } from './TurtleRoom';
 import { TubesRoom } from './TubesRoom';
 import { MainStreetRoom } from './MainStreetRoom';
 import { DinerRoom } from './DinerRoom';
+import { BarRoom } from './BarRoom';
 import { LiveRoom } from './LiveRoom';
 import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
@@ -174,6 +175,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   tubes: (room) => <TubesRoom room={room} />,
   mainstreet: (room) => <MainStreetRoom room={room} />,
   diner: (room) => <DinerRoom room={room} />,
+  bar: (room) => <BarRoom room={room} />,
   // The Basement Sessions — the recording-studio wing (off the practice room).
   liveroom: (room) => <LiveRoom room={room} />,
   controlroom: (room) => <ControlRoom room={room} />,

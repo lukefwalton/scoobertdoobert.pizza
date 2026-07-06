@@ -80,6 +80,7 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'every window dark but one. A small town at 3am is the original liminal space — the place you grew up, emptied of everyone who made it yours, still perfectly lit and waiting.',
   diner:
     'the deer on the wall has kind eyes, which is worse. An all-night diner is a promise: someone is awake, the coffee is on, you are not the last person on earth. The heads are just making sure.',
+  bar: 'a flyer curling behind the bar: BEFORMER RECORDS — LABEL NIGHT. His own imprint; he’d sooner press the record himself than wait on a yes that isn’t coming. Most nights, that’s exactly what he does.',
   mainstreetday:
     'in the back at night, out the front at noon — same street, same nobody. A kitchen is a place you pass through between two worlds; this one takes the joke literally.',
   moonlight:
