@@ -102,6 +102,21 @@ if (
   console.log('pause is modal (camera frozen while paused)');
 }
 
+// DURABLE FIRST-RUN: moving earlier persisted "taught", so re-entering the world (a
+// reload) must NOT show the control hint again — it's first-run, not per-entry.
+if (hintUp && hintGone) {
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+  await page
+    .getByRole('button', { name: /dismiss intro/i })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  await page.waitForTimeout(800);
+  if (await page.$('.hud-controlhint'))
+    fail('CONTROL HINT NOT DURABLE: showed again after moving + reloading');
+  else console.log('control hint stays taught across a reload');
+}
+
 await finish(
   'world shots done (no failures).',
   `world shots done with ${failures()} failure(s) — failing.`,

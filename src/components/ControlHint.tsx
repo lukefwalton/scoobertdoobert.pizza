@@ -29,9 +29,14 @@ export function ControlHint() {
   const [leaving, setLeaving] = useState(false);
   const [gone, setGone] = useState(false);
 
-  const dismissRef = useRef<() => void>(() => {});
-  dismissRef.current = () => {
-    markControlHintSeen(); // durable: taught — don't show again next visit
+  // hide(persist): persist=true (the player actually MOVED or LOOKED) durably marks
+  // the controls TAUGHT so the hint never shows again; persist=false (the × or the
+  // 10s backstop) just hides it THIS visit — idling it out or closing it without
+  // ever using the controls still teaches you next time (the reviewer's distinction:
+  // "already taught" vs merely "hidden once").
+  const hideRef = useRef<(persist: boolean) => void>(() => {});
+  hideRef.current = (persist: boolean) => {
+    if (persist) markControlHintSeen();
     const reduce =
       typeof window !== 'undefined' &&
       !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -46,7 +51,7 @@ export function ControlHint() {
   useEffect(() => {
     if (seenAtMount.current) return; // already taught — no listeners, nothing shows
     const onKey = (e: KeyboardEvent) => {
-      if (MOVE_KEYS.has(e.key.toLowerCase())) dismissRef.current();
+      if (MOVE_KEYS.has(e.key.toLowerCase())) hideRef.current(true); // moved → taught
     };
     const onPointer = (e: PointerEvent) => {
       const t = e.target as Element | null;
@@ -54,12 +59,12 @@ export function ControlHint() {
       // A canvas pointerdown = drag-look (mouse or touch); a pointerdown inside the
       // on-screen touch controls = the stick/buttons (move/act on mobile). HUD
       // buttons (the menu) don't match, so tapping those doesn't count.
-      if (t.tagName === 'CANVAS' || t.closest('.touch-controls')) dismissRef.current();
+      if (t.tagName === 'CANVAS' || t.closest('.touch-controls')) hideRef.current(true);
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', onPointer, true);
-    // Backstop: never linger more than ~10s even if they never move.
-    const tBackstop = window.setTimeout(() => dismissRef.current(), 10000);
+    // Backstop: never linger more than ~10s — but idling it out is NOT "taught".
+    const tBackstop = window.setTimeout(() => hideRef.current(false), 10000);
     return () => {
       window.clearTimeout(tBackstop);
       window.removeEventListener('keydown', onKey);
@@ -75,7 +80,7 @@ export function ControlHint() {
         type="button"
         className="hud-controlhint__close"
         aria-label="dismiss controls hint"
-        onClick={() => dismissRef.current()}
+        onClick={() => hideRef.current(false)}
       >
         ×
       </button>
