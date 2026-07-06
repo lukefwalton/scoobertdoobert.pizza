@@ -60,6 +60,29 @@ await page.addInitScript(() => {
     }),
   );
 });
+// Stub navigator so the finale card's share button hits a deterministic clipboard
+// branch (headless has no Web Share sheet + a permission-gated clipboard).
+await page.addInitScript(() => {
+  try {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+  } catch {
+    /* ignore */
+  }
+  window.__shared = null;
+  try {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: (t) => {
+          window.__shared = t;
+          return Promise.resolve();
+        },
+      },
+    });
+  } catch {
+    /* ignore */
+  }
+});
 await page.goto(base + '/?room=shrine&debug=1', { waitUntil: 'networkidle' });
 await page
   .waitForSelector('.hud-menu-btn', { timeout: 15000 })
@@ -130,8 +153,19 @@ if (hasClap) {
   );
   if (!finaleCard) bad('finale: the 100% capstone card did not appear');
   else {
-    if ((await page.$('.hud-finale__share')) === null)
+    // Exercise the card's SHARE button end-to-end (not just its presence): it must
+    // route the 100% line to the clipboard (the stubbed branch above).
+    if ((await page.$('.hud-finale__share')) === null) {
       bad('finale: the capstone card has no share button');
+    } else {
+      await page.click('.hud-finale__share', { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const shared = await page.evaluate(() => window.__shared);
+      if (!shared || !/scoobertdoobert\.pizza/.test(shared))
+        bad(
+          `finale: the card's share button did not route the link (got ${JSON.stringify(shared)})`,
+        );
+    }
     await page.click('.hud-finale__close', { timeout: 3000 }).catch(() => {});
     const gone = await page
       .waitForSelector('.hud-finale', { state: 'detached', timeout: 3000 })

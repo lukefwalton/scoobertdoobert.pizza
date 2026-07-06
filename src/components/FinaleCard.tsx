@@ -12,6 +12,11 @@ import { finaleCardSeen, markFinaleCardSeen } from '../lib/finaleCardSeen';
 // retires it on dismiss (re-share any time from the pause menu). It rides beside
 // WelcomeOverlay / ControlHint in WorldHud. Reduced-motion is handled in CSS (no
 // entrance animation). Sweet + celebratory — a reward, never dread (taste line).
+//
+// Deliberately NON-MODAL: role="status" (a polite live region announcing the win),
+// NOT role="dialog". It's a celebration you can keep playing behind — the world
+// stays interactive — so it must NOT trap focus or claim aria-modal (that contract
+// is the pause menu's). Its close/share are ordinary focusable buttons.
 // ───────────────────────────────────────────────────────────────────────────
 
 export function FinaleCard() {
@@ -27,12 +32,7 @@ export function FinaleCard() {
   };
 
   return (
-    <div
-      className="hud-finale"
-      role="dialog"
-      aria-modal="false"
-      aria-label="You have seen it all — 100% complete"
-    >
+    <div className="hud-finale" role="status">
       <button className="hud-finale__close" aria-label="dismiss" onClick={dismiss}>
         ×
       </button>
