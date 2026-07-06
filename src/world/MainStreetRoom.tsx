@@ -44,10 +44,13 @@ export function MainStreetRoom({ room }: { room: Room }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [roadTex, fog.color, fog.near, fog.far],
   );
-  const walkMat = useMemo(() => flatMat('#2a2c33'), []); // sidewalk concrete
-  const bldgMat = useMemo(() => flatMat('#161821'), []);
-  const bldgMat2 = useMemo(() => flatMat('#1b1d27'), []);
-  const trimMat = useMemo(() => flatMat('#22242e'), []);
+  const walkMat = useMemo(() => flatMat('#2f313a'), []); // sidewalk concrete
+  // Storefront albedos lifted off near-black (#161821 was ~8% reflectance, so no
+  // amount of light — the streetlamp, the diner glow, or the Light cantrip — could
+  // lift them). Still a dark, empty-hometown night, but now lightable.
+  const bldgMat = useMemo(() => flatMat('#242938'), []);
+  const bldgMat2 = useMemo(() => flatMat('#2a2f3f'), []);
+  const trimMat = useMemo(() => flatMat('#31343f'), []);
   const darkWin = useMemo(() => new THREE.MeshBasicMaterial({ color: '#0c0d12' }), []);
   const litWin = useMemo(() => new THREE.MeshBasicMaterial({ color: '#3b3320' }), []); // one warm window
   const poleMat = useMemo(() => flatMat('#101014'), []);
