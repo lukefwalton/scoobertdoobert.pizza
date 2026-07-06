@@ -13,6 +13,10 @@ import { announce } from '../state/toastStore';
 // effect, not the contract.
 // ───────────────────────────────────────────────────────────────────────────
 
+// 'shared' = the native sheet OPENED (the payload left via Web Share) — this
+// DELIBERATELY includes a user-cancelled sheet: a cancel is the user's choice, so we
+// don't second-guess it with a surprise clipboard write. 'copied' = the clipboard
+// fallback wrote + toasted. 'unavailable' = neither path was possible (toast shown).
 export type ShareOutcome = 'shared' | 'copied' | 'unavailable';
 
 export async function shareResult(text: string, url?: string): Promise<ShareOutcome> {
