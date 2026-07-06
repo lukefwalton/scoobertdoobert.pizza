@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import '../styles/leaderboard.css';
-import { fetchLeaderboard, submitScore, type ScoreEntry, type RankWindow } from '../lib/leaderboard';
+import {
+  fetchLeaderboard,
+  submitScore,
+  type ScoreEntry,
+  type RankWindow,
+} from '../lib/leaderboard';
 import { cleanInitials, RANKED_TOP } from '../lib/leaderboardCore';
 
 // The "you" strip rows: the real neighbors (true rank) with a synthetic YOU row spliced
