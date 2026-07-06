@@ -33,7 +33,10 @@ export async function shareResult(text: string, url?: string): Promise<ShareOutc
       await nav.share({ text, url: shareUrl || undefined, title: 'scoobertdoobert.pizza' });
       return 'shared';
     } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') return 'shared';
+      // Match a cancel by NAME, not just `instanceof DOMException`: the spec says a cancel
+      // is a DOMException AbortError, but some engines reject with a plain error object —
+      // and a deliberate cancel must never fall through to a surprise clipboard write.
+      if ((e as { name?: string } | null | undefined)?.name === 'AbortError') return 'shared';
       /* a real share failure — fall through to the clipboard fallback below */
     }
   }

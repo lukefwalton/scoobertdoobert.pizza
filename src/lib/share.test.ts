@@ -27,6 +27,17 @@ describe('shareResult', () => {
     expect(writeText).not.toHaveBeenCalled();
   });
 
+  it('treats a PLAIN (non-DOMException) AbortError as a cancel too — no clipboard write', async () => {
+    // Some engines reject a cancelled share with a plain error object, not a DOMException;
+    // matching on name (not instanceof) keeps that from surprise-copying to the clipboard.
+    const share = vi.fn().mockRejectedValue({ name: 'AbortError', message: 'user cancelled' });
+    const writeText = vi.fn();
+    vi.stubGlobal('navigator', { share, clipboard: { writeText } });
+    const out = await shareResult('x');
+    expect(out).toBe('shared');
+    expect(writeText).not.toHaveBeenCalled();
+  });
+
   it('falls back to the clipboard when share exists but rejects for a non-cancel reason', async () => {
     const share = vi.fn().mockRejectedValue(new DOMException('boom', 'NotAllowedError'));
     const writeText = vi.fn().mockResolvedValue(undefined);
