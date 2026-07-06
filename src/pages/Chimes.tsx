@@ -64,7 +64,7 @@ export default function Chimes() {
         <CabinetShelf currentSlug="chimes" />
       </p>
       <p className="chimes-foot chimes-foot--copy">
-        &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
+        &copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation
       </p>
     </main>
   );

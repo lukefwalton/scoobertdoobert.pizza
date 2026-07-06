@@ -227,6 +227,16 @@ export const LOOKABLES: Lookable[] = [
     story: 'It descends into the deep end. There is no deep end. There is only more down.',
   },
   {
+    id: 'waitingroom-look',
+    room: 'waitingroom',
+    anchor: 'front-right',
+    height: 1.3,
+    label: 'the take-a-number spool',
+    glyph: '🎫',
+    story:
+      'You pull A-899. The board says NOW SERVING 404. You do the arithmetic, then decide not to. There are chairs. There is time.',
+  },
+  {
     id: 'grassrooms-look',
     room: 'grassrooms',
     anchor: 'right',
@@ -242,6 +252,16 @@ export const LOOKABLES: Lookable[] = [
     label: 'a lonely aerial',
     glyph: '📡',
     story: 'Wave near it. It sings your name wrong, then right, then pretends it didn’t.',
+  },
+  {
+    id: 'void-look',
+    room: 'void',
+    anchor: 'center',
+    height: 2.0,
+    label: 'a planet close enough to touch',
+    glyph: '🪐',
+    story:
+      "It drifts off the instant you reach. The old machines promised worlds like this in the browser in '96 — navigable, 3D. You're late; it waited for you.",
   },
   // ── the shrine / grass thread ─────────────────────────────────────────────
   {
@@ -398,6 +418,16 @@ export const LOOKABLES: Lookable[] = [
     glyph: '🐠',
     story:
       'Mounted by the register. Press the button. It knows a song you almost remember. Almost.',
+  },
+  {
+    id: 'bar-look',
+    room: 'bar',
+    anchor: 'back',
+    height: 1.5,
+    label: 'a book left on the bar',
+    glyph: '📖',
+    story:
+      'RAY TRACING, hardcover, spine uncracked. A mirror that reflects nothing, bottles that never quite line up — someone here is aspirational. Buy them a drink.',
   },
   {
     id: 'mainstreetday-look',

@@ -62,6 +62,13 @@ describe('ratDialogue', () => {
         'garden-slide',
         'turtle-stage',
         'jump-unlocked',
+        // earn-luck / unlock-radio now key off the ritual secrets, not luckEarned /
+        // radioUnlocked, so the "everything done" fixture must include them too.
+        'shrine-clap',
+        'jukebox-roll',
+        // the BONUS 1101-ARG objective (QUESTS.every needs it, though the rat's
+        // nudge deliberately ignores bonus objectives — "nothing left" either way).
+        'saved-san-diego',
       ],
       visitedRooms: ['shop', 'terminus'],
     };

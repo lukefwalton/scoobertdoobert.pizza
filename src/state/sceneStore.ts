@@ -4,7 +4,7 @@ import { BOTTOM_FLOOR } from '../data/floors';
 // three-free (it imports plain dims, never three), so the store can use it
 // without pulling three.js into the storefront bundle — verified by the
 // app-chunk check in the build.
-import { FIRST_ROOM } from '../data/rooms';
+import { FIRST_ROOM, type RoomInteractable } from '../data/rooms';
 import { type TvVideo } from '../data/videos';
 import { type ArcadeGameId } from '../data/arcadeGames';
 
@@ -89,6 +89,11 @@ type SceneState = {
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
   nearEntity: { id: string; label: string } | null;
+  /** The escape-room interactable (a bell/switch/orb) the camera is near, or null
+   *  — drives its "Press E to …" prompt + the E/touch action (fireInteractable),
+   *  so the bell answers the same verb the world teaches, not just a mesh click.
+   *  Only ever an UN-fired one; set by the Interactables scanner each frame. */
+  nearInteractable: RoomInteractable | null;
   /** Whether the on-screen objective chip + compass is shown (pause-menu toggle).
    *  Ephemeral UI pref; defaults on. */
   objectiveHudOn: boolean;
@@ -200,6 +205,7 @@ type SceneState = {
   ) => void;
   setNearTv: (video: TvVideo | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
+  setNearInteractable: (it: RoomInteractable | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
   cheerEntity: (id: string) => void;
   /** Fire the finale: every wanderer breaks into a group dance for a few seconds. */
@@ -244,6 +250,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearPickup: null,
   nearTv: null,
   nearEntity: null,
+  nearInteractable: null,
   objectiveHudOn: true,
   nearNpc: null,
   openNpc: null,
@@ -296,6 +303,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearPickup: null,
       nearTv: null,
       nearEntity: null,
+      nearInteractable: null,
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
@@ -320,6 +328,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearPickup: null,
       nearTv: null,
       nearEntity: null,
+      nearInteractable: null,
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
@@ -388,6 +397,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearLookable: null,
         nearTv: null,
         nearEntity: null,
+        nearInteractable: null,
         nearNpc: null,
         openNpc: null,
       };
@@ -414,6 +424,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearLookable: null,
         nearTv: null,
         nearEntity: null,
+        nearInteractable: null,
         nearNpc: null,
         openNpc: null,
       };
@@ -436,6 +447,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearPickup: (pickup) => set({ nearPickup: pickup }),
   setNearTv: (video) => set({ nearTv: video }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
+  setNearInteractable: (it) => set({ nearInteractable: it }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
   triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),
   toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),

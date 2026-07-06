@@ -12,8 +12,9 @@ export const CORE_ROOMS: Room[] = [
     palette: { background: '#1f8fb5', fog: '#1f8fb5', fogNear: 6, fogFar: 64 },
     // A potted palm by the window — it IS a beach pizza shop.
     props: [{ url: '/models/palm-tree.glb', position: [5.6, 0, -5.4], fit: 4.4, rotationY: 0.5 }],
-    // A lost cassette sits on the counter — the first rung of the music ladder.
-    pickups: [{ itemId: 'tape-mystery-machine', position: [-4, 0.7, 0] }],
+    // A lost cassette sits ON the counter (ShopRoom draws the real service counter
+    // under it now) — the first rung of the music ladder.
+    pickups: [{ itemId: 'tape-mystery-machine', position: [-4, 1.05, 0] }],
     // ROOM ONE = the teacher for the site's escape-room grammar (Luke, 2026-07):
     // a glowing COUNTER BELL you ring, and the "EMPLOYEES ONLY" back-hall door
     // (the way deeper) shimmers into the wall. "Do something → the way opens" —
@@ -23,7 +24,10 @@ export const CORE_ROOMS: Room[] = [
     interactables: [
       {
         id: 'shop-bell',
-        position: [-2.2, 0, -0.5],
+        // On the service counter now (ShopRoom draws it). Proximity is horizontal
+        // (Interactables scans x/z), so sitting it up on the counter top doesn't
+        // change the reach — you still ring it from the customer side.
+        position: [-2.2, 0.95, -0.5],
         label: 'ring the counter bell',
         revealsTrigger: 'shop-open',
         kind: 'bell',

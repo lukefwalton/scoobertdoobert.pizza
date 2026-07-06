@@ -72,6 +72,61 @@ await page.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).cat
 await page.waitForTimeout(300); // a few frames so the first pose is settled
 await page.screenshot({ path: '.shots/touch-world.png' });
 
+// FTUE control hint on the MOBILE path: it shows on entry and must clear when the
+// player starts moving via the ON-SCREEN STICK (not only a canvas drag-look) — the
+// touch-specific dismissal the review flagged.
+const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!hintUp) fail('CONTROL HINT MISSING on touch entry');
+else {
+  // NEGATIVE first: neither a right-side BUTTON tap nor a bare zero-travel STICK press
+  // is move/look, so neither may durably teach — the legend must stay up. Only an
+  // actual stick push / drag / key teaches (the narrowed ControlHint contract).
+  const actEl = await page.$('.touch-btn--action');
+  if (actEl) {
+    await actEl.click();
+    await page.waitForTimeout(300);
+  }
+  const tapBox = await (await page.$('.touch-stick'))?.boundingBox();
+  if (tapBox) {
+    // a press + release at the stick centre with NO travel — must not teach
+    await page.mouse.move(tapBox.x + tapBox.width / 2, tapBox.y + tapBox.height / 2);
+    await page.mouse.down();
+    await page.mouse.up();
+    await page.waitForTimeout(300);
+  }
+  if ((await page.$('.hud-controlhint')) === null)
+    fail(
+      'CONTROL HINT: a bare button/zero-travel-stick tap wrongly dismissed the move/look legend',
+    );
+  else console.log('control hint survives non-move taps (button + zero-travel stick)');
+  const box = await (await page.$('.touch-stick'))?.boundingBox();
+  if (box) {
+    // A real stick DISPLACEMENT, not a bare centre tap: press the nub, push it
+    // off-centre, hold a beat, release — so this proves the hint clears on actual
+    // stick USE (a genuine drag that also drives the move vector), not merely on any
+    // pointerdown landing inside .touch-controls. The dedicated "STICK DID NOT WALK"
+    // block below still asserts the resulting camera travel.
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    await page.mouse.move(cx, cy);
+    await page.mouse.down();
+    await page.mouse.move(cx, cy - 34, { steps: 5 });
+    await page.waitForTimeout(150);
+    await page.mouse.up();
+  }
+  const hintGone = await page
+    .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2500 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hintGone) fail('CONTROL HINT STUCK on touch: did not clear after using the stick');
+  else console.log('control hint clears on touch stick use');
+}
+
 // VIEWPORT: the touch HUD (fixed, inset:0, safe-area insets) must never push the
 // page wider than the screen — a horizontal scrollbar on a phone is the classic
 // mobile regression. Check portrait now, and landscape below.

@@ -38,6 +38,9 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'a museum tag fallen behind a statue. The Getty once filed Scoobert under “doppelgängers” — flagged as a lookalike for a figure in a Degas.',
   theremin:
     'no strings, no words — just a wavering pitch you coax from the air. Like his KŌAN track 無門関, sung in Japanese while admitting it can’t read its own kanji: “um… I wonder?”',
+  void: 'the planets don’t care that you’re watching — out here that reads as kindness, not verdict. The philosopher who cooks pizza made his peace with being small; this is where he keeps the good version.',
+  waitingroom:
+    'a stack of pamphlets nobody has read. He’s done real time in rooms like this one — a stretch of Guillain-Barré took his hands and his sight, and he waited them both back, one appointment at a time.',
   // ── the Japan wing ──
   shrine:
     'a torn ticket stub. His first night ever in Japan landed on his birthday and ended in a four-hour jam in Kanda — 20-plus songs with locals.',
@@ -78,6 +81,7 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'every window dark but one. A small town at 3am is the original liminal space — the place you grew up, emptied of everyone who made it yours, still perfectly lit and waiting.',
   diner:
     'the deer on the wall has kind eyes, which is worse. An all-night diner is a promise: someone is awake, the coffee is on, you are not the last person on earth. The heads are just making sure.',
+  bar: 'a flyer curling behind the bar: BEFORMER RECORDS — LABEL NIGHT. His own imprint; he’d sooner press the record himself than wait on a yes that isn’t coming. Most nights, that’s exactly what he does.',
   mainstreetday:
     'in the back at night, out the front at noon — same street, same nobody. A kitchen is a place you pass through between two worlds; this one takes the joke literally.',
   moonlight:

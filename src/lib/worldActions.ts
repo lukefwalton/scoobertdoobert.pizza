@@ -4,6 +4,7 @@ import { enterDoor } from './doorTravel';
 import { launchRandomArcade } from './arcade';
 import { collectInventoryItem } from './pickups';
 import { collectLootById } from './loot';
+import { fireInteractable } from './interactables';
 
 // The world's context verbs, shared by the keyboard handler (WorldHud) and the
 // on-screen touch buttons (TouchControls) so the two never drift. Each reads the
@@ -44,6 +45,10 @@ export function interactNearby(): void {
       requiresKey: st.nearDoor.requiresKey,
       opensLevel: st.nearDoor.opensLevel,
     });
+  } else if (st.nearInteractable) {
+    // The escape-room bell/switch — ranks just under a door so ringing it answers
+    // the same "Press E" the world teaches (keyboard-reachable, not click-only).
+    fireInteractable(st.nearInteractable);
   } else if (st.nearTv) {
     st.openTv(st.nearTv);
   } else if (st.nearArcade) {

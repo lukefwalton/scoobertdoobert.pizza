@@ -187,6 +187,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // Main Street + the diner — the liminal small-town edge off North Park (+X).
   mainstreet: { x: 2.6, y: -3.0 },
   diner: { x: 3.6, y: -3.5 },
+  // Doobert's — the dive bar at the dark far end of Main Street (down-street).
+  bar: { x: 2.6, y: -4.0 },
   // The day-flipped Main Street — reached via the diner's kitchen back door.
   mainstreetday: { x: 4.6, y: -2.8 },
   oceanview: { x: 2.4, y: 1.1 },
@@ -231,10 +233,14 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   mobius: { x: 5, y: 4.8 },
   liminal: { x: 5, y: 6.0 },
   deeppool: { x: 5, y: 7.2 },
+  // The Waiting Room — a liminal dead-end off the drained deep end (-X branch).
+  waitingroom: { x: 3.4, y: 8.0 },
   // The Grassrooms — a sweet breather branching LEFT off the liminal level.
   grassrooms: { x: 3.4, y: 6.2 },
   // The Aerial (theremin) — a sweet instrument room branching RIGHT off the liminal.
   theremin: { x: 6.4, y: 6.4 },
+  // The Void — the cosmic screensaver deep off the theremin (further out + down).
+  void: { x: 7.6, y: 7.4 },
   // shrine / grass thread (right branch off the pool)
   shrine: { x: 7, y: 4.4 },
   'metro-tunnel': { x: 7, y: 5.6 },

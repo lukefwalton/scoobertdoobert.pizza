@@ -254,6 +254,9 @@ export const WATER_ROOMS: Room[] = [
     spawns: {
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
+      // Back out of the waiting room: a step in front of the -Z maintenance door
+      // at the far deep end, facing +Z back into the room, clear of every radius.
+      fromWaiting: { position: [0, EYE, -4.5], yaw: 0 },
     },
     // One lurker haunts the drained deep end — slower, a single big eye.
     entities: [{ id: 'deep-lurker', body: 'lurker', spawn: [-2, -3], speed: 1.6 }],
@@ -265,6 +268,46 @@ export const WATER_ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z wall
         rotationY: 0,
         label: 'climb back up',
+        radius: 3.2,
+      },
+      {
+        id: 'deep-to-waiting',
+        to: 'waitingroom',
+        toSpawn: 'default',
+        position: [0, 0, -8.95], // -Z wall — a maintenance door at the far deep end
+        rotationY: Math.PI,
+        label: 'go through the door marked 待合室',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'waitingroom',
+    kind: 'waitingroom',
+    title: 'The Waiting Room',
+    // A liminal municipal lobby behind a door in the drained deep end — rows of
+    // bolted chairs facing a shuttered reception window, a dead CRT, a NOW SERVING
+    // sign stuck on 404. Funny-uncanny (the wait is the dread; the taste line
+    // holds); an atmospheric dead-end you FIND, off the descent. Procedural.
+    dims: { halfW: 8, halfD: 6.5, height: 3.4, eye: EYE },
+    // Over-lit sickly fluorescent — pale institutional green-gray. Liminal is
+    // BRIGHT and empty, not dark (the poolrooms grammar): the red EXIT sign is the
+    // only warm light, and it marks the way back.
+    palette: { background: '#bcbfa8', fog: '#c6c9b2', fogNear: 6, fogFar: 30 },
+    spawns: {
+      // Just inside the +Z return door (under the EXIT sign), facing -Z down the
+      // long empty room — the reception window + the chair-backs are ahead of you.
+      default: { position: [0, EYE, 2.6], yaw: Math.PI },
+      fromDeep: { position: [0, EYE, 2.6], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'waiting-to-deep',
+        to: 'deeppool',
+        toSpawn: 'fromWaiting',
+        position: [0, 0, 6.45], // +Z wall, under the EXIT sign — the way back
+        rotationY: 0,
+        label: 'back out under the EXIT sign',
         radius: 3.2,
       },
     ],
@@ -516,6 +559,9 @@ export const WATER_ROOMS: Room[] = [
       // OUTSIDE its field, so you walk IN to start it (no sound thrust at the door).
       default: { position: [0, EYE, 2.4], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 2.4], yaw: Math.PI },
+      // Back out of the void: off to the side of the central device (not on it),
+      // facing +Z into the room, clear of both door radii.
+      fromVoid: { position: [3.0, EYE, -3.8], yaw: 0 },
     },
     doors: [
       {
@@ -526,6 +572,42 @@ export const WATER_ROOMS: Room[] = [
         rotationY: 0,
         label: 'back into the empty backrooms',
         radius: 3.0,
+      },
+      {
+        id: 'theremin-to-void',
+        to: 'void',
+        toSpawn: 'fromTheremin',
+        position: [0, 0, -5.9], // -Z wall — past the aerial, out into the deep cosmos
+        rotationY: Math.PI,
+        label: 'walk out into the void',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'void',
+    kind: 'void',
+    title: 'The Void',
+    // The cosmic screensaver deep off the theremin — blue ringed planets drifting
+    // over a rippling reflective void under a dome of stars. Sweet, hypnotic wonder
+    // (below SAFE — a cosmic exhale). Roomy so the planets have sky to drift in.
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Near-black cosmic blue; far fog so the planets float at distance into the dark.
+    palette: { background: '#03040c', fog: '#05060f', fogNear: 9, fogFar: 55 },
+    spawns: {
+      // Arrive a stride inside the +Z door, facing -Z out into the drifting cosmos.
+      default: { position: [0, EYE, 5.5], yaw: Math.PI },
+      fromTheremin: { position: [0, EYE, 5.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'void-to-theremin',
+        to: 'theremin',
+        toSpawn: 'fromVoid',
+        position: [0, 0, 8.95], // +Z wall — drift back to the aerial
+        rotationY: 0,
+        label: 'drift back to the aerial',
+        radius: 3.2,
       },
     ],
   },

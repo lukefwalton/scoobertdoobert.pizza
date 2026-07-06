@@ -65,3 +65,45 @@ describe('1101 (Save San Diego) — the hand-edited Twine story stays well-forme
     expect(bad, `unitless (after:): ${bad.join(', ')}`).toEqual([]);
   });
 });
+
+// The ARG's completion (the BONUS 'saved-san-diego' objective) is banked when the win
+// terminus renders a DEDICATED marker element — never by sniffing free-form text. That
+// distinction is the whole point: the intro passage echoes the prompted $name back into
+// the story, so a text-match on the win phrase would let a player forge the objective by
+// typing it as their name. Harlowe escapes variable text to inert characters, so it can
+// never conjure a real element — keying off the marker closes the hole. These guards pin
+// that contract in the shipped file (the shoot:savesandiego smoke proves the live wiring).
+describe('1101 win signal is a dedicated marker, not forgeable text', () => {
+  const userScript = html.match(/id="twine-user-script"[^>]*>([\s\S]*?)<\/script>/)?.[1] ?? '';
+  const WIN_PHRASE = /SAN DIEGO IS SAVED/i;
+  const MARKER = 'data-sdp-ending="win"';
+
+  it('the user-script detects the marker element, never the win text', () => {
+    expect(userScript).toContain('data-sdp-ending');
+    // If it ever sniffed the rendered phrase, echoed player input could forge the win.
+    expect(userScript).not.toMatch(WIN_PHRASE);
+    expect(userScript).not.toMatch(/\bSAVED\b/i);
+  });
+
+  it('scopes the query to rendered <tw-story>, not the whole document', () => {
+    // The marker ALSO exists as real nodes inside the hidden <tw-storydata> source, so a
+    // bare document.querySelector('[data-sdp-ending]') would auto-bank on load. The query
+    // must be scoped to the rendered story container.
+    expect(userScript).toMatch(/tw-story\s+\[data-sdp-ending/);
+    expect(userScript).not.toMatch(/querySelector\(\s*['"]\[data-sdp-ending/);
+  });
+
+  it('every win terminus emits the marker', () => {
+    const winPassages = passages.filter((p) => WIN_PHRASE.test(p.body));
+    expect(winPassages.length).toBeGreaterThanOrEqual(1);
+    for (const p of winPassages) {
+      expect(p.body, `win passage [${p.name}] must carry the marker`).toContain(MARKER);
+    }
+  });
+
+  it('the marker appears ONLY on win termini (nothing else can emit it)', () => {
+    const marked = passages.filter((p) => p.body.includes('data-sdp-ending')).map((p) => p.name);
+    const wins = passages.filter((p) => WIN_PHRASE.test(p.body)).map((p) => p.name);
+    expect(marked.sort()).toEqual(wins.sort());
+  });
+});

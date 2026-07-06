@@ -50,6 +50,7 @@ const { browser, fail, finish, failures } = await launchSmoke();
 
   let framed = false;
   let storyLoaded = false;
+  let banked = false;
   if (start) {
     await page.click('.arcade-start');
     const frameEl = await page.waitForSelector('.arcade-iframe', { timeout: 6000 }).then(
@@ -80,10 +81,73 @@ const { browser, fail, finish, failures } = await launchSmoke();
           () => false,
         );
       if (!storyLoaded) fail('JS: the embedded 1101 (Save San Diego) Twine story did not load');
+
+      // The ARG WIN → progression hook: the win terminus renders a dedicated MARKER
+      // element (<span data-sdp-ending="win">) that ONLY the real win passage emits;
+      // 1101.html sees it, postMessages the win, and the page's useSaveSanDiegoWin banks
+      // the durable 'saved-san-diego' BONUS secret. We inject to simulate the terminus,
+      // then assert the PARENT banked it.
+      if (storyLoaded) {
+        // Resolves true once the parent bank lands, false if it never does within `ms`.
+        const waitBanked = (ms) =>
+          page
+            .waitForFunction(
+              () => {
+                try {
+                  return (
+                    JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+                  ).includes('saved-san-diego');
+                } catch {
+                  return false;
+                }
+              },
+              null,
+              { timeout: ms },
+            )
+            .then(
+              () => true,
+              () => false,
+            );
+
+        // LOAD GUARD: the marker element ALSO exists inside the hidden <tw-storydata>
+        // passage source (real DOM nodes the browser parses there), so a whole-document
+        // query would auto-bank on load. The observer scopes to rendered <tw-story>
+        // output only — so merely LOADING the story must NOT bank.
+        const bankedOnLoad = await waitBanked(1500);
+        if (bankedOnLoad)
+          fail('JS: saved-san-diego banked on story LOAD (marker in hidden source, not rendered)');
+        else console.log('load guard: story load alone does not bank (hidden source ignored)');
+
+        // NEGATIVE (forgery guard): the win keys off the marker ELEMENT, never free-form
+        // text — so echoed player input can't fake it (the name prompt renders $name,
+        // which Harlowe escapes to inert text). Inject the win PHRASE as plain text with
+        // NO marker; it must NOT bank.
+        await frame.evaluate(() => {
+          const s = document.querySelector('tw-story');
+          if (s)
+            s.insertAdjacentHTML(
+              'beforeend',
+              '<tw-passage>CONGRATULATIONS, SAN DIEGO IS SAVED. — typed as a name</tw-passage>',
+            );
+        });
+        const forged = await waitBanked(1500);
+        if (forged)
+          fail('JS: win phrase as plain TEXT forged saved-san-diego (must require the marker)');
+        else console.log('forgery guard: win text alone does not bank (marker required)');
+
+        // POSITIVE: emit the real marker element INTO the rendered story → banks.
+        await frame.evaluate(() => {
+          const s = document.querySelector('tw-story');
+          if (s) s.insertAdjacentHTML('beforeend', '<span data-sdp-ending="win"></span>');
+        });
+        banked = await waitBanked(4000);
+        if (!banked)
+          fail('JS: the 1101 win marker did not bank the saved-san-diego secret in the parent');
+      }
     }
   }
   await page.screenshot({ path: '.shots/save-san-diego.png' });
-  console.log(`JS -> start=${start} framed=${framed} story=${storyLoaded}`);
+  console.log(`JS -> start=${start} framed=${framed} story=${storyLoaded} banked=${banked}`);
   await ctx.close();
 }
 

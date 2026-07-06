@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { useMounted } from '../lib/useMounted';
 import { useTouchDevice } from '../lib/lowPower';
+import { useSaveSanDiegoWin } from '../lib/useSaveSanDiegoWin';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
 import { TouchControls } from './TouchControls';
@@ -31,6 +32,9 @@ export function WorldMount() {
   // Touch controls mount on a touch device (coarse primary pointer), any
   // orientation; a mouse-driven desktop keeps its keyboard/mouse world untouched.
   const touch = useTouchDevice();
+  // Bank the 1101 ARG win (posted from its same-origin iframe) — covers the
+  // immersive level + the in-world arcade cabinet, both mounted under here.
+  useSaveSanDiegoWin();
 
   const debug =
     mounted &&
