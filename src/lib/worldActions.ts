@@ -19,6 +19,7 @@ function inputOwnedByModal(st: SceneState): boolean {
   return !!(
     st.paused ||
     st.openHotspot ||
+    st.openLookable ||
     st.tvVideo ||
     st.arcadeGame ||
     st.openNpc ||
@@ -51,6 +52,9 @@ export function interactNearby(): void {
     st.openNpcDialog(st.nearNpc.id);
   } else if (st.nearEntity) {
     useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
+  } else if (st.nearLookable) {
+    // Lowest priority: a flavor curio only opens if nothing else is in reach.
+    st.openLookableDialog(st.nearLookable);
   }
 }
 

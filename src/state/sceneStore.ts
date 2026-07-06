@@ -33,6 +33,10 @@ type SceneState = {
   nearHotspot: string | null;
   /** id of the hotspot whose dialog is open (or null) */
   openHotspot: string | null;
+  /** id of the lookable (flavor curio) the camera is near (or null) */
+  nearLookable: string | null;
+  /** id of the lookable whose story dialog is open (or null) */
+  openLookable: string | null;
   /** pause menu visible */
   paused: boolean;
   /** the order form asked to start the descent (consumed by Descent) */
@@ -139,6 +143,9 @@ type SceneState = {
   setNearHotspot: (id: string | null) => void;
   openHotspotDialog: (id: string) => void;
   closeHotspotDialog: () => void;
+  setNearLookable: (id: string | null) => void;
+  openLookableDialog: (id: string) => void;
+  closeLookableDialog: () => void;
   /** Switch a CRT in an album-room on (modal video overlay) / off. */
   openTv: (video: TvVideo) => void;
   closeTv: () => void;
@@ -206,6 +213,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   worldActive: false,
   nearHotspot: null,
   openHotspot: null,
+  nearLookable: null,
+  openLookable: null,
   paused: false,
   descentRequested: false,
   installRequested: false,
@@ -261,6 +270,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       paused: false,
       openHotspot: null,
       nearHotspot: null,
+      openLookable: null,
+      nearLookable: null,
       nearDoor: null,
       nearPickup: null,
       nearTv: null,
@@ -283,6 +294,8 @@ export const useSceneStore = create<SceneState>((set) => ({
       paused: false,
       openHotspot: null,
       nearHotspot: null,
+      openLookable: null,
+      nearLookable: null,
       nearDoor: null,
       nearPickup: null,
       nearTv: null,
@@ -307,6 +320,9 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearHotspot: (id) => set({ nearHotspot: id }),
   openHotspotDialog: (id) => set({ openHotspot: id }),
   closeHotspotDialog: () => set({ openHotspot: null }),
+  setNearLookable: (id) => set({ nearLookable: id }),
+  openLookableDialog: (id) => set({ openLookable: id }),
+  closeLookableDialog: () => set({ openLookable: null }),
   openTv: (video) => set({ tvVideo: video }),
   closeTv: () => set({ tvVideo: null }),
   openArcade: (id) => set({ arcadeGame: id }),
@@ -329,7 +345,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   goToRoom: (to, spawn) =>
     set((s) => {
       // A pause/dialog is a hard block — never honor a nav fired into a menu.
-      if (s.paused || s.openHotspot) return {};
+      if (s.paused || s.openHotspot || s.openLookable) return {};
       // Mid-wipe: don't start an overlapping wipe, but don't silently LOSE the
       // intent either. Dropping it stranded fast re-navigations — recover from a
       // failed GLB level then immediately head back down and the re-entry vanished
@@ -343,6 +359,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearDoor: null,
         nearPickup: null,
         nearHotspot: null,
+        nearLookable: null,
         nearTv: null,
         nearEntity: null,
         nearNpc: null,
@@ -368,6 +385,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearDoor: null,
         nearPickup: null,
         nearHotspot: null,
+        nearLookable: null,
         nearTv: null,
         nearEntity: null,
         nearNpc: null,
