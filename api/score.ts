@@ -5,7 +5,7 @@ import {
   RANKED_TOP,
   scorePath,
   parseScorePath,
-  rankFor,
+  windowAround,
   validateSubmission,
 } from '../src/lib/leaderboardCore';
 
@@ -69,7 +69,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const limRaw = Array.isArray(req.query?.limit) ? req.query?.limit[0] : req.query?.limit;
     const limit = Math.max(1, Math.min(RANKED_TOP, Number(limRaw) || 25));
-    res.status(200).json({ ok: true, entries: scores.slice(0, limit) });
+    // `?around=<score>`: also return THIS player's rank window (own rank + gap-to-next +
+    // the real entries around them), so a player outside the top-N still sees where they
+    // stand. Works for an unstored just-played score (windowAround ranks by comparison).
+    const aroundRaw = Array.isArray(req.query?.around) ? req.query?.around[0] : req.query?.around;
+    const around = aroundRaw != null && aroundRaw !== '' ? Number(aroundRaw) : NaN;
+    const you =
+      Number.isFinite(around) && around > 0 ? windowAround(scores, Math.floor(around)) : undefined;
+    res.status(200).json({ ok: true, entries: scores.slice(0, limit), ...(you ? { you } : {}) });
     return;
   }
 
@@ -127,12 +134,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({ ok: true, stored: true, rank: 0, ranked: false, entries: [] });
     return;
   }
-  const rank = rankFor(scores, v.score);
+  // The just-written score is now in `scores`, so this window places the player among
+  // real neighbors (own rank + gap-to-next + the entries around them) for the "you" strip.
+  const you = windowAround(scores, v.score);
   res.status(200).json({
     ok: true,
     stored: true,
-    rank,
-    ranked: rank <= RANKED_TOP,
+    rank: you.rank,
+    ranked: you.rank <= RANKED_TOP,
+    you,
     entries: scores.slice(0, 25),
   });
 }

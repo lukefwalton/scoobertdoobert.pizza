@@ -8,9 +8,16 @@
 // (progressStore.pizzaPointsBest); the leaderboard is a bonus on top.
 // ───────────────────────────────────────────────────────────────────────────
 
-import { cleanInitials } from './leaderboardCore';
+import { cleanInitials, type RankWindow, type RankNeighbor } from './leaderboardCore';
+
+export type { RankWindow, RankNeighbor } from './leaderboardCore';
 
 export type ScoreEntry = { initials: string; score: number; ts?: string };
+
+/** The board plus (optionally) THIS player's rank window — their would-be rank, the
+ *  gap to the next-higher score, and the handful of real entries around them. `you` is
+ *  present only when a score was passed (GET `?around=` / a POST). */
+export type BoardData = { entries: ScoreEntry[]; you?: RankWindow };
 
 export type SubmitResult = {
   ok: boolean;
@@ -21,6 +28,9 @@ export type SubmitResult = {
    *  'rejected'/'invalid' = the initials; 'bad_score'/'error' = other. */
   reason?: string;
   entries?: ScoreEntry[];
+  /** The player's rank window (own rank + gap-to-next + neighbors), when the backend
+   *  returned it — so submit can show "you're #N, X to climb" with context. */
+  you?: RankWindow;
 };
 
 function asEntries(v: unknown): ScoreEntry[] {
@@ -30,20 +40,47 @@ function asEntries(v: unknown): ScoreEntry[] {
   );
 }
 
-/** The top board, or null when it can't be reached. null = unavailable (offline /
- *  no backend / storage down); [] = a reachable but empty board — distinct, so the
- *  UI can say "offline" vs "no scores yet." */
-export async function fetchLeaderboard(limit = 25): Promise<ScoreEntry[] | null> {
+/** Defensively normalize a `you` window from the API (same-origin, but still validate
+ *  the shape so a malformed field never throws in render). Returns undefined if absent
+ *  or malformed. */
+function asWindow(v: unknown): RankWindow | undefined {
+  if (!v || typeof v !== 'object') return undefined;
+  const w = v as Record<string, unknown>;
+  if (typeof w.rank !== 'number' || typeof w.gap !== 'number') return undefined;
+  const neighbors: RankNeighbor[] = Array.isArray(w.neighbors)
+    ? w.neighbors.filter(
+        (n): n is RankNeighbor =>
+          !!n &&
+          typeof n.rank === 'number' &&
+          typeof n.initials === 'string' &&
+          typeof n.score === 'number',
+      )
+    : [];
+  return {
+    rank: w.rank,
+    index: typeof w.index === 'number' ? w.index : Math.max(0, w.rank - 1),
+    gap: w.gap,
+    neighbors,
+  };
+}
+
+/** The top board (+ this player's rank window when `score` is given), or null when it
+ *  can't be reached. null = unavailable (offline / no backend / storage down);
+ *  `{ entries: [] }` = a reachable but empty board — distinct, so the UI can say
+ *  "offline" vs "no scores yet." */
+export async function fetchLeaderboard(limit = 25, score?: number): Promise<BoardData | null> {
   try {
-    const res = await fetch(`/api/score?limit=${limit}`, {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (typeof score === 'number' && score > 0) q.set('around', String(Math.floor(score)));
+    const res = await fetch(`/api/score?${q.toString()}`, {
       headers: { accept: 'application/json' },
     });
     if (!res.ok) return null;
-    const data = (await res.json()) as { ok?: boolean; entries?: unknown };
+    const data = (await res.json()) as { ok?: boolean; entries?: unknown; you?: unknown };
     // ok:false (e.g. 'unavailable') is a reachable endpoint reporting a down
     // backend — treat it as offline, not as an empty board.
     if (!data?.ok) return null;
-    return asEntries(data.entries);
+    return { entries: asEntries(data.entries), you: asWindow(data.you) };
   } catch {
     return null;
   }
@@ -69,9 +106,16 @@ export async function submitScore(initials: string, score: number): Promise<Subm
       ranked?: boolean;
       error?: string;
       entries?: unknown;
+      you?: unknown;
     };
     if (!data?.ok) return { ok: false, reason: data?.error ?? 'error' };
-    return { ok: true, rank: data.rank, ranked: data.ranked, entries: asEntries(data.entries) };
+    return {
+      ok: true,
+      rank: data.rank,
+      ranked: data.ranked,
+      entries: asEntries(data.entries),
+      you: asWindow(data.you),
+    };
   } catch {
     return { ok: false, reason: 'offline' };
   }

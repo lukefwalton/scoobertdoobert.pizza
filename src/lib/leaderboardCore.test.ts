@@ -6,6 +6,7 @@ import {
   scorePath,
   parseScorePath,
   rankFor,
+  windowAround,
   cleanInitials,
   validateSubmission,
   SCORE_PREFIX,
@@ -52,6 +53,41 @@ describe('rankFor', () => {
   it('flags not-ranked when beyond the top cutoff', () => {
     const big = Array.from({ length: RANKED_TOP }, () => ({ score: 1000 }));
     expect(rankFor(big, 10) > RANKED_TOP).toBe(true); // rank RANKED_TOP+1 → not ranked
+  });
+});
+
+describe('windowAround', () => {
+  const board = [
+    { initials: 'AAA', score: 100 },
+    { initials: 'BBB', score: 90 },
+    { initials: 'CCC', score: 90 },
+    { initials: 'DDD', score: 50 },
+    { initials: 'EEE', score: 20 },
+  ];
+  it('rank matches rankFor and the gap points to the next-higher entry', () => {
+    const w = windowAround(board, 60, 5);
+    expect(w.rank).toBe(rankFor(board, 60)); // 3 strictly above → rank 4
+    expect(w.rank).toBe(4);
+    expect(w.index).toBe(3);
+    expect(w.gap).toBe(30); // the next-higher score is 90 → 90 - 60
+  });
+  it('gap is 0 at the top (nobody to climb toward)', () => {
+    expect(windowAround(board, 100).gap).toBe(0); // ties the top → none strictly above
+    expect(windowAround(board, 200).rank).toBe(1);
+    expect(windowAround(board, 200).gap).toBe(0);
+  });
+  it('tags neighbors with their TRUE board rank', () => {
+    const w = windowAround(board, 60, 1); // index 3, radius 1 → slice [2,4)
+    expect(w.neighbors).toEqual([
+      { rank: 3, initials: 'CCC', score: 90 },
+      { rank: 4, initials: 'DDD', score: 50 },
+    ]);
+  });
+  it('ranks an UNSTORED score below the whole board', () => {
+    const w = windowAround(board, 10, 5);
+    expect(w.rank).toBe(6); // all 5 above → rank 6
+    expect(w.gap).toBe(10); // next-higher 20 → 20 - 10
+    expect(w.neighbors.at(-1)).toEqual({ rank: 5, initials: 'EEE', score: 20 });
   });
 });
 

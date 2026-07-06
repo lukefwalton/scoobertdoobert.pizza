@@ -1,7 +1,36 @@
 import { useEffect, useState } from 'react';
 import '../styles/leaderboard.css';
-import { fetchLeaderboard, submitScore, type ScoreEntry } from '../lib/leaderboard';
+import { fetchLeaderboard, submitScore, type ScoreEntry, type RankWindow } from '../lib/leaderboard';
 import { cleanInitials, RANKED_TOP } from '../lib/leaderboardCore';
+
+// The "you" strip rows: the real neighbors (true rank) with a synthetic YOU row spliced
+// in at score order — so a player OUTSIDE the top-N still sees exactly where they land.
+type YouRow = { rank: number; initials: string; score: number; self?: boolean };
+function buildYouRows(you: RankWindow, score: number, mine: string): YouRow[] {
+  // Drop the player's just-submitted real entry (if it's already among the neighbors) so
+  // the synthetic YOU row doesn't duplicate it. `mine` is '' before signing (a preview
+  // window has nothing to dedup — the score isn't on the board yet).
+  let dropped = false;
+  const near = you.neighbors.filter((n) => {
+    if (!dropped && mine && n.initials === mine && n.score === score) {
+      dropped = true;
+      return false;
+    }
+    return true;
+  });
+  const rows: YouRow[] = [];
+  const self: YouRow = { rank: you.rank, initials: mine || 'YOU', score, self: true };
+  let inserted = false;
+  for (const n of near) {
+    if (!inserted && n.score < score) {
+      rows.push(self);
+      inserted = true;
+    }
+    rows.push(n);
+  }
+  if (!inserted) rows.push(self);
+  return rows;
+}
 
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
@@ -32,17 +61,25 @@ export function LeaderboardPanel({
     'idle' | 'submitting' | 'ranked' | 'unranked' | 'badletters' | 'offline'
   >('idle');
   const [rank, setRank] = useState<number | undefined>(undefined);
+  // The player's rank window (own rank + gap-to-next + neighbors). Filled from a GET
+  // `?around={score}` on mount (the "where would I land" preview) and from a POST reply
+  // after signing. null = not fetched / offline / no score.
+  const [you, setYou] = useState<RankWindow | null>(null);
 
   useEffect(() => {
     if (!loadBoard) return;
     let live = true;
-    fetchLeaderboard(rows).then((e) => {
-      if (live) setEntries(e);
+    // Pass the local best so the board comes back with THIS player's window, not just the
+    // top-N — the motivate-the-90% view (a player far down still sees their standing).
+    fetchLeaderboard(rows, score).then((b) => {
+      if (!live) return;
+      setEntries(b ? b.entries : null);
+      setYou(b?.you ?? null);
     });
     return () => {
       live = false;
     };
-  }, [rows, loadBoard]);
+  }, [rows, loadBoard, score]);
 
   const canSubmit = score > 0 && cleanInitials(initials).length === 3 && status !== 'submitting';
 
@@ -53,8 +90,13 @@ export function LeaderboardPanel({
     if (r.ok) {
       setRank(r.rank);
       setStatus(r.ranked ? 'ranked' : 'unranked');
+      if (r.you) setYou(r.you);
       if (r.entries && r.entries.length) setEntries(r.entries.slice(0, rows));
-      else if (loadBoard) fetchLeaderboard(rows).then(setEntries);
+      else if (loadBoard)
+        fetchLeaderboard(rows, score).then((b) => {
+          setEntries(b ? b.entries : null);
+          if (b?.you) setYou(b.you);
+        });
     } else {
       // Initials problem vs backend down — show the right thing, not "bad initials"
       // for an outage (the review's failure-semantics fix).
@@ -113,6 +155,34 @@ export function LeaderboardPanel({
         <p className="hud-board__msg">
           Those initials didn&rsquo;t take — try three (different) letters.
         </p>
+      )}
+
+      {you && score > 0 && (
+        <div className="hud-board__you">
+          <p className="hud-board__you-head">
+            You&rsquo;re <strong>#{you.rank}</strong>
+            {you.gap > 0 ? (
+              <>
+                {' '}
+                &middot; <strong>{you.gap.toLocaleString()}</strong> to climb
+              </>
+            ) : (
+              <> &middot; top of the board!</>
+            )}
+          </p>
+          <ol className="hud-board__list hud-board__list--you">
+            {buildYouRows(you, score, cleanInitials(initials)).map((r, i) => (
+              <li
+                key={`${r.initials}-${r.rank}-${i}`}
+                className={r.self ? 'hud-board__row--you' : undefined}
+              >
+                <span className="hud-board__rank">{r.self ? '▸' : r.rank}</span>
+                <span className="hud-board__ini">{r.initials}</span>
+                <span className="hud-board__sc">{r.score.toLocaleString()}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
 
       {loadBoard && entries === undefined && <p className="hud-board__msg">loading…</p>}

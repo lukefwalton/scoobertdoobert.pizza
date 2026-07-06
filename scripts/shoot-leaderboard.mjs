@@ -118,12 +118,87 @@ await page
 const inPause = await page.$('.hud-pause .hud-board').then((e) => !!e);
 if (!inPause) bad('leaderboard: the board is not wired into the pause menu');
 
+// ── 4. the "you" strip: own rank + gap-to-next + neighbors ───────────────────
+// There's no serverless backend under `vite preview`, so MOCK /api/score to prove the
+// new render path: a player OUTSIDE the top-N sees "You're #N, X to climb" + the real
+// entries around them (true ranks, a highlighted YOU row spliced in at score order).
+let youStripOk = false;
+{
+  const board = [
+    { initials: 'AAA', score: 100 },
+    { initials: 'BBB', score: 90 },
+    { initials: 'CCC', score: 90 },
+    { initials: 'DDD', score: 50 },
+    { initials: 'EEE', score: 20 },
+  ];
+  const mockCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  // Seed a best of 60 → would-be rank 4 (3 strictly above), gap 30 (to the 90s).
+  await mockCtx.addInitScript(() => {
+    try {
+      localStorage.setItem('sdp_progress_v1', JSON.stringify({ pizzaPointsBest: 60 }));
+    } catch {
+      /* ignore */
+    }
+  });
+  const mp = await mockCtx.newPage();
+  mp.on('pageerror', (e) => errors.push(e.message));
+  await mp.route('**/api/score*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ok: true,
+        entries: board,
+        you: {
+          rank: 4,
+          index: 3,
+          gap: 30,
+          neighbors: board.map((e, i) => ({ rank: i + 1, initials: e.initials, score: e.score })),
+        },
+      }),
+    }),
+  );
+  await mp.goto(base + '/leaderboard', { waitUntil: 'networkidle' });
+  const strip = await mp.waitForSelector('.hud-board__you', { timeout: 8000 }).catch(() => null);
+  if (!strip) bad('leaderboard: the "you" strip did not render from a mocked board');
+  else {
+    const txt = (await strip.textContent()) || '';
+    if (!/#4/.test(txt)) bad(`leaderboard: you-strip missing rank #4 -> ${txt}`);
+    if (!/30/.test(txt) || !/climb/i.test(txt))
+      bad(`leaderboard: you-strip missing gap-to-climb -> ${txt}`);
+    // the highlighted YOU row shows the player's own score
+    const selfTxt = await mp.$('.hud-board__row--you').then((el) => el && el.textContent());
+    if (!selfTxt || !/YOU/.test(selfTxt) || !/60/.test(selfTxt))
+      bad(`leaderboard: the highlighted YOU row is wrong -> ${selfTxt}`);
+    // a real neighbor carries its TRUE board rank (CCC is #3, not a raw list index)
+    const cccRank = await mp.$eval('.hud-board__list--you', (ol) => {
+      const li = [...ol.querySelectorAll('li')].find(
+        (el) => el.querySelector('.hud-board__ini')?.textContent === 'CCC',
+      );
+      return li?.querySelector('.hud-board__rank')?.textContent ?? null;
+    });
+    if (cccRank !== '3') bad(`leaderboard: neighbor CCC should be rank 3, got ${cccRank}`);
+    // YOU slots by score: after CCC (90), before DDD (50)
+    const order = await mp.$$eval('.hud-board__list--you li', (lis) =>
+      lis.map((el) => el.querySelector('.hud-board__ini')?.textContent),
+    );
+    const iYou = order.indexOf('YOU');
+    if (!(iYou > order.indexOf('CCC') && iYou < order.indexOf('DDD')))
+      bad(`leaderboard: YOU row is out of score order -> ${order.join(',')}`);
+    youStripOk =
+      !!selfTxt && cccRank === '3' && iYou > order.indexOf('CCC') && iYou < order.indexOf('DDD');
+    await mp.screenshot({ path: '.shots/leaderboard-you.png' });
+  }
+  await mockCtx.close();
+}
+
 if (errors.length)
   bad(`leaderboard: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
   `leaderboard -> crawl(marquee=${crawlMarquee} cold=${crawlCold} back=${crawlBack}) ` +
     `gifs(trophy=${gifTrophy} flames=${gifFlames} pizza=${gifPizza} coins=${coinRain}) ` +
-    `offlineOnMount=${offlineOnMount} submitGraceful=${submitGraceful} pauseMenu=${inPause} errors=${errors.length}`,
+    `offlineOnMount=${offlineOnMount} submitGraceful=${submitGraceful} youStrip=${youStripOk} ` +
+    `pauseMenu=${inPause} errors=${errors.length}`,
 );
 
 await ctx.close();

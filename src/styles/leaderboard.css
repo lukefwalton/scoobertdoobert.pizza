@@ -97,6 +97,36 @@
   font-size: 0.85em;
 }
 
+/* ── the "you" strip: own rank + gap-to-next + the neighbors around you ────────── */
+.hud-board__you {
+  margin: 8px 0 4px;
+  padding: 6px 8px;
+  border: 1px dashed rgba(255, 196, 92, 0.55);
+  border-radius: 2px;
+  background: rgba(255, 196, 92, 0.06);
+}
+.hud-board__you-head {
+  margin: 0 0 4px;
+  font-size: 0.9em;
+  color: #ffe6b0;
+}
+.hud-board__you-head strong {
+  color: #ffe24a;
+}
+.hud-board__list--you {
+  margin: 0;
+}
+/* the highlighted YOU row within the strip */
+.hud-board__row--you {
+  background: rgba(255, 226, 74, 0.16);
+  color: #fff3d6;
+  font-weight: bold;
+}
+.hud-board__row--you .hud-board__rank {
+  opacity: 1;
+  color: #ffe24a;
+}
+
 /* ── the /leaderboard PAGE: a riot of our own GIFs (GeoCities energy) ────────── */
 /* Starfield wallpaper behind it all (gold coins + flames + trophies pop on dark,
    like a hall of fame). `main.lb-page` outranks the shared `.arcade-page` checker. */

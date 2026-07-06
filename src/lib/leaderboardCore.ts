@@ -50,6 +50,42 @@ export function rankFor(scores: { score: number }[], score: number): number {
   return scores.filter((s) => s.score > score).length + 1;
 }
 
+export type RankNeighbor = { rank: number; initials: string; score: number };
+export type RankWindow = {
+  /** 1-based rank this score holds/would hold (ties share; == rankFor). */
+  rank: number;
+  /** # of entries strictly above (== rank - 1) — the sorted insertion index. */
+  index: number;
+  /** Points to the next-higher entry (the motivating "gap to climb"); 0 at the top. */
+  gap: number;
+  /** The real entries immediately around this rank, each with its TRUE board rank. */
+  neighbors: RankNeighbor[];
+};
+
+/** The rank picture for ONE score against the (descending-sorted) board: its rank,
+ *  the gap to the next-higher entry, and the handful of real entries around it — so
+ *  a player OUTSIDE the top-N still gets a "you're #N, X points to climb, here's who's
+ *  near you" strip (the motivate-the-90% view). Pure + unit-tested. `scores` must be
+ *  sorted DESC (api/score's readScores already is). Works for an UNSTORED score too
+ *  (a just-played run not yet on the board), since it ranks by comparison, not lookup. */
+export function windowAround(
+  scores: { initials: string; score: number }[],
+  score: number,
+  radius = 5,
+): RankWindow {
+  const index = scores.filter((s) => s.score > score).length; // strictly-greater count
+  const rank = index + 1;
+  const gap = index > 0 ? scores[index - 1].score - score : 0;
+  const from = Math.max(0, index - radius);
+  const to = Math.min(scores.length, index + radius);
+  const neighbors = scores.slice(from, to).map((s, i) => ({
+    rank: from + i + 1, // true 1-based rank in the full board
+    initials: s.initials,
+    score: s.score,
+  }));
+  return { rank, index, gap, neighbors };
+}
+
 /** Three A–Z letters, uppercased — the classic arcade tag (server-side mirror). */
 export function cleanInitials(v: unknown): string {
   return String(v ?? '')
