@@ -525,6 +525,72 @@
   font-style: italic;
 }
 
+/* ── first-run control hint ─────────────────────────────────────────────────
+   The one thing the welcome card doesn't teach: how to move/look. A quiet
+   bottom-centre legend (ControlHint) that fades out the instant the player moves
+   or looks. Sits above the prompt row; WCAG-safe (a soft fade, no flash). */
+.hud-controlhint {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 66;
+  max-width: min(92vw, 470px);
+  padding: 7px 32px 7px 14px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e6edf5;
+  background: rgba(12, 15, 22, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  animation: hud-controlhint-in 0.45s ease backwards;
+}
+.hud-controlhint--leaving {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.hud-controlhint__keys {
+  margin: 0;
+}
+.hud-controlhint__keys strong {
+  color: #fff;
+  font-weight: 700;
+}
+.hud-controlhint__dim {
+  opacity: 0.62;
+}
+.hud-controlhint__close {
+  position: absolute;
+  top: 3px;
+  right: 7px;
+  padding: 1px 5px;
+  background: none;
+  border: none;
+  color: #c6d0dc;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+@keyframes hud-controlhint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-controlhint {
+    animation: none;
+  }
+  .hud-controlhint--leaving {
+    transition: none;
+  }
+}
+
 /* ── Scoobertverse welcome ──────────────────────────────────────────────────
    A staged quest intro on world entry. Non-blocking (pointer-events:none) so
    drag-look / movement work underneath while it plays, then it fades out. */

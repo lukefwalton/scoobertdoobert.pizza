@@ -14,6 +14,7 @@ import { castSpell, castEquippedSpell } from '../lib/spellcast';
 import { QUESTS, allQuestsDone, objectiveChipVisible } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
+import { ControlHint } from './ControlHint';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
@@ -356,6 +357,7 @@ export function WorldHud() {
       )}
 
       <WelcomeOverlay />
+      <ControlHint />
 
       {!pendingRoom && (
         <div className="hud-room" aria-hidden="true">

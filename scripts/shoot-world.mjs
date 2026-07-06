@@ -47,6 +47,14 @@ if (welcomeUp) {
   }
 }
 
+// The first-run control hint (how to move/look) shows on entry — the FTUE teach the
+// welcome card (pure tone) omits. It must clear the instant you move (checked below).
+const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!hintUp) fail('CONTROL HINT MISSING: no move/look legend on world entry');
+
 await page.waitForTimeout(3000); // WebGL warmup + frames
 await page.screenshot({ path: '.shots/world.png' });
 await page.waitForTimeout(1600);
@@ -57,6 +65,15 @@ await page.keyboard.down('w');
 await page.waitForTimeout(2000);
 await page.keyboard.up('w');
 await page.waitForTimeout(400);
+// Moving above should have faded the control hint out — prove it cleared.
+const hintGone = await page
+  .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (hintUp && !hintGone) fail('CONTROL HINT STUCK: legend did not clear after moving');
+else if (hintUp) console.log('control hint shows on entry, clears on move');
 await page.screenshot({ path: '.shots/world-hotspot.png' });
 await page.keyboard.press('e');
 await page.waitForTimeout(500);
