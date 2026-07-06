@@ -37,6 +37,8 @@ import { BalboaRoom } from './BalboaRoom';
 import { GalleryRoom } from './GalleryRoom';
 import { DaydreamRoom } from './DaydreamRoom';
 import { ThereminRoom } from './ThereminRoom';
+import { VoidRoom } from './VoidRoom';
+import { WaitingRoomRoom } from './WaitingRoomRoom';
 import { MemoryLaneRoom } from './MemoryLaneRoom';
 import { InternetRoom } from './InternetRoom';
 import { MoonlightRoom } from './MoonlightRoom';
@@ -52,6 +54,7 @@ import { TurtleRoom } from './TurtleRoom';
 import { TubesRoom } from './TubesRoom';
 import { MainStreetRoom } from './MainStreetRoom';
 import { DinerRoom } from './DinerRoom';
+import { BarRoom } from './BarRoom';
 import { LiveRoom } from './LiveRoom';
 import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
@@ -157,6 +160,8 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   gallery: (room) => <GalleryRoom room={room} />,
   daydream: (room) => <DaydreamRoom room={room} />,
   theremin: (room) => <ThereminRoom room={room} />,
+  void: (room) => <VoidRoom room={room} />,
+  waitingroom: (room) => <WaitingRoomRoom room={room} />,
   memorylane: (room) => <MemoryLaneRoom room={room} />,
   internet: (room) => <InternetRoom room={room} />,
   moonlight: (room) => <MoonlightRoom room={room} />,
@@ -172,6 +177,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   tubes: (room) => <TubesRoom room={room} />,
   mainstreet: (room) => <MainStreetRoom room={room} />,
   diner: (room) => <DinerRoom room={room} />,
+  bar: (room) => <BarRoom room={room} />,
   // The Basement Sessions — the recording-studio wing (off the practice room).
   liveroom: (room) => <LiveRoom room={room} />,
   controlroom: (room) => <ControlRoom room={room} />,

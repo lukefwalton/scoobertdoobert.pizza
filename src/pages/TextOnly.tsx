@@ -75,7 +75,7 @@ export default function TextOnly() {
         </a>
       </p>
       <p>
-        <small>&copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation</small>
+        <small>&copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation</small>
       </p>
     </main>
   );

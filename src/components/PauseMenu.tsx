@@ -14,6 +14,7 @@ import { songMeaning } from '../data/songMeta';
 import { hasLyrics } from '../data/lyrics';
 import { questStatus, completionPct, allQuestsDone } from '../data/quests';
 import { dancedCount } from '../lib/danceAlong';
+import { shareResult } from '../lib/share';
 import { audio } from '../audio/engine';
 import { WorldMap } from './WorldMap';
 import { LeaderboardPanel } from './LeaderboardPanel';
@@ -258,6 +259,19 @@ export function PauseMenu() {
               }}
             >
               ♪ music: {!audioReady ? 'loading…' : muted ? 'off' : 'on'}
+            </button>
+            <button
+              onClick={() => {
+                const pct = completionPct(progress);
+                const secrets = progress.secretsFound.length;
+                const best = progress.pizzaPointsBest.toLocaleString();
+                const text = allQuestsDone(progress)
+                  ? `🍕 I've seen it all on scoobertdoobert.pizza — 100%, ${secrets} secrets, best ${best} pizza points. Come get haunted:`
+                  : `🍕 I'm ${pct}% into scoobertdoobert.pizza — ${visitedRooms.length} rooms, ${secrets} secrets, best ${best} pizza points. Come explore:`;
+                void shareResult(text);
+              }}
+            >
+              ↗ share
             </button>
             <button onClick={() => setPaused(false)}>Resume</button>
             <button

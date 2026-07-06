@@ -6,7 +6,7 @@ import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
+const { browser, ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 await ctx.addInitScript(() => {
   try {
     sessionStorage.setItem('sdp_booted', '1');
@@ -47,6 +47,14 @@ if (welcomeUp) {
   }
 }
 
+// The first-run control hint (how to move/look) shows on entry — the FTUE teach the
+// welcome card (pure tone) omits. It must clear the instant you move (checked below).
+const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!hintUp) fail('CONTROL HINT MISSING: no move/look legend on world entry');
+
 await page.waitForTimeout(3000); // WebGL warmup + frames
 await page.screenshot({ path: '.shots/world.png' });
 await page.waitForTimeout(1600);
@@ -57,6 +65,15 @@ await page.keyboard.down('w');
 await page.waitForTimeout(2000);
 await page.keyboard.up('w');
 await page.waitForTimeout(400);
+// Moving above should have faded the control hint out — prove it cleared.
+const hintGone = await page
+  .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2000 })
+  .then(
+    () => true,
+    () => false,
+  );
+if (hintUp && !hintGone) fail('CONTROL HINT STUCK: legend did not clear after moving');
+else if (hintUp) console.log('control hint shows on entry, clears on move');
 await page.screenshot({ path: '.shots/world-hotspot.png' });
 await page.keyboard.press('e');
 await page.waitForTimeout(500);
@@ -83,6 +100,142 @@ if (
   );
 } else {
   console.log('pause is modal (camera frozen while paused)');
+}
+
+// DURABLE FIRST-RUN: moving earlier persisted "taught", so re-entering the world (a
+// reload) must NOT show the control hint again — it's first-run, not per-entry.
+if (hintUp && hintGone) {
+  await page.reload({ waitUntil: 'commit' });
+  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+  await page
+    .getByRole('button', { name: /dismiss intro/i })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  // Watch a settled WINDOW rather than a single post-sleep snapshot: the hint must
+  // not reappear at ANY point in this interval, so a late HUD settle on a slow CI
+  // runner can't slip a durable-flag regression past a one-shot check. waitForSelector
+  // resolving = it came back (regression); timing out = it stayed gone (pass).
+  const reappeared = await page.waitForSelector('.hud-controlhint', { timeout: 2500 }).then(
+    () => true,
+    () => false,
+  );
+  if (reappeared) fail('CONTROL HINT NOT DURABLE: showed again after moving + reloading');
+  else console.log('control hint stays taught across a reload');
+}
+
+// NON-DURABLE DISMISS — the OTHER half of the FTUE contract. The move→reload path
+// above pins the durable side (moved → taught → stays gone). Closing with the × (or
+// letting the ~10s backstop fire) instead only hides the hint THIS visit; it must
+// NOT mark the controls "taught", so a fresh visit shows it AGAIN. A regression that
+// made × / timeout start persisting would slip right past the durable test, so pin
+// it here. A FRESH context = clean localStorage (no "seen" flag from the walk above).
+{
+  const freshCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await freshCtx.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp_booted', '1');
+    } catch {
+      /* ignore */
+    }
+  });
+  const p2 = await freshCtx.newPage();
+  watchPageErrors(p2, fail);
+  await p2.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await p2.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+  // Clear the welcome card first so it can't intercept the click on the hint's ×.
+  await p2
+    .getByRole('button', { name: /dismiss intro/i })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  const hint2 = await p2.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!hint2) {
+    fail('CONTROL HINT MISSING (fresh ctx): no legend to test the non-durable dismiss path');
+  } else {
+    // PAUSED WASD must NOT teach: open the pause menu (a modal owns input), mash a
+    // move key (which does nothing there), close it — the legend must still be up.
+    // "Taught" means the player could ACTUALLY move, not just press a key at a modal.
+    await p2.keyboard.press('Escape'); // open pause
+    await p2.waitForSelector('.hud-pause', { timeout: 3000 }).catch(() => {});
+    await p2.keyboard.press('w');
+    // A pointer DRAG on the canvas while paused (input frozen) must not teach either — the
+    // pointer teach path shares the keyboard path's frozen-input gate (teachBlocked). We
+    // dispatch straight at the canvas element so the pause overlay's z-order can't swallow
+    // it; the GUARD (not the overlay) is what must stop the teach. The positive twin — an
+    // unfrozen drag DOES teach, via the same dispatch — runs at the end of this block.
+    await p2.evaluate(() => {
+      const c = document.querySelector('canvas');
+      if (!c) return;
+      const P = (type, x, y, on) =>
+        (on || window).dispatchEvent(
+          new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }),
+        );
+      P('pointerdown', 640, 400, c);
+      P('pointermove', 700, 460);
+      P('pointerup', 700, 460);
+    });
+    await p2.keyboard.press('Escape'); // close pause
+    await p2.waitForTimeout(300);
+    if ((await p2.$('.hud-controlhint')) === null)
+      fail('CONTROL HINT: input (WASD/drag) while the pause menu owned it wrongly taught');
+    else
+      console.log('control hint survives WASD + canvas drag while paused (frozen never teaches)');
+    // Close with × (no move / no look) — hides this visit, must NOT teach.
+    await p2.getByRole('button', { name: /dismiss controls hint/i }).click({ timeout: 3000 });
+    // ...and IMMEDIATELY move during the ~500ms fade-out. The teach listeners are still
+    // attached while the card fades, so a move here must NOT upgrade the × dismiss into a
+    // durable teach (durability is latched on the FIRST hide — the × won). No waits: the
+    // press has to land inside the fade window, before the card unmounts.
+    await p2.keyboard.press('w');
+    await p2
+      .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2000 })
+      .catch(() => {});
+    // Reload → because × (not the mid-fade move) decided durability, the hint must RETURN.
+    await p2.reload({ waitUntil: 'commit' });
+    await p2.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+    await p2
+      .getByRole('button', { name: /dismiss intro/i })
+      .click({ timeout: 3000 })
+      .catch(() => {});
+    const returned = await p2.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+      () => true,
+      () => false,
+    );
+    if (!returned)
+      fail('CONTROL HINT WRONGLY PERSISTED: × then a move during the fade must not teach');
+    else
+      console.log('control hint returns after × + mid-fade move + reload (× latches non-durable)');
+
+    // POSITIVE TWIN: the SAME canvas-drag dispatch, now UNFROZEN, MUST teach — proving the
+    // paused-drag negative above blocks on the freeze, not because synthetic events never
+    // landed on the listener.
+    if (returned) {
+      await p2.waitForTimeout(300); // let any entry-settle freeze clear
+      await p2.evaluate(() => {
+        const c = document.querySelector('canvas');
+        if (!c) return;
+        const P = (type, x, y, on) =>
+          (on || window).dispatchEvent(
+            new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 2 }),
+          );
+        P('pointerdown', 640, 400, c);
+        P('pointermove', 700, 460);
+        P('pointerup', 700, 460);
+      });
+      const taughtByDrag = await p2
+        .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2500 })
+        .then(
+          () => true,
+          () => false,
+        );
+      if (!taughtByDrag)
+        fail('CONTROL HINT: a real (unfrozen) canvas drag did not teach — pointer path broken');
+      else console.log('control hint clears on a real unfrozen canvas drag (pointer teach works)');
+    }
+  }
+  await freshCtx.close();
 }
 
 await finish(

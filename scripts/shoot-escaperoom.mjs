@@ -29,37 +29,50 @@ const close = await page.$('.hud-welcome__close');
 if (close) await close.click();
 await page.waitForTimeout(300);
 
-// ── 1) ROOM ONE: the bell reveals the back-hall door ────────────────────────
+// ── 1) ROOM ONE: the bell reveals the back-hall door — via the SHARED E VERB ──
+// The FTUE fix (2026-07): the counter bell now answers the same "Press E" / touch
+// action the rest of the world teaches, not just a mouse click — so a keyboard-only
+// player can ring it and get downstairs. Prove the whole chain: hidden door → the
+// bell's interact PROMPT appears on approach → keyboard E fires it → hall manifests.
+// (The mouse-click + action-hook fire paths stay covered by shoot:rooms' bell rings.)
 await roomHas('Beach Pizza Shop');
-// Before ringing: walk back toward the +Z wall — the hall door is hidden, so no
-// door prompt should appear.
+// Before ringing: the hall door is hidden, so walking back shows no door prompt.
 const promptBefore = await holdUntilDoorPrompt(page, 's', { timeout: 2500 });
 if (promptBefore) fail('the back-hall door prompted BEFORE the bell was rung (should be hidden)');
 
-// Ring the counter bell with a REAL mouse CLICK on the bell mesh (its knob sits at
-// world [-2.2, 0.6, -0.5]) — this exercises the actual onClick raycast → fireTrigger
-// path, not just the action hook. __sdpProject maps the world point to the exact
-// canvas pixel via the live camera.
-const canvasBox = await page.locator('canvas').boundingBox();
-await page.waitForFunction(() => typeof window.__sdpProject === 'function', null, {
-  timeout: 6000,
-});
-const bellPx = await page.evaluate(() => window.__sdpProject([-2.2, 0.6, -0.5]));
-let rang = false;
-if (bellPx && bellPx[0] > 0 && bellPx[0] < 1 && bellPx[1] > 0 && bellPx[1] < 1) {
-  await page.mouse.click(
-    canvasBox.x + bellPx[0] * canvasBox.width,
-    canvasBox.y + bellPx[1] * canvasBox.height,
+// Walk FORWARD to the counter — the REAL proximity scan (the Interactables REACH
+// distance check) publishes nearInteractable and its "Press E" prompt appears
+// naturally, so this covers the actual discovery path, not just the verb. (The
+// shop is open, so a straight forward walk crosses the bell's radius.)
+await page.keyboard.down('w');
+const bellPrompt = await page
+  .waitForFunction(
+    () =>
+      /ring the counter bell/i.test(
+        document.querySelector('.hud-prompt--interact')?.textContent ?? '',
+      ),
+    null,
+    { timeout: 7000, polling: 150 },
+  )
+  .then(
+    () => true,
+    () => false,
   );
+await page.keyboard.up('w');
+if (!bellPrompt)
+  fail('walking up to the counter never surfaced the bell interact prompt (real proximity scan)');
+
+// Ring it via the SHARED VERB — keyboard E, not a mouse click. This IS the fix.
+let rang = false;
+if (bellPrompt) {
+  await page.keyboard.press('e');
   await page.waitForTimeout(300);
   rang = true;
-} else {
-  fail(`the shop bell did not project into view for a real click (got ${JSON.stringify(bellPx)})`);
 }
 
 // After ringing: the hall door has manifested — walking back now prompts it.
 const promptAfter = await holdUntilDoorPrompt(page, 's', { timeout: 6000 });
-if (!promptAfter) fail('the back-hall door never appeared after ringing the bell');
+if (!promptAfter) fail('the back-hall door never appeared after ringing the bell via E');
 await page.screenshot({ path: '.shots/escaperoom-shop.png' });
 
 // ── 2) THE 1101 LEVEL: the tape reveals the door → the text adventure ────────
@@ -141,7 +154,7 @@ const closed = await page
 if (!closed) fail('the "Return to the world" button did not close the 1101 level overlay');
 
 console.log(
-  `escaperoom: rang=${rang} beforeHidden=${!promptBefore} revealed=${promptAfter} ` +
+  `escaperoom: prompt=${bellPrompt} rangViaE=${rang} beforeHidden=${!promptBefore} revealed=${promptAfter} ` +
     `tookReel=${took} levelOpened=${opened} framed=${framed} story=${storyLoaded} closed=${closed} ` +
     `| errors=${failures()}`,
 );

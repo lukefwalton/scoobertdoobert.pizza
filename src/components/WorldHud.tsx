@@ -14,6 +14,8 @@ import { castSpell, castEquippedSpell } from '../lib/spellcast';
 import { QUESTS, allQuestsDone, objectiveChipVisible } from '../data/quests';
 import { ObjectiveHud } from './ObjectiveHud';
 import { WelcomeOverlay } from './WelcomeOverlay';
+import { ControlHint } from './ControlHint';
+import { FinaleCard } from './FinaleCard';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
@@ -44,6 +46,7 @@ export function WorldHud() {
   const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearEntity = useSceneStore((s) => s.nearEntity);
+  const nearInteractable = useSceneStore((s) => s.nearInteractable);
   const rhythmActive = useRhythmStore((s) => s.active);
   const nearNpc = useSceneStore((s) => s.nearNpc);
   const openNpc = useSceneStore((s) => s.openNpc);
@@ -355,6 +358,8 @@ export function WorldHud() {
       )}
 
       <WelcomeOverlay />
+      <ControlHint />
+      <FinaleCard />
 
       {!pendingRoom && (
         <div className="hud-room" aria-hidden="true">
@@ -376,20 +381,36 @@ export function WorldHud() {
           <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
         ))}
 
-      {nearTv && !nearDoor && !open && !paused && !pendingRoom && (
+      {/* The escape-room bell/switch prompt — ranks just under a door (matches
+          worldActions.interactNearby), so ringing it answers the same Press E. */}
+      {nearInteractable && !nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--interact">Press E to {nearInteractable.label}</div>
+      )}
+
+      {nearTv && !nearDoor && !nearInteractable && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
       )}
 
-      {nearArcade && !nearDoor && !nearTv && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt hud-prompt--arcade">Press E to play</div>
-      )}
+      {nearArcade &&
+        !nearDoor &&
+        !nearInteractable &&
+        !nearTv &&
+        !open &&
+        !paused &&
+        !pendingRoom && <div className="hud-prompt hud-prompt--arcade">Press E to play</div>}
 
-      {nearHs && !nearDoor && !nearTv && !nearArcade && !open && !paused && !pendingRoom && (
-        <div className="hud-prompt">{nearHs.prompt}</div>
-      )}
+      {nearHs &&
+        !nearDoor &&
+        !nearInteractable &&
+        !nearTv &&
+        !nearArcade &&
+        !open &&
+        !paused &&
+        !pendingRoom && <div className="hud-prompt">{nearHs.prompt}</div>}
 
       {nearNpc &&
         !nearDoor &&
+        !nearInteractable &&
         !nearTv &&
         !nearHs &&
         !open &&
@@ -401,6 +422,7 @@ export function WorldHud() {
 
       {nearEntity &&
         !nearDoor &&
+        !nearInteractable &&
         !nearTv &&
         !nearHs &&
         !nearNpc &&
@@ -420,6 +442,7 @@ export function WorldHud() {
           pickup. */}
       {nearPickup &&
         !nearDoor &&
+        !nearInteractable &&
         !nearTv &&
         !nearArcade &&
         !nearHs &&
@@ -437,6 +460,7 @@ export function WorldHud() {
           (door / TV / cabinet / hotspot / NPC / dance / pickup) is in reach. */}
       {nearLookable &&
         !nearDoor &&
+        !nearInteractable &&
         !nearTv &&
         !nearArcade &&
         !nearHs &&

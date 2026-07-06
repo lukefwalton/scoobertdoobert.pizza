@@ -50,6 +50,74 @@ export function rankFor(scores: { score: number }[], score: number): number {
   return scores.filter((s) => s.score > score).length + 1;
 }
 
+export type RankNeighbor = { rank: number; initials: string; score: number };
+export type RankWindow = {
+  /** 1-based rank this score holds/would hold (ties share; == rankFor). */
+  rank: number;
+  /** # of entries strictly above (== rank - 1) — the sorted insertion index. */
+  index: number;
+  /** Points to the next-higher entry (the motivating "gap to climb"); 0 at the top. */
+  gap: number;
+  /** The real entries immediately around this rank, each with its COMPETITION rank —
+   *  ties share a number, the same rule as `rank`/rankFor, so a neighbor tied with the
+   *  player reads the player's own number (never an ordinal that drifts past it). */
+  neighbors: RankNeighbor[];
+};
+
+/** The rank picture for ONE score against the (descending-sorted) board: its rank,
+ *  the gap to the next-higher entry, and the handful of real entries around it — so
+ *  a player OUTSIDE the top-N still gets a "you're #N, X points to climb, here's who's
+ *  near you" strip (the motivate-the-90% view). Pure + unit-tested. `scores` must be
+ *  sorted DESC (api/score's readScores already is). Works for an UNSTORED score too
+ *  (a just-played run not yet on the board), since it ranks by comparison, not lookup. */
+export function windowAround(
+  scores: { initials: string; score: number }[],
+  score: number,
+  radius = 5,
+): RankWindow {
+  const index = scores.filter((s) => s.score > score).length; // strictly-greater count
+  const rank = index + 1;
+  const gap = index > 0 ? scores[index - 1].score - score : 0;
+  const from = Math.max(0, index - radius);
+  const to = Math.min(scores.length, index + radius);
+  const neighbors = scores.slice(from, to).map((s) => ({
+    // Competition rank (ties SHARE a number), the SAME rule as `rank` above — so a
+    // neighbor tied with the player shows the player's own number, not an ordinal that
+    // drifts past it. On [100,90,90,50] both 90s are #2 and the 50 is #4 (1-2-2-4).
+    rank: rankFor(scores, s.score),
+    initials: s.initials,
+    score: s.score,
+  }));
+  return { rank, index, gap, neighbors };
+}
+
+/** A leaderboard TIME filter. 'all' = every score ever; 'today'/'week' = the current UTC
+ *  calendar day / ISO week. (Distinct from the RANK window above — this is time-boxing.) */
+export type LeaderWindow = 'today' | 'week' | 'all';
+
+/** Coerce an unknown query value to a LeaderWindow; anything unrecognized → 'all' (the
+ *  backward-compatible default, so a missing/garbage `?window=` behaves like before). */
+export function asWindow(v: unknown): LeaderWindow {
+  return v === 'today' || v === 'week' ? v : 'all';
+}
+
+const DAY_MS = 86_400_000;
+
+/** The inclusive lower-bound timestamp (ms) for a window, or null for 'all' (no filter).
+ *  CALENDAR boundaries in UTC: 'today' = 00:00:00 UTC of the current day; 'week' = 00:00:00
+ *  UTC of the current ISO week's Monday. Pure — the caller passes `nowMs` (Date.now() in the
+ *  serverless handler), so it's deterministic + unit-testable. Compare a score's `ts` with
+ *  `Date.parse(ts) >= cutoff`. */
+export function windowCutoff(window: LeaderWindow, nowMs: number): number | null {
+  if (window === 'all') return null;
+  const d = new Date(nowMs);
+  const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  if (window === 'today') return dayStart;
+  // 'week': back up to Monday 00:00 UTC (ISO 8601; getUTCDay() is 0=Sun..6=Sat).
+  const daysSinceMonday = (d.getUTCDay() + 6) % 7;
+  return dayStart - daysSinceMonday * DAY_MS;
+}
+
 /** Three A–Z letters, uppercased — the classic arcade tag (server-side mirror). */
 export function cleanInitials(v: unknown): string {
   return String(v ?? '')

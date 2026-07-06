@@ -3,6 +3,7 @@ import { Water } from './Water';
 import { Boids } from './Boids';
 import { Hotspots } from './Hotspots';
 import { SkillOrb } from './SkillOrb';
+import { ShopFittings } from './ShopFittings';
 
 // The beach pizza shop (ROOMS[0]) as a self-contained scene: its own lights
 // (warm sun + cyan bounce), the box interior, the sea + pizza-slice school out
@@ -18,6 +19,10 @@ export function ShopRoom() {
       <Water />
       <Boids />
       <Hotspots />
+      {/* The Trophy Pizzeria dressing: the service counter + the reactive back-bar
+          hall of fame (the finale award, collected tapes, luck clover, goblin
+          trophy) — the lobby grows with what you've done. */}
+      <ShopFittings />
       {/* The starter skill, right in the first room: a JUMP orb floating in view
           of the spawn (which faces the sea). Walk into it → "ooo, a skill" — the
           springy exploration verb, learned before you've even left the lobby. */}

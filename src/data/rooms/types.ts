@@ -59,6 +59,18 @@ export type RoomKind =
   // beat (musicRoom — it owns the space). The first sustained/continuous voice on
   // the music ladder (every other instrument is struck/plucked).
   | 'theremin'
+  // The Void (虚空) — the cosmic 3D-screensaver deep off the theremin: a wordless
+  // black gulf where blue RINGED PLANETS drift in slow orbits over a dark, rippling,
+  // reflective void-floor, under a full dome of stars. Pure 90s-screensaver wonder —
+  // SWEET, hypnotic, below SAFE (a cosmic exhale, never a scare). Drift + ripple
+  // freeze under reduced motion.
+  | 'void'
+  // The Waiting Room (待合室) — a liminal municipal lobby through a door in the
+  // drained deep end: rows of bolted-down chairs facing a shuttered reception
+  // window, a dead CRT hissing dim static, a NOW SERVING sign stuck on 404, all
+  // under a flickering drop-ceiling. Funny-UNCANNY (the dread is the endless wait,
+  // never a scare — the taste line holds); an atmospheric dead-end off deeppool.
+  | 'waitingroom'
   // The Memory Lane wing — a digital-nostalgia branch off the classified file
   // room: a corridor of glowing CRTs showing old-web fragments, opening into a
   // dark server-void where drifting data motes are "all my friends." Mildly
@@ -114,6 +126,12 @@ export type RoomKind =
   // booths, a pie case, checker floor, buzzing sign — and a row of low-poly
   // TAXIDERMY animal heads that watch the room. Warm-uncanny (funny, not grim).
   | 'diner'
+  // Doobert's — a warm PS1 dive bar at the dark far end of Main Street: a long bar
+  // under a bottle-wall backbar + a dead MIRROR that reflects nothing (PS1 has no
+  // reflections — the gag), buzzing pink neon, red-vinyl stools, string lights, a
+  // dartboard, and a hardcover of RAY TRACING propped among the liquor (deadpan).
+  // A cozy-WARM relief beat off the eerie street — never a scare (the taste holds).
+  | 'bar'
   // The Jumping Turtle — the defunct all-ages pub / music venue off North Park
   // (San Marcos, where he played in high school). Abandoned-venue register:
   // flyer-covered doors, a small stage under the leaping-turtle sign, left-behind

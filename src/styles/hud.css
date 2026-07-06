@@ -41,6 +41,12 @@
   border-color: rgba(255, 196, 92, 0.9);
   color: #ffe6b0;
 }
+/* ring-the-bell / escape-room interactable cue — bright amber, the "do this and a
+   way opens" gold (matches the glowing bell/switch mesh). */
+.hud-prompt--interact {
+  border-color: rgba(255, 207, 77, 0.9);
+  color: #ffedb0;
+}
 
 /* the arcade SCORE readout — top-right, stacked chips (points · live combo · how
    tall the snacks made you). Mirrors the objective chip's quiet HUD voice. */
@@ -517,6 +523,75 @@
   text-align: center;
   color: #8a8a8a;
   font-style: italic;
+}
+
+/* ── first-run control hint ─────────────────────────────────────────────────
+   The one thing the welcome card doesn't teach: how to move/look. A quiet
+   bottom-centre legend (ControlHint) that fades out the instant the player moves
+   or looks. Sits above the prompt row; WCAG-safe (a soft fade, no flash). */
+.hud-controlhint {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%);
+  z-index: 66;
+  max-width: min(92vw, 470px);
+  padding: 7px 32px 7px 14px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #e6edf5;
+  background: rgba(12, 15, 22, 0.74);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  animation: hud-controlhint-in 0.45s ease backwards;
+}
+.hud-controlhint--leaving {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+.hud-controlhint__keys {
+  margin: 0;
+  /* Decorative legend — must never steal pointer events from the × close button it
+     shares the corner with (the dim tail can overlap the button's hit box). */
+  pointer-events: none;
+}
+.hud-controlhint__keys strong {
+  color: #fff;
+  font-weight: 700;
+}
+.hud-controlhint__dim {
+  opacity: 0.62;
+}
+.hud-controlhint__close {
+  position: absolute;
+  top: 3px;
+  right: 7px;
+  padding: 1px 5px;
+  background: none;
+  border: none;
+  color: #c6d0dc;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+@keyframes hud-controlhint-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-controlhint {
+    animation: none;
+  }
+  .hud-controlhint--leaving {
+    transition: none;
+  }
 }
 
 /* ── Scoobertverse welcome ──────────────────────────────────────────────────
@@ -1120,4 +1195,92 @@
   margin: 0;
   font-size: 13px;
   color: #cfe9f0;
+}
+
+/* The 100% capstone card (FinaleCard) — a sweet, celebratory gold plaque that
+   appears the instant the durable 'finale' secret banks, in ANY room, carrying the
+   share button. Once-ever (a durable flag retires it on dismiss). Reduced-motion:
+   no entrance animation. */
+.hud-finale {
+  position: fixed;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  z-index: 80;
+  max-width: min(92vw, 400px);
+  padding: 18px 24px 20px;
+  text-align: center;
+  color: #2a1e06;
+  background: linear-gradient(#ffe9a8, #ffd25c);
+  border: 2px solid #b8862a;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  animation: hud-finale-in 0.5s ease backwards;
+}
+.hud-finale__close {
+  position: absolute;
+  top: 4px;
+  right: 9px;
+  padding: 1px 6px;
+  background: none;
+  border: none;
+  color: #6a4c14;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.hud-finale__badge {
+  margin: 0 0 4px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: #a8600f;
+}
+.hud-finale__title {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 800;
+}
+.hud-finale__sub {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #4a380e;
+}
+.hud-finale__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.hud-finale__share,
+.hud-finale__ok {
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.hud-finale__share {
+  color: #fff;
+  background: #c0392b;
+  border: 1px solid #8a271c;
+}
+.hud-finale__ok {
+  color: #2a1e06;
+  background: #fff3d0;
+  border: 1px solid #b8862a;
+}
+@keyframes hud-finale-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-finale {
+    animation: none;
+  }
 }

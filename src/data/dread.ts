@@ -63,6 +63,9 @@ export const DREAD: DreadConfig = {
     //              it via the 'mobius-loop' trigger — the base stays goofy-low
     liminal: 0.5, // bright empty backrooms GLB — uncanny, a notch past the pool
     deeppool: 0.78, // the drained deep end, lights long dead — near the bitter end
+    waitingroom: 0.44, // the liminal municipal lobby off the deep end — over-lit,
+    //                    empty, uncanny (the endless wait), a notch past the pool
+    //                    but well shy of dread: funny-uncanny, the taste line holds
     terminus: 0.82, // the backrooms at the end of the line — the new bitter bottom
     'metro-tunnel': 0.55, // abandoned undersea tunnel — uncanny, but its shitty
     //                       shinkansen + neon are a GOOFY beat, so kept moderate
@@ -89,9 +92,15 @@ export const DREAD: DreadConfig = {
     //                     (a touch below the night version; you can see your way out)
     diner: 0.07, // the all-night diner — cozy-wrong, back down near the turtle's
     //              warmth (the animal heads watch, but it's funny-uncanny, not grim)
+    bar: 0.06, // Doobert's — the warm dive at the far end of the street; a relief
+    //            beat (right at SAFE): someone's still open, the neon's still on
+
     theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:
     //                 a SWEET relief beat (below SAFE so it DECAYS), a cosmic exhale
     //                 you play with your body, not a dread room (taste guardrail)
+    void: 0.03, // The Void — the cosmic screensaver off the theremin: pure wonder
+    //             (below SAFE so it DECAYS), drifting planets over a rippling void;
+    //             hypnotic and sweet, never a scare (the taste line holds)
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)

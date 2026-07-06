@@ -5,7 +5,9 @@ import {
   RANKED_TOP,
   scorePath,
   parseScorePath,
-  rankFor,
+  windowAround,
+  windowCutoff,
+  asWindow,
   validateSubmission,
 } from '../src/lib/leaderboardCore';
 
@@ -31,7 +33,15 @@ type VercelResponse = ServerResponse & {
   json: (jsonBody: unknown) => VercelResponse;
 };
 
-type Entry = { initials: string; score: number };
+type Entry = { initials: string; score: number; ts?: string };
+
+/** Coerce a blob's `uploadedAt` (a Date from @vercel/blob) to an ISO string, tolerating a
+ *  string or absent value so a shape change never throws mid-read. */
+function toIso(v: unknown): string | undefined {
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === 'string') return v;
+  return undefined;
+}
 
 // One list call returns up to 1000 blobs. Because the inverted-score key sorts the
 // TOP scores first, the first page always holds the board even past 1000 lifetime
@@ -48,7 +58,9 @@ async function readScores(): Promise<Entry[] | null> {
     const out: Entry[] = [];
     for (const b of blobs) {
       const parsed = parseScorePath(b.pathname);
-      if (parsed) out.push(parsed);
+      // `list()` gives the blob's upload time for free (no per-row fetch) — carry it so the
+      // GET can time-box (Today / This Week) without reading each blob's body.
+      if (parsed) out.push({ ...parsed, ts: toIso(b.uploadedAt) });
     }
     out.sort((a, b) => b.score - a.score);
     return out;
@@ -69,7 +81,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     const limRaw = Array.isArray(req.query?.limit) ? req.query?.limit[0] : req.query?.limit;
     const limit = Math.max(1, Math.min(RANKED_TOP, Number(limRaw) || 25));
-    res.status(200).json({ ok: true, entries: scores.slice(0, limit) });
+    // `?window=today|week|all`: time-box the board to a UTC calendar day / ISO week before
+    // ranking + slicing (unknown/absent → 'all', the prior behavior). Filtering FIRST means
+    // rank/gap/neighbors are all relative to the chosen window.
+    const winRaw = Array.isArray(req.query?.window) ? req.query?.window[0] : req.query?.window;
+    const cutoff = windowCutoff(asWindow(winRaw), Date.now());
+    const board =
+      cutoff === null ? scores : scores.filter((s) => s.ts != null && Date.parse(s.ts) >= cutoff);
+    // `?around=<score>`: also return THIS player's rank window (own rank + gap-to-next +
+    // the real entries around them), so a player outside the top-N still sees where they
+    // stand. Works for an unstored just-played score (windowAround ranks by comparison).
+    const aroundRaw = Array.isArray(req.query?.around) ? req.query?.around[0] : req.query?.around;
+    const around = aroundRaw != null && aroundRaw !== '' ? Number(aroundRaw) : NaN;
+    const you =
+      Number.isFinite(around) && around > 0 ? windowAround(board, Math.floor(around)) : undefined;
+    res.status(200).json({ ok: true, entries: board.slice(0, limit), ...(you ? { you } : {}) });
     return;
   }
 
@@ -127,12 +153,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(200).json({ ok: true, stored: true, rank: 0, ranked: false, entries: [] });
     return;
   }
-  const rank = rankFor(scores, v.score);
+  // The just-written score is now in `scores`, so this window places the player among
+  // real neighbors (own rank + gap-to-next + the entries around them) for the "you" strip.
+  const you = windowAround(scores, v.score);
   res.status(200).json({
     ok: true,
     stored: true,
-    rank,
-    ranked: rank <= RANKED_TOP,
+    rank: you.rank,
+    ranked: you.rank <= RANKED_TOP,
+    you,
     entries: scores.slice(0, 25),
   });
 }

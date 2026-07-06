@@ -613,6 +613,9 @@ export const SURFACE_ROOMS: Room[] = [
       fromNorthPark: { position: [0, EYE, 6.5], yaw: Math.PI },
       // Back out of the diner: by the -X door, facing +X back onto the street.
       fromDiner: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+      // Back out of the bar at the far end: a step up-street of the -Z door,
+      // facing +Z back up the street, clear of every door radius.
+      fromBar: { position: [0, EYE, -6.5], yaw: 0 },
     },
     doors: [
       {
@@ -631,6 +634,15 @@ export const SURFACE_ROOMS: Room[] = [
         position: [-6.95, 0, -2], // -X — the only lit doorway on the street
         rotationY: Math.PI / 2,
         label: 'step into the all-night diner',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreet-to-bar',
+        to: 'bar',
+        toSpawn: 'fromMainstreet',
+        position: [0, 0, -9.95], // -Z — the last lit place at the dark far end
+        rotationY: Math.PI,
+        label: 'into the bar at the end of the street',
         radius: 3.2,
       },
     ],
@@ -670,6 +682,36 @@ export const SURFACE_ROOMS: Room[] = [
         rotationY: 0,
         label: 'through to the kitchen',
         radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'bar',
+    kind: 'bar',
+    title: "Doobert's",
+    // A warm PS1 dive bar at the dark far end of Main Street — the last lit place:
+    // a bottle-wall backbar + a dead mirror, pink DOOBERT'S neon, red stools,
+    // string lights, a dartboard, and a hardcover of RAY TRACING among the liquor.
+    // Cozy-WARM (a relief beat off the eerie street; the taste line holds). The
+    // carried track keeps playing — a bar always has something on.
+    dims: { halfW: 7, halfD: 5.5, height: 3.6, eye: EYE },
+    // Warm brown-black, close amber fog — an intimate dive, most of it in shadow.
+    palette: { background: '#160d09', fog: '#241811', fogNear: 5, fogFar: 24 },
+    spawns: {
+      // In the door at the +Z front, facing -Z across the room at the bar + the
+      // glowing bottle wall. Clear of the return door's radius.
+      default: { position: [0, EYE, 2.0], yaw: Math.PI },
+      fromMainstreet: { position: [0, EYE, 2.0], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'bar-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromBar',
+        position: [0, 0, 5.45], // +Z — back out onto the street
+        rotationY: 0,
+        label: 'back out onto the street',
+        radius: 3.2,
       },
     ],
   },

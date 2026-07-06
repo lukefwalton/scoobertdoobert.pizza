@@ -275,7 +275,7 @@ world), NEVER to the blog/podcast or to Luke**:
 
 > **★ RAT SPOTTED IN WALL ★**  Follow him downstairs »
 > Six unreleased demos under one roof.  Lo-Fi • Hi-Fi • Stuffed Crust.
-> ©1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
+> ©1997 Scoobert Doobert, Inc. / The San Diego-ish Operation
 
 ---
 

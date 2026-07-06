@@ -24,8 +24,9 @@ export function ObjectiveHud({
   // The render gate is the shared predicate (WorldHud reads the same one to know
   // when to drop the toast below this chip), so the two can't drift.
   if (!objectiveChipVisible(progress, { on, hidden })) return null;
-  // Guaranteed defined: objectiveChipVisible is true only when one is undone.
-  const undone = questStatus(progress).find((q) => !q.done)!.quest;
+  // Guaranteed defined: objectiveChipVisible is true only when a non-bonus one is
+  // undone (bonus objectives don't drive the compass — same filter as the gate).
+  const undone = questStatus(progress).find((q) => !q.done && !q.quest.bonus)!.quest;
 
   const target = undone.room;
   const here = !!target && target === currentRoom;

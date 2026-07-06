@@ -46,6 +46,10 @@ await page.addInitScript(() => {
       ],
       secretsFound: [
         'jump-unlocked',
+        // unlock-radio now keys off the jukebox-roll ritual (not radioUnlocked), so
+        // seed it done here; earn-luck's 'shrine-clap' is deliberately withheld so
+        // the shrine clap below completes the FINAL objective and trips the finale.
+        'jukebox-roll',
         'dice-monster',
         'grass-cleared',
         'danced:seed',
@@ -55,6 +59,29 @@ await page.addInitScript(() => {
       visitedRooms: ['shop', 'hallway', 'jukebox', 'poolrooms', 'shrine', 'terminus'],
     }),
   );
+});
+// Stub navigator so the finale card's share button hits a deterministic clipboard
+// branch (headless has no Web Share sheet + a permission-gated clipboard).
+await page.addInitScript(() => {
+  try {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+  } catch {
+    /* ignore */
+  }
+  window.__shared = null;
+  try {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: (t) => {
+          window.__shared = t;
+          return Promise.resolve();
+        },
+      },
+    });
+  } catch {
+    /* ignore */
+  }
 });
 await page.goto(base + '/?room=shrine&debug=1', { waitUntil: 'networkidle' });
 await page
@@ -90,6 +117,7 @@ await page.waitForTimeout(600);
 
 let finaleToast = false;
 let finaleSecret = false;
+let finaleCard = false;
 let badge = false;
 if (hasClap) {
   if ((await secrets()).includes('finale'))
@@ -116,6 +144,38 @@ if (hasClap) {
   finaleSecret = (await secrets()).includes('finale');
   if (!finaleSecret) bad('finale: durable finale secret not recorded');
 
+  // The persistent 100% CAPSTONE card appears (in-room, wherever you are) carrying
+  // the share button — the legible, shareable finale, not just the fleeting toast.
+  // Dismiss it and confirm it retires (a durable once-ever flag).
+  finaleCard = await page.waitForSelector('.hud-finale', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!finaleCard) bad('finale: the 100% capstone card did not appear');
+  else {
+    // Exercise the card's SHARE button end-to-end (not just its presence): it must
+    // route the 100% line to the clipboard (the stubbed branch above).
+    if ((await page.$('.hud-finale__share')) === null) {
+      bad('finale: the capstone card has no share button');
+    } else {
+      await page.click('.hud-finale__share', { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const shared = await page.evaluate(() => window.__shared);
+      if (!shared || !/scoobertdoobert\.pizza/.test(shared))
+        bad(
+          `finale: the card's share button did not route the link (got ${JSON.stringify(shared)})`,
+        );
+    }
+    await page.click('.hud-finale__close', { timeout: 3000 }).catch(() => {});
+    const gone = await page
+      .waitForSelector('.hud-finale', { state: 'detached', timeout: 3000 })
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!gone) bad('finale: the capstone card did not dismiss');
+  }
+
   // Pause menu shows the ★ 100% badge.
   await page.keyboard.press('Escape');
   const count = await page
@@ -128,7 +188,7 @@ if (hasClap) {
 }
 
 console.log(
-  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} badge=${badge} errors=${failures()}`,
+  `finale -> clap=${hasClap} toast=${finaleToast} secret=${finaleSecret} card=${finaleCard} badge=${badge} errors=${failures()}`,
 );
 
 await ctx.close();

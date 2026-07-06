@@ -6,6 +6,9 @@ import {
   scorePath,
   parseScorePath,
   rankFor,
+  windowAround,
+  windowCutoff,
+  asWindow,
   cleanInitials,
   validateSubmission,
   SCORE_PREFIX,
@@ -52,6 +55,88 @@ describe('rankFor', () => {
   it('flags not-ranked when beyond the top cutoff', () => {
     const big = Array.from({ length: RANKED_TOP }, () => ({ score: 1000 }));
     expect(rankFor(big, 10) > RANKED_TOP).toBe(true); // rank RANKED_TOP+1 → not ranked
+  });
+});
+
+describe('windowAround', () => {
+  const board = [
+    { initials: 'AAA', score: 100 },
+    { initials: 'BBB', score: 90 },
+    { initials: 'CCC', score: 90 },
+    { initials: 'DDD', score: 50 },
+    { initials: 'EEE', score: 20 },
+  ];
+  it('rank matches rankFor and the gap points to the next-higher entry', () => {
+    const w = windowAround(board, 60, 5);
+    expect(w.rank).toBe(rankFor(board, 60)); // 3 strictly above → rank 4
+    expect(w.rank).toBe(4);
+    expect(w.index).toBe(3);
+    expect(w.gap).toBe(30); // the next-higher score is 90 → 90 - 60
+  });
+  it('gap is 0 at the top (nobody to climb toward)', () => {
+    expect(windowAround(board, 100).gap).toBe(0); // ties the top → none strictly above
+    expect(windowAround(board, 200).rank).toBe(1);
+    expect(windowAround(board, 200).gap).toBe(0);
+  });
+  it('tags neighbors with their COMPETITION rank (ties shared, matching rankFor)', () => {
+    const w = windowAround(board, 60, 1); // index 3, radius 1 → slice [2,4)
+    expect(w.neighbors).toEqual([
+      { rank: 2, initials: 'CCC', score: 90 }, // tied with BBB (90) → both #2, not ordinal #3
+      { rank: 4, initials: 'DDD', score: 50 }, // two 90s above → #4 (1-2-2-4)
+    ]);
+  });
+  it('gives EVERY tied neighbor the same rank (competition, never ordinal)', () => {
+    const w = windowAround(board, 95, 5); // slots between 100 and the 90s
+    const byScore = (s: number) => w.neighbors.filter((n) => n.score === s).map((n) => n.rank);
+    expect(byScore(100)).toEqual([1]);
+    expect(byScore(90)).toEqual([2, 2]); // both 90s share #2 — the bug was 2,3
+    expect(byScore(50)).toEqual([4]); // ties above push it to #4, not #3
+    expect(byScore(20)).toEqual([5]);
+    // and each neighbor's rank equals rankFor for its own score (single source of truth)
+    for (const n of w.neighbors) expect(n.rank).toBe(rankFor(board, n.score));
+  });
+  it('ranks an UNSTORED score below the whole board', () => {
+    const w = windowAround(board, 10, 5);
+    expect(w.rank).toBe(6); // all 5 above → rank 6
+    expect(w.gap).toBe(10); // next-higher 20 → 20 - 10
+    expect(w.neighbors.at(-1)).toEqual({ rank: 5, initials: 'EEE', score: 20 });
+  });
+});
+
+describe('windowCutoff (UTC calendar boundaries) + asWindow', () => {
+  // A fixed instant, mid-morning UTC — the weekday is asserted by property, not hardcoded.
+  const now = Date.UTC(2026, 6, 8, 15, 30, 0); // 2026-07-08T15:30:00Z
+
+  it("'all' → null (no time filter)", () => {
+    expect(windowCutoff('all', now)).toBeNull();
+  });
+
+  it("'today' → 00:00:00 UTC of the current day", () => {
+    const c = windowCutoff('today', now)!;
+    const d = new Date(c);
+    expect([d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]).toEqual([2026, 6, 8]);
+    expect([d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()]).toEqual(
+      [0, 0, 0, 0],
+    );
+  });
+
+  it("'week' → a MONDAY 00:00 UTC, on/before today, within 6 days (ISO week, not Sunday)", () => {
+    const wk = windowCutoff('week', now)!;
+    const td = windowCutoff('today', now)!;
+    const d = new Date(wk);
+    expect(d.getUTCDay()).toBe(1); // 1 = Monday — catches a Sunday-start off-by-one
+    expect(d.getUTCHours()).toBe(0);
+    expect(wk).toBeLessThanOrEqual(td);
+    expect((td - wk) / 86_400_000).toBeLessThanOrEqual(6);
+  });
+
+  it('asWindow coerces anything unrecognized to all', () => {
+    expect(asWindow('today')).toBe('today');
+    expect(asWindow('week')).toBe('week');
+    expect(asWindow('all')).toBe('all');
+    expect(asWindow('bogus')).toBe('all');
+    expect(asWindow(undefined)).toBe('all');
+    expect(asWindow(['today'])).toBe('all'); // an array query value is not a valid window
   });
 });
 
