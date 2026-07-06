@@ -200,13 +200,100 @@ let youStripOk = false;
   await mockCtx.close();
 }
 
+// ── 5. an UNRANKED submit still gets relative context from the POST ───────────
+// The POST path returns `you` for EVERY successful submit, not just top-N ones — so a
+// low/unranked score (even on a loadBoard=false surface like the pause menu) still gets
+// "you're #N, X to climb". Mock the POST as an UNRANKED result carrying `you`, and make
+// the mount GET carry NO `you`, so the only way a strip can appear is from the POST.
+let unrankedSubmitOk = false;
+{
+  const board = Array.from({ length: 5 }, (_, i) => ({ initials: `ZZ${i}`, score: 500 - i * 10 }));
+  const uCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await uCtx.addInitScript(() => {
+    try {
+      localStorage.setItem('sdp_progress_v1', JSON.stringify({ pizzaPointsBest: 42 }));
+    } catch {
+      /* ignore */
+    }
+  });
+  const up = await uCtx.newPage();
+  up.on('pageerror', (e) => errors.push(e.message));
+  await up.route('**/api/score*', (route) => {
+    const isPost = route.request().method() === 'POST';
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(
+        isPost
+          ? {
+              ok: true,
+              stored: true,
+              rank: 73, // well past the top-50 → unranked, but still carries `you`
+              ranked: false,
+              entries: board,
+              you: {
+                rank: 73,
+                index: 72,
+                gap: 8, // 8 points to the next-higher score
+                neighbors: [
+                  { rank: 72, initials: 'QQQ', score: 50 },
+                  { rank: 74, initials: 'RRR', score: 30 },
+                ],
+              },
+            }
+          : { ok: true, entries: board }, // GET (mount): board only, NO `you`
+      ),
+    });
+  });
+  await up.goto(base + '/leaderboard', { waitUntil: 'networkidle' });
+  await up
+    .waitForSelector('.hud-board', { timeout: 8000 })
+    .catch(() => bad('unranked: board never mounted'));
+  if (await up.$('.hud-board__you'))
+    bad('unranked: a you-strip showed before submit (the GET carried no you)');
+  const input = await up.$('.hud-board__initials');
+  if (!input) bad('unranked: no initials input to submit with');
+  else {
+    await input.fill('ZED');
+    await up.$('.hud-board__go').then((b) => b && b.click());
+    const unrankedMsg = await up
+      .waitForFunction(
+        () => /keep climbing/i.test(document.querySelector('.hud-board')?.textContent || ''),
+        null,
+        { timeout: 6000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!unrankedMsg) bad('unranked: no "keep climbing" message after an unranked submit');
+    const postStrip = await up.waitForSelector('.hud-board__you', { timeout: 4000 }).then(
+      (el) => el,
+      () => null,
+    );
+    let rankShown = false;
+    if (!postStrip) bad('unranked: the POST returned `you` but no strip rendered after submit');
+    else {
+      const t = (await postStrip.textContent()) || '';
+      rankShown = /#73/.test(t) && /\b8\b/.test(t) && /climb/i.test(t);
+      if (!rankShown) bad(`unranked: the post-submit you-strip is missing #73 / gap -> ${t}`);
+      const selfT = await up.$('.hud-board__row--you').then((el) => el && el.textContent());
+      if (!selfT || !/ZED/.test(selfT) || !/42/.test(selfT))
+        bad(`unranked: the highlighted YOU row should show the signed ZED/42 -> ${selfT}`);
+    }
+    unrankedSubmitOk = unrankedMsg && rankShown;
+  }
+  await up.screenshot({ path: '.shots/leaderboard-unranked.png' });
+  await uCtx.close();
+}
+
 if (errors.length)
   bad(`leaderboard: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
   `leaderboard -> crawl(marquee=${crawlMarquee} cold=${crawlCold} back=${crawlBack}) ` +
     `gifs(trophy=${gifTrophy} flames=${gifFlames} pizza=${gifPizza} coins=${coinRain}) ` +
     `offlineOnMount=${offlineOnMount} submitGraceful=${submitGraceful} youStrip=${youStripOk} ` +
-    `pauseMenu=${inPause} errors=${errors.length}`,
+    `unrankedSubmit=${unrankedSubmitOk} pauseMenu=${inPause} errors=${errors.length}`,
 );
 
 await ctx.close();
