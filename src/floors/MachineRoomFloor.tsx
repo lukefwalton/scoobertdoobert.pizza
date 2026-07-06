@@ -11,6 +11,12 @@ import type { Floor } from '../data/floors';
 
 // The CRT's live render is lazy — three.js only loads once you're this deep.
 const MiniWorldPreview = lazy(() => import('../world/MiniWorldPreview'));
+// The CRT preview renders Water.tsx, whose `useControls('water')` auto-mounts a
+// DEFAULT (visible) leva panel when no <Leva> exists — which leaked the water
+// tuning GUI over production here (the full world hides it via WorldMount's
+// <Leva hidden>, but this preview path had none). Mount a hidden one so the stray
+// panel never shows. Lazy, so leva stays out of the initial bundle.
+const Leva = lazy(() => import('leva').then((m) => ({ default: m.Leva })));
 
 // ───────────────────────────────────────────────────────────────────────────
 // The bottom floor — the `machineRoom` template (the SGI thesis made literal).
@@ -131,6 +137,10 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
                 fallback={<span className="mr__crt-boot">&#9679; BOOTING /dev/world&hellip;</span>}
               >
                 <MiniWorldPreview />
+                {/* Suppress leva's auto-mounted default panel (see note by the
+                    import). Hidden always here — this is a preview, not a debug
+                    session; the real ?debug panel lives on the full world. */}
+                <Leva hidden collapsed />
               </Suspense>
             )}
             <span className="mr__crt-scanlines" aria-hidden="true" />
