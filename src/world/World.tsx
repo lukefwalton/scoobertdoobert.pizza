@@ -71,6 +71,8 @@ import { PickupController } from './PickupController';
 import { DreadVisuals } from './DreadVisuals';
 import { RoomFireball } from './RoomFireball';
 import { RoomLight } from './RoomLight';
+import { Lookables } from './Lookables';
+import { TallnessDecay } from './TallnessDecay';
 import { CollectBursts } from './CollectBursts';
 
 // Per-room background + fog. The world graph (rooms.ts) carries each room's
@@ -335,6 +337,9 @@ export default function World() {
         <RoomScene room={room} />
       </Suspense>
       <RoomProps room={room} />
+      {/* Flavor curios — one+ per room, click/E for a short story; some are
+          animal heads whose eyes track you. */}
+      <Lookables room={room} />
       <RoomPickups room={room} />
       <RoomLoot room={room} />
       <Entities room={room} />
@@ -352,6 +357,8 @@ export default function World() {
           on which spell). Read the live room for their dims (spread / mote height). */}
       <RoomFireball room={room} />
       <RoomLight room={room} />
+      {/* The loot-height wears off over time (a way to get small again). */}
+      <TallnessDecay />
       {/* The collect-burst pool: a pop of light + sparks wherever anything is
           grabbed (loot, items, skill orbs) — one place, all pickups get the juice. */}
       <CollectBursts />
