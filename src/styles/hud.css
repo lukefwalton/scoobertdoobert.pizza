@@ -552,6 +552,9 @@
 }
 .hud-controlhint__keys {
   margin: 0;
+  /* Decorative legend — must never steal pointer events from the × close button it
+     shares the corner with (the dim tail can overlap the button's hit box). */
+  pointer-events: none;
 }
 .hud-controlhint__keys strong {
   color: #fff;

@@ -6,7 +6,7 @@ import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const { ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
+const { browser, ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 await ctx.addInitScript(() => {
   try {
     sessionStorage.setItem('sdp_booted', '1');
@@ -115,6 +115,60 @@ if (hintUp && hintGone) {
   if (await page.$('.hud-controlhint'))
     fail('CONTROL HINT NOT DURABLE: showed again after moving + reloading');
   else console.log('control hint stays taught across a reload');
+}
+
+// NON-DURABLE DISMISS — the OTHER half of the FTUE contract. The move→reload path
+// above pins the durable side (moved → taught → stays gone). Closing with the × (or
+// letting the ~10s backstop fire) instead only hides the hint THIS visit; it must
+// NOT mark the controls "taught", so a fresh visit shows it AGAIN. A regression that
+// made × / timeout start persisting would slip right past the durable test, so pin
+// it here. A FRESH context = clean localStorage (no "seen" flag from the walk above).
+{
+  const freshCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await freshCtx.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp_booted', '1');
+    } catch {
+      /* ignore */
+    }
+  });
+  const p2 = await freshCtx.newPage();
+  watchPageErrors(p2, fail);
+  await p2.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await p2.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+  // Clear the welcome card first so it can't intercept the click on the hint's ×.
+  await p2
+    .getByRole('button', { name: /dismiss intro/i })
+    .click({ timeout: 3000 })
+    .catch(() => {});
+  const hint2 = await p2.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!hint2) {
+    fail('CONTROL HINT MISSING (fresh ctx): no legend to test the non-durable dismiss path');
+  } else {
+    // Close with × (no move / no look) — hides this visit, must NOT teach.
+    await p2.getByRole('button', { name: /dismiss controls hint/i }).click({ timeout: 3000 });
+    await p2
+      .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2000 })
+      .catch(() => {});
+    // Reload → because × did not teach, the hint must RETURN.
+    await p2.reload({ waitUntil: 'commit' });
+    await p2.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
+    await p2
+      .getByRole('button', { name: /dismiss intro/i })
+      .click({ timeout: 3000 })
+      .catch(() => {});
+    const returned = await p2.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+      () => true,
+      () => false,
+    );
+    if (!returned) fail('CONTROL HINT WRONGLY PERSISTED: closing with × (no move) must not teach');
+    else
+      console.log('control hint returns after × + reload (× hides for the visit, never teaches)');
+  }
+  await freshCtx.close();
 }
 
 await finish(
