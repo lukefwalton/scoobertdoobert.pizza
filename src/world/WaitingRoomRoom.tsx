@@ -147,9 +147,14 @@ export function WaitingRoomRoom({ room }: { room: Room }) {
       }),
     [],
   );
-  const exitTex = useMemo(() => makeTextTexture('EXIT', { fg: '#f6f7ef', bg: '#b81f16' }), []);
+  // Sign atlases stay within the PS1 hard cap (≤128px, NearestFilter): the mesh
+  // planes carry the on-screen size, so the text just reads blockier (more PS1).
+  const exitTex = useMemo(
+    () => makeTextTexture('EXIT', { fg: '#f6f7ef', bg: '#b81f16', w: 128, h: 64 }),
+    [],
+  );
   const nowServingTex = useMemo(
-    () => makeTextTexture('NOW SERVING\n404', { fg: '#ff5a3c', bg: '#141410', w: 256, h: 128 }),
+    () => makeTextTexture('NOW SERVING\n404', { fg: '#ff5a3c', bg: '#141410', w: 128, h: 128 }),
     [],
   );
   const ticketTex = useMemo(

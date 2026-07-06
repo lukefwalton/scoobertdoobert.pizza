@@ -102,8 +102,10 @@ export function BarRoom({ room }: { room: Room }) {
   // ── textures ──────────────────────────────────────────────────────────────
   const floorTex = useMemo(() => makeBarFloorTexture(), []);
   const dartTex = useMemo(() => makeDartboardTexture(), []);
+  // Sign atlases stay within the PS1 hard cap (≤128px, NearestFilter) — the mesh
+  // planes carry the on-screen size, so the neon just reads blockier (more PS1).
   const neonTex = useMemo(
-    () => makeTextTexture("DOOBERT'S", { fg: '#ff56a8', bg: 'transparent', w: 256, h: 96 }),
+    () => makeTextTexture("DOOBERT'S", { fg: '#ff56a8', bg: 'transparent', w: 128, h: 64 }),
     [],
   );
   const beerNeonTex = useMemo(

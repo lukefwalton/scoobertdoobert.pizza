@@ -111,9 +111,15 @@ if (hintUp && hintGone) {
     .getByRole('button', { name: /dismiss intro/i })
     .click({ timeout: 3000 })
     .catch(() => {});
-  await page.waitForTimeout(800);
-  if (await page.$('.hud-controlhint'))
-    fail('CONTROL HINT NOT DURABLE: showed again after moving + reloading');
+  // Watch a settled WINDOW rather than a single post-sleep snapshot: the hint must
+  // not reappear at ANY point in this interval, so a late HUD settle on a slow CI
+  // runner can't slip a durable-flag regression past a one-shot check. waitForSelector
+  // resolving = it came back (regression); timing out = it stayed gone (pass).
+  const reappeared = await page.waitForSelector('.hud-controlhint', { timeout: 2500 }).then(
+    () => true,
+    () => false,
+  );
+  if (reappeared) fail('CONTROL HINT NOT DURABLE: showed again after moving + reloading');
   else console.log('control hint stays taught across a reload');
 }
 
