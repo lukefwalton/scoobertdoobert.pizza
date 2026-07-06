@@ -85,6 +85,14 @@ describe('1101 win signal is a dedicated marker, not forgeable text', () => {
     expect(userScript).not.toMatch(/\bSAVED\b/i);
   });
 
+  it('scopes the query to rendered <tw-story>, not the whole document', () => {
+    // The marker ALSO exists as real nodes inside the hidden <tw-storydata> source, so a
+    // bare document.querySelector('[data-sdp-ending]') would auto-bank on load. The query
+    // must be scoped to the rendered story container.
+    expect(userScript).toMatch(/tw-story\s+\[data-sdp-ending/);
+    expect(userScript).not.toMatch(/querySelector\(\s*['"]\[data-sdp-ending/);
+  });
+
   it('every win terminus emits the marker', () => {
     const winPassages = passages.filter((p) => WIN_PHRASE.test(p.body));
     expect(winPassages.length).toBeGreaterThanOrEqual(1);
