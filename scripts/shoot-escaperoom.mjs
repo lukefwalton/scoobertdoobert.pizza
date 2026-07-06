@@ -36,24 +36,26 @@ await roomHas('Beach Pizza Shop');
 const promptBefore = await holdUntilDoorPrompt(page, 's', { timeout: 2500 });
 if (promptBefore) fail('the back-hall door prompted BEFORE the bell was rung (should be hidden)');
 
-// Ring the counter bell via its action hook (the real fireTrigger path).
-const rang = await page
-  .waitForFunction(
-    () => {
-      const f = window['__sdpInteract:shop-bell'];
-      if (typeof f !== 'function') return false;
-      f();
-      return true;
-    },
-    null,
-    { timeout: 6000 },
-  )
-  .then(
-    () => true,
-    () => false,
+// Ring the counter bell with a REAL mouse CLICK on the bell mesh (its knob sits at
+// world [-2.2, 0.6, -0.5]) — this exercises the actual onClick raycast → fireTrigger
+// path, not just the action hook. __sdpProject maps the world point to the exact
+// canvas pixel via the live camera.
+const canvasBox = await page.locator('canvas').boundingBox();
+await page.waitForFunction(() => typeof window.__sdpProject === 'function', null, {
+  timeout: 6000,
+});
+const bellPx = await page.evaluate(() => window.__sdpProject([-2.2, 0.6, -0.5]));
+let rang = false;
+if (bellPx && bellPx[0] > 0 && bellPx[0] < 1 && bellPx[1] > 0 && bellPx[1] < 1) {
+  await page.mouse.click(
+    canvasBox.x + bellPx[0] * canvasBox.width,
+    canvasBox.y + bellPx[1] * canvasBox.height,
   );
-if (!rang) fail('could not ring the shop bell (its interact hook never appeared)');
-await page.waitForTimeout(300);
+  await page.waitForTimeout(300);
+  rang = true;
+} else {
+  fail(`the shop bell did not project into view for a real click (got ${JSON.stringify(bellPx)})`);
+}
 
 // After ringing: the hall door has manifested — walking back now prompts it.
 const promptAfter = await holdUntilDoorPrompt(page, 's', { timeout: 6000 });
