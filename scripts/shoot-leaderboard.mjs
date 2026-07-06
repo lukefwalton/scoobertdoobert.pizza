@@ -354,8 +354,10 @@ let tabsOk = false;
     .$eval('.hud-board__tab--on', (el) => el.textContent?.trim())
     .catch(() => null);
   if (todayOn !== 'Today') bad(`tabs: Today should be the active tab after click, got ${todayOn}`);
-  tabsOk =
-    tabCount === 3 && defaultOn === 'All-Time' && todayShown && todayFetched && todayOn === 'Today';
+  // Guarded so the `false` init is a live fallback (avoids no-useless-assignment): the tab
+  // count gates the rest — no tabs → this stays false.
+  if (tabCount === 3)
+    tabsOk = defaultOn === 'All-Time' && todayShown && todayFetched && todayOn === 'Today';
   await tp.screenshot({ path: '.shots/leaderboard-tabs.png' });
   await tCtx.close();
 }
