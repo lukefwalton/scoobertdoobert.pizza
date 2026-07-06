@@ -254,9 +254,9 @@ export const WATER_ROOMS: Room[] = [
     spawns: {
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
-      // Back out of the waiting room: by the -X maintenance door, facing +X into
-      // the room, clear of every door radius.
-      fromWaiting: { position: [-4.5, EYE, 0], yaw: Math.PI / 2 },
+      // Back out of the waiting room: a step in front of the -Z maintenance door
+      // at the far deep end, facing +Z back into the room, clear of every radius.
+      fromWaiting: { position: [0, EYE, -4.5], yaw: 0 },
     },
     // One lurker haunts the drained deep end — slower, a single big eye.
     entities: [{ id: 'deep-lurker', body: 'lurker', spawn: [-2, -3], speed: 1.6 }],
@@ -274,8 +274,8 @@ export const WATER_ROOMS: Room[] = [
         id: 'deep-to-waiting',
         to: 'waitingroom',
         toSpawn: 'default',
-        position: [-8.95, 0, 0], // -X wall — a maintenance door where the tile gives way
-        rotationY: Math.PI / 2,
+        position: [0, 0, -8.95], // -Z wall — a maintenance door at the far deep end
+        rotationY: Math.PI,
         label: 'go through the door marked 待合室',
         radius: 3.2,
       },

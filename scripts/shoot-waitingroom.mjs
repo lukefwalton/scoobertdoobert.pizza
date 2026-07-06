@@ -1,46 +1,68 @@
-// Verifies The Waiting Room (待合室) — the liminal municipal lobby off the drained
-// deep end. The ?room=waitingroom test entrance drops straight in; the procedural
-// scene (chairs, reception window, dead CRT, signs, the flickering panel) must
-// render without throwing, and the HUD must name it. Any shader/geometry throw is
-// caught by watchPageErrors. A screenshot is captured for visual review.
+// Verifies The Waiting Room (待合室) THROUGH ITS REAL ENTRY PATH (repo standard:
+// walk the real door edge, not just a ?room= mount). Loads the deeppool GLB, walks
+// the real deep-to-waiting maintenance door at the far deep end (E → the arrival
+// spawn/orientation), renders the procedural lobby (chairs, reception window, dead
+// CRT, signs, the flickering panel) without throwing, then walks the one real way
+// back (waiting-to-deep, under the EXIT sign). Any shader/geometry throw is caught
+// by watchPageErrors. A screenshot is captured for visual review.
 import { mkdirSync } from 'node:fs';
-import { startSmoke, watchPageErrors, holdUntilDoorPrompt } from './lib/smoke.mjs';
+import {
+  makeLoaderHelpers,
+  roomIs as sharedRoomIs,
+  startSmoke,
+  walkToDoor,
+  watchPageErrors,
+} from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const { ctx, page, fail: bad, finish, failures } = await startSmoke();
+const { page, fail: bad, finish, failures } = await startSmoke();
 watchPageErrors(page, bad);
 
-// ?room=waitingroom drops straight in (it's otherwise a hidden door off deeppool).
-await page.goto(base + '/?room=waitingroom&debug=1', { waitUntil: 'networkidle' });
+const roomIs = (name, timeout) => sharedRoomIs(page, name, { fail: bad, timeout });
+const toDoor = (key, label, opts) => walkToDoor(page, bad, key, label, opts);
+const { enterLoadedLevel } = makeLoaderHelpers(page, bad);
 
-const canvas = await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => null);
-if (!canvas) bad('waitingroom: world canvas never mounted');
+// Enter the drained deep end directly (its own GLB load), then take the REAL
+// maintenance door into the waiting room — the standards-required real edge.
+await page.goto(base + '/?room=deeppool&debug=1', { waitUntil: 'commit' });
+try {
+  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
+} catch (e) {
+  bad(`world did not mount: ${e.message}`);
+}
 
-const title =
-  (await page.waitForSelector('.hud-room', { timeout: 8000 }).catch(() => null)) &&
-  (await page.textContent('.hud-room').catch(() => ''))?.trim();
-if (title !== 'The Waiting Room')
-  bad(`waitingroom: HUD room is ${JSON.stringify(title)}, expected "The Waiting Room"`);
+let inDeep = false;
+let inWaiting = false;
+let backInDeep = false;
 
-// Let the scene settle (materials compile, the panel flicker starts), dismiss the
-// first-entry overlay (best-effort), then shoot the establishing view.
-await page.waitForTimeout(2400);
-await page.click('.hud-welcome__close', { timeout: 1500 }).catch(() => {});
-await page.waitForTimeout(600);
-await page.screenshot({ path: '.shots/waitingroom.png' });
-
-// Back up toward the +Z return door (under the EXIT sign) and prove the way back
-// prompts — the room is a dead-end, so this is its one navigational contract. The
-// spawn faces -Z (into the room), so 's' backpedals straight toward the door.
-const sawDoor = await holdUntilDoorPrompt(page, 's', { timeout: 8000 });
-if (!sawDoor) bad('waitingroom: backing up to the EXIT door never prompted — dead-end has no exit');
-await page.screenshot({ path: '.shots/waitingroom-exit.png' });
+// Short-circuit on the first broken hop, so a nav/spawn regression fails with its
+// own context instead of cascading "never reached" noise.
+if ((await enterLoadedLevel('abandoned pool')) && (inDeep = await roomIs('The Abandoned Pool'))) {
+  await page.waitForTimeout(700);
+  // deep → waiting: walk 'w' (spawn faces -Z) to the -Z "待合室" door; procedural
+  // target, no loader. Generous timeout for the long walk across the GLB basin.
+  if (
+    (await toDoor('w', 'the 待合室 maintenance door', { timeout: 12000 })) &&
+    (inWaiting = await roomIs('The Waiting Room'))
+  ) {
+    await page.waitForTimeout(1800); // materials compile + the panel flicker starts
+    await page.click('.hud-welcome__close', { timeout: 1500 }).catch(() => {});
+    await page.waitForTimeout(500);
+    await page.screenshot({ path: '.shots/waitingroom.png' });
+    // waiting → deep: the one real way back, under the EXIT sign (+Z). 's' backpedals
+    // from the spawn to the door. The deeppool GLB reloads (cached → quick).
+    if (
+      (await toDoor('s', 'the EXIT door back to the deep end', { timeout: 8000 })) &&
+      (await enterLoadedLevel('abandoned pool (return)', 15000))
+    ) {
+      backInDeep = await roomIs('The Abandoned Pool');
+    }
+  }
+}
 
 console.log(
-  `waitingroom -> canvas=${!!canvas} room=${JSON.stringify(title)} door=${sawDoor} errors=${failures()}`,
+  `waitingroom -> deep=${inDeep} waiting=${inWaiting} backInDeep=${backInDeep} errors=${failures()}`,
 );
-
-await ctx.close();
 await finish('\nwaitingroom checks passed.', `\n${failures()} waitingroom check(s) FAILED`);
