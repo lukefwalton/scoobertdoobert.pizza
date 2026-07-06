@@ -253,6 +253,16 @@ export const LOOKABLES: Lookable[] = [
     glyph: '📡',
     story: 'Wave near it. It sings your name wrong, then right, then pretends it didn’t.',
   },
+  {
+    id: 'void-look',
+    room: 'void',
+    anchor: 'center',
+    height: 2.0,
+    label: 'a planet close enough to touch',
+    glyph: '🪐',
+    story:
+      "It drifts off the instant you reach. The old machines promised worlds like this in the browser in '96 — navigable, 3D. You're late; it waited for you.",
+  },
   // ── the shrine / grass thread ─────────────────────────────────────────────
   {
     id: 'shrine-look',

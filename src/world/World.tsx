@@ -37,6 +37,7 @@ import { BalboaRoom } from './BalboaRoom';
 import { GalleryRoom } from './GalleryRoom';
 import { DaydreamRoom } from './DaydreamRoom';
 import { ThereminRoom } from './ThereminRoom';
+import { VoidRoom } from './VoidRoom';
 import { WaitingRoomRoom } from './WaitingRoomRoom';
 import { MemoryLaneRoom } from './MemoryLaneRoom';
 import { InternetRoom } from './InternetRoom';
@@ -159,6 +160,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   gallery: (room) => <GalleryRoom room={room} />,
   daydream: (room) => <DaydreamRoom room={room} />,
   theremin: (room) => <ThereminRoom room={room} />,
+  void: (room) => <VoidRoom room={room} />,
   waitingroom: (room) => <WaitingRoomRoom room={room} />,
   memorylane: (room) => <MemoryLaneRoom room={room} />,
   internet: (room) => <InternetRoom room={room} />,

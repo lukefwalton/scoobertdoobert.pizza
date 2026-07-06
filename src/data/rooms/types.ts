@@ -59,6 +59,12 @@ export type RoomKind =
   // beat (musicRoom — it owns the space). The first sustained/continuous voice on
   // the music ladder (every other instrument is struck/plucked).
   | 'theremin'
+  // The Void (虚空) — the cosmic 3D-screensaver deep off the theremin: a wordless
+  // black gulf where blue RINGED PLANETS drift in slow orbits over a dark, rippling,
+  // reflective void-floor, under a full dome of stars. Pure 90s-screensaver wonder —
+  // SWEET, hypnotic, below SAFE (a cosmic exhale, never a scare). Drift + ripple
+  // freeze under reduced motion.
+  | 'void'
   // The Waiting Room (待合室) — a liminal municipal lobby through a door in the
   // drained deep end: rows of bolted-down chairs facing a shuttered reception
   // window, a dead CRT hissing dim static, a NOW SERVING sign stuck on 404, all

@@ -239,6 +239,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   grassrooms: { x: 3.4, y: 6.2 },
   // The Aerial (theremin) — a sweet instrument room branching RIGHT off the liminal.
   theremin: { x: 6.4, y: 6.4 },
+  // The Void — the cosmic screensaver deep off the theremin (further out + down).
+  void: { x: 7.6, y: 7.4 },
   // shrine / grass thread (right branch off the pool)
   shrine: { x: 7, y: 4.4 },
   'metro-tunnel': { x: 7, y: 5.6 },

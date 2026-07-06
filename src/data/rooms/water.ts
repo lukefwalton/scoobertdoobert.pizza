@@ -559,6 +559,9 @@ export const WATER_ROOMS: Room[] = [
       // OUTSIDE its field, so you walk IN to start it (no sound thrust at the door).
       default: { position: [0, EYE, 2.4], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 2.4], yaw: Math.PI },
+      // Back out of the void: off to the side of the central device (not on it),
+      // facing +Z into the room, clear of both door radii.
+      fromVoid: { position: [3.0, EYE, -3.8], yaw: 0 },
     },
     doors: [
       {
@@ -569,6 +572,42 @@ export const WATER_ROOMS: Room[] = [
         rotationY: 0,
         label: 'back into the empty backrooms',
         radius: 3.0,
+      },
+      {
+        id: 'theremin-to-void',
+        to: 'void',
+        toSpawn: 'fromTheremin',
+        position: [0, 0, -5.9], // -Z wall — past the aerial, out into the deep cosmos
+        rotationY: Math.PI,
+        label: 'walk out into the void',
+        radius: 3.0,
+      },
+    ],
+  },
+  {
+    id: 'void',
+    kind: 'void',
+    title: 'The Void',
+    // The cosmic screensaver deep off the theremin — blue ringed planets drifting
+    // over a rippling reflective void under a dome of stars. Sweet, hypnotic wonder
+    // (below SAFE — a cosmic exhale). Roomy so the planets have sky to drift in.
+    dims: { halfW: 9, halfD: 9, height: 7, eye: EYE },
+    // Near-black cosmic blue; far fog so the planets float at distance into the dark.
+    palette: { background: '#03040c', fog: '#05060f', fogNear: 9, fogFar: 55 },
+    spawns: {
+      // Arrive a stride inside the +Z door, facing -Z out into the drifting cosmos.
+      default: { position: [0, EYE, 5.5], yaw: Math.PI },
+      fromTheremin: { position: [0, EYE, 5.5], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'void-to-theremin',
+        to: 'theremin',
+        toSpawn: 'fromVoid',
+        position: [0, 0, 8.95], // +Z wall — drift back to the aerial
+        rotationY: 0,
+        label: 'drift back to the aerial',
+        radius: 3.2,
       },
     ],
   },

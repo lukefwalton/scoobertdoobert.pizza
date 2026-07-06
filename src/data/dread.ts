@@ -98,6 +98,9 @@ export const DREAD: DreadConfig = {
     theremin: 0.02, // The Aerial — the deep theremin instrument room off the liminal:
     //                 a SWEET relief beat (below SAFE so it DECAYS), a cosmic exhale
     //                 you play with your body, not a dread room (taste guardrail)
+    void: 0.03, // The Void — the cosmic screensaver off the theremin: pure wonder
+    //             (below SAFE so it DECAYS), drifting planets over a rippling void;
+    //             hypnotic and sweet, never a scare (the taste line holds)
   },
   dwellRatePerSec: 0.018, // slow: lingering deep slowly worsens
   dwellFactor: 0.6, // lingering tops out at base + base*0.6 (milder zones stay milder)
