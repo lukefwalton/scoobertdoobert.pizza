@@ -7,35 +7,7 @@ import {
   type RankWindow,
 } from '../lib/leaderboard';
 import { cleanInitials, RANKED_TOP } from '../lib/leaderboardCore';
-
-// The "you" strip rows: the real neighbors (true rank) with a synthetic YOU row spliced
-// in at score order — so a player OUTSIDE the top-N still sees exactly where they land.
-type YouRow = { rank: number; initials: string; score: number; self?: boolean };
-function buildYouRows(you: RankWindow, score: number, mine: string): YouRow[] {
-  // Drop the player's just-submitted real entry (if it's already among the neighbors) so
-  // the synthetic YOU row doesn't duplicate it. `mine` is '' before signing (a preview
-  // window has nothing to dedup — the score isn't on the board yet).
-  let dropped = false;
-  const near = you.neighbors.filter((n) => {
-    if (!dropped && mine && n.initials === mine && n.score === score) {
-      dropped = true;
-      return false;
-    }
-    return true;
-  });
-  const rows: YouRow[] = [];
-  const self: YouRow = { rank: you.rank, initials: mine || 'YOU', score, self: true };
-  let inserted = false;
-  for (const n of near) {
-    if (!inserted && n.score < score) {
-      rows.push(self);
-      inserted = true;
-    }
-    rows.push(n);
-  }
-  if (!inserted) rows.push(self);
-  return rows;
-}
+import { buildYouRows } from '../lib/youStrip';
 
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
@@ -87,6 +59,10 @@ export function LeaderboardPanel({
   }, [rows, loadBoard, score]);
 
   const canSubmit = score > 0 && cleanInitials(initials).length === 3 && status !== 'submitting';
+  // A real submit landed this session → the player's own row is now on the board, so the
+  // "you" strip should dedup it against the synthetic YOU row. Before that (the preview
+  // GET path) it must NOT dedup, or typed initials could hide a real, unrelated neighbor.
+  const submitted = status === 'ranked' || status === 'unranked';
 
   const onSubmit = async () => {
     if (!canSubmit) return;
@@ -176,7 +152,7 @@ export function LeaderboardPanel({
             )}
           </p>
           <ol className="hud-board__list hud-board__list--you">
-            {buildYouRows(you, score, cleanInitials(initials)).map((r, i) => (
+            {buildYouRows(you, score, cleanInitials(initials), submitted).map((r, i) => (
               <li
                 key={`${r.initials}-${r.rank}-${i}`}
                 className={r.self ? 'hud-board__row--you' : undefined}
