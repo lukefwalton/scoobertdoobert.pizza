@@ -7,7 +7,6 @@ import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
 import { useScoreStore } from '../state/scoreStore';
 import { LOOP_OPTIONS } from '../data/music';
-import { MENU_DESTINATIONS } from '../data/links';
 import { ROOMS } from '../data/rooms';
 import { itemById, CASSETTE_IDS } from '../data/items';
 import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
@@ -20,10 +19,12 @@ import { WorldMap } from './WorldMap';
 import { LeaderboardPanel } from './LeaderboardPanel';
 
 // ───────────────────────────────────────────────────────────────────────────
-// PauseMenu — the game-style pause overlay (Esc): the always-reachable nav (every
-// links.ts destination as a real anchor — the a11y guarantee) PLUS the RPG layer
-// readout — luck, the spell grimoire, Pockets, the Progress tallies, the To-Do
-// quest list, the world map, the radio, and the mute / objective / exit actions.
+// PauseMenu — the game-style pause overlay (Esc): the RPG-layer readout — luck,
+// the spell grimoire, Pockets, the Progress tallies, the To-Do quest list, the
+// world map, the leaderboard, the radio — plus the mute / objective / exit
+// actions. The way out is "Return to storefront" (back to the dead-plain menu +
+// /text, which stay the full crawlable destination list); the pause menu no
+// longer duplicates the whole links.ts menu inline (Luke, 2026-07).
 //
 // Self-sufficient: it subscribes to its own progress + scene + audio + music
 // slices and renders only while paused, so it lifts out of WorldHud cleanly. The
@@ -100,7 +101,7 @@ export function PauseMenu() {
           <div className="title-bar-text">Paused</div>
         </div>
         <div className="window-body">
-          <p className="hud-pause__hint">Every destination, always one keypress away.</p>
+          <p className="hud-pause__hint">Return to the storefront for the full menu.</p>
           <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
             <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
           </p>
@@ -193,18 +194,6 @@ export function PauseMenu() {
               Submit-only here (loadBoard={false}): opening the menu never hits the
               backend; the full ranked board is one tap away on /leaderboard. */}
           <LeaderboardPanel score={progress.pizzaPointsBest} showFullLink loadBoard={false} />
-          <ul className="hud-pause__list">
-            {MENU_DESTINATIONS.map((d) => (
-              <li key={d.id}>
-                <a
-                  href={d.href}
-                  {...(d.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                >
-                  {d.label}
-                </a>
-              </li>
-            ))}
-          </ul>
           {/* The radio. Locked until you roll the jukebox d20 (the upgrade):
               before, it's a read-out of whatever the room is playing; after,
               the ◀/▶ flip the catalog and your pick follows you everywhere. */}

@@ -86,10 +86,12 @@ joke:
 ## Always-reachable links (the pause menu)
 
 Inside the 3D world the hotspots are not the only way out. A game-style **pause
-menu** (Esc / on-screen button) overlays the full `links.ts` destination list as
-real anchors, plus "return to storefront" and the mute toggle. It is both the
-in-world nav and the accessibility guarantee: every destination is one keypress
-away, always, even in 3D.
+menu** (Esc / on-screen button) always offers **"Return to storefront"** plus the
+mute toggle — one keypress back to the dead-plain storefront, which carries the
+full `links.ts` destination list as real anchors (with `/text` behind it). Those
+crawlable pages are the accessibility surface. (Luke, 2026-07: the pause menu no
+longer duplicates the whole `links.ts` menu inline — back-to-home is enough; don't
+re-add the inline destination list.)
 
 ## Stack
 
