@@ -437,6 +437,7 @@ export function WorldHud() {
         !nearEntity &&
         !nearPickup &&
         !open &&
+        !openLookable &&
         !paused &&
         !pendingRoom &&
         (() => {
