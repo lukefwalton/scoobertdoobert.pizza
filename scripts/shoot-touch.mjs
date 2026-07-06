@@ -72,6 +72,31 @@ await page.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).cat
 await page.waitForTimeout(300); // a few frames so the first pose is settled
 await page.screenshot({ path: '.shots/touch-world.png' });
 
+// FTUE control hint on the MOBILE path: it shows on entry and must clear when the
+// player starts moving via the ON-SCREEN STICK (not only a canvas drag-look) — the
+// touch-specific dismissal the review flagged.
+const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!hintUp) fail('CONTROL HINT MISSING on touch entry');
+else {
+  const box = await (await page.$('.touch-stick'))?.boundingBox();
+  if (box) {
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.up();
+  }
+  const hintGone = await page
+    .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2500 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hintGone) fail('CONTROL HINT STUCK on touch: did not clear after using the stick');
+  else console.log('control hint clears on touch stick use');
+}
+
 // VIEWPORT: the touch HUD (fixed, inset:0, safe-area insets) must never push the
 // page wider than the screen — a horizontal scrollbar on a phone is the classic
 // mobile regression. Check portrait now, and landscape below.

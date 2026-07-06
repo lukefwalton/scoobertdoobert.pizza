@@ -37,7 +37,12 @@ export function ControlHint() {
     };
     const onPointer = (e: PointerEvent) => {
       const t = e.target as Element | null;
-      if (t && t.tagName === 'CANVAS') dismissRef.current();
+      if (!t) return;
+      // A canvas pointerdown = drag-look (mouse or touch); a pointerdown inside the
+      // on-screen touch controls = the stick/buttons (move/act on mobile). Either is
+      // "the player started playing" → dismiss. HUD buttons (the menu) don't match,
+      // so tapping those doesn't count.
+      if (t.tagName === 'CANVAS' || t.closest('.touch-controls')) dismissRef.current();
     };
     window.addEventListener('keydown', onKey);
     window.addEventListener('pointerdown', onPointer, true);
