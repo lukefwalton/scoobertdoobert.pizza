@@ -4,9 +4,12 @@ import { roomById, type RoomDoor } from '../data/rooms';
 // objective is IN, find the door to step through next, and the on-screen arrow
 // angle toward it. Pure + three-free so it unit-tests cleanly.
 
-/** BFS over the room graph (NON-hidden doors only — you can't route through a door
- *  you haven't revealed) from `current` to `target`; return the door OUT of
- *  `current` on a shortest path, or null if same room / unreachable via known doors. */
+/** BFS over the room graph from `current` to `target`; return the door OUT of
+ *  `current` on a shortest path, or null if same room / unreachable via known doors.
+ *  Routes through NON-hidden doors AND escape-room `revealOnTrigger` doors (the main
+ *  descent path now — trivially opened by a nearby interactable, so the compass
+ *  should guide you to them), but NOT genuine secrets (the rat's panel / the Möbius
+ *  onward / a durable `revealSecret`), which stay off the map until you find them. */
 export function nextHopDoor(current: string, target: string): RoomDoor | null {
   if (current === target) return null;
   const queue: string[] = [current];
@@ -16,7 +19,7 @@ export function nextHopDoor(current: string, target: string): RoomDoor | null {
     const r = queue.shift() as string;
     if (r === target) break;
     for (const d of roomById(r).doors) {
-      if (d.hidden || seen.has(d.to)) continue;
+      if ((d.hidden && !d.revealOnTrigger) || seen.has(d.to)) continue;
       seen.add(d.to);
       cameFrom.set(d.to, { room: r, door: d });
       queue.push(d.to);
