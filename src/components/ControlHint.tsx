@@ -49,8 +49,16 @@ export function ControlHint() {
   // 10s backstop) just hides it THIS visit — idling it out or closing it without
   // ever using the controls still teaches you next time (the reviewer's distinction:
   // "already taught" vs merely "hidden once").
+  //
+  // Durability is LATCHED on the FIRST hide: the teach listeners stay attached through the
+  // ~500ms fade, so without this a move DURING the fade of an explicit × dismiss would call
+  // hide(true) and upgrade "hide this visit" into a durable "never show again." The first
+  // trigger wins; every later call no-ops.
+  const hiding = useRef(false);
   const hideRef = useRef<(persist: boolean) => void>(() => {});
   hideRef.current = (persist: boolean) => {
+    if (hiding.current) return; // already hiding — the first trigger's durability stands
+    hiding.current = true;
     if (persist) markControlHintSeen();
     const reduce =
       typeof window !== 'undefined' &&

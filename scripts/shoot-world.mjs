@@ -184,10 +184,15 @@ if (hintUp && hintGone) {
       console.log('control hint survives WASD + canvas drag while paused (frozen never teaches)');
     // Close with × (no move / no look) — hides this visit, must NOT teach.
     await p2.getByRole('button', { name: /dismiss controls hint/i }).click({ timeout: 3000 });
+    // ...and IMMEDIATELY move during the ~500ms fade-out. The teach listeners are still
+    // attached while the card fades, so a move here must NOT upgrade the × dismiss into a
+    // durable teach (durability is latched on the FIRST hide — the × won). No waits: the
+    // press has to land inside the fade window, before the card unmounts.
+    await p2.keyboard.press('w');
     await p2
       .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2000 })
       .catch(() => {});
-    // Reload → because × did not teach, the hint must RETURN.
+    // Reload → because × (not the mid-fade move) decided durability, the hint must RETURN.
     await p2.reload({ waitUntil: 'commit' });
     await p2.waitForSelector('.hud-menu-btn', { timeout: 12000 }).catch(() => {});
     await p2
@@ -198,9 +203,10 @@ if (hintUp && hintGone) {
       () => true,
       () => false,
     );
-    if (!returned) fail('CONTROL HINT WRONGLY PERSISTED: closing with × (no move) must not teach');
+    if (!returned)
+      fail('CONTROL HINT WRONGLY PERSISTED: × then a move during the fade must not teach');
     else
-      console.log('control hint returns after × + reload (× hides for the visit, never teaches)');
+      console.log('control hint returns after × + mid-fade move + reload (× latches non-durable)');
 
     // POSITIVE TWIN: the SAME canvas-drag dispatch, now UNFROZEN, MUST teach — proving the
     // paused-drag negative above blocks on the freeze, not because synthetic events never
