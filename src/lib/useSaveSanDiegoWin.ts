@@ -8,6 +8,11 @@ import { useProgressStore } from '../state/progressStore';
 // catches it and banks the durable 'saved-san-diego' secret — the BONUS objective
 // (tracked in the To-Do list, never gating the ★100% finale).
 //
+// The stable contract HERE is the MESSAGE shape ({source,type,result}); how
+// 1101.html decides to fire it — matching its unique climactic win line, since a
+// static Harlowe export can only run JS from its one user-script block, not from a
+// passage body — is that file's own concern, swappable without touching this.
+//
 // ORIGIN-CHECKED: only messages from our own origin count, so a hostile embedder /
 // stray frame can't forge a completion. Mounted wherever the ARG can be reached —
 // the immersive level + the in-world arcade cabinet (via WorldMount) and the

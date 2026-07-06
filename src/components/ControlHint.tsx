@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTouchDevice } from '../lib/lowPower';
 import { controlHintSeen, markControlHintSeen } from '../lib/controlHintSeen';
+import { useSceneStore } from '../state/sceneStore';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ControlHint — the one thing the world otherwise never teaches: how to MOVE and
@@ -52,7 +53,23 @@ export function ControlHint() {
   useEffect(() => {
     if (seenAtMount.current) return; // already taught — no listeners, nothing shows
     const onKey = (e: KeyboardEvent) => {
-      if (MOVE_KEYS.has(e.key.toLowerCase())) hideRef.current(true); // moved → taught
+      if (!MOVE_KEYS.has(e.key.toLowerCase())) return;
+      // Only "taught" if the world would ACTUALLY move on this key — not while a modal
+      // (pause / hotspot / NPC / TV / cabinet / lyrics / room-wipe) owns input, where
+      // WASD does nothing. Otherwise a first-timer could bury the legend by mashing
+      // keys against the pause menu without ever having moved.
+      const s = useSceneStore.getState();
+      if (
+        s.paused ||
+        s.openHotspot ||
+        s.openNpc ||
+        s.tvVideo ||
+        s.arcadeGame ||
+        s.lyricsSong ||
+        s.pendingRoom
+      )
+        return;
+      hideRef.current(true); // moved → taught
     };
     // The hint teaches MOVE + LOOK, so only ACTUAL move/look durably marks it taught —
     // NOT a bare hotspot click, a right-side button tap, or a zero-travel press on the

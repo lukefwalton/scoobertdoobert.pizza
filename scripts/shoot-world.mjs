@@ -154,6 +154,17 @@ if (hintUp && hintGone) {
   if (!hint2) {
     fail('CONTROL HINT MISSING (fresh ctx): no legend to test the non-durable dismiss path');
   } else {
+    // PAUSED WASD must NOT teach: open the pause menu (a modal owns input), mash a
+    // move key (which does nothing there), close it — the legend must still be up.
+    // "Taught" means the player could ACTUALLY move, not just press a key at a modal.
+    await p2.keyboard.press('Escape'); // open pause
+    await p2.waitForSelector('.hud-pause', { timeout: 3000 }).catch(() => {});
+    await p2.keyboard.press('w');
+    await p2.keyboard.press('Escape'); // close pause
+    await p2.waitForTimeout(300);
+    if ((await p2.$('.hud-controlhint')) === null)
+      fail('CONTROL HINT: WASD while the pause menu owned input wrongly marked it taught');
+    else console.log('control hint survives WASD pressed while paused (modal input never teaches)');
     // Close with × (no move / no look) — hides this visit, must NOT teach.
     await p2.getByRole('button', { name: /dismiss controls hint/i }).click({ timeout: 3000 });
     await p2
