@@ -17,8 +17,10 @@ const COMBO_WINDOW_MS = 2500;
 /** Combo multiplier is capped here so a long streak is great, not infinite. */
 const MAX_COMBO_MULT = 9;
 /** You can only get SO tall — kept under any room's ceiling (Controls also clamps
- *  per-room so you never poke through the roof). */
-export const MAX_TALLNESS = 2.6;
+ *  per-room so you never poke through the roof). Tuned DOWN (was 2.6): a full
+ *  stack used to nearly double the 2.4 eye height and you'd feel enormous — this
+ *  keeps "the snacks make you taller" a fun, gentle lift, not a giant. */
+export const MAX_TALLNESS = 1.2;
 
 export type LootAward = {
   awarded: number;
