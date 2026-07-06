@@ -95,6 +95,10 @@ describe('room arrival-spawn contract', () => {
     for (const [spawnId, spawn] of Object.entries(room.spawns)) {
       it(`${room.id}.${spawnId} lands outside every door radius`, () => {
         for (const door of room.doors) {
+          // Hidden doors aren't active at arrival (you can't walk through one until
+          // its trigger/secret reveals it, by which point you've moved), so they're
+          // not a spawn hazard — the escape-room level door can sit behind the reel.
+          if (door.hidden) continue;
           const dx = spawn.position[0] - door.position[0];
           const dz = spawn.position[2] - door.position[2];
           const dist = Math.hypot(dx, dz);
@@ -109,6 +113,7 @@ describe('room arrival-spawn contract', () => {
         const fwdX = Math.sin(spawn.yaw);
         const fwdZ = Math.cos(spawn.yaw);
         for (const door of room.doors) {
+          if (door.hidden) continue; // inactive at arrival (see the radius test above)
           const dx = door.position[0] - spawn.position[0];
           const dz = door.position[2] - spawn.position[2];
           const dist = Math.hypot(dx, dz);

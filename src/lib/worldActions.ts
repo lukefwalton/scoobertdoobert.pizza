@@ -22,6 +22,7 @@ function inputOwnedByModal(st: SceneState): boolean {
     st.openLookable ||
     st.tvVideo ||
     st.arcadeGame ||
+    st.levelOverlay ||
     st.openNpc ||
     st.transitioning ||
     st.divingTo
@@ -41,6 +42,7 @@ export function interactNearby(): void {
       spawn: st.nearDoor.spawn,
       albumSlug: st.nearDoor.albumSlug,
       requiresKey: st.nearDoor.requiresKey,
+      opensLevel: st.nearDoor.opensLevel,
     });
   } else if (st.nearTv) {
     st.openTv(st.nearTv);

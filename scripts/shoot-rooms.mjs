@@ -29,7 +29,10 @@ const labelHas = (name) =>
     (n) => document.querySelector('.hud-room')?.textContent?.includes(n) ?? false,
     name,
   );
-await page.goto(base + '/?world=1', { waitUntil: 'commit' });
+// &debug=1 (a superset of ?world) so we can ring the shop bell via its action hook:
+// the back-hall door is now HIDDEN until that escape-room trigger fires (Luke's
+// "interact → the way opens" grammar, taught in room one).
+await page.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
 try {
   await page.waitForSelector('canvas', { timeout: 12000 });
   await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
@@ -61,6 +64,25 @@ const startShop = await roomIs('Beach Pizza Shop');
 const noSpawnPrompt = (await page.$('.hud-prompt--door')) === null;
 if (!noSpawnPrompt) fail('back-hall door prompt was visible at spawn (should require approach)');
 await page.screenshot({ path: '.shots/rooms-shop.png' });
+
+// 1b) The escape-room teach: the back-hall door is HIDDEN until you ring the
+//     counter bell. Ring it (its action hook), and the door manifests in the wall.
+const rang = await page
+  .waitForFunction(
+    () => {
+      const f = window['__sdpInteract:shop-bell'];
+      if (typeof f !== 'function') return false;
+      f();
+      return true;
+    },
+    null,
+    { timeout: 6000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!rang) fail('could not ring the shop bell (its interact hook never appeared)');
 
 // 2) Back up to the rear wall → keyboard E → the hall. Hold-and-poll (not a fixed
 //    walk) so a slow CI runner still reaches the door before we check.
@@ -253,10 +275,15 @@ let rmDoor = false;
   });
   const rm = await rmCtx.newPage();
   rm.on('pageerror', (e) => fail(`reduced-motion pageerror: ${e.message}`));
-  await rm.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await rm.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
   try {
     await rm.waitForSelector('.hud-menu-btn', { timeout: 12000 });
     await rm.waitForTimeout(1200);
+    // Ring the bell to reveal the hall door (hidden until the escape-room trigger).
+    await rm.waitForFunction(() => typeof window['__sdpInteract:shop-bell'] === 'function', null, {
+      timeout: 6000,
+    });
+    await rm.evaluate(() => window['__sdpInteract:shop-bell']());
     await rm.keyboard.down('s');
     await rm.waitForTimeout(900);
     await rm.keyboard.up('s');
@@ -280,10 +307,16 @@ let distanceClick = false;
   const dcCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const dc = await dcCtx.newPage();
   dc.on('pageerror', (e) => fail(`distance-click pageerror: ${e.message}`));
-  await dc.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await dc.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
   try {
     await dc.waitForSelector('.hud-menu-btn', { timeout: 12000 });
     await dc.waitForTimeout(1500);
+    // Ring the bell to reveal the hall door (hidden until the escape-room trigger).
+    await dc.waitForFunction(() => typeof window['__sdpInteract:shop-bell'] === 'function', null, {
+      timeout: 6000,
+    });
+    await dc.evaluate(() => window['__sdpInteract:shop-bell']());
+    await dc.waitForTimeout(300);
     const b = await dc.locator('canvas').boundingBox();
     const my = b.y + b.height / 2;
     // spawn faces the window (-Z); the back-hall door is behind (+Z). Turn ~180°.

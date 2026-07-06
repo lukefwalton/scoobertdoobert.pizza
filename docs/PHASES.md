@@ -416,7 +416,39 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
     ending "Tails" link flashed in before its 3s "Heads" sibling). All verified
     error-free in the real Harlowe runtime (loaded each passage as the start node,
     asserted zero `tw-error` + the choice links render). No broken passage links
-    (all 81 targets resolve).
+    (all 81 targets resolve). A fast static guard (`src/data/saveSanDiego.test.ts`)
+    parses `public/1101.html` and pins those invariants (link targets resolve,
+    balanced hooks, unitful `(after:)`) so the hand-edited export can't regress.
+- ✅ **INTERACT-TO-PROGRESS + the 1101 LEVEL (2026-07-06, Luke: "escape rooms →
+  doors appear after an ACTION, not just a key"):** the site's new default
+  progression grammar — **do something trivially easy (click / grab) and the way
+  onward APPEARS** — built on the EXISTING reveal hook (not a new mechanic), plus
+  the 1101 quest promoted to its own full-screen LEVEL.
+  - **The primitive:** a `hidden` door can now carry `revealOnTrigger` (ephemeral,
+    re-armed per visit) alongside the durable `revealSecret`; a small clickable
+    `Interactable` (`src/world/Interactables.tsx`, data: `Room.interactables`) fires
+    a trigger via `sceneStore.fireTrigger`, and a pickup can bank a durable secret
+    via `Item.revealsSecret`. The reveal's **juice**: a ding + a "a way opens" toast
+    + a collect-burst at the interactable, and the door **shimmers into its wall**
+    (DoorMesh grows a `hidden` door in on mount — a hidden door only ever mounts at
+    its reveal moment, so mount == manifest). WCAG-safe (a smooth scale, no flash).
+  - **ROOM ONE = the teacher:** the shop's "EMPLOYEES ONLY" back-hall door (the way
+    deeper) is now HIDDEN until you **ring the counter bell** — the whole world's
+    "interact → the way opens" language, set on the first room. The two SIDE doors
+    (boardwalk / kitchen) stay visible so you're never blocked while you orient.
+    (Wayfinding routes through `revealOnTrigger` doors so the compass still guides
+    you deeper; genuine secrets — the rat's panel, the Möbius onward — stay off the
+    map. The arrival-spawn contract skips `hidden` doors: inactive at arrival.)
+  - **The 1101 LEVEL:** in the **Tape Vault**, pocketing the "1101" master reel
+    (`Item.revealsSecret`) hums a door open in the wall behind it; **stepping
+    through raises the full-screen text adventure** (`SaveSanDiegoLevel` →
+    `sceneStore.levelOverlay`, a door with `opensLevel` opens an overlay instead of
+    wiping to a room), with a "⟵ Return to the world" button + Esc (which also
+    works from inside the same-origin story iframe) back out. The **arcade cabinet
+    stays** (Luke: "keep both") — the cabinet is the quick/mobile way to play it;
+    the level is the earned, immersive front door. `shoot:escaperoom` drives the
+    whole thing (bell → hall reveal before/after; reel → level door → the real Twine
+    story mounts in the overlay → return); `shoot:rooms` rings the bell first now.
 - ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
   catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a

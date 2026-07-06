@@ -61,11 +61,16 @@ a few beats.
   one room away from the lock.** Never requires notes, a wiki, or leaving the
   site. If a player would ever think "I'm stuck," the budget is broken.
 - **Two tiers, kept separate (this separation is the whole trick):**
-  - **The main descent (the jaunt):** *zero* hard gates. You can always go
-    deeper. If a door wants a key, the key is in the same room or the one before,
-    or the rat hands it to you. Friction is "huh, locked → oh, there's the floppy
-    on the desk," resolved in seconds. This is ~95% of the experience and it
-    flows.
+  - **The main descent (the jaunt):** no *hard* gates, but — **AMENDED 2026-07
+    (Luke: "escape rooms")** — the way onward now usually **APPEARS after one
+    trivial action** (a click, a pickup), not a key. This is the site's
+    interact-to-progress grammar (see "The escape-room grammar" below), taught in
+    room one (ring the counter bell → the back-hall door manifests). It stays
+    *frictionless* because the action is always **already in view** and unmissable
+    (a glowing interactable), the reveal is instant + juicy, and ascending / the
+    side doors are never gated — you can never think "I'm stuck." A door that wants
+    a real KEY is still SIDE/secret-tier only (the dev guard holds). This is ~95% of
+    the experience and it flows.
   - **The secrets / ARG tier (the share fuel):** optional, a little chewier — the
     stuff people *post* about (`/1101` → "save san diego", hidden demos). But the
     difficulty is **noticing the hook, not grinding it.** Once spotted it still
@@ -425,6 +430,32 @@ storefront has a soft spot in the floor, and if you find it, you fall.
   dead-plain front door or tax any real link. Surface zone stays safe; the
   *wrongness* is the wink, the *landing* is where the dread can begin.
 - Status: **design captured, not built.** Its own thread (after the arcade).
+
+### The escape-room grammar — "interact → the way opens" (SHIPPED, Luke 2026-07)
+The site's default progression language: **a door APPEARS after a trivially easy
+action** (a click or a pickup), not just a key. Luke: "we don't need more
+mechanics, we need more *logical* ones — escape rooms." It's not a new mechanic —
+it rides the reveal hook that already opened the classified room and the grove — it
+just makes the reveal the everyday grammar, with juice (a ding, a "a way opens"
+toast, and the door **shimmering into its wall**).
+- **Two reveal sources.** A `hidden` door carries either `revealOnTrigger`
+  (ephemeral — fired by a clickable `Room.interactables` object via
+  `sceneStore.fireTrigger`, re-armed each visit) or the durable `revealSecret`
+  (banked once by an `Item.revealsSecret` pickup — "found it, stays found"). A
+  clickable teaches the click variant; a pickup teaches the grab variant.
+- **Room one is the teacher.** Ring the shop's counter bell → the "EMPLOYEES ONLY"
+  back-hall door manifests. The whole world's language, set on the first room.
+- **The dosage stays the friction budget.** The action is always in view and
+  unmissable, the reveal is instant, and ascending / side doors are never gated —
+  so it never crosses into "I'm stuck." Some rooms have **no gate at all** (Luke's
+  "no-clip" rooms — the tube slide carries you through with no door). The compass
+  (`nextHopDoor`) routes THROUGH `revealOnTrigger` doors so it still guides you
+  deeper; genuine secrets (the rat's panel, the Möbius onward) stay off the map.
+- **Levels behind doors.** A door can `opensLevel` instead of traveling — it raises
+  a full-screen overlay in place. First use: the **1101 (Save San Diego)** text
+  adventure, opened by the door the "1101" reel reveals in the Tape Vault ("step
+  through a door → you're in a text-based game," Luke). The arcade cabinet for it
+  stays too (the quick/mobile path); the level is the earned, immersive one.
 
 ### The Wayside Shrine — the Japan level (world-content; SHIPPED as scaffold)
 The one **outdoor, *sweet*** deep room — a rural Japanese golden-hour dusk: a
