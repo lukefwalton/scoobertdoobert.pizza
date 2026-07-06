@@ -63,60 +63,34 @@ if (!promptAfter) fail('the back-hall door never appeared after ringing the bell
 await page.screenshot({ path: '.shots/escaperoom-shop.png' });
 
 // ── 2) THE 1101 LEVEL: the tape reveals the door → the text adventure ────────
+// Reach the vault via __sdpGoToRoom (the sanctioned way to reach a deep room — the
+// REAL studio traversal, forward-walking control→vault, is covered by shoot:studio).
 await page.evaluate(() => window.__sdpGoToRoom?.('tapevault', 'default'));
 await roomHas('The Tape Vault', 10000);
 await page.waitForTimeout(500);
 
-// Pocket the "1101" master reel via its pickup hook → banks the durable secret.
-const took = await page
+// The REAL player path: the spawn faces -Z down the shelves; the "1101" reel sits at
+// z≈-3.2 and the (hidden) level door behind it at z≈-4.95. WALK forward ('w') — the
+// reel AUTO-GRABS on walk-over (the real pickup path, not the __sdpPickup hook: a
+// bobbing target is fragile to click but reliable to walk into), banking the durable
+// secret → the level door manifests ahead and prompts "step into the transmission".
+// The "transmission" door prompt appearing PROVES the whole real chain: walked →
+// auto-grabbed the reel → its findSecret revealed the (hidden) level door → prompt.
+await page.keyboard.down('w');
+const reached = await page
   .waitForFunction(
-    () => {
-      const f = window['__sdpPickup:tape-1101'];
-      if (typeof f !== 'function') return false;
-      f();
-      return true;
-    },
+    () => /transmission/i.test(document.querySelector('.hud-prompt--door')?.textContent ?? ''),
     null,
-    { timeout: 6000 },
+    { timeout: 10000, polling: 200 },
   )
   .then(
     () => true,
     () => false,
   );
-if (!took) fail('could not pocket the 1101 reel (its pickup hook never appeared)');
-await page.waitForTimeout(300);
-
-// Walk toward the -Z back wall (the default spawn faces -Z) → the revealed level
-// door should prompt "step into the transmission".
-const levelPrompt = await page
-  .waitForFunction(
-    () => {
-      const p = document.querySelector('.hud-prompt--door')?.textContent ?? '';
-      return /transmission/i.test(p);
-    },
-    null,
-    { timeout: 8000, polling: 300 },
-  )
-  .then(
-    () => true,
-    () => false,
-  );
-// help the walk along (holdUntilDoorPrompt presses a key; here we nudge forward)
-if (!levelPrompt) {
-  await page.keyboard.down('w');
-  const reached = await page
-    .waitForFunction(
-      () => /transmission/i.test(document.querySelector('.hud-prompt--door')?.textContent ?? ''),
-      null,
-      { timeout: 8000, polling: 300 },
-    )
-    .then(
-      () => true,
-      () => false,
-    );
-  await page.keyboard.up('w');
-  if (!reached) fail('the 1101 level door never appeared/prompted after taking the reel');
-}
+await page.keyboard.up('w');
+if (!reached)
+  fail('walking into the 1101 reel did not auto-grab it + reveal the level door (real path)');
+const took = reached; // the reveal is caused by the grab, so this attests both
 
 // Step through → the full-screen level overlay opens (the 1101 text adventure).
 await page.keyboard.press('e');
