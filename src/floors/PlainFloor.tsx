@@ -245,9 +245,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         <p className="counter-line">
           <HitCounter /> <span className="counter-line__label">visitors served since 1997</span>
         </p>
-        <p className="copyright">
-          &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
-        </p>
+        <p className="copyright">&copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation</p>
         <p className="credit">
           Site by{' '}
           <a href="https://maxhorwich.com" target="_blank" rel="noopener noreferrer">

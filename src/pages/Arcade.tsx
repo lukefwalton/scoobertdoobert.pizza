@@ -75,7 +75,7 @@ export default function Arcade() {
         <CabinetShelf currentSlug="arcade" />
       </p>
       <p className="arcade-foot arcade-foot--copy">
-        &copy;1997 Scoobert Doobert, Inc. / The Santa Cruz-ish Operation
+        &copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation
       </p>
     </main>
   );
