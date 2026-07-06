@@ -12,6 +12,7 @@ import PizzaRadar from './pages/PizzaRadar';
 import BurritoBelt from './pages/BurritoBelt';
 import DeliveryDash from './pages/DeliveryDash';
 import OrderUp from './pages/OrderUp';
+import SaveSanDiego from './pages/SaveSanDiego';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
@@ -50,6 +51,9 @@ export const routes: RouteRecord[] = [
   { path: '/delivery-dash', element: <DeliveryDash /> },
   // /order-up -> "Order Up," the kitchen-side Simon: watch the order, ring it back.
   { path: '/order-up', element: <OrderUp /> },
+  // /save-san-diego -> "1101 (Save San Diego)," Scoobert's Twine quest in a cabinet
+  // (an iframe of public/1101.html; also the hidden terminal `1101` egg).
+  { path: '/save-san-diego', element: <SaveSanDiego /> },
   // /poke -> "Poke Scoobert," the face-stretch instrument (a second cabinet).
   { path: '/poke', element: <Poke /> },
   // /chimes -> "Pendulum Chimes," a tap-to-play bell instrument (a third cabinet,
