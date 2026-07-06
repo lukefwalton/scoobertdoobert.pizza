@@ -59,6 +59,12 @@ export type RoomKind =
   // beat (musicRoom — it owns the space). The first sustained/continuous voice on
   // the music ladder (every other instrument is struck/plucked).
   | 'theremin'
+  // The Waiting Room (待合室) — a liminal municipal lobby through a door in the
+  // drained deep end: rows of bolted-down chairs facing a shuttered reception
+  // window, a dead CRT hissing dim static, a NOW SERVING sign stuck on 404, all
+  // under a flickering drop-ceiling. Funny-UNCANNY (the dread is the endless wait,
+  // never a scare — the taste line holds); an atmospheric dead-end off deeppool.
+  | 'waitingroom'
   // The Memory Lane wing — a digital-nostalgia branch off the classified file
   // room: a corridor of glowing CRTs showing old-web fragments, opening into a
   // dark server-void where drifting data motes are "all my friends." Mildly

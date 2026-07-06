@@ -231,6 +231,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   mobius: { x: 5, y: 4.8 },
   liminal: { x: 5, y: 6.0 },
   deeppool: { x: 5, y: 7.2 },
+  // The Waiting Room — a liminal dead-end off the drained deep end (-X branch).
+  waitingroom: { x: 3.4, y: 8.0 },
   // The Grassrooms — a sweet breather branching LEFT off the liminal level.
   grassrooms: { x: 3.4, y: 6.2 },
   // The Aerial (theremin) — a sweet instrument room branching RIGHT off the liminal.

@@ -227,6 +227,16 @@ export const LOOKABLES: Lookable[] = [
     story: 'It descends into the deep end. There is no deep end. There is only more down.',
   },
   {
+    id: 'waitingroom-look',
+    room: 'waitingroom',
+    anchor: 'front-right',
+    height: 1.3,
+    label: 'the take-a-number spool',
+    glyph: '🎫',
+    story:
+      'You pull A-899. The board says NOW SERVING 404. You do the arithmetic, then decide not to. There are chairs. There is time.',
+  },
+  {
     id: 'grassrooms-look',
     room: 'grassrooms',
     anchor: 'right',

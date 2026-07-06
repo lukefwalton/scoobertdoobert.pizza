@@ -254,6 +254,9 @@ export const WATER_ROOMS: Room[] = [
     spawns: {
       default: { position: [0, EYE, 5], yaw: Math.PI },
       fromLiminal: { position: [0, EYE, 5], yaw: Math.PI },
+      // Back out of the waiting room: by the -X maintenance door, facing +X into
+      // the room, clear of every door radius.
+      fromWaiting: { position: [-4.5, EYE, 0], yaw: Math.PI / 2 },
     },
     // One lurker haunts the drained deep end — slower, a single big eye.
     entities: [{ id: 'deep-lurker', body: 'lurker', spawn: [-2, -3], speed: 1.6 }],
@@ -265,6 +268,46 @@ export const WATER_ROOMS: Room[] = [
         position: [0, 0, 8.95], // +Z wall
         rotationY: 0,
         label: 'climb back up',
+        radius: 3.2,
+      },
+      {
+        id: 'deep-to-waiting',
+        to: 'waitingroom',
+        toSpawn: 'default',
+        position: [-8.95, 0, 0], // -X wall — a maintenance door where the tile gives way
+        rotationY: Math.PI / 2,
+        label: 'go through the door marked 待合室',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'waitingroom',
+    kind: 'waitingroom',
+    title: 'The Waiting Room',
+    // A liminal municipal lobby behind a door in the drained deep end — rows of
+    // bolted chairs facing a shuttered reception window, a dead CRT, a NOW SERVING
+    // sign stuck on 404. Funny-uncanny (the wait is the dread; the taste line
+    // holds); an atmospheric dead-end you FIND, off the descent. Procedural.
+    dims: { halfW: 8, halfD: 6.5, height: 3.4, eye: EYE },
+    // Over-lit sickly fluorescent — pale institutional green-gray. Liminal is
+    // BRIGHT and empty, not dark (the poolrooms grammar): the red EXIT sign is the
+    // only warm light, and it marks the way back.
+    palette: { background: '#bcbfa8', fog: '#c6c9b2', fogNear: 6, fogFar: 30 },
+    spawns: {
+      // Just inside the +Z return door (under the EXIT sign), facing -Z down the
+      // long empty room — the reception window + the chair-backs are ahead of you.
+      default: { position: [0, EYE, 2.6], yaw: Math.PI },
+      fromDeep: { position: [0, EYE, 2.6], yaw: Math.PI },
+    },
+    doors: [
+      {
+        id: 'waiting-to-deep',
+        to: 'deeppool',
+        toSpawn: 'fromWaiting',
+        position: [0, 0, 6.45], // +Z wall, under the EXIT sign — the way back
+        rotationY: 0,
+        label: 'back out under the EXIT sign',
         radius: 3.2,
       },
     ],

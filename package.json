@@ -58,6 +58,7 @@
     "shoot:boardwalk": "node scripts/shoot-boardwalk.mjs",
     "shoot:gallery": "node scripts/shoot-gallery.mjs",
     "shoot:theremin": "node scripts/shoot-theremin.mjs",
+    "shoot:waitingroom": "node scripts/shoot-waitingroom.mjs",
     "shoot:memorylane": "node scripts/shoot-memorylane.mjs",
     "shoot:studio": "node scripts/shoot-studio.mjs",
     "shoot:hud": "node scripts/shoot-hud.mjs",
