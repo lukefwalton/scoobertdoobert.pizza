@@ -7,6 +7,8 @@ import {
   parseScorePath,
   rankFor,
   windowAround,
+  windowCutoff,
+  asWindow,
   cleanInitials,
   validateSubmission,
   SCORE_PREFIX,
@@ -98,6 +100,43 @@ describe('windowAround', () => {
     expect(w.rank).toBe(6); // all 5 above → rank 6
     expect(w.gap).toBe(10); // next-higher 20 → 20 - 10
     expect(w.neighbors.at(-1)).toEqual({ rank: 5, initials: 'EEE', score: 20 });
+  });
+});
+
+describe('windowCutoff (UTC calendar boundaries) + asWindow', () => {
+  // A fixed instant, mid-morning UTC — the weekday is asserted by property, not hardcoded.
+  const now = Date.UTC(2026, 6, 8, 15, 30, 0); // 2026-07-08T15:30:00Z
+
+  it("'all' → null (no time filter)", () => {
+    expect(windowCutoff('all', now)).toBeNull();
+  });
+
+  it("'today' → 00:00:00 UTC of the current day", () => {
+    const c = windowCutoff('today', now)!;
+    const d = new Date(c);
+    expect([d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()]).toEqual([2026, 6, 8]);
+    expect([d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()]).toEqual(
+      [0, 0, 0, 0],
+    );
+  });
+
+  it("'week' → a MONDAY 00:00 UTC, on/before today, within 6 days (ISO week, not Sunday)", () => {
+    const wk = windowCutoff('week', now)!;
+    const td = windowCutoff('today', now)!;
+    const d = new Date(wk);
+    expect(d.getUTCDay()).toBe(1); // 1 = Monday — catches a Sunday-start off-by-one
+    expect(d.getUTCHours()).toBe(0);
+    expect(wk).toBeLessThanOrEqual(td);
+    expect((td - wk) / 86_400_000).toBeLessThanOrEqual(6);
+  });
+
+  it('asWindow coerces anything unrecognized to all', () => {
+    expect(asWindow('today')).toBe('today');
+    expect(asWindow('week')).toBe('week');
+    expect(asWindow('all')).toBe('all');
+    expect(asWindow('bogus')).toBe('all');
+    expect(asWindow(undefined)).toBe('all');
+    expect(asWindow(['today'])).toBe('all'); // an array query value is not a valid window
   });
 });
 

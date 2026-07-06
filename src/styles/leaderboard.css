@@ -66,6 +66,35 @@
   cursor: default;
 }
 
+/* ── time-boxing tabs (Today · This Week · All-Time) — full-board view only ──── */
+.hud-board__tabs {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0 8px;
+}
+.hud-board__tab {
+  flex: 1;
+  font-family: inherit;
+  font-size: 0.8em;
+  letter-spacing: 0.04em;
+  padding: 4px 6px;
+  background: #1a1206;
+  color: #ffe6b0;
+  border: 1px solid rgba(255, 196, 92, 0.5);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.hud-board__tab:hover {
+  opacity: 1;
+}
+.hud-board__tab--on {
+  background: #2a1c0a;
+  color: #ffe24a;
+  border-color: rgba(255, 196, 92, 0.95);
+  font-weight: bold;
+  opacity: 1;
+}
+
 /* the ranked list */
 .hud-board__list {
   list-style: none;

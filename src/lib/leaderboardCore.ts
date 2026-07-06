@@ -91,6 +91,33 @@ export function windowAround(
   return { rank, index, gap, neighbors };
 }
 
+/** A leaderboard TIME filter. 'all' = every score ever; 'today'/'week' = the current UTC
+ *  calendar day / ISO week. (Distinct from the RANK window above — this is time-boxing.) */
+export type LeaderWindow = 'today' | 'week' | 'all';
+
+/** Coerce an unknown query value to a LeaderWindow; anything unrecognized → 'all' (the
+ *  backward-compatible default, so a missing/garbage `?window=` behaves like before). */
+export function asWindow(v: unknown): LeaderWindow {
+  return v === 'today' || v === 'week' ? v : 'all';
+}
+
+const DAY_MS = 86_400_000;
+
+/** The inclusive lower-bound timestamp (ms) for a window, or null for 'all' (no filter).
+ *  CALENDAR boundaries in UTC: 'today' = 00:00:00 UTC of the current day; 'week' = 00:00:00
+ *  UTC of the current ISO week's Monday. Pure — the caller passes `nowMs` (Date.now() in the
+ *  serverless handler), so it's deterministic + unit-testable. Compare a score's `ts` with
+ *  `Date.parse(ts) >= cutoff`. */
+export function windowCutoff(window: LeaderWindow, nowMs: number): number | null {
+  if (window === 'all') return null;
+  const d = new Date(nowMs);
+  const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  if (window === 'today') return dayStart;
+  // 'week': back up to Monday 00:00 UTC (ISO 8601; getUTCDay() is 0=Sun..6=Sat).
+  const daysSinceMonday = (d.getUTCDay() + 6) % 7;
+  return dayStart - daysSinceMonday * DAY_MS;
+}
+
 /** Three A–Z letters, uppercased — the classic arcade tag (server-side mirror). */
 export function cleanInitials(v: unknown): string {
   return String(v ?? '')

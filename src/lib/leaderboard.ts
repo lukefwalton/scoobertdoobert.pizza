@@ -8,9 +8,14 @@
 // (progressStore.pizzaPointsBest); the leaderboard is a bonus on top.
 // ───────────────────────────────────────────────────────────────────────────
 
-import { cleanInitials, type RankWindow, type RankNeighbor } from './leaderboardCore';
+import {
+  cleanInitials,
+  type RankWindow,
+  type RankNeighbor,
+  type LeaderWindow,
+} from './leaderboardCore';
 
-export type { RankWindow, RankNeighbor } from './leaderboardCore';
+export type { RankWindow, RankNeighbor, LeaderWindow } from './leaderboardCore';
 
 export type ScoreEntry = { initials: string; score: number; ts?: string };
 
@@ -68,10 +73,15 @@ function asWindow(v: unknown): RankWindow | undefined {
  *  can't be reached. null = unavailable (offline / no backend / storage down);
  *  `{ entries: [] }` = a reachable but empty board — distinct, so the UI can say
  *  "offline" vs "no scores yet." */
-export async function fetchLeaderboard(limit = 25, score?: number): Promise<BoardData | null> {
+export async function fetchLeaderboard(
+  limit = 25,
+  score?: number,
+  window: LeaderWindow = 'all',
+): Promise<BoardData | null> {
   try {
     const q = new URLSearchParams({ limit: String(limit) });
     if (typeof score === 'number' && score > 0) q.set('around', String(Math.floor(score)));
+    if (window !== 'all') q.set('window', window); // 'all' stays param-free (backward-compatible)
     const res = await fetch(`/api/score?${q.toString()}`, {
       headers: { accept: 'application/json' },
     });

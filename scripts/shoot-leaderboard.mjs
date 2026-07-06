@@ -287,13 +287,86 @@ let unrankedSubmitOk = false;
   await uCtx.close();
 }
 
+// ── 6. time-boxing tabs (Today / This Week / All-Time) ───────────────────────
+// Mock the GET per `window` query so a tab switch is observable without a backend: each
+// window returns a distinctly-tagged board, and we assert the default is All-Time and that
+// clicking Today re-fetches with `window=today` and swaps in that board.
+let tabsOk = false;
+{
+  const byWindow = {
+    all: [
+      { initials: 'ALL', score: 900 },
+      { initials: 'AL2', score: 800 },
+    ],
+    today: [
+      { initials: 'TOD', score: 40 },
+      { initials: 'TD2', score: 30 },
+    ],
+    week: [
+      { initials: 'WKK', score: 120 },
+      { initials: 'WK2', score: 110 },
+    ],
+  };
+  const tCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const tp = await tCtx.newPage();
+  tp.on('pageerror', (e) => errors.push(e.message));
+  const seen = [];
+  await tp.route('**/api/score*', (route) => {
+    const win = new URL(route.request().url()).searchParams.get('window') || 'all';
+    seen.push(win);
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ ok: true, entries: byWindow[win] || byWindow.all }),
+    });
+  });
+  await tp.goto(base + '/leaderboard', { waitUntil: 'networkidle' });
+
+  const tabCount = await tp.$$('.hud-board__tab').then((a) => a.length);
+  if (tabCount !== 3) bad(`tabs: expected 3 time tabs, got ${tabCount}`);
+  const defaultOn = await tp
+    .$eval('.hud-board__tab--on', (el) => el.textContent?.trim())
+    .catch(() => null);
+  if (defaultOn !== 'All-Time')
+    bad(`tabs: default active tab should be All-Time, got ${defaultOn}`);
+  const firstList = await tp
+    .$eval('.hud-board__list', (ol) => ol.textContent || '')
+    .catch(() => '');
+  if (!/ALL/.test(firstList))
+    bad(`tabs: first paint should show the all-time board -> ${firstList}`);
+
+  // switch to Today → re-fetch with window=today → today's board swaps in
+  await tp.getByRole('tab', { name: 'Today' }).click();
+  const todayShown = await tp
+    .waitForFunction(
+      () => /TOD/.test(document.querySelector('.hud-board__list')?.textContent || ''),
+      null,
+      { timeout: 5000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!todayShown) bad('tabs: clicking Today did not load the today board');
+  const todayFetched = seen.includes('today');
+  if (!todayFetched) bad('tabs: no GET carried window=today after clicking Today');
+  const todayOn = await tp
+    .$eval('.hud-board__tab--on', (el) => el.textContent?.trim())
+    .catch(() => null);
+  if (todayOn !== 'Today') bad(`tabs: Today should be the active tab after click, got ${todayOn}`);
+  tabsOk =
+    tabCount === 3 && defaultOn === 'All-Time' && todayShown && todayFetched && todayOn === 'Today';
+  await tp.screenshot({ path: '.shots/leaderboard-tabs.png' });
+  await tCtx.close();
+}
+
 if (errors.length)
   bad(`leaderboard: ${errors.length} page error(s): ${errors.slice(0, 2).join(' | ')}`);
 console.log(
   `leaderboard -> crawl(marquee=${crawlMarquee} cold=${crawlCold} back=${crawlBack}) ` +
     `gifs(trophy=${gifTrophy} flames=${gifFlames} pizza=${gifPizza} coins=${coinRain}) ` +
     `offlineOnMount=${offlineOnMount} submitGraceful=${submitGraceful} youStrip=${youStripOk} ` +
-    `unrankedSubmit=${unrankedSubmitOk} pauseMenu=${inPause} errors=${errors.length}`,
+    `unrankedSubmit=${unrankedSubmitOk} tabs=${tabsOk} pauseMenu=${inPause} errors=${errors.length}`,
 );
 
 await ctx.close();

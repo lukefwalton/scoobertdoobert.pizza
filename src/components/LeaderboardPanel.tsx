@@ -5,9 +5,17 @@ import {
   submitScore,
   type ScoreEntry,
   type RankWindow,
+  type LeaderWindow,
 } from '../lib/leaderboard';
 import { cleanInitials, RANKED_TOP } from '../lib/leaderboardCore';
 import { buildYouRows } from '../lib/youStrip';
+
+// The time-boxing tabs (full-board view only). All-Time is the default first paint.
+const WINDOW_TABS: { key: LeaderWindow; label: string }[] = [
+  { key: 'today', label: 'Today' },
+  { key: 'week', label: 'This Week' },
+  { key: 'all', label: 'All-Time' },
+];
 
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
@@ -42,13 +50,16 @@ export function LeaderboardPanel({
   // `?around={score}` on mount (the "where would I land" preview) and from a POST reply
   // after signing. null = not fetched / offline / no score.
   const [you, setYou] = useState<RankWindow | null>(null);
+  // Which time-boxed board to show (full-board view only). 'all' keeps the current
+  // first paint; switching re-fetches entries + `you` for that UTC calendar window.
+  const [win, setWin] = useState<LeaderWindow>('all');
 
   useEffect(() => {
     if (!loadBoard) return;
     let live = true;
     // Pass the local best so the board comes back with THIS player's window, not just the
     // top-N — the motivate-the-90% view (a player far down still sees their standing).
-    fetchLeaderboard(rows, score).then((b) => {
+    fetchLeaderboard(rows, score, win).then((b) => {
       if (!live) return;
       setEntries(b ? b.entries : null);
       setYou(b?.you ?? null);
@@ -56,7 +67,7 @@ export function LeaderboardPanel({
     return () => {
       live = false;
     };
-  }, [rows, loadBoard, score]);
+  }, [rows, loadBoard, score, win]);
 
   const canSubmit = score > 0 && cleanInitials(initials).length === 3 && status !== 'submitting';
   // A real submit landed this session → the player's own row is now on the board, so the
@@ -72,12 +83,16 @@ export function LeaderboardPanel({
       setRank(r.rank);
       setStatus(r.ranked ? 'ranked' : 'unranked');
       if (r.you) setYou(r.you);
-      if (r.entries && r.entries.length) setEntries(r.entries.slice(0, rows));
-      else if (loadBoard)
-        fetchLeaderboard(rows, score).then((b) => {
+      if (loadBoard) {
+        // The POST returns the ALL-TIME board; re-fetch the ACTIVE tab so the list + `you`
+        // match the selected window (a fresh submit counts toward Today / This Week too).
+        fetchLeaderboard(rows, score, win).then((b) => {
           setEntries(b ? b.entries : null);
           if (b?.you) setYou(b.you);
         });
+      } else if (r.entries && r.entries.length) {
+        setEntries(r.entries.slice(0, rows));
+      }
     } else {
       // Initials problem vs backend down — show the right thing, not "bad initials"
       // for an outage (the review's failure-semantics fix).
@@ -136,6 +151,23 @@ export function LeaderboardPanel({
         <p className="hud-board__msg">
           Those initials didn&rsquo;t take — try three (different) letters.
         </p>
+      )}
+
+      {loadBoard && (
+        <div className="hud-board__tabs" role="tablist" aria-label="leaderboard time range">
+          {WINDOW_TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={win === t.key}
+              className={`hud-board__tab${win === t.key ? ' hud-board__tab--on' : ''}`}
+              onClick={() => setWin(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       )}
 
       {you && score > 0 && (
