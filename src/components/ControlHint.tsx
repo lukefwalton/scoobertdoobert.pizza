@@ -53,22 +53,45 @@ export function ControlHint() {
     const onKey = (e: KeyboardEvent) => {
       if (MOVE_KEYS.has(e.key.toLowerCase())) hideRef.current(true); // moved → taught
     };
-    const onPointer = (e: PointerEvent) => {
+    // The hint teaches MOVE + LOOK, so only ACTUAL move/look durably marks it taught —
+    // NOT a bare hotspot click or a right-side button tap (a first-timer shouldn't be
+    // able to hide the one movement legend without having moved). Touch: engaging the
+    // STICK (not the jump/spell/action buttons) is the move intent. Desktop look is a
+    // DRAG on the canvas: arm on pointerdown, teach only once the pointer travels past
+    // a small threshold (a real drag) — a plain click (down → up, no travel) disarms.
+    let drag: { x: number; y: number } | null = null;
+    const onPointerDown = (e: PointerEvent) => {
       const t = e.target as Element | null;
       if (!t) return;
-      // A canvas pointerdown = drag-look (mouse or touch); a pointerdown inside the
-      // on-screen touch controls = the stick/buttons (move/act on mobile). HUD
-      // buttons (the menu) don't match, so tapping those doesn't count.
-      if (t.tagName === 'CANVAS' || t.closest('.touch-controls')) hideRef.current(true);
+      if (t.closest('.touch-stick')) {
+        hideRef.current(true); // the stick = starting to move
+        return;
+      }
+      if (t.tagName === 'CANVAS') drag = { x: e.clientX, y: e.clientY }; // arm drag-look watch
+    };
+    const onPointerMove = (e: PointerEvent) => {
+      if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) {
+        drag = null;
+        hideRef.current(true); // a real drag-look → taught
+      }
+    };
+    const disarm = () => {
+      drag = null; // click released without dragging → not "looked"
     };
     window.addEventListener('keydown', onKey);
-    window.addEventListener('pointerdown', onPointer, true);
+    window.addEventListener('pointerdown', onPointerDown, true);
+    window.addEventListener('pointermove', onPointerMove, true);
+    window.addEventListener('pointerup', disarm, true);
+    window.addEventListener('pointercancel', disarm, true);
     // Backstop: never linger more than ~10s — but idling it out is NOT "taught".
     const tBackstop = window.setTimeout(() => hideRef.current(false), 10000);
     return () => {
       window.clearTimeout(tBackstop);
       window.removeEventListener('keydown', onKey);
-      window.removeEventListener('pointerdown', onPointer, true);
+      window.removeEventListener('pointerdown', onPointerDown, true);
+      window.removeEventListener('pointermove', onPointerMove, true);
+      window.removeEventListener('pointerup', disarm, true);
+      window.removeEventListener('pointercancel', disarm, true);
     };
   }, []);
 
