@@ -83,8 +83,17 @@ if (!hintUp) fail('CONTROL HINT MISSING on touch entry');
 else {
   const box = await (await page.$('.touch-stick'))?.boundingBox();
   if (box) {
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    // A real stick DISPLACEMENT, not a bare centre tap: press the nub, push it
+    // off-centre, hold a beat, release — so this proves the hint clears on actual
+    // stick USE (a genuine drag that also drives the move vector), not merely on any
+    // pointerdown landing inside .touch-controls. The dedicated "STICK DID NOT WALK"
+    // block below still asserts the resulting camera travel.
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+    await page.mouse.move(cx, cy);
     await page.mouse.down();
+    await page.mouse.move(cx, cy - 34, { steps: 5 });
+    await page.waitForTimeout(150);
     await page.mouse.up();
   }
   const hintGone = await page
