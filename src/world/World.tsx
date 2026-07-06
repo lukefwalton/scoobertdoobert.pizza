@@ -64,6 +64,7 @@ import { GlbRoom } from './GlbRoom';
 import { GlbProp } from './GlbProp';
 import { CeilingDrips } from './CeilingDrips';
 import { Doors } from './Doors';
+import { Interactables } from './Interactables';
 import { Paintings } from './CoverArt';
 import { TvSet } from './TvSet';
 import { Controls } from './Controls';
@@ -346,6 +347,9 @@ export default function World() {
       {room.paintings && <Paintings list={room.paintings} />}
       {room.tv && <TvSet {...room.tv} />}
       <Doors />
+      {/* Escape-room interactables: click one → it fires a trigger → a hidden door
+          shimmers into its wall ("do something → the way opens"). */}
+      <Interactables />
       {/* Proximity pickups: publishes the "Press P to grab" prompt + auto-grabs on
           walk-over (the meshes themselves are RoomPickups; this is the controller). */}
       <PickupController />

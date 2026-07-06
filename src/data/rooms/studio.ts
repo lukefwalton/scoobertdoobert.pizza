@@ -137,6 +137,23 @@ export const STUDIO_ROOMS: Room[] = [
         label: 'back to the control room',
         radius: 2.8,
       },
+      {
+        // THE 1101 LEVEL DOOR (Luke, 2026-07): pocket the "1101" master reel (the
+        // pickup on the -Z shelf) and a doorway hums open in the back wall behind
+        // it — step through into the full-screen text-adventure LEVEL ("1101 / Save
+        // San Diego," public/1101.html). opensLevel raises the overlay in place
+        // instead of wiping to a room. revealSecret is DURABLE (you found the ARG —
+        // it stays found), fired by collecting tape-1101 (items.ts revealsSecret).
+        id: 'vault-to-1101',
+        to: 'tapevault', // conceptual origin (the level overlays in place)
+        position: [0, 0, -4.95], // -Z back wall, behind the 1101 reel
+        rotationY: Math.PI, // opening faces +Z into the room
+        label: 'step into the transmission',
+        radius: 3,
+        hidden: true,
+        revealSecret: 'save-san-diego',
+        opensLevel: 'save-san-diego',
+      },
     ],
   },
   {

@@ -195,6 +195,17 @@ export type RoomDoor = {
    *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
    *  after you beat the grass goblin. Takes precedence over revealOn when set. */
   revealSecret?: string;
+  /** ESCAPE-ROOM reveal (Luke, 2026-07): a `hidden` door that appears once a
+   *  matching TRIGGER fires this session — an interactable click (Room.interactables)
+   *  or a pickup. Ephemeral (re-armed on a fresh load) so it re-teaches the "do
+   *  something → the way opens" grammar each visit. Distinct from revealSecret (that
+   *  one is durable). Takes precedence over revealOn. */
+  revealOnTrigger?: string;
+  /** OPENS A FULL-SCREEN LEVEL instead of traveling to a 3D room: on activation
+   *  (E / click) this door raises the named level overlay (e.g. 'save-san-diego' →
+   *  the 1101 text-adventure) rather than wiping to `to`. `to` still names the room
+   *  you conceptually "came from" for prompts/labels. */
+  opensLevel?: string;
   /** If set, this door is a PAINTING PORTAL: it renders as a big framed album cover
    *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
    *  SM64 dive). The slug resolves against src/data/albums. */
@@ -207,6 +218,25 @@ export type RoomDoor = {
   requiresKey?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
+};
+
+/** An ESCAPE-ROOM interactable (Room.interactables) — a small clickable object
+ *  (a bell, a switch) whose whole job is to FIRE A TRIGGER, which reveals a
+ *  `revealOnTrigger` door somewhere in the room. The site's "do something → the
+ *  way opens" grammar (Luke, 2026-07): trivially easy, always signposted (a hover
+ *  cursor + a floating label). Click / tap to activate; the reveal is the payoff. */
+export type RoomInteractable = {
+  /** Stable id (React key + the dance/smoke hooks). */
+  id: string;
+  /** World position of the clickable object (its base sits here). */
+  position: [number, number, number];
+  /** Verb phrase shown floating over it + announced on use ("ring the bell"). */
+  label: string;
+  /** The trigger id this fires — a door with a matching `revealOnTrigger` appears. */
+  revealsTrigger: string;
+  /** Which little clickable to render (defaults to 'bell'). */
+  kind?: 'bell' | 'switch' | 'orb';
+  rotationY?: number;
 };
 
 /** A decorative album cover hung on a wall (room.paintings) — showcase art, no
@@ -296,6 +326,9 @@ export type Room = {
    *  don't need them. Desktop + motion-OK is automatic (the world only mounts
    *  there). The dev guard warns if this is set on a non-GLB room. */
   entities?: RoomEntity[];
+  /** ESCAPE-ROOM interactables: small clickable objects that fire a trigger to
+   *  reveal a `revealOnTrigger` door (the "do something → the way opens" grammar). */
+  interactables?: RoomInteractable[];
   /** Named arrival points (doors reference these by id). 'default' is required. */
   spawns: Record<string, Spawn> & { default: Spawn };
   doors: RoomDoor[];

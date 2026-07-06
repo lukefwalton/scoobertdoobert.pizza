@@ -391,6 +391,64 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   `ArcadeCabinetPage` (route-parity guarded), a per-cabinet high score
   (`arcadeHighs['order-up']` = the longest order reached), and a `?debug`-only
   `__sdpOrderUpForceLose` hook driving the real game-over branch in `shoot:games`.
+- ✅ **…and the ARG payoff gets a cabinet — SAVE SAN DIEGO (2026-07-06, Luke):**
+  the deepest secret finally has a front door in the arcade. **"1101 (Save San
+  Diego)"** — Luke's own **Twine/Harlowe** interactive-fiction quest (help Scoobert
+  save the city, and its burritos, from an evil warlock) — was only reachable via
+  the hidden terminal `1101` command → `/1101.html`. It's now a real cabinet
+  (`src/components/SaveSanDiego.tsx`): an `<iframe>` of the same shipped
+  `public/1101.html`, gated behind a **PRESS START** button so the story's opening
+  name-`prompt()` never fires until the player chooses to begin. Same DRY plumbing
+  as the rest — one `arcadeGames.ts` registry row drives the in-world roll +
+  the derived cross-link shelf + a standalone `/save-san-diego` route through
+  `ArcadeCabinetPage` (route-parity + sitemap-parity guarded). Unlike the canvas
+  cabinets it's a STORY (no score → the HUD reads QUEST); it's Luke's own content
+  (© Scoobert Doobert), already a shipped asset, so no new provenance. `shoot:cabinet`
+  covers the in-world roll (the soundmaker duck still fires — any open cabinet ducks
+  the radio); **`shoot:savesandiego`** covers the standalone route both ways (JS-off
+  crawlable shell w/ no iframe leak; JS-on PRESS START → iframe `/1101.html` → the
+  real Twine story mounts).
+  - **Patched six real logic bugs in the Twine game itself (Luke wrote it solo, no
+    AI):** four **unbalanced-hook** passages (`zoogood`, `zoodecent`, `shopping`,
+    `amuletattack`) — a missing `]` left an `(after:)` changer un-attached, which
+    Harlowe rendered as a live red error box in-story; and two unitless
+    `(after: 45)` → `(after: 4.5s)` (a bare number reads as ~45 **ms**, so the good-
+    ending "Tails" link flashed in before its 3s "Heads" sibling). All verified
+    error-free in the real Harlowe runtime (loaded each passage as the start node,
+    asserted zero `tw-error` + the choice links render). No broken passage links
+    (all 81 targets resolve). A fast static guard (`src/data/saveSanDiego.test.ts`)
+    parses `public/1101.html` and pins those invariants (link targets resolve,
+    balanced hooks, unitful `(after:)`) so the hand-edited export can't regress.
+- ✅ **INTERACT-TO-PROGRESS + the 1101 LEVEL (2026-07-06, Luke: "escape rooms →
+  doors appear after an ACTION, not just a key"):** the site's new default
+  progression grammar — **do something trivially easy (click / grab) and the way
+  onward APPEARS** — built on the EXISTING reveal hook (not a new mechanic), plus
+  the 1101 quest promoted to its own full-screen LEVEL.
+  - **The primitive:** a `hidden` door can now carry `revealOnTrigger` (ephemeral,
+    re-armed per visit) alongside the durable `revealSecret`; a small clickable
+    `Interactable` (`src/world/Interactables.tsx`, data: `Room.interactables`) fires
+    a trigger via `sceneStore.fireTrigger`, and a pickup can bank a durable secret
+    via `Item.revealsSecret`. The reveal's **juice**: a ding + a "a way opens" toast
+    + a collect-burst at the interactable, and the door **shimmers into its wall**
+    (DoorMesh grows a `hidden` door in on mount — a hidden door only ever mounts at
+    its reveal moment, so mount == manifest). WCAG-safe (a smooth scale, no flash).
+  - **ROOM ONE = the teacher:** the shop's "EMPLOYEES ONLY" back-hall door (the way
+    deeper) is now HIDDEN until you **ring the counter bell** — the whole world's
+    "interact → the way opens" language, set on the first room. The two SIDE doors
+    (boardwalk / kitchen) stay visible so you're never blocked while you orient.
+    (Wayfinding routes through `revealOnTrigger` doors so the compass still guides
+    you deeper; genuine secrets — the rat's panel, the Möbius onward — stay off the
+    map. The arrival-spawn contract skips `hidden` doors: inactive at arrival.)
+  - **The 1101 LEVEL:** in the **Tape Vault**, pocketing the "1101" master reel
+    (`Item.revealsSecret`) hums a door open in the wall behind it; **stepping
+    through raises the full-screen text adventure** (`SaveSanDiegoLevel` →
+    `sceneStore.levelOverlay`, a door with `opensLevel` opens an overlay instead of
+    wiping to a room), with a "⟵ Return to the world" button + Esc (which also
+    works from inside the same-origin story iframe) back out. The **arcade cabinet
+    stays** (Luke: "keep both") — the cabinet is the quick/mobile way to play it;
+    the level is the earned, immersive front door. `shoot:escaperoom` drives the
+    whole thing (bell → hall reveal before/after; reel → level door → the real Twine
+    story mounts in the overlay → return); `shoot:rooms` rings the bell first now.
 - ✅ **Lyrics + the terminal's brain (2026-06-25):** verbatim **lyrics** for the
   catalog (`src/data/lyrics.*`) read along in the pause menu + the `lyrics`
   terminal command; **Love Music More** (`lmm`) and **lore** (`lore`) + a

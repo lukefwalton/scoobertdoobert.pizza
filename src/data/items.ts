@@ -34,6 +34,11 @@ export type Item = {
   /** TOMES (scrolls): the spell id this item TEACHES (spells.ts). Pocketing it
    *  learns the spell — how you EARN your magic. Undefined for non-tome items. */
   teachesSpell?: string;
+  /** ESCAPE-ROOM reveal: pocketing this item banks a DURABLE secret (findSecret),
+   *  which reveals a door with a matching `revealSecret` — "pick something up →
+   *  the way opens." Durable (you found it, it stays found). Used by the "1101"
+   *  master reel → the Save San Diego level door. */
+  revealsSecret?: string;
 };
 
 export const ITEMS: Item[] = [
@@ -103,6 +108,9 @@ export const ITEMS: Item[] = [
     blurb: 'A cassette labeled only 1101. Seven-bit ASCII, sung — it decodes to a URL.',
     glyph: '📼',
     track: '1101',
+    // Pocketing the 1101 reel decodes the URL and opens the way IN — a doorway hums
+    // open in the vault wall onto the "Save San Diego" text-adventure level.
+    revealsSecret: 'save-san-diego',
   },
   {
     id: 'tape-jolly-roger-bay',

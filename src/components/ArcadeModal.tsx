@@ -15,6 +15,7 @@ import { PizzaRadar } from './PizzaRadar';
 import { BurritoBelt } from './BurritoBelt';
 import { DeliveryDash } from './DeliveryDash';
 import { OrderUp } from './OrderUp';
+import { SaveSanDiego } from './SaveSanDiego';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
   'burrito-belt': BurritoBelt,
   'delivery-dash': DeliveryDash,
   'order-up': OrderUp,
+  'save-san-diego': SaveSanDiego,
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,

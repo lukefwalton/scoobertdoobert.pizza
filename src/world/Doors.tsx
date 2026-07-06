@@ -25,11 +25,15 @@ function doorRevealed(
   secretRevealed: boolean,
   mobiusLoops: number,
   secretsFound: string[],
+  triggersFired: string[],
 ): boolean {
   if (!door.hidden) return true;
   // A durable progress unlock (e.g. the grove path after the grass goblin) takes
-  // precedence; otherwise the scene-flag reveals (the rat's secret / the loop).
+  // precedence; then an escape-room trigger fired this session (an interactable /
+  // pickup — the "do something → the way opens" grammar); otherwise the scene-flag
+  // reveals (the rat's secret / the Möbius loop).
   if (door.revealSecret) return secretsFound.includes(door.revealSecret);
+  if (door.revealOnTrigger) return triggersFired.includes(door.revealOnTrigger);
   return door.revealOn === 'mobius' ? mobiusLoops >= MOBIUS_BREAK : secretRevealed;
 }
 
@@ -55,6 +59,7 @@ function DoorMesh({ door }: { door: RoomDoor }) {
       spawn: door.toSpawn ?? 'default',
       albumSlug: door.albumSlug,
       requiresKey: door.requiresKey,
+      opensLevel: door.opensLevel,
     });
   };
 
@@ -68,13 +73,28 @@ function DoorMesh({ door }: { door: RoomDoor }) {
     [gl],
   );
 
+  // The "manifest" beat: a HIDDEN door only ever mounts at the moment it's revealed
+  // (an escape-room trigger, the rat's secret, the loop breaking), so a mount pop —
+  // a quick grow-in from the floor — IS the reveal shimmer. Plain doors (never
+  // hidden) mount at scale 1 and skip it. WCAG-safe: a smooth ~0.5s scale, no flash.
+  const rig = useRef<THREE.Group>(null);
+  const shimmer = useRef(door.hidden ? 0 : 1);
+  useFrame((_, dt) => {
+    if (shimmer.current >= 1) return;
+    shimmer.current = Math.min(1, shimmer.current + dt / 0.5);
+    const e = 1 - Math.pow(1 - shimmer.current, 3); // easeOutCubic
+    rig.current?.scale.setScalar(0.7 + 0.3 * e);
+  });
+
   // A door with an album slug renders as a painting portal instead of a doorway.
   const album = door.albumSlug ? albumBySlug(door.albumSlug) : undefined;
 
   return (
     <group
+      ref={rig}
       position={door.position}
       rotation-y={door.rotationY}
+      scale={door.hidden ? 0.7 : 1}
       onClick={(e) => {
         e.stopPropagation();
         activate();
@@ -127,6 +147,7 @@ export function Doors() {
   const currentRoom = useSceneStore((s) => s.currentRoom);
   const secretRevealed = useSceneStore((s) => s.secretRevealed);
   const mobiusLoops = useSceneStore((s) => s.mobiusLoops);
+  const triggersFired = useSceneStore((s) => s.triggersFired);
   const secretsFound = useProgressStore((s) => s.secretsFound);
   const doors = useMemo(() => roomById(currentRoom).doors, [currentRoom]);
   const lastNear = useRef<string | null>(null);
@@ -168,6 +189,7 @@ export function Doors() {
           st.secretRevealed,
           st.mobiusLoops,
           useProgressStore.getState().secretsFound,
+          st.triggersFired,
         )
       )
         continue;
@@ -193,6 +215,7 @@ export function Doors() {
               spawn: nearest.toSpawn ?? 'default',
               albumSlug: nearest.albumSlug,
               requiresKey: nearest.requiresKey,
+              opensLevel: nearest.opensLevel,
             }
           : null,
       );
@@ -202,7 +225,7 @@ export function Doors() {
   return (
     <>
       {doors
-        .filter((d) => doorRevealed(d, secretRevealed, mobiusLoops, secretsFound))
+        .filter((d) => doorRevealed(d, secretRevealed, mobiusLoops, secretsFound, triggersFired))
         .map((d) => (
           <DoorMesh key={d.id} door={d} />
         ))}

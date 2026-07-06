@@ -115,6 +115,32 @@
   cursor: pointer;
 }
 
+/* The Save San Diego cabinet is a text quest (a Twine story in an iframe), not a
+   320×180 canvas — so its stage is tall and the story scrolls inside the CRT. */
+.arcade-stage--tall {
+  aspect-ratio: auto;
+  height: min(56vh, 420px);
+}
+.arcade-iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #000;
+}
+/* The PRESS-START gate (a real <button>, so it's keyboard-reachable) — reuses the
+   overlay look but must take pointer/tap events (the shared .arcade-overlay sets
+   pointer-events:none so taps fall through to a canvas, and it's declared LATER in
+   this file, so the override needs the higher element+class specificity to win). */
+button.arcade-start {
+  appearance: none;
+  font: inherit;
+  color: inherit;
+  pointer-events: auto;
+  cursor: pointer;
+  border: 0;
+}
+
 .arcade-overlay {
   position: absolute;
   inset: 0;
