@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import '../styles/arcade.css';
 import { MuteToggle } from './MuteToggle';
 import { useMounted } from '../lib/useMounted';
+import { useSaveSanDiegoWin } from '../lib/useSaveSanDiegoWin';
 import { CabinetShelf } from './CabinetShelf';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -44,6 +45,9 @@ export function ArcadeCabinetPage({
   children: ReactNode;
 }) {
   const mounted = useMounted();
+  // Bank the 1101 ARG win — this shell hosts the standalone /save-san-diego route
+  // (harmless on the other cabinet routes: the listener only reacts to 1101 posts).
+  useSaveSanDiegoWin();
   const url = `https://www.scoobertdoobert.pizza/${slug}`;
   return (
     <main className="arcade-page">

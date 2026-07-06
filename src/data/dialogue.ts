@@ -29,7 +29,9 @@ const RAT_TIDBITS: string[] = [
 export function ratDialogue(p: Progress): RatDialogue {
   const greeting =
     selectRatGreeting(p) ?? 'Oh — hey. Don’t mind the wall, it does that. What can I do you for?';
-  const undone = questStatus(p).find((q) => !q.done)?.quest;
+  // The rat points you at the MAIN path — a lingering bonus objective (the ARG)
+  // shouldn't become "the thing to do" once everything else is done.
+  const undone = questStatus(p).find((q) => !q.done && !q.quest.bonus)?.quest;
   const nudge = undone
     ? `If you’re after something to do: ${undone.label.toLowerCase()}. ${undone.hint}`
     : 'You’ve poked into every corner of this place. Nothing left I can point you at — go enjoy it.';

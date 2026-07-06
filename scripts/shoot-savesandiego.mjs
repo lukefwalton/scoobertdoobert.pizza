@@ -50,6 +50,7 @@ const { browser, fail, finish, failures } = await launchSmoke();
 
   let framed = false;
   let storyLoaded = false;
+  let banked = false;
   if (start) {
     await page.click('.arcade-start');
     const frameEl = await page.waitForSelector('.arcade-iframe', { timeout: 6000 }).then(
@@ -80,10 +81,45 @@ const { browser, fail, finish, failures } = await launchSmoke();
           () => false,
         );
       if (!storyLoaded) fail('JS: the embedded 1101 (Save San Diego) Twine story did not load');
+
+      // The ARG WIN → progression hook: when the win terminus ("SAN DIEGO IS SAVED")
+      // renders, 1101.html postMessages the win and the page's useSaveSanDiegoWin banks
+      // the durable 'saved-san-diego' BONUS secret. Simulate the terminus by injecting
+      // that exact line into the story (detection is text-based — this is what the win
+      // passage renders), then assert the PARENT actually banked it.
+      if (storyLoaded) {
+        await frame.evaluate(() => {
+          const s = document.querySelector('tw-story');
+          if (s)
+            s.insertAdjacentHTML(
+              'beforeend',
+              '<tw-passage>CONGRATULATIONS, SAN DIEGO IS SAVED.</tw-passage>',
+            );
+        });
+        banked = await page
+          .waitForFunction(
+            () => {
+              try {
+                return (
+                  JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+                ).includes('saved-san-diego');
+              } catch {
+                return false;
+              }
+            },
+            null,
+            { timeout: 4000 },
+          )
+          .then(
+            () => true,
+            () => false,
+          );
+        if (!banked) fail('JS: the 1101 win did not bank the saved-san-diego secret in the parent');
+      }
     }
   }
   await page.screenshot({ path: '.shots/save-san-diego.png' });
-  console.log(`JS -> start=${start} framed=${framed} story=${storyLoaded}`);
+  console.log(`JS -> start=${start} framed=${framed} story=${storyLoaded} banked=${banked}`);
   await ctx.close();
 }
 

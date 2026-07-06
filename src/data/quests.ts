@@ -26,6 +26,12 @@ export type Quest = {
   room?: string;
   /** Done purely from durable progress (no quest-specific state). */
   done: (p: Progress) => boolean;
+  /** A BONUS objective: it shows in the To-Do list (and gets its ✓ + toast), but it
+   *  does NOT count toward completionPct / allQuestsDone — so the ★100% finale bar
+   *  stays on the always-reachable objectives, and an optional side-thread (the 1101
+   *  ARG — pure share-fuel, off the main path) never gates the capstone. It's also
+   *  skipped by the objective compass / rat nudge (those track the main path). */
+  bonus?: boolean;
 };
 
 export const QUESTS: Quest[] = [
@@ -128,7 +134,20 @@ export const QUESTS: Quest[] = [
     room: 'terminus',
     done: (p) => p.visitedRooms.includes('terminus'),
   },
+  {
+    id: 'saved-san-diego',
+    label: 'Save San Diego',
+    hint: 'Play the 1101 cartridge’s little text adventure — all the way to the end.',
+    // A BONUS thread: the one piece of real branching narrative (the 1101 ARG). It's
+    // optional share-fuel off the main path, so it never gates the ★100% finale.
+    bonus: true,
+    done: (p) => p.secretsFound.includes('saved-san-diego'),
+  },
 ];
+
+// The SCORED objectives (everything that isn't a bonus) — completion % and the
+// finale gate count only these, so an optional side-thread can't move the ★100% bar.
+const SCORED_QUESTS = QUESTS.filter((q) => !q.bonus);
 
 export type QuestStatus = { quest: Quest; done: boolean };
 
@@ -137,19 +156,21 @@ export function questStatus(p: Progress): QuestStatus[] {
   return QUESTS.map((quest) => ({ quest, done: quest.done(p) }));
 }
 
-/** How many quests are complete (for the "n / total" readout). */
+/** How many SCORED quests are complete (for the "n / total" readout). Bonus
+ *  objectives are excluded so they never move the completion bar. */
 export function questsDone(p: Progress): number {
-  return QUESTS.reduce((n, q) => n + (q.done(p) ? 1 : 0), 0);
+  return SCORED_QUESTS.reduce((n, q) => n + (q.done(p) ? 1 : 0), 0);
 }
 
-/** Completion percent across all objectives (0..100) — the pause-menu badge. */
+/** Completion percent across the SCORED objectives (0..100) — the pause-menu badge. */
 export function completionPct(p: Progress): number {
-  return Math.round((questsDone(p) / QUESTS.length) * 100);
+  return Math.round((questsDone(p) / SCORED_QUESTS.length) * 100);
 }
 
-/** Has the player finished every objective? Triggers the finale (the win arc). */
+/** Has the player finished every SCORED objective? Triggers the finale (the win
+ *  arc). Bonus objectives (the ARG) are NOT required. */
 export function allQuestsDone(p: Progress): boolean {
-  return questsDone(p) === QUESTS.length;
+  return questsDone(p) === SCORED_QUESTS.length;
 }
 
 /** Is the always-on objective chip actually on screen? The HUD toggle is on, it
@@ -158,5 +179,7 @@ export function allQuestsDone(p: Progress): boolean {
  *  and WorldHud (which drops the announce toast below the chip only when it's truly
  *  showing) — so the two can never drift. */
 export function objectiveChipVisible(p: Progress, opts: { on: boolean; hidden: boolean }): boolean {
-  return opts.on && !opts.hidden && questStatus(p).some((q) => !q.done);
+  // Only the main path drives the compass — a lingering BONUS objective (the ARG)
+  // must not keep the chip up after the ★100% finale.
+  return opts.on && !opts.hidden && questStatus(p).some((q) => !q.done && !q.quest.bonus);
 }
