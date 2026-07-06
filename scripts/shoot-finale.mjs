@@ -46,6 +46,10 @@ await page.addInitScript(() => {
       ],
       secretsFound: [
         'jump-unlocked',
+        // unlock-radio now keys off the jukebox-roll ritual (not radioUnlocked), so
+        // seed it done here; earn-luck's 'shrine-clap' is deliberately withheld so
+        // the shrine clap below completes the FINAL objective and trips the finale.
+        'jukebox-roll',
         'dice-monster',
         'grass-cleared',
         'danced:seed',

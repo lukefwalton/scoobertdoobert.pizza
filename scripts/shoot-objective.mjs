@@ -39,10 +39,17 @@ await page.addInitScript(() => {
       luckEarned: 2,
       radioUnlocked: true,
       visitedRooms: ['shop', 'hallway', 'jukebox'],
-      // The surface-wing objectives (the garden slide, the Turtle's stage) sit
-      // ahead of the rusted key in QUESTS order — seed them done so the chip
-      // points at the poolrooms key this smoke walks toward.
-      secretsFound: ['jump-unlocked', 'garden-slide', 'turtle-stage'],
+      // The objectives ahead of the rusted key in QUESTS order — seed them done so
+      // the chip points at the poolrooms key this smoke walks toward. earn-luck /
+      // unlock-radio now key off their own ritual secrets (shrine-clap / jukebox-
+      // roll), not luckEarned / radioUnlocked, so seed those too.
+      secretsFound: [
+        'jump-unlocked',
+        'shrine-clap',
+        'jukebox-roll',
+        'garden-slide',
+        'turtle-stage',
+      ],
       itemsHeld: [],
     }),
   );

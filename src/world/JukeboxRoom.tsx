@@ -199,6 +199,10 @@ export function JukeboxRoom({ room }: { room: Room }) {
     const i = (face - 1) % tracks.length;
     setIndex(i);
     useProgressStore.getState().unlockRadio();
+    // Bank the roll itself (durable) so the "Tune the radio" objective completes on
+    // the d20 roll specifically — pocketing a tape also unlocks the radio, but must
+    // not tick this quest.
+    useProgressStore.getState().findSecret('jukebox-roll');
     useMusicStore.getState().setPreferred(loopIndexForUrl(jukeboxTrackUrl(tracks[i].slug)));
     playCritFlavor(crit); // nat 20 → pristine, nat 1 → cursed (the gamble payoff)
     exposeTestGlobal('__sdpDice', face);

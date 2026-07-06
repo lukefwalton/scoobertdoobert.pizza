@@ -49,8 +49,8 @@ describe('quests', () => {
     const flips: Record<string, Partial<Progress>> = {
       'enter-world': { everEnteredWorld: true },
       'learn-jump': { secretsFound: ['jump-unlocked'] },
-      'earn-luck': { luckEarned: 1 },
-      'unlock-radio': { radioUnlocked: true },
+      'earn-luck': { secretsFound: ['shrine-clap'] },
+      'unlock-radio': { secretsFound: ['jukebox-roll'] },
       'ride-slide': { secretsFound: ['garden-slide'] },
       'play-turtle': { secretsFound: ['turtle-stage'] },
       'find-locker-key': { itemsHeld: ['pool-locker-key'] },
@@ -70,7 +70,7 @@ describe('quests', () => {
   });
 
   it('questsDone counts completed objectives', () => {
-    const p: Progress = { ...COLD, everEnteredWorld: true, radioUnlocked: true };
+    const p: Progress = { ...COLD, everEnteredWorld: true, secretsFound: ['jukebox-roll'] };
     expect(questsDone(p)).toBe(2);
   });
 });

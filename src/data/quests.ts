@@ -47,14 +47,19 @@ export const QUESTS: Quest[] = [
     label: 'Pay your respects',
     hint: 'Find the wayside shrine and clap twice at the offering box.',
     room: 'shrine',
-    done: (p) => p.luckEarned > 0,
+    // Keys off the shrine clap specifically (set in ShrineRoom.doClap), NOT any
+    // luck — so the ✓ can't tick from a tape/dance you found elsewhere.
+    done: (p) => p.secretsFound.includes('shrine-clap'),
   },
   {
     id: 'unlock-radio',
     label: 'Tune the radio',
     hint: 'Roll the bone at the jukebox to unlock the flip-through radio.',
     room: 'jukebox',
-    done: (p) => p.radioUnlocked,
+    // Keys off the jukebox d20 roll specifically (set in JukeboxRoom.rollTo), NOT
+    // radioUnlocked — which a tape pickup also sets, so pocketing a cassette used
+    // to falsely complete this. (unlockRadio() stays the real upgrade flag.)
+    done: (p) => p.secretsFound.includes('jukebox-roll'),
   },
   {
     id: 'ride-slide',

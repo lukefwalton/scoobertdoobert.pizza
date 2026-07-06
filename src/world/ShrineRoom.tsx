@@ -285,6 +285,9 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
       claimed.current = true;
       const prog = useProgressStore.getState();
       prog.gainLuck(1);
+      // Bank the ritual itself (durable) so the "Pay your respects" objective
+      // completes on the CLAP specifically, not on any luck earned elsewhere.
+      prog.findSecret('shrine-clap');
       // The ritual doubles as your REST (the D&D long rest): paying respects
       // refills your spell slots. Only mentioned once you actually have magic.
       if (prog.knownSpells.length > 0) {
