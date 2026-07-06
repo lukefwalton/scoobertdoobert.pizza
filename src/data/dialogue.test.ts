@@ -62,6 +62,10 @@ describe('ratDialogue', () => {
         'garden-slide',
         'turtle-stage',
         'jump-unlocked',
+        // earn-luck / unlock-radio now key off the ritual secrets, not luckEarned /
+        // radioUnlocked, so the "everything done" fixture must include them too.
+        'shrine-clap',
+        'jukebox-roll',
       ],
       visitedRooms: ['shop', 'terminus'],
     };
