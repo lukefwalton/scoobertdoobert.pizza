@@ -153,7 +153,13 @@ let youStripOk = false;
           rank: 4,
           index: 3,
           gap: 30,
-          neighbors: board.map((e, i) => ({ rank: i + 1, initials: e.initials, score: e.score })),
+          // Competition rank (ties SHARE) — the same rule the real windowAround uses, so
+          // the two 90s (BBB, CCC) are BOTH #2 and the 50 is #4 (1-2-2-4), not 1-2-3-4.
+          neighbors: board.map((e) => ({
+            rank: board.filter((x) => x.score > e.score).length + 1,
+            initials: e.initials,
+            score: e.score,
+          })),
         },
       }),
     }),
@@ -170,14 +176,16 @@ let youStripOk = false;
     const selfTxt = await mp.$('.hud-board__row--you').then((el) => el && el.textContent());
     if (!selfTxt || !/YOU/.test(selfTxt) || !/60/.test(selfTxt))
       bad(`leaderboard: the highlighted YOU row is wrong -> ${selfTxt}`);
-    // a real neighbor carries its TRUE board rank (CCC is #3, not a raw list index)
+    // a tied neighbor carries its COMPETITION rank: CCC (90) ties BBB (90) → #2, not the
+    // ordinal #3 — matching the "You're #N" headline's tie-aware semantics.
     const cccRank = await mp.$eval('.hud-board__list--you', (ol) => {
       const li = [...ol.querySelectorAll('li')].find(
         (el) => el.querySelector('.hud-board__ini')?.textContent === 'CCC',
       );
       return li?.querySelector('.hud-board__rank')?.textContent ?? null;
     });
-    if (cccRank !== '3') bad(`leaderboard: neighbor CCC should be rank 3, got ${cccRank}`);
+    if (cccRank !== '2')
+      bad(`leaderboard: neighbor CCC (tied at 90) should be competition rank 2, got ${cccRank}`);
     // YOU slots by score: after CCC (90), before DDD (50)
     const order = await mp.$$eval('.hud-board__list--you li', (lis) =>
       lis.map((el) => el.querySelector('.hud-board__ini')?.textContent),
@@ -186,7 +194,7 @@ let youStripOk = false;
     if (!(iYou > order.indexOf('CCC') && iYou < order.indexOf('DDD')))
       bad(`leaderboard: YOU row is out of score order -> ${order.join(',')}`);
     youStripOk =
-      !!selfTxt && cccRank === '3' && iYou > order.indexOf('CCC') && iYou < order.indexOf('DDD');
+      !!selfTxt && cccRank === '2' && iYou > order.indexOf('CCC') && iYou < order.indexOf('DDD');
     await mp.screenshot({ path: '.shots/leaderboard-you.png' });
   }
   await mockCtx.close();

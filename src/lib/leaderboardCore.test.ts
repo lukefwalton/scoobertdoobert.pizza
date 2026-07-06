@@ -76,12 +76,22 @@ describe('windowAround', () => {
     expect(windowAround(board, 200).rank).toBe(1);
     expect(windowAround(board, 200).gap).toBe(0);
   });
-  it('tags neighbors with their TRUE board rank', () => {
+  it('tags neighbors with their COMPETITION rank (ties shared, matching rankFor)', () => {
     const w = windowAround(board, 60, 1); // index 3, radius 1 → slice [2,4)
     expect(w.neighbors).toEqual([
-      { rank: 3, initials: 'CCC', score: 90 },
-      { rank: 4, initials: 'DDD', score: 50 },
+      { rank: 2, initials: 'CCC', score: 90 }, // tied with BBB (90) → both #2, not ordinal #3
+      { rank: 4, initials: 'DDD', score: 50 }, // two 90s above → #4 (1-2-2-4)
     ]);
+  });
+  it('gives EVERY tied neighbor the same rank (competition, never ordinal)', () => {
+    const w = windowAround(board, 95, 5); // slots between 100 and the 90s
+    const byScore = (s: number) => w.neighbors.filter((n) => n.score === s).map((n) => n.rank);
+    expect(byScore(100)).toEqual([1]);
+    expect(byScore(90)).toEqual([2, 2]); // both 90s share #2 — the bug was 2,3
+    expect(byScore(50)).toEqual([4]); // ties above push it to #4, not #3
+    expect(byScore(20)).toEqual([5]);
+    // and each neighbor's rank equals rankFor for its own score (single source of truth)
+    for (const n of w.neighbors) expect(n.rank).toBe(rankFor(board, n.score));
   });
   it('ranks an UNSTORED score below the whole board', () => {
     const w = windowAround(board, 10, 5);

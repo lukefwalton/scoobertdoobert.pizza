@@ -58,7 +58,9 @@ export type RankWindow = {
   index: number;
   /** Points to the next-higher entry (the motivating "gap to climb"); 0 at the top. */
   gap: number;
-  /** The real entries immediately around this rank, each with its TRUE board rank. */
+  /** The real entries immediately around this rank, each with its COMPETITION rank —
+   *  ties share a number, the same rule as `rank`/rankFor, so a neighbor tied with the
+   *  player reads the player's own number (never an ordinal that drifts past it). */
   neighbors: RankNeighbor[];
 };
 
@@ -78,8 +80,11 @@ export function windowAround(
   const gap = index > 0 ? scores[index - 1].score - score : 0;
   const from = Math.max(0, index - radius);
   const to = Math.min(scores.length, index + radius);
-  const neighbors = scores.slice(from, to).map((s, i) => ({
-    rank: from + i + 1, // true 1-based rank in the full board
+  const neighbors = scores.slice(from, to).map((s) => ({
+    // Competition rank (ties SHARE a number), the SAME rule as `rank` above — so a
+    // neighbor tied with the player shows the player's own number, not an ordinal that
+    // drifts past it. On [100,90,90,50] both 90s are #2 and the 50 is #4 (1-2-2-4).
+    rank: rankFor(scores, s.score),
     initials: s.initials,
     score: s.score,
   }));
