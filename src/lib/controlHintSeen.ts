@@ -4,6 +4,11 @@
 // visits, not motionConsent's per-visit sessionStorage). All access is try/guarded
 // (private mode / disabled storage throws on access). Read post-hydration only
 // (ControlHint), so it never touches the prerendered / JS-off page.
+//
+// There is no in-app "reset save" today (progress is never programmatically wiped), so
+// this flag has nothing to drift out of. If one is ever added, replaying the FTUE by
+// clearing this too is a deliberate opt-in — by default it persists independently of
+// progress, like motionConsent (a device preference, not a game-state fact).
 
 const KEY = 'sdp:controls-seen';
 

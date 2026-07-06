@@ -3,7 +3,10 @@
 // dismiss it, it never nags again (you can still re-share from the pause menu). A
 // UI preference in localStorage (durable across visits), all access try/guarded
 // (private mode / disabled storage throws). Read post-hydration only (FinaleCard),
-// so it never touches the prerendered / JS-off page. Mirrors controlHintSeen.
+// so it never touches the prerendered / JS-off page. Mirrors controlHintSeen —
+// including its note: no in-app "reset save" exists today, so this once-ever flag
+// persists independently of progress by design (clearing it on a future reset would
+// be a deliberate opt-in, not the default).
 
 const KEY = 'sdp:finale-card-seen';
 

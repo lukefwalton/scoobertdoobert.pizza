@@ -160,11 +160,28 @@ if (hintUp && hintGone) {
     await p2.keyboard.press('Escape'); // open pause
     await p2.waitForSelector('.hud-pause', { timeout: 3000 }).catch(() => {});
     await p2.keyboard.press('w');
+    // A pointer DRAG on the canvas while paused (input frozen) must not teach either — the
+    // pointer teach path shares the keyboard path's frozen-input gate (teachBlocked). We
+    // dispatch straight at the canvas element so the pause overlay's z-order can't swallow
+    // it; the GUARD (not the overlay) is what must stop the teach. The positive twin — an
+    // unfrozen drag DOES teach, via the same dispatch — runs at the end of this block.
+    await p2.evaluate(() => {
+      const c = document.querySelector('canvas');
+      if (!c) return;
+      const P = (type, x, y, on) =>
+        (on || window).dispatchEvent(
+          new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1 }),
+        );
+      P('pointerdown', 640, 400, c);
+      P('pointermove', 700, 460);
+      P('pointerup', 700, 460);
+    });
     await p2.keyboard.press('Escape'); // close pause
     await p2.waitForTimeout(300);
     if ((await p2.$('.hud-controlhint')) === null)
-      fail('CONTROL HINT: WASD while the pause menu owned input wrongly marked it taught');
-    else console.log('control hint survives WASD pressed while paused (modal input never teaches)');
+      fail('CONTROL HINT: input (WASD/drag) while the pause menu owned it wrongly taught');
+    else
+      console.log('control hint survives WASD + canvas drag while paused (frozen never teaches)');
     // Close with × (no move / no look) — hides this visit, must NOT teach.
     await p2.getByRole('button', { name: /dismiss controls hint/i }).click({ timeout: 3000 });
     await p2
@@ -184,6 +201,33 @@ if (hintUp && hintGone) {
     if (!returned) fail('CONTROL HINT WRONGLY PERSISTED: closing with × (no move) must not teach');
     else
       console.log('control hint returns after × + reload (× hides for the visit, never teaches)');
+
+    // POSITIVE TWIN: the SAME canvas-drag dispatch, now UNFROZEN, MUST teach — proving the
+    // paused-drag negative above blocks on the freeze, not because synthetic events never
+    // landed on the listener.
+    if (returned) {
+      await p2.waitForTimeout(300); // let any entry-settle freeze clear
+      await p2.evaluate(() => {
+        const c = document.querySelector('canvas');
+        if (!c) return;
+        const P = (type, x, y, on) =>
+          (on || window).dispatchEvent(
+            new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 2 }),
+          );
+        P('pointerdown', 640, 400, c);
+        P('pointermove', 700, 460);
+        P('pointerup', 700, 460);
+      });
+      const taughtByDrag = await p2
+        .waitForSelector('.hud-controlhint', { state: 'detached', timeout: 2500 })
+        .then(
+          () => true,
+          () => false,
+        );
+      if (!taughtByDrag)
+        fail('CONTROL HINT: a real (unfrozen) canvas drag did not teach — pointer path broken');
+      else console.log('control hint clears on a real unfrozen canvas drag (pointer teach works)');
+    }
   }
   await freshCtx.close();
 }

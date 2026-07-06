@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTouchDevice } from '../lib/lowPower';
 import { controlHintSeen, markControlHintSeen } from '../lib/controlHintSeen';
 import { useSceneStore } from '../state/sceneStore';
+import { inputFrozen } from '../world/inputFrozen';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ControlHint — the one thing the world otherwise never teaches: how to MOVE and
@@ -22,6 +23,18 @@ import { useSceneStore } from '../state/sceneStore';
 // ───────────────────────────────────────────────────────────────────────────
 
 const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
+
+// Teaching only counts when the player could ACTUALLY move/look THIS frame — otherwise a
+// first-timer could bury the one movement legend by mashing keys or dragging against a
+// modal without ever having moved. Built on inputFrozen(), the world's OWN shared freeze
+// rule (Controls gates BOTH keyboard move and pointer look on it — pause / hotspot / NPC /
+// room-wipe / ride / dive / loading level), so this can't drift from the real input gate.
+// We union the few HUD overlays inputFrozen() doesn't track — a lookable card, the arcade
+// cabinet, the lyrics sheet — matching the world-side interactable scan's conservatism.
+function teachBlocked(): boolean {
+  const s = useSceneStore.getState();
+  return inputFrozen() || s.openLookable !== null || s.arcadeGame !== null || s.lyricsSong !== null;
+}
 
 export function ControlHint() {
   const touch = useTouchDevice();
@@ -54,21 +67,7 @@ export function ControlHint() {
     if (seenAtMount.current) return; // already taught — no listeners, nothing shows
     const onKey = (e: KeyboardEvent) => {
       if (!MOVE_KEYS.has(e.key.toLowerCase())) return;
-      // Only "taught" if the world would ACTUALLY move on this key — not while a modal
-      // (pause / hotspot / NPC / TV / cabinet / lyrics / room-wipe) owns input, where
-      // WASD does nothing. Otherwise a first-timer could bury the legend by mashing
-      // keys against the pause menu without ever having moved.
-      const s = useSceneStore.getState();
-      if (
-        s.paused ||
-        s.openHotspot ||
-        s.openNpc ||
-        s.tvVideo ||
-        s.arcadeGame ||
-        s.lyricsSong ||
-        s.pendingRoom
-      )
-        return;
+      if (teachBlocked()) return; // a key that can't move the world this frame doesn't teach
       hideRef.current(true); // moved → taught
     };
     // The hint teaches MOVE + LOOK, so only ACTUAL move/look durably marks it taught —
@@ -86,10 +85,14 @@ export function ControlHint() {
         drag = { x: e.clientX, y: e.clientY };
     };
     const onPointerMove = (e: PointerEvent) => {
-      if (drag && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) {
-        drag = null;
-        hideRef.current(true); // a real drag-look → taught
-      }
+      if (!drag || Math.hypot(e.clientX - drag.x, e.clientY - drag.y) <= 6) return;
+      // Same rule as keys: while a modal / room-wipe / ride / loading owns input the camera
+      // doesn't turn (Controls gates look on inputFrozen too), so a drag then must NOT
+      // teach. Keep the watch armed (don't null) so a drag that continues once the freeze
+      // lifts still counts.
+      if (teachBlocked()) return;
+      drag = null;
+      hideRef.current(true); // a real drag-look that turned the camera → taught
     };
     const disarm = () => {
       drag = null; // click released without dragging → not "looked"
