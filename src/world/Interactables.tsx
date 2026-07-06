@@ -34,6 +34,11 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
   const fired = useSceneStore((s) => s.triggersFired.includes(it.revealsTrigger));
   const kind = it.kind ?? 'bell';
   const group = useRef<THREE.Group>(null);
+  // The reveal's second (delayed) chime — held so it can be CANCELLED if this
+  // interactable unmounts (a room change) before it fires, so a stray note never
+  // lands after the scene changed (audio is mute-aware anyway, but this is tidy).
+  const chimeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(chimeTimer.current), []);
 
   const knobMat = useMemo(() => {
     const m = flatMat('#ffcf4d');
@@ -58,9 +63,11 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
     st.fireTrigger(it.revealsTrigger);
     audio.unlock();
     emitBurst(it.position, '#ffcf4d');
-    // a bright ding → a soft "a way opens" fifth above it
+    // a bright ding → a soft "a way opens" fifth above it (the rise is scheduled,
+    // and cancelled on unmount so it can't outlive the room that rang it)
     audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.7);
-    window.setTimeout(() => audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95), 130);
+    clearTimeout(chimeTimer.current);
+    chimeTimer.current = setTimeout(() => audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95), 130);
     announce(`🔓 ${it.label} — a way opens`, 'luck');
   };
 
