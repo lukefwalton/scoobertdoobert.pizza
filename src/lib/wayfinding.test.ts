@@ -23,6 +23,14 @@ describe('nextHopDoor', () => {
     // revealed there is no known path — the compass gracefully shows no arrow.
     expect(nextHopDoor('poolrooms', 'shrine')).toBeNull();
   });
+
+  it('DOES route through a hidden revealOnTrigger door (the escape-room descent)', () => {
+    // shop-to-hall is HIDDEN until you ring the counter bell (revealOnTrigger), but
+    // it's the MAIN way down — trivially opened, with the bell right there — so the
+    // compass should still guide you toward it (unlike a genuine secret, above). This
+    // pins the intentional pre-reveal routing policy in wayfinding.ts.
+    expect(nextHopDoor('shop', 'hallway')?.id).toBe('shop-to-hall');
+  });
 });
 
 describe('arrowDeg', () => {

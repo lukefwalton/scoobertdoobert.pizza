@@ -35,11 +35,12 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
   const fired = useSceneStore((s) => s.triggersFired.includes(it.revealsTrigger));
   const kind = it.kind ?? 'bell';
   const group = useRef<THREE.Group>(null);
-  // The reveal's second (delayed) chime — held so it can be CANCELLED if this
-  // interactable unmounts (a room change) before it fires, so a stray note never
-  // lands after the scene changed (audio is mute-aware anyway, but this is tidy).
-  const chimeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(chimeTimer.current), []);
+  // The reveal's second (delayed) chime: seconds of world-time still to wait before
+  // the rise plays (0 = nothing pending). Counted down in useFrame by the R3F delta
+  // and ONLY while input isn't frozen, so it rides world time — it freezes with a
+  // pause/modal and resumes after, and simply unmounts with the room. No wall-clock
+  // timer to leak or fire out of band.
+  const chimeIn = useRef(0);
 
   const knobMat = useMemo(() => {
     const m = flatMat('#ffcf4d');
@@ -64,16 +65,11 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
     st.fireTrigger(it.revealsTrigger);
     audio.unlock();
     emitBurst(it.position, '#ffcf4d');
-    // a bright ding → a soft "a way opens" fifth above it. The rise is scheduled a
-    // beat later; it's cancelled on unmount (room change) AND its callback bails if
-    // input has since been yielded to a modal/pause/transition (inputFrozen), so the
-    // note can never land after the world stopped owning input.
+    // a bright ding now → a soft "a way opens" fifth ~130ms later (queued on world
+    // time via chimeIn; useFrame plays it, so it freezes with a pause and dies with
+    // the room — never fires out of band).
     audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.7);
-    clearTimeout(chimeTimer.current);
-    chimeTimer.current = setTimeout(() => {
-      if (inputFrozen()) return;
-      audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95);
-    }, 130);
+    chimeIn.current = 0.13;
     announce(`🔓 ${it.label} — a way opens`, 'luck');
   };
 
@@ -85,7 +81,16 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [it.id]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    // The queued "a way opens" rise: count down world time, but ONLY while input
+    // isn't frozen (so it freezes with a pause/modal and resumes after), then play.
+    if (chimeIn.current > 0 && !inputFrozen()) {
+      chimeIn.current -= delta;
+      if (chimeIn.current <= 0) {
+        chimeIn.current = 0;
+        audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95);
+      }
+    }
     if (!group.current) return;
     const t = state.clock.elapsedTime;
     // Un-used: a gentle bob + emissive pulse (reads as "click me", touch-safe).
