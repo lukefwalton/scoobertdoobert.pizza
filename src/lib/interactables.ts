@@ -20,10 +20,11 @@ export function fireInteractable(it: RoomInteractable): void {
   if (st.triggersFired.includes(it.revealsTrigger)) return; // already solved — no-op
   st.fireTrigger(it.revealsTrigger);
   audio.unlock(); // the click / E / tap IS the user gesture
-  // a bright ding now → a soft "a way opens" fifth ~130ms later (both mute-aware +
-  // brickwall-limited by the engine). A plain timer (not world-time) — a 130ms slip
-  // past a pause is inaudible and never fires out of band beyond one soft note.
+  // A bright ding NOW (the interaction only happens un-paused, so an immediate play
+  // is fine). The soft "a way opens" follow-up fifth is scheduled by the world mesh
+  // on WORLD time (Interactables.tsx useFrame + inputFrozen), so it freezes with a
+  // pause and dies with the room — the repo's "in-world audio rides the R3F clock"
+  // rule. Keeping it there is also what keeps this verb three-free.
   audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.7);
-  window.setTimeout(() => audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95), 130);
   announce(`🔓 ${it.label} — a way opens`, 'luck');
 }

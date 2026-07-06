@@ -3,9 +3,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
 import { useDispose } from '../lib/useDispose';
+import { audio } from '../audio/engine';
+import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
 import { roomById, type RoomInteractable } from '../data/rooms';
 import { emitBurst } from './burstBus';
+import { inputFrozen } from './inputFrozen';
 import { fireInteractable } from '../lib/interactables';
 import { isDebugEntrance, exposeTestGlobal } from '../lib/testHooks';
 
@@ -36,6 +39,11 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
   const fired = useSceneStore((s) => s.triggersFired.includes(it.revealsTrigger));
   const kind = it.kind ?? 'bell';
   const group = useRef<THREE.Group>(null);
+  // The delayed "a way opens" second chime, in WORLD-TIME seconds still to wait
+  // (0 = nothing pending) — armed when the trigger flips fired, counted down in
+  // useFrame ONLY while input isn't frozen, so it freezes with a pause/modal and
+  // dies with the room. Never a wall-clock timer (the R3F-clock audio rule).
+  const chimeIn = useRef(0);
 
   const knobMat = useMemo(() => {
     const m = flatMat('#ffcf4d');
@@ -60,7 +68,10 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
   // phantom burst on re-entry. Keeps the burst (world/three) out of the lib verb.
   const firedPrev = useRef(fired);
   useEffect(() => {
-    if (fired && !firedPrev.current) emitBurst(it.position, '#ffcf4d');
+    if (fired && !firedPrev.current) {
+      emitBurst(it.position, '#ffcf4d');
+      chimeIn.current = 0.13; // arm the pause-aware follow-up chime (played in useFrame)
+    }
     firedPrev.current = fired;
   }, [fired, it.position]);
 
@@ -72,7 +83,18 @@ function InteractableMesh({ it }: { it: RoomInteractable }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [it.id]);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    // The queued "a way opens" rise: count down WORLD time, but only while input
+    // isn't frozen (so it freezes with a pause/modal and resumes after), then play.
+    // Rides the R3F clock + inputFrozen, so it never fires out of band or after the
+    // room is gone — matches the repo's in-world-audio rule.
+    if (chimeIn.current > 0 && !inputFrozen()) {
+      chimeIn.current -= delta;
+      if (chimeIn.current <= 0) {
+        chimeIn.current = 0;
+        audio.playChime(noteToFreq('B', 6), 0, 0.16, 0.95);
+      }
+    }
     if (!group.current) return;
     const t = state.clock.elapsedTime;
     // Un-used: a gentle bob + emissive pulse (reads as "use me", touch-safe).
