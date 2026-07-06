@@ -5,6 +5,7 @@ import { type Room } from '../data/rooms';
 import { lookablesForRoom, resolveLookablePos, type Lookable } from '../data/lookables';
 import { useSceneStore } from '../state/sceneStore';
 import { useDispose } from '../lib/useDispose';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 
@@ -24,6 +25,10 @@ export function Lookables({ room }: { room: Room }) {
   const { camera } = useThree();
   const setNear = useSceneStore((s) => s.setNearLookable);
   const lastNear = useRef<string | null>(null);
+  // Debug-only smoke affordance: a forced "you're standing at this curio", so a
+  // Playwright smoke can drive the real prompt→E→open→Esc chain deterministically
+  // without pixel-walking to a wall-anchored curio. Never set outside ?debug.
+  const forced = useRef<string | null>(null);
 
   const placed = useMemo(
     () => lookablesForRoom(room.id).map((l) => ({ l, pos: resolveLookablePos(l, room.dims) })),
@@ -32,17 +37,38 @@ export function Lookables({ room }: { room: Room }) {
 
   // Belt-and-suspenders for the custom hover cursor: if a hovered curio unmounts
   // during a room change (its onPointerOut never fires), reset the body cursor so
-  // it can't stay stuck in the pizza-pointer state. Runs on room swap + unmount.
+  // it can't stay stuck in the pizza-pointer state. Also drop any forced-near from
+  // a smoke so it can't outlive its room. Runs on room swap + unmount.
   useEffect(() => {
     return () => {
       document.body.style.cursor = '';
+      forced.current = null;
     };
   }, [room.id]);
+
+  // Expose the forced-near hook only under the ?debug entrance (never prod surface).
+  useEffect(() => {
+    if (!isDebugEntrance()) return;
+    exposeTestGlobal('__sdpNearLookable', (id?: string) => {
+      const target = id ?? placed[0]?.l.id ?? null;
+      forced.current = target;
+      return target;
+    });
+    return () => exposeTestGlobal('__sdpNearLookable', undefined);
+  }, [placed]);
 
   useFrame(() => {
     const st = useSceneStore.getState();
     // Freeze prompts under any dialog / the pause menu (mirrors Hotspots).
     if (st.openLookable || st.openHotspot || st.openNpc || st.paused || st.pendingRoom) return;
+    // A smoke forced proximity → hold it (skip the distance scan).
+    if (forced.current) {
+      if (lastNear.current !== forced.current) {
+        lastNear.current = forced.current;
+        setNear(forced.current);
+      }
+      return;
+    }
     let nearest: string | null = null;
     let nd = Infinity;
     for (const { l, pos } of placed) {
