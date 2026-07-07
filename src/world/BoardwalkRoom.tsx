@@ -134,8 +134,8 @@ export function BoardwalkRoom({ room }: { room: Room }) {
       </mesh>
 
       {/* a procedural arcade cabinet on the pier (a real CRT + joystick), angled to
-          face the player stepping out of the shop */}
-      <ArcadeCabinet position={[2.9, 0, 0.5]} rotationY={-0.4} tint="#2f9fb8" marquee="PIZZA RUN" />
+          face the player stepping out of the shop — CRUSTEROIDS, a boardwalk shooter */}
+      <ArcadeCabinet position={[2.9, 0, 0.5]} rotationY={-0.4} tint="#2f9fb8" game="crusteroids" />
     </group>
   );
 }

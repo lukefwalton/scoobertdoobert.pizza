@@ -6,6 +6,7 @@ import { fogFor, type Room } from '../data/rooms';
 import { useTipsyStore } from '../state/tipsyStore';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { useDispose } from '../lib/useDispose';
+import { ArcadeCabinet } from './ArcadeCabinet';
 
 // ───────────────────────────────────────────────────────────────────────────
 // NorthParkRoom — a North Park (San Diego) dusk boulevard under the iconic NORTH
@@ -245,6 +246,11 @@ export function NorthParkRoom({ room }: { room: Room }) {
       {beers.map((p, i) => (
         <BeerCup key={i} position={p} />
       ))}
+
+      {/* the one MYSTERY cabinet — a random-roll machine glowing on the +X curb (a
+          slot-pull of games, the d20/luck chaos made a place); clear of the beers +
+          the gateway sign. No `game` prop = it rolls. */}
+      <ArcadeCabinet position={[6.5, 0, 1]} rotationY={-Math.PI / 2} tint="#e8b24a" />
     </group>
   );
 }

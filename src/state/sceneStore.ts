@@ -82,9 +82,13 @@ type SceneState = {
    *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
   nearTv: TvVideo | null;
   /** the camera is standing in front of an arcade CABINET — drives its "Press E to
-   *  play" prompt + the E action (launchRandomArcade). Boolean, not an id: at most
-   *  one cabinet per room. Cleared when the cabinet unmounts (you leave the room). */
+   *  play" prompt. Boolean, not an id: at most one cabinet per room. Cleared when the
+   *  cabinet unmounts (you leave the room). */
   nearArcade: boolean;
+  /** WHICH game that near cabinet plays — a specific id for a DEDICATED machine, or
+   *  null for the MYSTERY cabinet that rolls a random game. Drives the E action so it
+   *  launches the right thing. One cabinet per room (see above), so this never collides. */
+  nearArcadeGame: ArcadeGameId | null;
   /** A dancing Wanderer the camera is close to (its id + a friendly label), or
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
@@ -170,7 +174,7 @@ type SceneState = {
   /** Open the lyric reader on a jukebox slug / close it. */
   openLyrics: (slug: string) => void;
   closeLyrics: () => void;
-  setNearArcade: (near: boolean) => void;
+  setNearArcade: (near: boolean, game?: ArcadeGameId | null) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -262,6 +266,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   arcadeGame: null,
   lyricsSong: null,
   nearArcade: false,
+  nearArcadeGame: null,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -307,6 +312,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
+      nearArcadeGame: null,
       arcadeGame: null,
       lyricsSong: null,
     });
@@ -332,6 +338,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
+      nearArcadeGame: null,
       arcadeGame: null,
       lyricsSong: null,
       triggersFired: [],
@@ -364,7 +371,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeLevel: () => set({ levelOverlay: null }),
   openLyrics: (slug) => set({ lyricsSong: slug }),
   closeLyrics: () => set({ lyricsSong: null }),
-  setNearArcade: (near) => set({ nearArcade: near }),
+  setNearArcade: (near, game = null) =>
+    set({ nearArcade: near, nearArcadeGame: near ? game : null }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),
