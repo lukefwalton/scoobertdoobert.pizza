@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { rollLuckyD20, critLabel, critBanner, CRIT_MULT, LUCK_PER_ADVANTAGE } from './luck-core';
+import {
+  rollLuckyD20,
+  critLabel,
+  critBanner,
+  luckTag,
+  CRIT_MULT,
+  LUCK_PER_ADVANTAGE,
+} from './luck-core';
 
 // A seeded rng for the pure roll: each call returns the next value in the sequence
 // (wrapping). Each seq(...) gets its own cursor, so tests don't bleed into each other.
@@ -55,5 +62,29 @@ describe('luck-core: rollLuckyD20 (pure, seedable)', () => {
       expect(r.face).toBeGreaterThanOrEqual(1);
       expect(r.face).toBeLessThanOrEqual(20);
     }
+  });
+
+  it('reports the natural die and flags `lucky` when advantage improved the roll', () => {
+    // no luck: raw == face, never lucky.
+    const plain = rollLuckyD20(0, seq(0.5)); // → 11
+    expect(plain.raw).toBe(plain.face);
+    expect(plain.lucky).toBe(false);
+    // luck that moved it up (3 → 20): raw is the natural die, lucky is true.
+    const tipped = rollLuckyD20(1, seq(0.1, 0.95));
+    expect(tipped.raw).toBe(3);
+    expect(tipped.face).toBe(20);
+    expect(tipped.lucky).toBe(true);
+  });
+});
+
+describe('luck-core: luckTag (the visible payoff)', () => {
+  it('shows the natural → kept face only when luck actually tipped the roll', () => {
+    expect(luckTag(rollLuckyD20(1, seq(0.1, 0.95)))).toBe(' · 🍀 luck tipped it (3→20)');
+  });
+
+  it('is empty for a plain roll, an untipped advantage roll, and undefined', () => {
+    expect(luckTag(rollLuckyD20(0, seq(0.9)))).toBe(''); // no luck
+    expect(luckTag(rollLuckyD20(1, seq(0.95, 0.1)))).toBe(''); // advantage, but the first die stood
+    expect(luckTag(undefined)).toBe(''); // a forced/test roll with no luck info
   });
 });

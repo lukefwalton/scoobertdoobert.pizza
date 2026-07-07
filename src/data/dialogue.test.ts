@@ -66,9 +66,11 @@ describe('ratDialogue', () => {
         // radioUnlocked, so the "everything done" fixture must include them too.
         'shrine-clap',
         'jukebox-roll',
-        // the BONUS 1101-ARG objective (QUESTS.every needs it, though the rat's
-        // nudge deliberately ignores bonus objectives — "nothing left" either way).
+        // the BONUS objectives (QUESTS.every needs them, though the rat's nudge
+        // deliberately ignores bonus objectives — "nothing left" either way): the
+        // 1101 ARG and the shrine fortune draw.
         'saved-san-diego',
+        'omikuji-drawn',
       ],
       visitedRooms: ['shop', 'terminus'],
     };

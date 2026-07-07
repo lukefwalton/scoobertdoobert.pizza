@@ -6,7 +6,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { audio } from '../audio/engine';
 import { trapDropForRoll, type TrapDrop } from '../data/rooms';
-import { rollD20, critLabel, type Crit } from '../lib/luck';
+import { rollD20, critLabel, luckTag, type Crit } from '../lib/luck';
 
 // ───────────────────────────────────────────────────────────────────────────
 // TrapDoor — the storefront's secret shortcut into the deep (design: docs/
@@ -45,6 +45,7 @@ export function TrapDoor() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [face, setFace] = useState(20); // the number on the die's face (flickers, then settles)
   const [crit, setCrit] = useState<Crit>(null); // nat20 (soft landing) / nat1, for the flourish
+  const [nudge, setNudge] = useState(''); // "🍀 luck tipped it (x→y)" when advantage carried the drop
   const [dest, setDest] = useState<TrapDrop | null>(null);
 
   const worldReady = useRef(false);
@@ -78,6 +79,7 @@ export function TrapDoor() {
     setDest(d);
     setFace(r.face);
     setCrit(r.crit);
+    setNudge(luckTag(r)); // shows the floor "tipping you" a kinder way when luck carried it
     settled.current = false;
     worldReady.current = false;
     setPhase('rolling');
@@ -165,8 +167,8 @@ export function TrapDoor() {
               <p className="trapdoor-roll__sub">
                 {phase === 'dropping' && dest
                   ? crit === 'nat20'
-                    ? `NAT 20 ✦ ${dest.title}`
-                    : `${critLabel(crit) ? `${critLabel(crit)} · ` : `d20 → ${face} · `}${dest.title}`
+                    ? `NAT 20 ✦ ${dest.title}${nudge}`
+                    : `${critLabel(crit) ? `${critLabel(crit)} · ` : `d20 → ${face} · `}${dest.title}${nudge}`
                   : `d20 · rolling…`}
               </p>
             </div>
