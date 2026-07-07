@@ -524,7 +524,9 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   frame; **`shoot:gifs` decodes each GIF in real Chromium** (the spec oracle that
   caught that width-bump bug) and rewraps every later frame's verbatim bytes to
   validate them too. Fail-fast palette-index validation; spec-correct LSD color bits.
-- ✅ **Four original GIFs (`public/gifs/`):** a bopping **dancing-pizza** (the site's
+- ✅ **This pass's four original GIFs** (later passes grew `public/gifs/` well
+  past four — the NEW! blinky, @-mail, globe, and leaderboard trio below): a
+  bopping **dancing-pizza** (the site's
   "dancing baby"), a scrolling **construction** caution-bar, a shimmering **rainbow
   `<hr>`**, and a tiled **starfield wallpaper** — each animated GIF paired with a
   1-frame `*-static.gif` served under `prefers-reduced-motion` via `<picture>` (a
@@ -695,6 +697,14 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
   broken-CRT no-modal guard, the walk-to-mic cheer).
 
 ## Open hygiene / notes
+- **Docs reconciliation pass (2026-07-07):** a drift audit of the three governing
+  docs + README against the code fixed 7 stale claims — jukebox `*.wav` → `*.mp3`
+  (CLAUDE/DESIGN), DESIGN's "four tracks" → the real catalog, the trap-door and
+  grass-encounter DESIGN sections re-tagged SHIPPED, the spinning-globe "still
+  open" line closed, README's hard-coded "seven cabinets" replaced with a pointer
+  at the `arcadeGames.ts` registry, and the "Four original GIFs" line rescoped to
+  its pass. Rule of thumb reaffirmed: don't hard-code counts a registry/catalog
+  owns — point at the source of truth.
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-
   once). A `shoot`/`shoot:*` script == a CI-gating smoke; non-gating helpers must
@@ -774,9 +784,11 @@ guardrail before anything that adds a place/NPC/system):
   add per-room touch-walk coverage beyond the beach shop that `shoot:touch` drives.
 - **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`), the
   **"NEW!" blinky**, and the printed **@-mail envelope** GIF all shipped (above).
-  Still open: more **blinkies** on other surfaces, a spinning-globe / flame divider —
-  extend the retro furniture while adding real nav anchors, not just decoration.
-  Reuses the GIF89a encoder (`make-gifs.mjs`) already in the repo.
+  ✅ The **spinning WORLD WIDE WEB globe** shipped too (`public/gifs/globe.gif`,
+  a real `<a href="/links">` on the 1999 floor — `StarburstFloor.tsx`). Still open:
+  more **blinkies** on other surfaces, a flame divider — extend the retro furniture
+  while adding real nav anchors, not just decoration. Reuses the GIF89a encoder
+  (`make-gifs.mjs`) already in the repo.
 - **3D world delight.** ✅ First beat shipped — the **pizza pan chimes** "play it"
   instrument in the park (above); ✅ and **The Aerial** — the deep proximity-played
   theremin room (the music ladder's first SUSTAINED voice). More to feed the

@@ -49,7 +49,7 @@ and installing it descends you through the eras into the world below.
 | <img src=".github/media/07-boardwalk.png" alt="the boardwalk" /> | <img src=".github/media/08-grassrooms.png" alt="the grassrooms" /> |
 | **the boardwalk** — a golden-hour surface wing | **the grassrooms** — liminal grass + a first-person ghost race |
 | <img src=".github/media/09-gallery.png" alt="the sunken gallery" /> | <img src=".github/media/10-arcade.png" alt="the arcade" /> |
-| **the sunken gallery** — vaporwave-Greek ruins, knee-deep | **the arcade** — seven touch-first cabinets (this one's Asteroids) |
+| **the sunken gallery** — vaporwave-Greek ruins, knee-deep | **the arcade** — a shelf of touch-first cabinets (this one's Asteroids) |
 
 > Every frame above is the real site — captured by `scripts/make-readme-shots.mjs`,
 > and the GIF is stitched + crunched by the repo's own
@@ -324,8 +324,9 @@ The site is well past its original phases. Shipped and live: the dead-plain
 storefront fallback + the data-driven era-floor descent; the full PS1/N64 3D
 world (a rooms graph, the jukebox, lazy GLB levels, the boids rat, the hidden
 terminal, the `unease` dread conductor); a real **game layer** (LUCK + a
-universal d20, spells, perception, the d20 dice-monster); the **arcade** (seven
-touch-first cabinets + standalone routes), **PIZZA POINTS** + the leaderboard;
+universal d20, spells, perception, the d20 dice-monster); the **arcade** (the
+touch-first cabinets registered in `src/data/arcadeGames.ts`, each with a
+standalone route), **PIZZA POINTS** + the leaderboard;
 and a growing set of surface and album-themed wings (the Boardwalk, the Kitchen,
 the Basement Sessions studio, the Sunken Gallery, the Grassrooms ghost race, …).
 

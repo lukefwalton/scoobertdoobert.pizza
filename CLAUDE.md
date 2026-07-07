@@ -126,7 +126,8 @@ required (PS1 *everything*, including bought GLBs):
   until decoded; if it never loads, there's no music and the toggle never lights.
 - The boot loop and the jukebox catalog are **degraded bounces of Scoobert's own
   tracks** (Luke's copyright — fine to ship). The jukebox cycles a real catalog
-  (`public/audio/jukebox/*.wav` from `src/data/jukebox.catalog.json`).
+  (`public/audio/jukebox/*.mp3` from `src/data/jukebox.catalog.json`; status +
+  track details live in `docs/PHASES.md`).
 - The descent pitch-bends/ages the audio with depth; the dread layer (Phase 5)
   curdles it further. Everything respects the global mute.
 
