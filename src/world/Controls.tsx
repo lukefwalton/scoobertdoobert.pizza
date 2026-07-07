@@ -11,6 +11,7 @@ import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 import { inputFrozen } from './inputFrozen';
 import { takeHeading } from './cameraRig';
 import { getTouchMove, takeTouchJump } from './touchInput';
+import { audio } from '../audio/engine';
 
 // Gate the per-frame __sdpCam test global once at module load (it's read by the
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
@@ -20,6 +21,13 @@ const EXPOSE_CAM = isTestEntrance();
 const BASE_FOV = 72;
 const REDUCED =
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+// Walk-feel constants. STEP_HZ = footfalls per second at full walk (sprint scales
+// it up); BOB_AMP = the vertical head-bob amplitude (world units) — both are pure
+// GAME FEEL and disabled entirely under reduced motion (the bob is; footsteps are
+// audio, so they stay, mute-gated in the engine).
+const STEP_HZ = 1.9;
+const BOB_AMP = 0.05;
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
 // never traps the cursor and works for screenshots + menus), WASD / arrows to
@@ -62,6 +70,14 @@ export function Controls() {
   const headAccum = useRef(0);
   // Current room half-extents, read each frame for the clamp.
   const dims = useRef(roomById(currentRoom).dims);
+  // Walk feel: a monotonic footfall phase (integer crossings = footsteps; its sine
+  // drives the head-bob), a 0→1 envelope so the bob fades in/out instead of jerking
+  // when you start/stop, and a little spring (offset + velocity) that dips the camera
+  // on a jump LANDING and recovers. All motion-gated; zeroed on every room change.
+  const stepPhase = useRef(0);
+  const bobEnv = useRef(0);
+  const settle = useRef(0);
+  const settleVel = useRef(0);
 
   // Re-spawn on room / spawn change (initial mount included). This is what makes
   // a door feel like a door: you arrive at the target's spawn, facing its way.
@@ -77,6 +93,10 @@ export function Controls() {
     airJumps.current = 0;
     spaceWasDown.current = false;
     jumpBuffer.current = 0;
+    stepPhase.current = 0;
+    bobEnv.current = 0;
+    settle.current = 0;
+    settleVel.current = 0;
     takeHeading(); // drain any pending scripted heading so it can't leak across a room change
     // Expose the current room id for smokes that need to tell same-titled rooms
     // apart (e.g. the night vs day Main Street, both titled "Main Street").
@@ -206,6 +226,8 @@ export function Controls() {
       airJumps.current = 0;
       spaceWasDown.current = false;
       jumpBuffer.current = 0;
+      settle.current = 0;
+      settleVel.current = 0;
     }
     const dt = Math.min(delta, 0.05);
     const k = keys.current;
@@ -292,7 +314,15 @@ export function Controls() {
       hop.current += hopVy.current * dt;
       if (hop.current <= 0) {
         hop.current = 0;
+        // Landing juice: a soft thud + a quick camera settle-dip, scaled by how hard
+        // you hit (the fall speed). Audio always (mute-gated in the engine); the dip
+        // is motion, so reduced-motion skips it. Captured before hopVy is zeroed.
+        const impact = Math.min(1, Math.abs(hopVy.current) / 6);
         hopVy.current = 0; // landed
+        if (impact > 0.15) {
+          audio.playFootstep(0.06 + impact * 0.12, 430, 0.06 + impact * 0.13);
+          if (!REDUCED) settleVel.current -= 1.2 + impact * 1.7;
+        }
         // A tap buffered just before touchdown re-hops now (JUMP must be learned),
         // so rhythmic tap-hopping stays smooth instead of eating the early press.
         if (
@@ -306,11 +336,35 @@ export function Controls() {
         }
       }
     }
+    // ── walk feel: footsteps + head-bob + landing settle ───────────────────────
+    // A footfall phase advances with movement while grounded; each integer crossing
+    // fires a soft footstep, and its sine drives a subtle vertical head-bob, enveloped
+    // so it fades in/out instead of jerking when you start/stop. The settle spring
+    // recovers from a jump-landing dip. Bob + settle are MOTION (reduced-motion zeroes
+    // them, so the y math collapses to the original); footsteps are audio (mute-gated).
+    const onGround = hop.current === 0 && hopVy.current === 0;
+    const moveMag = Math.min(1, Math.hypot(fwd, strafe));
+    if (onGround && moveMag > 0.05) {
+      const prev = stepPhase.current;
+      stepPhase.current += moveMag * (sprinting ? 1.7 : 1) * dt * STEP_HZ;
+      if (Math.floor(prev) !== Math.floor(stepPhase.current)) {
+        const alt = Math.floor(stepPhase.current) % 2 === 0 ? 1 : 0.88; // L/R foot variety
+        audio.playFootstep((sprinting ? 0.095 : 0.07) * alt, (sprinting ? 820 : 660) * alt);
+      }
+    }
+    const bobTarget = onGround && moveMag > 0.05 && !REDUCED ? 1 : 0;
+    bobEnv.current += (bobTarget - bobEnv.current) * Math.min(1, dt * 9);
+    const bob = REDUCED ? 0 : Math.sin(stepPhase.current * Math.PI) * BOB_AMP * bobEnv.current;
+    if (!REDUCED) {
+      settleVel.current += (-settle.current * 120 - settleVel.current * 16) * dt; // spring→rest
+      settle.current += settleVel.current * dt;
+    }
+
     // "Lol, taller": collecting loot grows your eye height (scoreStore.tallness),
     // clamped under THIS room's ceiling so you never poke through the roof —
     // the jump arc is clamped under the same ceiling.
     const grow = Math.min(useScoreStore.getState().tallness, Math.max(0, d.height - d.eye - 0.4));
-    camera.position.y = Math.min(d.height - 0.4, d.eye + grow + hop.current);
+    camera.position.y = Math.min(d.height - 0.4, d.eye + grow + hop.current + bob + settle.current);
 
     const dir = new THREE.Vector3(
       Math.sin(yaw.current) * Math.cos(pitch.current),

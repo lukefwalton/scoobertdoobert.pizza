@@ -833,6 +833,160 @@ class PizzaAudio {
     };
   }
 
+  /**
+   * A FOOTSTEP — the soft scuff of a footfall, the tiny sound that makes walking
+   * feel like walking. A short low-passed noise transient with a fast decay,
+   * routed through `master` so the limiter + global mute apply; builds + frees its
+   * own nodes. Kept VERY quiet (it fires ~2×/sec while you move) — it's texture,
+   * not a foreground hit. `thump` (>0) layers a low sine body for a LANDING thud
+   * (harder impact = more thump), so the same method covers step and touchdown.
+   * No-op pre-gesture / when muted, like the other one-shots — never forces audio on.
+   */
+  playFootstep(peak = 0.075, cutoff = 680, thump = 0): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = thump > 0 ? 0.16 : 0.09;
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const t = i / frames;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 2.4); // fast scuff decay
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = cutoff;
+    lp.Q.value = 0.5;
+    const g = ctx.createGain();
+    g.gain.value = Math.max(0.0001, peak);
+    src.connect(lp);
+    lp.connect(g);
+    g.connect(this.master);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+    src.onended = () => {
+      src.disconnect();
+      lp.disconnect();
+      g.disconnect();
+    };
+    // Landing body: a low sine dropping 150→60 Hz — the "oomph" of hitting the floor.
+    if (thump > 0) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+      const og = ctx.createGain();
+      og.gain.setValueAtTime(Math.max(0.0001, thump), now);
+      og.gain.exponentialRampToValueAtTime(0.0001, now + 0.17);
+      osc.connect(og);
+      og.connect(this.master);
+      osc.start(now);
+      osc.stop(now + 0.19);
+      osc.onended = () => {
+        osc.disconnect();
+        og.disconnect();
+      };
+    }
+  }
+
+  /**
+   * A DOOR THUNK — the satisfying "chunk" of stepping through a doorway (the most
+   * repeated verb in the world). A quick wooden LATCH tick (bandpassed noise) over
+   * a soft low BODY thud, so a door reads as a solid object you passed through, not
+   * a silent scene-swap. Routed through `master` (limiter + mute); builds + frees
+   * its own nodes. No-op pre-gesture / when muted.
+   */
+  playDoorThunk(): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    // latch tick — a short, brighter noise click
+    const dur = 0.09;
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const t = i / frames;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3);
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 900;
+    bp.Q.value = 0.8;
+    const g = ctx.createGain();
+    g.gain.value = 0.12;
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.master);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+    src.onended = () => {
+      src.disconnect();
+      bp.disconnect();
+      g.disconnect();
+    };
+    // body thud — a low knock under the latch
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(70, now + 0.1);
+    const og = ctx.createGain();
+    og.gain.setValueAtTime(0.14, now);
+    og.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+    osc.connect(og);
+    og.connect(this.master);
+    osc.start(now);
+    osc.stop(now + 0.17);
+    osc.onended = () => {
+      osc.disconnect();
+      og.disconnect();
+    };
+  }
+
+  /**
+   * A DICE CLACK — the hard tick of a die tumbling and landing. A very short
+   * bandpassed noise burst; `rate` shifts the pitch (a rattling die is many quick
+   * clacks that SLOW + settle, so callers ramp the interval and vary the pitch).
+   * The percussion that makes a roll feel like it has stakes. Routed through
+   * `master` (limiter + mute); builds + frees its own nodes. No-op pre-gesture / muted.
+   */
+  playDiceClack(peak = 0.12, rate = 1): void {
+    if (!this.ctx || !this.master || this.muted) return;
+    const ctx = this.ctx;
+    const now = ctx.currentTime;
+    const dur = 0.045;
+    const frames = Math.max(1, Math.floor(ctx.sampleRate * dur));
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) {
+      const t = i / frames;
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 4); // very fast clack decay
+    }
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = Math.max(400, Math.min(6000, 2100 * rate));
+    bp.Q.value = 1.1;
+    const g = ctx.createGain();
+    g.gain.value = Math.max(0.0001, peak);
+    src.connect(bp);
+    bp.connect(g);
+    g.connect(this.master);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+    src.onended = () => {
+      src.disconnect();
+      bp.disconnect();
+      g.disconnect();
+    };
+  }
+
   /** Pitch-bend the whole loop downward as the era "ages" (the descent). */
   pitchBendDown(durationMs = 2200, target = 0.45): void {
     if (!this.ctx || !this.source) return;
