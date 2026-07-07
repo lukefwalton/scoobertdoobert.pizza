@@ -232,6 +232,25 @@ The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
 - **Reused engine** note: the coin tinkle is `audio.playChime` (the /chimes bell
   voice); the clap is `audio.playClap`. The shrine is a SWEET room, so its luck
   faucet stays a relief beat.
+- **Luck is spent by the system, but the PAYOFF is visible (Luke, 2026-07: "turn
+  luck into clearer outcomes").** The old rule ("the second die is never shown")
+  meant luck did its work invisibly and read as nothing. It's amended: the system
+  still spends luck for you (no spend menu — ADDENDUM 7 holds), but when advantage
+  actually raises a roll, the toast SAYS so — "· 🍀 luck tipped it (4→18)" (the pure
+  `luckTag(roll)` off `Roll.raw` + `Roll.lucky`, appended everywhere a stakes roll
+  resolves). You watch luck rescue a roll or deliver a crit; that IS the reward loop.
+- **More chances to ROLL, and to swing BAD↔GREAT (Luke, 2026-07).** The d20 wants
+  more surfaces than a fight. The shrine's **おみくじ / fortune draw** is the model:
+  an explicit, repeatable, luck-biased roll from 大吉 (great blessing) to 凶 (a
+  curse) — the clearest BAD↔GREAT beat in the game, on-brand, in a room that already
+  exists (`src/data/omikuji.ts` maps a landed face → a fortune tier; the crits pin
+  the extremes so a nat 20 / nat 1 always reads). **BAD stays sweet:** a curse is
+  theatre (tie the slip to a branch, leave the bad luck behind), never a penalty —
+  the taste guardrail means a bad roll costs the frog his dignity, not your progress.
+  A blessing pays luck back, so a luckier player literally draws better fortunes: the
+  luck loop closed into a ritual. Surfacing the already-there silent rolls (the
+  garden frog's per-ribbit d20 now lands both crits) is the cheap version of the same
+  idea — every roll should READ.
 
 ### PIZZA POINTS — the collectathon + the leaderboard (SHIPPED, Luke 2026-06-28)
 The arcade-score layer that makes a run *replayable* and *shareable*. Goofy loot —

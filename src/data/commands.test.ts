@@ -23,6 +23,8 @@ const base: Progress = {
   knownSpells: [],
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
+  bestFortune: 0,
+  lootTotals: {},
 };
 const run = (name: string, over: Partial<Progress> = {}) =>
   lookupCommand(name)!

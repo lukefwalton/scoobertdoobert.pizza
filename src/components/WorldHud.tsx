@@ -113,6 +113,8 @@ export function WorldHud() {
       knownSpells: s.knownSpells,
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
+      bestFortune: s.bestFortune,
+      lootTotals: s.lootTotals,
     })),
   );
   // The one durable field WorldHud itself still needs (the locked-door prompt);

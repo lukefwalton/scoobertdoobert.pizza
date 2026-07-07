@@ -20,9 +20,16 @@ describe('rollLuckyD20', () => {
       calls++;
       return 0;
     });
-    expect(r).toEqual({ face: 1, crit: 'nat1', luckSpent: 0 });
+    // raw == face and lucky is false on a plain roll (luck never touched it).
+    expect(r).toEqual({ face: 1, crit: 'nat1', luckSpent: 0, raw: 1, lucky: false });
     expect(calls).toBe(1); // exactly one die — no backend reroll without luck
-    expect(rollLuckyD20(0, () => 0.999)).toEqual({ face: 20, crit: 'nat20', luckSpent: 0 });
+    expect(rollLuckyD20(0, () => 0.999)).toEqual({
+      face: 20,
+      crit: 'nat20',
+      luckSpent: 0,
+      raw: 20,
+      lucky: false,
+    });
   });
 
   it('with luck, rolls with ADVANTAGE — two dice, keeps the higher — for one luck', () => {
@@ -43,6 +50,20 @@ describe('rollLuckyD20', () => {
     const r = rollLuckyD20(1, () => seq[i++]);
     expect(r.face).toBe(20);
     expect(r.luckSpent).toBe(1);
+    // The natural die already stood, so luck did NOT tip it — no payoff to show.
+    expect(r.raw).toBe(20);
+    expect(r.lucky).toBe(false);
+  });
+
+  it('flags `lucky` + reports the natural die only when advantage actually raised the roll', () => {
+    // first → 3, second (backend) → 18; advantage keeps 18, and luck genuinely moved
+    // it up off the 3, so this is the "🍀 luck tipped it (3→18)" payoff.
+    const seq = [0.1, 0.85];
+    let i = 0;
+    const r = rollLuckyD20(1, () => seq[i++]);
+    expect(r.face).toBe(18);
+    expect(r.raw).toBe(3);
+    expect(r.lucky).toBe(true);
   });
 
   it('spends at most one luck per roll, however big the bank, and rolls just two dice', () => {

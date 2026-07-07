@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { useProgressStore, selectLuck } from '../state/progressStore';
 import { CASSETTE_IDS } from '../data/items';
+import { fortuneByRank } from '../data/omikuji';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ShopFittings — the "Trophy Pizzeria" dressing on the beach shop (ROOMS[0], the
@@ -52,6 +53,10 @@ export function ShopFittings() {
   const tapes = useProgressStore(
     (s) => s.itemsHeld.filter((id) => CASSETTE_IDS.includes(id)).length,
   );
+  // The two NEW trophies (Luke: hang the fortune + track pizza slices in the case).
+  const bestFortune = useProgressStore((s) => s.bestFortune);
+  const pizzaSlices = useProgressStore((s) => s.lootTotals.pizza ?? 0);
+  const fortune = fortuneByRank(bestFortune); // stable per rank (a FORTUNES value)
 
   // ── textures ──────────────────────────────────────────────────────────────
   const menuTex = useMemo(
@@ -96,6 +101,54 @@ export function ShopFittings() {
   );
   const plaqueMat = useMemo(() => new THREE.MeshBasicMaterial({ map: plaqueTex }), [plaqueTex]);
   const labelMat = useMemo(() => new THREE.MeshBasicMaterial({ map: labelTex }), [labelTex]);
+  const pizzaMat = useMemo(() => flatMat('#e8b44a'), []); // the loot pizza colour
+  const pizzaCrustMat = useMemo(() => flatMat('#c88a3a'), []);
+
+  // ── the REACTIVE (value-keyed) trophy textures — regenerated + disposed on change ──
+  // Your best おみくじ slip (its kanji), and the lifetime pizza-slice tally. Both ≤128px
+  // (the PS1 texture cap), both null until earned, so they only hang once you've done it.
+  const fortuneTex = useMemo(
+    () =>
+      fortune
+        ? makeTextTexture(fortune.jp, {
+            fg:
+              fortune.id === 'daikichi' ? '#b8860b' : fortune.id === 'kyo' ? '#7a1f1f' : '#3a2410',
+            bg: '#f3ecda',
+            w: 96,
+            h: 96,
+          })
+        : null,
+    [fortune],
+  );
+  const fortuneMat = useMemo(
+    () => (fortuneTex ? new THREE.MeshBasicMaterial({ map: fortuneTex }) : null),
+    [fortuneTex],
+  );
+  useEffect(
+    () => () => {
+      fortuneTex?.dispose();
+      fortuneMat?.dispose();
+    },
+    [fortuneTex, fortuneMat],
+  );
+  const tallyTex = useMemo(
+    () =>
+      pizzaSlices > 0
+        ? makeTextTexture(`SLICES\n×${pizzaSlices}`, { fg: '#3a2410', bg: '#e9dcc0', w: 96, h: 96 })
+        : null,
+    [pizzaSlices],
+  );
+  const tallyMat = useMemo(
+    () => (tallyTex ? new THREE.MeshBasicMaterial({ map: tallyTex }) : null),
+    [tallyTex],
+  );
+  useEffect(
+    () => () => {
+      tallyTex?.dispose();
+      tallyMat?.dispose();
+    },
+    [tallyTex, tallyMat],
+  );
 
   useDispose(
     menuTex,
@@ -117,6 +170,8 @@ export function ShopFittings() {
     neonMat,
     plaqueMat,
     labelMat,
+    pizzaMat,
+    pizzaCrustMat,
   );
 
   // Cassettes fanned along the lower shelf (one per collected tape, capped so a
@@ -211,6 +266,35 @@ export function ShopFittings() {
               <boxGeometry args={[0.04, 0.04, 0.02]} />
             </mesh>
           ))}
+        </group>
+      )}
+      {/* your best おみくじ slip, framed on the upper shelf (between finale + goblin) —
+          it hangs the moment you've drawn one, and upgrades to your finest rank */}
+      {fortuneMat && (
+        <group position={[-7.22, 2.16, -0.35]} rotation-y={Math.PI / 2}>
+          <mesh material={woodDarkMat} position={[0, 0, -0.015]}>
+            <boxGeometry args={[0.3, 0.4, 0.02]} />
+          </mesh>
+          <mesh material={fortuneMat} position={[0, 0, 0]}>
+            <planeGeometry args={[0.24, 0.32]} />
+          </mesh>
+        </group>
+      )}
+      {/* the lifetime pizza-slice tally — a slice on the lower shelf under a little
+          count plaque; grows its number as you hoover up more slices across runs */}
+      {tallyMat && (
+        <group position={[-7.24, 1.5, 0.7]}>
+          {/* a wedge of pizza lying on the shelf (a 60° cylinder sector) */}
+          <mesh material={pizzaMat} rotation-x={-Math.PI / 2} rotation-z={-Math.PI / 6}>
+            <cylinderGeometry args={[0.17, 0.17, 0.04, 12, 1, false, 0, Math.PI / 3]} />
+          </mesh>
+          <mesh material={pizzaCrustMat} rotation-x={-Math.PI / 2} rotation-z={-Math.PI / 6}>
+            <cylinderGeometry args={[0.17, 0.17, 0.05, 12, 1, true, 0, Math.PI / 3]} />
+          </mesh>
+          {/* the count plaque, standing behind the slice, facing the room */}
+          <mesh material={tallyMat} position={[0, 0.26, -0.05]} rotation-y={Math.PI / 2}>
+            <planeGeometry args={[0.34, 0.28]} />
+          </mesh>
         </group>
       )}
     </group>
