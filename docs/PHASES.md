@@ -326,6 +326,21 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
     BAD/GREAT beat both ways — a nat 20 still winks +1 luck, a nat 1 makes him blorp,
     mortified (sweet, no penalty). Covered by `shoot:luck` (the draw → toast + secret),
     `omikuji.test.ts` / `luck-core.test.ts` / `luck.test.ts` (raw/`lucky`/`luckTag`).
+  - **…and they hang in the Trophy Case (2026-07-07, Luke: "can this hang in their
+    trophy case? can it track pizza slices too?").** Two new durable stats feed the
+    shop's reactive back-bar hall of fame (`ShopFittings`): **`bestFortune`** (your
+    finest おみくじ rank, 1..5) hangs a framed slip on the upper shelf, and
+    **`lootTotals`** (lifetime per-type loot counts, banked in `collectLootById`)
+    grows a pizza-slice tally on the lower shelf — distinct from `pizzaPointsBest`
+    (a single run's score) since it's the cumulative haul across every descent. The
+    pause menu gets a "Trophy case" readout too (the full per-type breakdown + best
+    fortune). Both trophies are value-keyed textures (≤128px, disposed on change),
+    gated so they only appear once earned; `shoot:trophy` seeds + mounts them,
+    `progressStore.test` covers `recordFortune` (monotonic) + `addLoot` (per-type,
+    fresh-disk accumulate). Also folded in PR #123's review: the omikuji slip texture
+    dropped 128×160 → 96×128 (the hard PS1 ≤128px cap), the 大吉 note-burst timers are
+    cancelled on unmount (no cross-room audio bleed), and `shoot:luck`'s fixed sleeps
+    became concrete state waits.
 - ✅ **The jukebox dice crits — the "gamble for it" payoff (2026-06-26):** the music
   ladder's top rung lands its crits. The cabinet d20 (`rollD20(false)`) already
   jumped the dial to the rolled track; now a **nat 20 = "the pristine pressing"**

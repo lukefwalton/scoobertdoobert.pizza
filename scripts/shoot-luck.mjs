@@ -91,8 +91,10 @@ if (hasHook) {
     );
   if (!hasOmikuji) bad('luck: __sdpOmikuji fortune-draw hook never appeared');
   else {
-    await page.keyboard.press('Escape'); // close the pause menu opened above
-    await page.waitForTimeout(200);
+    // Close the pause menu opened above, then WAIT on its removal (a concrete state
+    // wait, not a fixed sleep) before drawing.
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('.hud-pause', { state: 'detached', timeout: 4000 }).catch(() => {});
     await page.evaluate(() => window.__sdpOmikuji());
     // Every fortune rank carries 吉 or 凶 (大吉…末吉…凶), so the toast text proves a real
     // fortune landed — not just any lingering toast.
@@ -110,16 +112,26 @@ if (hasHook) {
         () => false,
       );
     if (!omikujiToast) bad('luck: drawing a fortune raised no おみくじ toast');
-    await page.waitForTimeout(200);
-    fortuneDrawn = await page.evaluate(() => {
-      try {
-        return (
-          JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
-        ).includes('omikuji-drawn');
-      } catch {
-        return false;
-      }
-    });
+    // Poll the durable secret directly (a state wait, not a sleep) — the draw persists
+    // synchronously, so this settles immediately once the write lands.
+    fortuneDrawn = await page
+      .waitForFunction(
+        () => {
+          try {
+            return (
+              JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+            ).includes('omikuji-drawn');
+          } catch {
+            return false;
+          }
+        },
+        null,
+        { timeout: 4000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
     if (!fortuneDrawn) bad('luck: a fortune draw did not record the omikuji-drawn secret');
     await page.screenshot({ path: '.shots/omikuji.png' });
   }

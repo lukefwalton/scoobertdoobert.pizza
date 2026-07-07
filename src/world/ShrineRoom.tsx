@@ -359,6 +359,7 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
   const shake = useRef(0);
   const drawnOnce = useRef(false);
   const reduced = useRef(false);
+  const timers = useRef<number[]>([]); // pending 大吉 note-burst timeouts — cleared on unmount
   const [fortune, setFortune] = useState<Fortune | null>(null);
 
   const baseMat = useMemo(() => flatMat('#6b4a2f', { side: THREE.DoubleSide }), []);
@@ -371,11 +372,12 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
   const slipTex = useMemo(
     () =>
       fortune
-        ? makeTextTexture(`${fortune.jp}\n${fortune.en}`, {
+        ? // portrait slip, both dims within the hard ≤128px PS1 texture cap
+          makeTextTexture(`${fortune.jp}\n${fortune.en}`, {
             fg: '#7a1f1f',
             bg: '#f3ecda',
-            w: 128,
-            h: 160,
+            w: 96,
+            h: 128,
           })
         : null,
     [fortune],
@@ -422,15 +424,20 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
     setFortune(f);
     const prog = useProgressStore.getState();
     if (f.luck > 0) prog.gainLuck(f.luck);
+    prog.recordFortune(f.rank); // hang your best slip in the trophy case (monotonic)
     if (!drawnOnce.current) {
       drawnOnce.current = true;
       prog.findSecret('omikuji-drawn'); // completes the "Draw your fortune" objective
     }
     // sound the outcome: a bright ascending sparkle for 大吉, a low deflating womp for
-    // 凶 (still sweet — the shrine stays a relief beat).
+    // 凶 (still sweet — the shrine stays a relief beat). The 大吉 burst is delayed, so
+    // track its timers and cancel on unmount — else it bleeds into the next room's
+    // audio (the shared engine), exactly like the offering box's clap/coin.
     if (f.id === 'daikichi')
       ['E', 'G', 'B'].forEach((n, i) =>
-        window.setTimeout(() => audio.playChime(noteToFreq(n, 6), 0.2, 0.1, 0.7), i * 90),
+        timers.current.push(
+          window.setTimeout(() => audio.playChime(noteToFreq(n, 6), 0.2, 0.1, 0.7), i * 90),
+        ),
       );
     else if (f.id === 'kyo') audio.playChime(noteToFreq('C', 2), -0.1, 0.22, 1.0);
     const luckNote = f.luck > 0 ? ` · +${f.luck} luck` : '';
@@ -442,9 +449,12 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
   // secret, so it rides the narrower gate like __sdpRibbit / the progression hooks).
   useEffect(() => {
     if (isDebugEntrance()) exposeTestGlobal('__sdpOmikuji', draw);
+    const pending = timers.current;
     return () => {
       exposeTestGlobal('__sdpOmikuji', undefined);
       exposeTestGlobal('__sdpFortune', undefined);
+      pending.forEach((id) => clearTimeout(id)); // don't let a 大吉 burst outlive the room
+      pending.length = 0;
     };
   }, []);
 
