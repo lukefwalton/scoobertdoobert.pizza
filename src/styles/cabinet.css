@@ -72,6 +72,10 @@
 .poke-marquee__neon,
 .chimes-marquee__neon,
 .cultures-marquee__neon {
+  /* an <h1> since the a11y pass — keep the marquee look, drop the UA h1 box */
+  margin: 0;
+  font-size: inherit;
+  display: inline;
   font-weight: bold;
   color: var(--cab-accent);
   text-shadow:

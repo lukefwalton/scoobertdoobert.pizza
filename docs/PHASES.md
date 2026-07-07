@@ -697,6 +697,41 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
   broken-CRT no-modal guard, the walk-to-mic cheer).
 
 ## Open hygiene / notes
+- **Constitution audit (2026-07-07):** an adversarial re-check of every CLAUDE.md
+  hard line against the whole codebase (they'd only ever been verified per-feature
+  as each shipped). Findings → dispositions:
+  - **FIXED — Poke's audio path had no brickwall limiter** (`FaceStretch.tsx` ran
+    its own AudioContext `src→filter→gain→destination`); it now ends in the same
+    DynamicsCompressor as the other cabinets.
+  - **FIXED — YouTube CRT iframes ignored the global mute.** `YoutubeFacade` now
+    bakes `mute=1` into the src when muted at click time and forwards later
+    toggles over the YT iframe API (`enablejsapi=1` + postMessage). `shoot:tv`
+    asserts both directions of the click-time contract.
+  - **FIXED — the MAIN_DESCENT key guard was a silent `console.warn`** (smokes
+    only fail on `console.error`) **and the unit test the docs claimed didn't
+    exist.** The dev guard now THROWS, and `rooms.test.ts` pins the data
+    invariant (no `requiresKey` door targets a descent room) in CI.
+  - **FIXED — the arcade/leaderboard/instrument pages had NO `<h1>`** (marquee
+    titles were spans). Every marquee is a real `<h1>` now, visually unchanged.
+  - **NEW GUARDS:** `src/constitution.test.ts` — a WCAG 2.3.1 flash-rate tripwire
+    (any luminance-keyframe `infinite` animation must loop ≥0.34s; every animated
+    CSS file must carry a reduced-motion block — trapdoor.css was missing its
+    belt-and-braces block, added) and a PS1 texture-ceiling tripwire (≤512px).
+    Plus `check-build.mjs` now asserts a11y structure on every prerendered page
+    (exactly one `<h1>`, no skipped heading levels, a `<main>` landmark, no
+    alt-less `<img>`; `1101.html` exempt — it's the hand-exported Twine story).
+  - **AMENDED — the texture cap** (Luke: "we can make shit look good. fuck it.
+    change the standards"): see CLAUDE.md's PS1 constraints — 128px stays the
+    default grain, text atlases/FX canvases to 512, GLB crunch at 256,
+    `CoverArt`/`FrutigerRoom` LinearFilter exceptions recorded.
+  - **REWORDED — one shipped mark reference:** the `/poke` meta description named
+    a Nintendo title; now "'96-console". (Comments + Luke's own lyrics/lore that
+    reference brands are his creative content / nominative and stay.)
+  - **VERIFIED CLEAN / NO-OP:** `public/1101.html` has no audio (its only "audio"
+    string is Harlowe's internal CSS tag table), so the Twine iframes can't leak
+    sound past the mute; no `href="#"` anywhere; chimes/cultures cabinets carry
+    their own limiter+mute (already smoke-tested); heading order on all content
+    pages was already sound.
 - **Docs reconciliation pass (2026-07-07):** a drift audit of the three governing
   docs + README against the code fixed 7 stale claims — jukebox `*.wav` → `*.mp3`
   (CLAUDE/DESIGN), DESIGN's "four tracks" → the real catalog, the trap-door and

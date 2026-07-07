@@ -23,7 +23,7 @@ export default function Poke() {
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/poke" />
         <meta
           name="description"
-          content="Poke Scoobert — grab his face and pull. A Mario-64-style face-stretch toy that plays his music as you stretch. Best on a touchscreen."
+          content="Poke Scoobert — grab his face and pull. A '96-console face-stretch toy that plays his music as you stretch. Best on a touchscreen."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
@@ -42,7 +42,7 @@ export default function Poke() {
 
       <div className="poke-cabinet">
         <div className="poke-marquee">
-          <span className="poke-marquee__neon">POKE SCOOBERT</span>
+          <h1 className="poke-marquee__neon">POKE SCOOBERT</h1>
         </div>
 
         {mounted ? (
