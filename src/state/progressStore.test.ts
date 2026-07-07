@@ -147,3 +147,33 @@ describe('progressStore spell-slot economy', () => {
     expect(selectSpellSlots(useProgressStore.getState())).toBe(SPELL_SLOTS_MAX - 1);
   });
 });
+
+describe('progressStore trophy-case stats', () => {
+  it('recordFortune keeps the BEST rank (monotonic); a lower draw never regresses it', async () => {
+    const { useProgressStore } = await freshStore();
+    useProgressStore.getState().recordFortune(4); // 吉
+    expect(useProgressStore.getState().bestFortune).toBe(4);
+    useProgressStore.getState().recordFortune(2); // 末吉 — worse, ignored
+    expect(useProgressStore.getState().bestFortune).toBe(4);
+    useProgressStore.getState().recordFortune(5); // 大吉 — better, wins
+    expect(useProgressStore.getState().bestFortune).toBe(5);
+  });
+
+  it('addLoot tallies per type, accumulating across grabs', async () => {
+    const { useProgressStore } = await freshStore();
+    useProgressStore.getState().addLoot('pizza');
+    useProgressStore.getState().addLoot('pizza');
+    useProgressStore.getState().addLoot('surfboard');
+    expect(useProgressStore.getState().lootTotals).toEqual({ pizza: 2, surfboard: 1 });
+  });
+
+  it('addLoot reads fresh disk, so a concurrent tab’s tally is added to, not clobbered', async () => {
+    const { useProgressStore } = await freshStore();
+    useProgressStore.getState().addLoot('pizza'); // this tab: 1
+    const disk = JSON.parse(localStorage.getItem(KEY)!);
+    // another tab banks 4 more pizzas behind our back
+    localStorage.setItem(KEY, JSON.stringify({ ...disk, lootTotals: { pizza: 5 } }));
+    useProgressStore.getState().addLoot('pizza'); // must stack onto the other tab's 5 → 6
+    expect(useProgressStore.getState().lootTotals.pizza).toBe(6);
+  });
+});

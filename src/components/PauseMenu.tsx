@@ -9,6 +9,8 @@ import { useScoreStore } from '../state/scoreStore';
 import { LOOP_OPTIONS } from '../data/music';
 import { ROOMS } from '../data/rooms';
 import { itemById, CASSETTE_IDS } from '../data/items';
+import { LOOT } from '../data/loot';
+import { fortuneByRank } from '../data/omikuji';
 import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
 import { songMeaning } from '../data/songMeta';
 import { hasLyrics } from '../data/lyrics';
@@ -82,6 +84,8 @@ export function PauseMenu() {
       knownSpells: s.knownSpells,
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
+      bestFortune: s.bestFortune,
+      lootTotals: s.lootTotals,
     })),
   );
 
@@ -142,6 +146,30 @@ export function PauseMenu() {
                     </li>
                   );
                 })}
+              </ul>
+            </div>
+          )}
+          {/* The TROPHY CASE — the lifetime haul (pizza slices etc.) + your best shrine
+              fortune, the pause-menu twin of the 3D case back in the shop lobby. Only
+              shows once you've collected/drawn something. */}
+          {(Object.values(progress.lootTotals).some((n) => n > 0) || progress.bestFortune > 0) && (
+            <div className="hud-pause__inventory">
+              <p className="hud-pause__invtitle">Trophy case</p>
+              <ul className="hud-pause__invlist">
+                {LOOT.filter((l) => (progress.lootTotals[l.id] ?? 0) > 0).map((l) => (
+                  <li key={l.id} title={`${progress.lootTotals[l.id]} collected, all-time`}>
+                    <span aria-hidden="true">{l.glyph}</span> {l.label} ×{progress.lootTotals[l.id]}
+                  </li>
+                ))}
+                {progress.bestFortune > 0 &&
+                  (() => {
+                    const f = fortuneByRank(progress.bestFortune);
+                    return f ? (
+                      <li title={`Your best shrine fortune: ${f.jp} ${f.en}`}>
+                        <span aria-hidden="true">🎴</span> Best fortune {f.jp} {f.en}
+                      </li>
+                    ) : null;
+                  })()}
               </ul>
             </div>
           )}

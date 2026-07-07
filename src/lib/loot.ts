@@ -12,6 +12,7 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from './chimes';
 import { announce } from '../state/toastStore';
 import { useScoreStore } from '../state/scoreStore';
+import { useProgressStore } from '../state/progressStore';
 import { lootById, lootDropById } from '../data/loot';
 
 // C-major pentatonic up two-plus octaves — the "collect" ladder. The combo index
@@ -42,6 +43,10 @@ export function collectLootById(id: string): boolean {
   if (!type) return false;
   const res = useScoreStore.getState().collectLoot(id, type.points, type.grow);
   if (!res) return false; // already taken this run
+
+  // Tally the lifetime haul (the trophy case's "how many pizza slices, ever" count).
+  // The run score is ephemeral; this durable per-type total is not.
+  useProgressStore.getState().addLoot(type.id);
 
   audio.unlock();
   // Climb the scale with the combo — collecting IS a melody.

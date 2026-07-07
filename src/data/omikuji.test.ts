@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fortuneForRoll, FORTUNES } from './omikuji';
+import { fortuneForRoll, fortuneByRank, FORTUNES } from './omikuji';
 
 describe('omikuji: fortuneForRoll', () => {
   it('pins the extremes to the crits (the BAD/GREAT swing always reads)', () => {
@@ -30,5 +30,13 @@ describe('omikuji: fortuneForRoll', () => {
     expect(FORTUNES.chu.luck).toBe(0);
     expect(FORTUNES.sue.luck).toBe(0);
     expect(FORTUNES.kyo.luck).toBe(0); // a curse never costs you luck — losing never hard-fails
+  });
+
+  it('ranks are 1..5 worst→best and round-trip through fortuneByRank (the trophy case)', () => {
+    expect(FORTUNES.kyo.rank).toBe(1);
+    expect(FORTUNES.daikichi.rank).toBe(5);
+    for (const f of Object.values(FORTUNES)) expect(fortuneByRank(f.rank)).toBe(f);
+    expect(fortuneByRank(0)).toBeNull(); // 0 = none drawn yet → no trophy slip
+    expect(fortuneByRank(6)).toBeNull(); // out of range
   });
 });

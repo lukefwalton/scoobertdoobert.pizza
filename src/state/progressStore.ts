@@ -79,6 +79,15 @@ export type Progress = {
    *  multi-tab max-merge holds for a resource that otherwise rises AND falls. */
   spellSlotsGained: number;
   spellSlotsSpent: number;
+  /** Best おみくじ fortune rank ever drawn at the shrine, 0 (none) → 5 (大吉). The
+   *  trophy case hangs your best slip off this. Monotonic (only ever rises). */
+  bestFortune: number;
+  /** Lifetime count of each LOOT type ever hoovered up (loot.ts id → count) — the
+   *  "how many pizza slices have I collected, ever" tally the trophy case shows.
+   *  Distinct from `pizzaPointsBest` (a single run's best score); this is the
+   *  cumulative haul across every descent. Monotonic per key (the max-merge holds —
+   *  same accepted soft multi-tab race as luck/visits, see gainLuck). */
+  lootTotals: Record<string, number>;
 };
 
 const DEFAULTS: Progress = {
@@ -100,6 +109,8 @@ const DEFAULTS: Progress = {
   knownSpells: [],
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
+  bestFortune: 0,
+  lootTotals: {},
 };
 
 // ── field normalizers: a malformed blob degrades to defaults, never crashes ──
@@ -142,6 +153,8 @@ function read(): Progress {
       knownSpells: strArr(p.knownSpells),
       spellSlotsGained: num(p.spellSlotsGained, 0),
       spellSlotsSpent: num(p.spellSlotsSpent, 0),
+      bestFortune: num(p.bestFortune, 0),
+      lootTotals: numMap(p.lootTotals),
     };
   } catch {
     return { ...DEFAULTS };
@@ -197,6 +210,8 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     knownSpells: uniq(a.knownSpells, b.knownSpells),
     spellSlotsGained: Math.max(a.spellSlotsGained, b.spellSlotsGained),
     spellSlotsSpent: Math.max(a.spellSlotsSpent, b.spellSlotsSpent),
+    bestFortune: Math.max(a.bestFortune, b.bestFortune),
+    lootTotals: mergeNumMap(a.lootTotals, b.lootTotals),
   };
 }
 
@@ -238,6 +253,13 @@ type ProgressState = Progress & {
    *  breather room). Monotonic — only ever raises spellSlotsGained. Idempotent
    *  when already full. */
   restSpellSlots: () => void;
+  /** Record an おみくじ draw's fortune rank (1..5). Keeps the best (monotonic), so
+   *  the trophy case shows your finest slip. Lower/equal ranks are a no-op. */
+  recordFortune: (rank: number) => void;
+  /** Tally one collected loot item by its type id (the trophy-case lifetime haul).
+   *  Increments off FRESH disk so sequential multi-tab grabs accumulate — same
+   *  additive-counter reasoning as gainLuck. */
+  addLoot: (typeId: string) => void;
 };
 
 const snapshot = (s: ProgressState): Progress => ({
@@ -259,6 +281,8 @@ const snapshot = (s: ProgressState): Progress => ({
   knownSpells: s.knownSpells,
   spellSlotsGained: s.spellSlotsGained,
   spellSlotsSpent: s.spellSlotsSpent,
+  bestFortune: s.bestFortune,
+  lootTotals: s.lootTotals,
 });
 
 export const useProgressStore = create<ProgressState>((set, get) => {
@@ -370,6 +394,16 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       const target = fresh.spellSlotsSpent + SPELL_SLOTS_MAX; // gained that yields a full pool
       if (target <= fresh.spellSlotsGained) return; // already full — nothing to top up
       apply({ spellSlotsGained: target });
+    },
+    recordFortune: (rank) => {
+      const r = Math.floor(rank);
+      if (r <= get().bestFortune) return; // keep the best only
+      apply({ bestFortune: r });
+    },
+    addLoot: (typeId) => {
+      const fresh = read();
+      const next = (fresh.lootTotals[typeId] ?? 0) + 1;
+      apply({ lootTotals: { ...fresh.lootTotals, [typeId]: next } });
     },
   };
 });

@@ -1,9 +1,10 @@
 // Verifies the Trophy Pizzeria's REACTIVE hall-of-fame (ShopFittings): with a
-// seeded save (finale banked, grass goblin cleared, luck up, a few tapes held),
-// entering the shop must render all four earned trophies — the gold finale award,
-// the goblin trophy, the lucky clover, and the collected-cassette row — WITHOUT
-// throwing. watchPageErrors catches any material/geometry throw from the gated
-// props. Turns to face the back-bar (-X wall) for the screenshot.
+// seeded save (finale banked, grass goblin cleared, luck up, a few tapes held, a
+// best 大吉 fortune, a pizza-slice tally), entering the shop must render every
+// earned trophy — the gold finale award, the goblin trophy, the lucky clover, the
+// collected-cassette row, the framed おみくじ slip, and the pizza-slice tally —
+// WITHOUT throwing. watchPageErrors catches any material/geometry throw from the
+// gated props. Turns to face the back-bar (-X wall) for the screenshot.
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors, roomIs as sharedRoomIs } from './lib/smoke.mjs';
 
@@ -23,6 +24,11 @@ await ctx.addInitScript(() => {
         luckSpent: 0,
         secretsFound: ['finale', 'grass-cleared'],
         itemsHeld: ['tape-mystery-machine', 'tape-moonlight', 'tape-japan'],
+        // the two newest trophies: a best おみくじ slip (大吉 = rank 5) + a lifetime
+        // pizza-slice tally — seeded so their gated props MOUNT (watchPageErrors
+        // catches any throw from the value-keyed texture/geometry).
+        bestFortune: 5,
+        lootTotals: { pizza: 42, sushi: 7 },
       }),
     );
   } catch {

@@ -17,6 +17,9 @@ import type { ToastKind } from '../state/toastStore';
 export type Fortune = {
   /** Stable rank id, worst→best: kyo · sue · chu · kichi · daikichi. */
   id: 'kyo' | 'sue' | 'chu' | 'kichi' | 'daikichi';
+  /** Numeric rank 1 (凶) … 5 (大吉) — persisted as `bestFortune` so the trophy case
+   *  can keep your finest draw (monotonic max needs an ordered number, not the id). */
+  rank: number;
   /** The kanji rank (shown big on the paper slip). */
   jp: string;
   /** The English gloss. */
@@ -34,6 +37,7 @@ export type Fortune = {
 export const FORTUNES: Record<Fortune['id'], Fortune> = {
   kyo: {
     id: 'kyo',
+    rank: 1,
     jp: '凶',
     en: 'Curse',
     line: 'Ill fortune. Old custom: tie the slip to a branch and leave the bad luck behind you.',
@@ -42,6 +46,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
   },
   sue: {
     id: 'sue',
+    rank: 2,
     jp: '末吉',
     en: 'Future Blessing',
     line: "Fortune's still on its way. Patience — it's coming.",
@@ -50,6 +55,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
   },
   chu: {
     id: 'chu',
+    rank: 3,
     jp: '中吉',
     en: 'Middling Blessing',
     line: 'Steady fortune. No complaints.',
@@ -58,6 +64,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
   },
   kichi: {
     id: 'kichi',
+    rank: 4,
     jp: '吉',
     en: 'Blessing',
     line: 'A good sign — the wind is at your back.',
@@ -66,6 +73,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
   },
   daikichi: {
     id: 'daikichi',
+    rank: 5,
     jp: '大吉',
     en: 'Great Blessing',
     line: 'The kami are delighted. Everything breaks your way today.',
@@ -73,6 +81,16 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
     kind: 'crit-good',
   },
 };
+
+// Ranks → the fortune, so a persisted `bestFortune` number resolves back to its slip
+// (the trophy case reads this). Built from FORTUNES so it can't drift.
+const FORTUNE_BY_RANK = new Map(Object.values(FORTUNES).map((f) => [f.rank, f]));
+
+/** The fortune at a given rank (1..5), or null for 0/none — for the trophy case to
+ *  render your best-ever draw off the durable `bestFortune`. */
+export function fortuneByRank(rank: number): Fortune | null {
+  return FORTUNE_BY_RANK.get(Math.floor(rank)) ?? null;
+}
 
 /**
  * Map a landed d20 face (+ its crit) to a fortune. The crits pin the extremes so a
