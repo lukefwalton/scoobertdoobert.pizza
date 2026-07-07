@@ -1,7 +1,7 @@
 import { useSceneStore } from '../state/sceneStore';
 import { useRhythmStore } from '../state/rhythmStore';
 import { enterDoor } from './doorTravel';
-import { launchRandomArcade } from './arcade';
+import { launchArcadeGame, launchRandomArcade } from './arcade';
 import { collectInventoryItem } from './pickups';
 import { collectLootById } from './loot';
 import { fireInteractable } from './interactables';
@@ -52,7 +52,9 @@ export function interactNearby(): void {
   } else if (st.nearTv) {
     st.openTv(st.nearTv);
   } else if (st.nearArcade) {
-    launchRandomArcade();
+    // A dedicated cabinet launches ITS game; the mystery cabinet (null) rolls.
+    if (st.nearArcadeGame) launchArcadeGame(st.nearArcadeGame);
+    else launchRandomArcade();
   } else if (st.nearHotspot) {
     st.openHotspotDialog(st.nearHotspot);
   } else if (st.nearNpc) {

@@ -3,7 +3,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
 import { useSceneStore } from '../state/sceneStore';
-import { launchRandomArcade } from '../lib/arcade';
+import { launchArcadeGame, launchRandomArcade } from '../lib/arcade';
+import { arcadeGameTitle, type ArcadeGameId } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
 // ArcadeCabinet — a procedural PS1 upright arcade machine (replaces the generic
@@ -12,9 +13,11 @@ import { launchRandomArcade } from '../lib/arcade';
 // three chunky buttons. Flat-shaded, sharp, late-90s. `tint` colours the side art
 // so two cabinets can read a little different. Faces +Z; place via position/rotationY.
 //
-// It's PLAYABLE: click it (or press E in range) and it ROLLS a random game into the
-// in-world modal — a little slot-pull so a cabinet feels alive (never the same
-// twice). Proximity drives the "Press E to play" prompt, mirroring the album TVs.
+// It's PLAYABLE: click it (or press E in range). A DEDICATED cabinet (pass `game`)
+// launches ITS one game — the machine's marquee = what it plays. A cabinet with NO
+// `game` is the MYSTERY machine: it ROLLS a random game (a slot-pull that keeps it
+// feeling alive, rhyming with the site's d20/luck chaos). Proximity drives the
+// "Press E to play" prompt, mirroring the album TVs.
 // ───────────────────────────────────────────────────────────────────────────
 
 // How close (horizontal) the camera must be for the "play" prompt — matches the TV.
@@ -23,13 +26,19 @@ export function ArcadeCabinet({
   position = [0, 0, 0],
   rotationY = 0,
   tint = '#b8348f',
-  marquee = 'PIZZA RUN',
+  game,
+  marquee,
 }: {
   position?: [number, number, number];
   rotationY?: number;
   tint?: string;
+  /** The one game this machine plays. Omit for the MYSTERY cabinet (random roll). */
+  game?: ArcadeGameId;
+  /** Marquee text; defaults to the game's title (or "?? MYSTERY ??" when random). */
   marquee?: string;
 }) {
+  // A dedicated cabinet advertises its game; a mystery one flaunts the "?????".
+  const resolvedMarquee = marquee ?? (game ? arcadeGameTitle(game) : '?? MYSTERY ??');
   // Unlit (flatMat) materials read by colour + silhouette, not shading — so the
   // body is a readable dark indigo (not near-black) and the front carries bold
   // bright detail (marquee, glowing CRT, grille, joystick, buttons) like the
@@ -44,8 +53,8 @@ export function ArcadeCabinet({
 
   // The marquee — a lit banner with the game name.
   const marqueeTex = useMemo(
-    () => makeTextTexture(marquee, { fg: '#ffe27a', bg: '#1a0a22', w: 256, h: 64 }),
-    [marquee],
+    () => makeTextTexture(resolvedMarquee, { fg: '#ffe27a', bg: '#1a0a22', w: 256, h: 64 }),
+    [resolvedMarquee],
   );
   const marqueeMat = useMemo(() => new THREE.MeshBasicMaterial({ map: marqueeTex }), [marqueeTex]);
 
@@ -83,7 +92,7 @@ export function ArcadeCabinet({
     const near = !frozen && Math.hypot(dx, dz) < ARCADE_PROMPT_RADIUS;
     if (near !== inRange.current) {
       inRange.current = near;
-      st.setNearArcade(near);
+      st.setNearArcade(near, game ?? null); // carry WHICH game (null = mystery roll)
     }
   });
 
@@ -109,7 +118,9 @@ export function ArcadeCabinet({
       rotation-y={rotationY}
       onClick={(e) => {
         e.stopPropagation();
-        launchRandomArcade(); // roll a random game into the modal
+        // A dedicated cabinet launches ITS game; a mystery one rolls (same as E).
+        if (game) launchArcadeGame(game);
+        else launchRandomArcade();
       }}
       onPointerOver={() => {
         gl.domElement.style.cursor = "url('/cursor.cur'), pointer";

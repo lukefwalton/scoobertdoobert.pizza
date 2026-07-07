@@ -7,6 +7,7 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
 import { FirstEntryReward } from './FirstEntryReward';
+import { ArcadeCabinet } from './ArcadeCabinet';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -297,6 +298,15 @@ export function DinerRoom({ room }: { room: Room }) {
           />
         ))}
       </group>
+
+      {/* PIZZA RADAR 1996 by the +Z wall (left of the booths) — a green-phosphor
+          cabinet glowing in the all-night diner, clear of the counter + door */}
+      <ArcadeCabinet
+        position={[-2, 0, D - 0.6]}
+        rotationY={Math.PI}
+        tint="#2f9f5a"
+        game="pizza-radar"
+      />
 
       {/* first time in: the diner's on the house (durable luck, once) */}
       <FirstEntryReward secret="diner-found" message="the coffee’s on — +1 LUCK" luck={1} />
