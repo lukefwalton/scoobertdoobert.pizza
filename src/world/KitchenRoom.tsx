@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { flatMat, makeBilingualSign } from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { PizzaPanChimes } from './PizzaPanChimes';
+import { ArcadeCabinet } from './ArcadeCabinet';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -147,6 +148,10 @@ export function KitchenRoom({ room }: { room: Room }) {
       {/* the playable tuned pizza-pan rack against the back (-X) wall — the thesis,
           made playable, at its source. Reuses the shipped instrument. */}
       <PizzaPanChimes position={[-W + 0.9, 0, 1]} rotationY={Math.PI / 2} />
+
+      {/* ORDER UP against the back (-Z) wall on the right, clear of the oven + the
+          back door — the kitchen's own memory game (call the order, ring it back) */}
+      <ArcadeCabinet position={[3.5, 0, -D + 0.7]} rotationY={0} tint="#e0662e" game="order-up" />
     </group>
   );
 }

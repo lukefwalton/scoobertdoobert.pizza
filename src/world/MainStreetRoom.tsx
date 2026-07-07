@@ -6,6 +6,7 @@ import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
+import { ArcadeCabinet } from './ArcadeCabinet';
 import { fogFor, type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -257,6 +258,15 @@ export function MainStreetRoom({ room }: { room: Room }) {
           <planeGeometry args={[2.0, 2.8]} />
         </mesh>
       )}
+
+      {/* DELIVERY DASH — a lone cabinet glowing on the empty +X sidewalk (a courier
+          game on the very street it's set on); clear of the poles, lamp + caution mast */}
+      <ArcadeCabinet
+        position={[4.6, 0, -4]}
+        rotationY={-Math.PI / 2}
+        tint="#c9432e"
+        game="delivery-dash"
+      />
 
       {/* the sky cap so you don't see out the top into void — dark at night, a
           flat overexposed haze by day */}
