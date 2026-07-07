@@ -396,8 +396,10 @@ export const useProgressStore = create<ProgressState>((set, get) => {
       apply({ spellSlotsGained: target });
     },
     recordFortune: (rank) => {
-      const r = Math.floor(rank);
-      if (r <= get().bestFortune) return; // keep the best only
+      // Clamp to the valid persisted range (1..5) so a junk value can't be stored and
+      // later fail to round-trip through fortuneByRank (which the trophy renderers use).
+      const r = Math.min(5, Math.floor(rank));
+      if (r < 1 || r <= get().bestFortune) return; // in range, and keep the best only
       apply({ bestFortune: r });
     },
     addLoot: (typeId) => {

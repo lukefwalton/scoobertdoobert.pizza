@@ -12,6 +12,7 @@ import { fogFor, type Room } from '../data/rooms';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useProgressStore } from '../state/progressStore';
+import { useSceneStore } from '../state/sceneStore';
 import { announce } from '../state/toastStore';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { useDispose } from '../lib/useDispose';
@@ -359,7 +360,10 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
   const shake = useRef(0);
   const drawnOnce = useRef(false);
   const reduced = useRef(false);
-  const timers = useRef<number[]>([]); // pending 大吉 note-burst timeouts — cleared on unmount
+  // The 大吉 note burst, queued as {secondsUntilPlay, freq} and fired from useFrame so
+  // it rides the R3F clock (not setTimeout) — it freezes under pause/transition and
+  // simply stops when the room unmounts (no cross-room audio bleed, no cleanup needed).
+  const burst = useRef<{ t: number; freq: number }[]>([]);
   const [fortune, setFortune] = useState<Fortune | null>(null);
 
   const baseMat = useMemo(() => flatMat('#6b4a2f', { side: THREE.DoubleSide }), []);
@@ -430,14 +434,14 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
       prog.findSecret('omikuji-drawn'); // completes the "Draw your fortune" objective
     }
     // sound the outcome: a bright ascending sparkle for 大吉, a low deflating womp for
-    // 凶 (still sweet — the shrine stays a relief beat). The 大吉 burst is delayed, so
-    // track its timers and cancel on unmount — else it bleeds into the next room's
-    // audio (the shared engine), exactly like the offering box's clap/coin.
+    // 凶 (still sweet — the shrine stays a relief beat). The 大吉 burst is spread over
+    // time, so it's QUEUED onto the frame clock (below) rather than setTimeout — so it
+    // pauses with the world and stops cleanly on unmount.
     if (f.id === 'daikichi')
-      ['E', 'G', 'B'].forEach((n, i) =>
-        timers.current.push(
-          window.setTimeout(() => audio.playChime(noteToFreq(n, 6), 0.2, 0.1, 0.7), i * 90),
-        ),
+      burst.current.push(
+        { t: 0, freq: noteToFreq('E', 6) },
+        { t: 0.09, freq: noteToFreq('G', 6) },
+        { t: 0.18, freq: noteToFreq('B', 6) },
       );
     else if (f.id === 'kyo') audio.playChime(noteToFreq('C', 2), -0.1, 0.22, 1.0);
     const luckNote = f.luck > 0 ? ` · +${f.luck} luck` : '';
@@ -449,12 +453,9 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
   // secret, so it rides the narrower gate like __sdpRibbit / the progression hooks).
   useEffect(() => {
     if (isDebugEntrance()) exposeTestGlobal('__sdpOmikuji', draw);
-    const pending = timers.current;
     return () => {
       exposeTestGlobal('__sdpOmikuji', undefined);
       exposeTestGlobal('__sdpFortune', undefined);
-      pending.forEach((id) => clearTimeout(id)); // don't let a 大吉 burst outlive the room
-      pending.length = 0;
     };
   }, []);
 
@@ -463,6 +464,19 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
     shake.current *= Math.pow(0.02, dt); // decay the post-draw shake
     if (tube.current)
       tube.current.rotation.z = Math.sin(state.clock.elapsedTime * 22) * 0.28 * shake.current;
+    // Drain the queued 大吉 arpeggio on the frame clock — but freeze it while the world
+    // is paused / mid-transition (world audio shouldn't run under pause), so it resumes
+    // exactly where it left off. Notes not yet due just wait; unmount ends the room's
+    // frames, so a pending burst simply never fires into the next room.
+    if (burst.current.length) {
+      const st = useSceneStore.getState();
+      if (!st.paused && !st.transitioning) {
+        for (const note of burst.current) note.t -= dt;
+        const due = burst.current.filter((n) => n.t <= 0);
+        for (const n of due) audio.playChime(n.freq, 0.2, 0.1, 0.7);
+        if (due.length) burst.current = burst.current.filter((n) => n.t > 0);
+      }
+    }
   });
 
   useEffect(
