@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // enterDoor talks to the audio engine + the dive ripple; neither belongs in a
 // pure unit test, so stub them. The store logic (lock check + goToRoom) is real.
 vi.mock('../audio/engine', () => ({
-  audio: { unlock: vi.fn(), playChime: vi.fn() },
+  audio: { unlock: vi.fn(), playChime: vi.fn(), playDoorThunk: vi.fn() },
 }));
 const diveInto = vi.fn();
 vi.mock('./dive', () => ({ diveInto: (...a: unknown[]) => diveInto(...a) }));

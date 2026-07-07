@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { flatMat, makeTextTexture } from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { rollD20, type Crit, type Roll } from '../lib/luck';
+import { audio } from '../audio/engine';
 
 // ───────────────────────────────────────────────────────────────────────────
 // D20 — the dice-music selector (Phase 6). A low-poly twenty-sided die on a
@@ -45,6 +46,9 @@ export function D20({
   const elapsed = useRef(0);
   const spin = useRef(new THREE.Vector3());
   const reduced = useRef(false);
+  // Time since the last dice-clack, so the tumble rattle can DECELERATE (clacks
+  // grow further apart as the die slows) into the decisive landing clack.
+  const tickAccum = useRef(0);
 
   const dieMat = useMemo(() => flatMat('#e9e0c8'), []); // bone / ivory
   const pedMat = useMemo(() => flatMat('#2a1430'), []); // dark plinth, matches the room
@@ -71,6 +75,7 @@ export function D20({
 
   const settle = () => {
     rolling.current = false;
+    audio.playDiceClack(0.16, 0.85); // the decisive "tok" as it lands (both paths)
     // The universal roll: on a stakes die, luck (if any) is spent here for
     // advantage; a nat 20 / crit fail comes back for the caller to swing 3×. The
     // whole Roll rides along (natural die + `lucky`) so a stakes consumer can show
@@ -87,6 +92,7 @@ export function D20({
     }
     rolling.current = true;
     elapsed.current = 0;
+    tickAccum.current = 0;
     // A lively random tumble that eases out over ROLL_MS.
     spin.current.set(6 + Math.random() * 8, 6 + Math.random() * 8, 6 + Math.random() * 8);
   };
@@ -102,6 +108,17 @@ export function D20({
       g.rotation.z += spin.current.z * delta * k;
       // A little hop while it tumbles, landing back on the pedestal.
       g.position.y = Math.sin((1 - k) * Math.PI) * 0.35;
+      // Rattle: clacks that grow further apart as the die slows (interval scales with
+      // 1-k) and quiet toward the end, pitched randomly for a natural tumble — the
+      // sound of stakes settling. The decisive landing "tok" is played in settle().
+      if (k > 0) {
+        tickAccum.current += delta;
+        const interval = 0.09 + (1 - k) * 0.13;
+        if (tickAccum.current >= interval) {
+          tickAccum.current = 0;
+          audio.playDiceClack(0.05 + k * 0.06, 0.9 + Math.random() * 0.5);
+        }
+      }
       if (k <= 0) {
         g.position.y = 0;
         settle();

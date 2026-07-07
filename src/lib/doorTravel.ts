@@ -43,6 +43,11 @@ export function enterDoor(door: DoorTravel): boolean {
   // rather than wiping to a 3D room — you "step through" into the level.
   if (door.opensLevel) useSceneStore.getState().openLevel(door.opensLevel);
   else if (door.albumSlug) diveInto(door.albumSlug, door.to, door.spawn);
-  else useSceneStore.getState().goToRoom(door.to, door.spawn);
+  else {
+    // A plain doorway: the satisfying "chunk" of passing through (the album-portal
+    // dive + the level overlay carry their own drama, so the thunk is doorways only).
+    audio.playDoorThunk();
+    useSceneStore.getState().goToRoom(door.to, door.spawn);
+  }
   return true;
 }
