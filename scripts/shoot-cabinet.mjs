@@ -1,22 +1,14 @@
-// In-world playable-cabinet smoke: the arcade cabinets ROLL a random game. Jump to
-// the boardwalk, walk up to the cabinet until the "Press E to play" prompt shows,
-// press E, and assert a game modal opened with a valid rolled game id. Then Esc and
-// assert it closed. Asserts on the prompt + modal + __sdpArcade hook, not on pixels.
-// (Distinct from shoot:arcade, which covers the 2D /arcade page.)
+// In-world playable-cabinet smoke: the Boardwalk cabinet is DEDICATED to Crusteroids
+// (each cabinet is now one game, its marquee = what it plays; the one MYSTERY cabinet
+// in North Park still rolls). Jump to the boardwalk, walk up until the "Press E to
+// play" prompt shows, press E, and assert the modal opened with the cabinet's OWN game
+// (crusteroids). Then Esc and assert it closed. Asserts on the prompt + modal +
+// __sdpArcade hook, not on pixels. The mystery-vs-dedicated dispatch is unit-covered
+// in src/lib/arcade.test.ts. (Distinct from shoot:arcade, which covers the 2D page.)
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
-// Fallback only — the smoke prefers the live __sdpArcadeIds the app exposes.
-const GAMES = [
-  'pizza-run',
-  'crusteroids',
-  'slice-breaker',
-  'jazz-snake',
-  'poke',
-  'chimes',
-  'cultures',
-];
 mkdirSync('.shots', { recursive: true });
 
 const { page, fail, finish, failures } = await startSmoke();
@@ -95,11 +87,10 @@ if (prompted) {
   );
   if (!opened) fail('pressing E did not open the arcade game modal');
   const rolled = await page.evaluate(() => window.__sdpArcade);
-  // Validate against the LIVE registry the app exposes (so adding a cabinet never
-  // breaks this smoke); fall back to the static list if the global is missing.
-  const validIds = (await page.evaluate(() => window.__sdpArcadeIds)) || GAMES;
-  rolledOk = validIds.includes(rolled);
-  if (!rolledOk) fail(`rolled game "${rolled}" not in the live registry [${validIds.join(', ')}]`);
+  // The Boardwalk cabinet is DEDICATED to Crusteroids, so it must open ITS game — not
+  // a random roll. (The mystery cabinet's roll is unit-covered in arcade.test.ts.)
+  rolledOk = rolled === 'crusteroids';
+  if (!rolledOk) fail(`dedicated Boardwalk cabinet opened "${rolled}", expected "crusteroids"`);
   await page.screenshot({ path: '.shots/cabinet-playable.png' });
 
   // The arcade game makes its own sound — so the RADIO must DUCK while it's open.
