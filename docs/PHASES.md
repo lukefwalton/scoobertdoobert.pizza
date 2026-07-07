@@ -303,6 +303,44 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   perception check** (DC 12; luck stays reserved for the stakes rolls, so a
   high-frequency check never drains it); on a hit you catch a room-specific whisper
   (lore mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **Luck you can SEE + the shrine おみくじ (2026-07-07, Luke: "turn luck into
+  clearer outcomes; more chances for BAD or GREAT; more ways to ROLL"):** three
+  moves that make the invisible luck economy legible and give the d20 more surfaces.
+  - **The payoff is visible now.** The universal roll (`luck-core.ts` `Roll`) reports
+    the NATURAL die + a `lucky` flag (advantage actually raised the result), and a
+    shared `luckTag(roll)` appends "· 🍀 luck tipped it (4→18)" to the announce toast
+    wherever luck is spent — the dice-monster bout, the grass-goblin battle, the
+    storefront trap door. Luck stops happening silently in the backend; you watch it
+    rescue a roll. (This is legibility, NOT a spend menu — the system still spends it
+    for you; CLAUDE.md ADDENDUM 7 holds.)
+  - **おみくじ at the shrine — a real BAD↔GREAT roll you trigger.** A fortune-draw
+    stand beside the offering box (`ShrineRoom` `OmikujiStand` + `src/data/omikuji.ts`
+    pure mapper): a luck-biased universal d20 draws a paper slip from 大吉 (great
+    blessing) down to 凶 (a curse), announced with the reading + the luck tag. A
+    blessing pays luck back (大吉 +2, 吉 +1); a 凶 is pure sweet theatre — the real
+    omusubi custom, never a penalty (taste guardrail: the sweet shrine stays sweet,
+    losing never hard-fails). Because the die is luck-biased, a luckier player draws
+    better fortunes — the luck loop made a ritual. A new **bonus** objective, "Draw
+    your fortune," gives luck a legible goal without moving the ★100% finale bar.
+  - **Surfaced a silent roll.** The garden frog's per-ribbit d20 now lands a real
+    BAD/GREAT beat both ways — a nat 20 still winks +1 luck, a nat 1 makes him blorp,
+    mortified (sweet, no penalty). Covered by `shoot:luck` (the draw → toast + secret),
+    `omikuji.test.ts` / `luck-core.test.ts` / `luck.test.ts` (raw/`lucky`/`luckTag`).
+  - **…and they hang in the Trophy Case (2026-07-07, Luke: "can this hang in their
+    trophy case? can it track pizza slices too?").** Two new durable stats feed the
+    shop's reactive back-bar hall of fame (`ShopFittings`): **`bestFortune`** (your
+    finest おみくじ rank, 1..5) hangs a framed slip on the upper shelf, and
+    **`lootTotals`** (lifetime per-type loot counts, banked in `collectLootById`)
+    grows a pizza-slice tally on the lower shelf — distinct from `pizzaPointsBest`
+    (a single run's score) since it's the cumulative haul across every descent. The
+    pause menu gets a "Trophy case" readout too (the full per-type breakdown + best
+    fortune). Both trophies are value-keyed textures (≤128px, disposed on change),
+    gated so they only appear once earned; `shoot:trophy` seeds + mounts them,
+    `progressStore.test` covers `recordFortune` (monotonic) + `addLoot` (per-type,
+    fresh-disk accumulate). Also folded in PR #123's review: the omikuji slip texture
+    dropped 128×160 → 96×128 (the hard PS1 ≤128px cap), the 大吉 note-burst timers are
+    cancelled on unmount (no cross-room audio bleed), and `shoot:luck`'s fixed sleeps
+    became concrete state waits.
 - ✅ **The jukebox dice crits — the "gamble for it" payoff (2026-06-26):** the music
   ladder's top rung lands its crits. The cabinet d20 (`rollD20(false)`) already
   jumped the dial to the rolled track; now a **nat 20 = "the pristine pressing"**

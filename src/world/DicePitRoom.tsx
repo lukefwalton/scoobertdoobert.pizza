@@ -10,7 +10,7 @@ import { useDreadStore } from '../state/dreadStore';
 import { useProgressStore } from '../state/progressStore';
 import { useMusicStore } from '../state/musicStore';
 import { announce } from '../state/toastStore';
-import { CRIT_MULT, type Crit } from '../lib/luck';
+import { CRIT_MULT, luckTag, type Crit, type Roll } from '../lib/luck';
 import { DREAD } from '../data/dread';
 import { cueUrl } from '../data/music';
 import { audio } from '../audio/engine';
@@ -111,16 +111,18 @@ export function DicePitRoom({ room }: { room: Room }) {
   // A roll: resolve the bout (crit-aware), reward sound on a win / unease poke on
   // a loss, and announce the swing. NAT 20 showers luck (3×); CRIT FAIL pokes
   // harder and bloats the thing 3× — never a fail state, just more absurd.
-  const onRoll = (face: number, crit: Crit) => {
+  const onRoll = (face: number, crit: Crit, roll?: Roll) => {
     const bout = useMonsterStore.getState().resolve(face, crit);
     if (bout.won) {
       void audio.playJukeboxTrack(cueUrl('diceReward'));
       useProgressStore.getState().findSecret('dice-monster'); // the rat clocks it
       if (crit === 'nat20') {
         useProgressStore.getState().gainLuck(CRIT_MULT); // the dice love you → +3 luck
-        announce('NAT 20! ✦ the dice adore you · +3 luck', 'crit-good');
+        announce(`NAT 20! ✦ the dice adore you · +3 luck${luckTag(roll)}`, 'crit-good');
       } else {
-        announce('A hit — the thing relents…', 'info');
+        // The win reads with the "luck tipped it" tag when advantage carried it —
+        // so a rescued roll (a low natural die bumped up) SHOWS luck doing its job.
+        announce(`A hit — the thing relents…${luckTag(roll)}`, 'info');
       }
     } else {
       const d = DREAD.triggers['mobius-loop'] ?? 0.12; // reuse a gentle poke

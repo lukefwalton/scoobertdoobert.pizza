@@ -1,14 +1,23 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, nearestify } from './ps1';
+import {
+  flatMat,
+  makeAffineTexturedMaterial,
+  makeCheckerTexture,
+  makeTextTexture,
+  nearestify,
+} from './ps1';
 import { fogFor, type Room } from '../data/rooms';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useProgressStore } from '../state/progressStore';
+import { useSceneStore } from '../state/sceneStore';
 import { announce } from '../state/toastStore';
-import { exposeTestGlobal } from '../lib/testHooks';
+import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { useDispose } from '../lib/useDispose';
+import { rollD20, luckTag } from '../lib/luck';
+import { fortuneForRoll, type Fortune } from '../data/omikuji';
 
 // Furin tuning — a bright, glassy high pentatonic from the site's D6/9 world, so
 // the wind-chimes always agree with the music. (Reuses the chimes note math.)
@@ -336,6 +345,199 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
   );
 }
 
+// The omikuji stand (おみくじ) — the shrine's FORTUNE draw and the game layer's most
+// legible BAD↔GREAT roll (Luke: more chances for bad/great; turn luck into clear
+// outcomes). Click the little mikuji box: a luck-biased universal d20 (rollD20 — a
+// STAKES draw, so banked luck tips you toward a better slip) draws a fortune from 大吉
+// (great blessing) down to 凶 (a curse). The paper slip unfurls with the reading, and
+// the toast SHOWS luck's work (luckTag). A blessing pays out luck; a 凶 costs nothing —
+// the sweet shrine's bad luck is pure theatre (taste guardrail: tie the slip to a
+// branch, leave it behind). Repeatable on a short cooldown, like the clap.
+function OmikujiStand({ position }: { position: [number, number, number] }) {
+  const { gl } = useThree();
+  const tube = useRef<THREE.Group>(null);
+  const cooldown = useRef(0);
+  const shake = useRef(0);
+  const drawnOnce = useRef(false);
+  const reduced = useRef(false);
+  // The 大吉 note burst, queued as {secondsUntilPlay, freq} and fired from useFrame so
+  // it rides the R3F clock (not setTimeout) — it freezes under pause/transition and
+  // simply stops when the room unmounts (no cross-room audio bleed, no cleanup needed).
+  const burst = useRef<{ t: number; freq: number }[]>([]);
+  const [fortune, setFortune] = useState<Fortune | null>(null);
+
+  const baseMat = useMemo(() => flatMat('#6b4a2f', { side: THREE.DoubleSide }), []);
+  const boxMat = useMemo(() => flatMat('#7d5636'), []);
+  const roofMat = useMemo(() => flatMat('#33414c', { side: THREE.DoubleSide }), []);
+  useDispose(baseMat, boxMat, roofMat);
+
+  // The fortune slip — regenerated per draw; the texture + its material are disposed
+  // whenever the draw changes (and on unmount), so re-drawing never leaks canvases.
+  const slipTex = useMemo(
+    () =>
+      fortune
+        ? // portrait slip, both dims within the hard ≤128px PS1 texture cap
+          makeTextTexture(`${fortune.jp}\n${fortune.en}`, {
+            fg: '#7a1f1f',
+            bg: '#f3ecda',
+            w: 96,
+            h: 128,
+          })
+        : null,
+    [fortune],
+  );
+  const slipMat = useMemo(
+    () => (slipTex ? new THREE.MeshBasicMaterial({ map: slipTex, side: THREE.DoubleSide }) : null),
+    [slipTex],
+  );
+  useEffect(
+    () => () => {
+      slipTex?.dispose();
+      slipMat?.dispose();
+    },
+    [slipTex, slipMat],
+  );
+
+  // Persistent bilingual label so you know it's a fortune box (like the site's other
+  // EN/JP signage — 二拍手 / 青函トンネル elsewhere).
+  const labelTex = useMemo(
+    () =>
+      makeTextTexture('おみくじ\nDRAW A FORTUNE', { fg: '#ffe6a0', bg: '#2a1a10', w: 128, h: 72 }),
+    [],
+  );
+  const labelMat = useMemo(() => new THREE.MeshBasicMaterial({ map: labelTex }), [labelTex]);
+  useDispose(labelTex, labelMat);
+
+  useEffect(() => {
+    reduced.current =
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
+  const draw = () => {
+    if (cooldown.current > 0) return;
+    cooldown.current = 1.4;
+    if (!reduced.current) shake.current = 1; // a little shake of the tube (no strobe)
+    audio.unlock();
+    audio.playChime(noteToFreq('B', 5), 0, 0.1); // a soft bell as you draw
+    // A STAKES draw: luck (if any) buys advantage, tipping you toward a better slip —
+    // so the luckier you are, the better your fortunes run. The roll rides along so
+    // the toast can show luck's work.
+    const roll = rollD20(true);
+    const f = fortuneForRoll(roll.face, roll.crit);
+    setFortune(f);
+    const prog = useProgressStore.getState();
+    if (f.luck > 0) prog.gainLuck(f.luck);
+    prog.recordFortune(f.rank); // hang your best slip in the trophy case (monotonic)
+    if (!drawnOnce.current) {
+      drawnOnce.current = true;
+      prog.findSecret('omikuji-drawn'); // completes the "Draw your fortune" objective
+    }
+    // sound the outcome: a bright ascending sparkle for 大吉, a low deflating womp for
+    // 凶 (still sweet — the shrine stays a relief beat). The 大吉 burst is spread over
+    // time, so it's QUEUED onto the frame clock (below) rather than setTimeout — so it
+    // pauses with the world and stops cleanly on unmount.
+    if (f.id === 'daikichi')
+      burst.current.push(
+        { t: 0, freq: noteToFreq('E', 6) },
+        { t: 0.09, freq: noteToFreq('G', 6) },
+        { t: 0.18, freq: noteToFreq('B', 6) },
+      );
+    else if (f.id === 'kyo') audio.playChime(noteToFreq('C', 2), -0.1, 0.22, 1.0);
+    const luckNote = f.luck > 0 ? ` · +${f.luck} luck` : '';
+    announce(`${f.jp} ${f.en} — ${f.line}${luckNote}${luckTag(roll)}`, f.kind);
+    exposeTestGlobal('__sdpFortune', { id: f.id, face: roll.face, crit: roll.crit });
+  };
+
+  // ?debug-only ACTION hook: the smoke draws deterministically (banks luck + a durable
+  // secret, so it rides the narrower gate like __sdpRibbit / the progression hooks).
+  useEffect(() => {
+    if (isDebugEntrance()) exposeTestGlobal('__sdpOmikuji', draw);
+    return () => {
+      exposeTestGlobal('__sdpOmikuji', undefined);
+      exposeTestGlobal('__sdpFortune', undefined);
+    };
+  }, []);
+
+  useFrame((state, dt) => {
+    if (cooldown.current > 0) cooldown.current -= dt;
+    shake.current *= Math.pow(0.02, dt); // decay the post-draw shake
+    if (tube.current)
+      tube.current.rotation.z = Math.sin(state.clock.elapsedTime * 22) * 0.28 * shake.current;
+    // Drain the queued 大吉 arpeggio on the frame clock — but freeze it while the world
+    // is paused / mid-transition (world audio shouldn't run under pause), so it resumes
+    // exactly where it left off. Notes not yet due just wait; unmount ends the room's
+    // frames, so a pending burst simply never fires into the next room.
+    if (burst.current.length) {
+      const st = useSceneStore.getState();
+      if (!st.paused && !st.transitioning) {
+        for (const note of burst.current) note.t -= dt;
+        const due = burst.current.filter((n) => n.t <= 0);
+        for (const n of due) audio.playChime(n.freq, 0.2, 0.1, 0.7);
+        if (due.length) burst.current = burst.current.filter((n) => n.t > 0);
+      }
+    }
+  });
+
+  useEffect(
+    () => () => {
+      gl.domElement.style.cursor = 'grab';
+    },
+    [gl],
+  );
+
+  return (
+    <group position={position}>
+      {/* the little counter/stand */}
+      <mesh material={baseMat} position={[0, 0.45, 0]}>
+        <boxGeometry args={[0.72, 0.9, 0.5]} />
+      </mesh>
+      {/* a small gabled roof over it, echoing the honden */}
+      <mesh material={roofMat} position={[0, 1.62, -0.18]} rotation-x={-0.6}>
+        <planeGeometry args={[0.95, 0.6]} />
+      </mesh>
+      <mesh material={roofMat} position={[0, 1.62, 0.18]} rotation-x={Math.PI + 0.6}>
+        <planeGeometry args={[0.95, 0.6]} />
+      </mesh>
+      {/* the bilingual label on the front of the stand */}
+      <mesh material={labelMat} position={[0, 0.62, 0.26]}>
+        <planeGeometry args={[0.62, 0.32]} />
+      </mesh>
+      {/* the mikuji box — the thing you shake; the whole tube is the control */}
+      <group
+        ref={tube}
+        position={[0, 1.2, 0.02]}
+        onClick={(e) => {
+          e.stopPropagation();
+          draw();
+        }}
+        onPointerOver={() => {
+          gl.domElement.style.cursor = "url('/cursor.cur'), pointer";
+        }}
+        onPointerOut={() => {
+          gl.domElement.style.cursor = 'grab';
+        }}
+      >
+        <mesh material={boxMat}>
+          <cylinderGeometry args={[0.13, 0.14, 0.5, 6]} />
+        </mesh>
+        {/* the capped top, with the little hole the stick shakes out of */}
+        <mesh material={baseMat} position={[0, 0.27, 0]}>
+          <cylinderGeometry args={[0.15, 0.15, 0.05, 6]} />
+        </mesh>
+      </group>
+      {/* faint warm glow so the stand catches the eye at dusk */}
+      <pointLight position={[0, 1.3, 0.5]} intensity={0.35} distance={4} color="#ffe6a8" />
+      {/* the drawn fortune slip, unfurled above the box (only after a draw) */}
+      {slipMat && (
+        <mesh material={slipMat} position={[0, 1.95, 0.12]}>
+          <planeGeometry args={[0.42, 0.56]} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
 export function ShrineRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
@@ -479,6 +681,9 @@ export function ShrineRoom({ room }: { room: Room }) {
         </mesh>
         {/* the offering box — click to clap twice (二拍手) and earn luck */}
         <OfferingBox mat={woodMat} />
+        {/* the omikuji stand beside it — draw a paper fortune (大吉…凶); luck tips the
+            draw, a blessing pays luck back, a curse is sweet theatre (no penalty) */}
+        <OmikujiStand position={[2.1, 0, 1.5]} />
         {/* furin under the front eaves — they ring themselves via the chimes
             engine (audio.playChime), the cabinet's synthesis reused in-world */}
         <Furin x={-1.45} y={2.5} z={1.25} pan={-0.4} />

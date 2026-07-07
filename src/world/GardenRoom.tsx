@@ -89,13 +89,19 @@ function FrogStatue() {
     // two low bells a fourth apart — a froggy "ri-bbit" (mute-aware + limited)
     audio.playChime(noteToFreq('G', 2), 0, 0.16, 0.45);
     window.setTimeout(() => audio.playChime(noteToFreq('C', 2), 0, 0.18, 0.6), 110);
-    // a plain d20 under every ribbit (no luck spent on a decoration): a NAT 20
-    // and the frog winks — +1 LUCK. "Be lucky."
+    // a plain d20 under every ribbit (no luck spent on a decoration): the crits get
+    // a real BAD/GREAT beat so the roll READS (Luke: more chances for bad/great). A
+    // NAT 20 and the frog winks — +1 LUCK ("be lucky"); a NAT 1 and he blorps,
+    // embarrassed — pure sweet theatre, never a penalty (taste guardrail: the
+    // surface stays goofy, a bad roll here just costs the frog his dignity).
     const roll = rollLuckyD20(0);
     if (roll.crit === 'nat20') {
       useProgressStore.getState().gainLuck(1);
       announce('🎲 nat 20 — the frog winks. +1 LUCK', 'crit-good');
       audio.playChime(noteToFreq('E', 6), 0.2, 0.1, 0.8);
+    } else if (roll.crit === 'nat1') {
+      announce('🎲 nat 1 — the frog blorps and looks away, mortified.', 'crit-bad');
+      audio.playChime(noteToFreq('C', 2), -0.1, 0.22, 1.0); // a low, deflating croak
     }
     exposeTestGlobal('__sdpFrog', { face: roll.face, crit: roll.crit });
     return roll;

@@ -31,6 +31,8 @@ let pauseLuck = '';
 let luckBefore = null;
 let luckAfter = null;
 let luckRepeat = null;
+let omikujiToast = false;
+let fortuneDrawn = false;
 if (hasHook) {
   // Read luck straight from the durable store BEFORE the ritual so we can prove a
   // DELTA — stale saved state can't mask a broken earn (the reviewer's point).
@@ -78,10 +80,65 @@ if (hasHook) {
   pauseLuck = luckEl ? ((await luckEl.textContent()) ?? '').trim() : '';
   if (Number(pauseLuck) !== luckAfter)
     bad(`luck: pause menu shows ${JSON.stringify(pauseLuck)}, expected ${luckAfter} (stored)`);
+
+  // ── the omikuji fortune draw (the shrine's explicit BAD↔GREAT roll) ──────────
+  // Run LAST so its luck payout can't perturb the +1 clap-delta assertions above.
+  const hasOmikuji = await page
+    .waitForFunction(() => typeof window.__sdpOmikuji === 'function', null, { timeout: 6000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!hasOmikuji) bad('luck: __sdpOmikuji fortune-draw hook never appeared');
+  else {
+    // Close the pause menu opened above, then WAIT on its removal (a concrete state
+    // wait, not a fixed sleep) before drawing.
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('.hud-pause', { state: 'detached', timeout: 4000 }).catch(() => {});
+    await page.evaluate(() => window.__sdpOmikuji());
+    // Every fortune rank carries 吉 or 凶 (大吉…末吉…凶), so the toast text proves a real
+    // fortune landed — not just any lingering toast.
+    omikujiToast = await page
+      .waitForFunction(
+        () => {
+          const el = document.querySelector('.hud-toast');
+          return !!el && /[吉凶]/.test(el.textContent || '');
+        },
+        null,
+        { timeout: 4000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!omikujiToast) bad('luck: drawing a fortune raised no おみくじ toast');
+    // Poll the durable secret directly (a state wait, not a sleep) — the draw persists
+    // synchronously, so this settles immediately once the write lands.
+    fortuneDrawn = await page
+      .waitForFunction(
+        () => {
+          try {
+            return (
+              JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}').secretsFound || []
+            ).includes('omikuji-drawn');
+          } catch {
+            return false;
+          }
+        },
+        null,
+        { timeout: 4000 },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!fortuneDrawn) bad('luck: a fortune draw did not record the omikuji-drawn secret');
+    await page.screenshot({ path: '.shots/omikuji.png' });
+  }
 }
 
 console.log(
-  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} repeat=${luckRepeat} pauseLuck=${JSON.stringify(pauseLuck)} errors=${failures()}`,
+  `luck     -> canvas=${!!canvas} hook=${hasHook} toast=${toast} delta=${luckBefore}->${luckAfter} repeat=${luckRepeat} pauseLuck=${JSON.stringify(pauseLuck)} omikuji=${omikujiToast}/${fortuneDrawn} errors=${failures()}`,
 );
 
 await ctx.close();
