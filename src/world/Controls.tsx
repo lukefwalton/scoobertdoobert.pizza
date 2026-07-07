@@ -28,6 +28,9 @@ const REDUCED =
 // audio, so they stay, mute-gated in the engine).
 const STEP_HZ = 1.9;
 const BOB_AMP = 0.05;
+// Base walk speed (metres/sec; sprint ×1.7). Shared by the move integrator AND the
+// footstep cadence so the two can't drift.
+const WALK_SPEED = 6;
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
 // never traps the cursor and works for screenshots + menus), WASD / arrows to
@@ -245,7 +248,7 @@ export function Controls() {
     const strafe = clamp1((k['d'] ? 1 : 0) - (k['a'] ? 1 : 0) + tm.x);
     const moving = Math.abs(fwd) > 0.001 || Math.abs(strafe) > 0.001;
     const sprinting = !!k['shift'] && moving;
-    const speed = 6 * (sprinting ? 1.7 : 1) * dt;
+    const speed = WALK_SPEED * (sprinting ? 1.7 : 1) * dt;
     const pcam = camera as THREE.PerspectiveCamera;
     const targetFov = BASE_FOV + (REDUCED ? 0 : sprinting ? 7 : 0);
     if (Math.abs(pcam.fov - targetFov) > 0.05) {
@@ -261,6 +264,10 @@ export function Controls() {
     // negated, which made A/D strafe the wrong way (left/right inverted).
     const rx = -Math.cos(yaw.current);
     const rz = Math.sin(yaw.current);
+    // Remember where we were so the walk-feel below can measure REAL displacement
+    // (post-clamp), not intended input — walking into a wall shouldn't tick footsteps.
+    const prevX = camera.position.x;
+    const prevZ = camera.position.z;
     camera.position.x += (fx * fwd + rx * strafe) * speed;
     camera.position.z += (fz * fwd + rz * strafe) * speed;
 
@@ -337,22 +344,28 @@ export function Controls() {
       }
     }
     // ── walk feel: footsteps + head-bob + landing settle ───────────────────────
-    // A footfall phase advances with movement while grounded; each integer crossing
-    // fires a soft footstep, and its sine drives a subtle vertical head-bob, enveloped
-    // so it fades in/out instead of jerking when you start/stop. The settle spring
-    // recovers from a jump-landing dip. Bob + settle are MOTION (reduced-motion zeroes
-    // them, so the y math collapses to the original); footsteps are audio (mute-gated).
+    // Keyed off ACTUAL horizontal displacement this frame (post-clamp), NOT intended
+    // input — so walking into a wall / the room clamp doesn't tick phantom footsteps
+    // or bob. Normalizing the move by one walk-step makes the cadence scale with real
+    // speed (sprint quickens it; being blocked stops it — no separate multiplier). A
+    // footfall phase advances with distance; each integer crossing fires a soft step,
+    // and its sine drives a subtle vertical head-bob, enveloped so it fades in/out
+    // instead of jerking. The settle spring recovers from a jump-landing dip. Bob +
+    // settle are MOTION (reduced-motion zeroes them → the y math collapses to the
+    // original); footsteps are audio (mute-gated).
     const onGround = hop.current === 0 && hopVy.current === 0;
-    const moveMag = Math.min(1, Math.hypot(fwd, strafe));
-    if (onGround && moveMag > 0.05) {
+    const movedDist = Math.hypot(camera.position.x - prevX, camera.position.z - prevZ);
+    const movingReal = onGround && movedDist > 0.0008;
+    if (movingReal) {
       const prev = stepPhase.current;
-      stepPhase.current += moveMag * (sprinting ? 1.7 : 1) * dt * STEP_HZ;
+      stepPhase.current += (STEP_HZ * movedDist) / WALK_SPEED;
       if (Math.floor(prev) !== Math.floor(stepPhase.current)) {
+        const fast = movedDist / dt > WALK_SPEED * 1.2; // outrunning a walk = sprinting
         const alt = Math.floor(stepPhase.current) % 2 === 0 ? 1 : 0.88; // L/R foot variety
-        audio.playFootstep((sprinting ? 0.095 : 0.07) * alt, (sprinting ? 820 : 660) * alt);
+        audio.playFootstep((fast ? 0.095 : 0.07) * alt, (fast ? 820 : 660) * alt);
       }
     }
-    const bobTarget = onGround && moveMag > 0.05 && !REDUCED ? 1 : 0;
+    const bobTarget = movingReal && !REDUCED ? 1 : 0;
     bobEnv.current += (bobTarget - bobEnv.current) * Math.min(1, dt * 9);
     const bob = REDUCED ? 0 : Math.sin(stepPhase.current * Math.PI) * BOB_AMP * bobEnv.current;
     if (!REDUCED) {
