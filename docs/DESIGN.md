@@ -284,7 +284,7 @@ starfield). Surface-safe + sweet (taste guardrail): the whole layer is goofy, ne
 dread. Placement stays inside the camera clamp and off spawns/doors (friction
 budget — never a drop in a wall or blocking a door).
 
-### A grass level — a rare, dumb-fun Pokémon battle (BACKLOG, Luke)
+### A grass level — a rare, dumb-fun Pokémon battle (SHIPPED — see PHASES, `shoot:grass`)
 A level with **tall GRASS**; walk through it and you may **encounter a wild
 "pokémon" that's the big-eyed dice-goblin** (`DiceMonster`). The fight is
 **dice-filtered** (the universal d20 above — nat 20 / crit fail / luck), **not**
@@ -426,7 +426,7 @@ world-content — explicitly *not* the Phase 5 dread layer (which forbids new
 NPCs/battles/fail states). The lightweight **dice-music selector** above can ship
 sooner; the monster is a later content piece.
 
-### Trap doors — the storefront drops you into the deep (world-content, FUTURE; design locked)
+### Trap doors — the storefront drops you into the deep (SHIPPED 2026-06-26 — see PHASES, `shoot:trapdoor`)
 A secret shortcut from the *top-level normal site* straight into the bottom of
 the back rooms — skipping the whole descent. The fiction: the dead-plain
 storefront has a soft spot in the floor, and if you find it, you fall.
@@ -448,7 +448,11 @@ storefront has a soft spot in the floor, and if you find it, you fall.
   since the world runs there with touch controls). It must not alter the crawlable
   dead-plain front door or tax any real link. Surface zone stays safe; the
   *wrongness* is the wink, the *landing* is where the dread can begin.
-- Status: **design captured, not built.** Its own thread (after the arcade).
+- Status: **SHIPPED** (2026-06-26, "D&D mechanics — the trap-door luck-d20" in
+  PHASES): the chute is a real luck-biased d20 (`rollD20(true)` + `trapDropForRoll`),
+  the face ordinally picks where you drop, crits get a flourish. The constraints
+  above all held (JS-only, hidden under reduced-motion, deep rooms only —
+  `shoot:trapdoor` asserts each).
 
 ### The escape-room grammar — "interact → the way opens" (SHIPPED, Luke 2026-07)
 The site's default progression language: **a door APPEARS after a trivially easy
@@ -715,10 +719,10 @@ in `public/models/`.** Source GLBs/masters/photos stay out of the bundle.
 - Plus: the kiddie-pool GLB → a pool-level idea.
 
 **Music masters** live in `media/masters/` + `media/music/<year>/`; the jukebox's
-shipped degraded loops are rendered to `public/audio/jukebox/<slug>.wav` from
+shipped degraded loops are rendered to `public/audio/jukebox/<slug>.mp3` from
 `src/data/jukebox.catalog.json` by `scripts/make-jukebox-audio.mjs`. (See PHASES:
-the "hear it" rung is partly built — the jukebox already cycles four real,
-tape-warbled, 8-bit tracks.)
+the "hear it" rung is built — the jukebox cycles the real tape-warbled catalog;
+the track list lives in the catalog, the status in PHASES.)
 
 ## The Doom / Freedoom shrine (LIKELY DROPPED — see PHASES.md Phase 6)
 **Status (2026-06-21, Luke):** probably not building this. The thing it was for
