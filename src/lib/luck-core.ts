@@ -29,6 +29,21 @@ export type Roll = {
    * "already written to the save."
    */
   luckSpent: number;
+  /**
+   * The NATURAL die — the first d20, before advantage. What you'd have rolled with
+   * no luck. Equals `face` on a plain roll (and even under advantage when the first
+   * die was already the higher). Lets a caller SHOW luck's work: `raw` → `face`.
+   */
+  raw: number;
+  /**
+   * True when luck bought advantage AND it actually improved the result (the kept
+   * second die beat the natural one). This is the signal for the "🍀 luck tipped it"
+   * payoff — the whole point of making luck legible (Luke: "turn luck into clear
+   * outcomes"). False on a plain roll, and false even under advantage if the first
+   * die already stood — so a nudge toast only fires when luck genuinely changed the
+   * outcome, never on a roll luck didn't touch.
+   */
+  lucky: boolean;
 };
 
 const d20 = (rng: () => number): number => 1 + Math.floor(rng() * 20);
@@ -46,11 +61,19 @@ const critOf = (face: number): Crit => (face === 20 ? 'nat20' : face === 1 ? 'na
 export function rollLuckyD20(luckAvailable: number, rng: () => number = Math.random): Roll {
   const first = d20(rng);
   if (Math.floor(luckAvailable) < LUCK_PER_ADVANTAGE) {
-    return { face: first, crit: critOf(first), luckSpent: 0 };
+    return { face: first, crit: critOf(first), luckSpent: 0, raw: first, lucky: false };
   }
   const second = d20(rng); // the backend die — never shown
   const face = Math.max(first, second); // advantage: keep the higher
-  return { face, crit: critOf(face), luckSpent: LUCK_PER_ADVANTAGE };
+  // `lucky` only when advantage genuinely moved the result up off the natural die —
+  // so the "luck tipped it" beat can't fire on a roll luck didn't actually change.
+  return {
+    face,
+    crit: critOf(face),
+    luckSpent: LUCK_PER_ADVANTAGE,
+    raw: first,
+    lucky: face > first,
+  };
 }
 
 /** Short label for a crit, for the announce toast / signage. */
@@ -63,4 +86,17 @@ export function critLabel(crit: Crit): string | null {
  *  signage can't drift apart (a star fail would read wrong). */
 export function critBanner(crit: Crit): string | null {
   return crit === 'nat20' ? '★ NAT 20 ★' : crit === 'nat1' ? '☠ CRIT FAIL ☠' : null;
+}
+
+/**
+ * The "🍀 luck tipped it" tag to append to an announce toast — NON-EMPTY only when
+ * advantage actually improved the roll (`roll.lucky`). It shows the natural die →
+ * the kept face, so the player SEES luck pay off instead of it happening invisibly
+ * in the backend (Luke: "turn luck into clear outcomes"). Returns '' for a plain
+ * roll, a roll luck didn't move, or `undefined` (a forced/test roll with no luck
+ * info) — so a caller can unconditionally append it. One source for the phrasing so
+ * every consumer's luck payoff reads the same.
+ */
+export function luckTag(roll?: Roll): string {
+  return roll?.lucky ? ` · 🍀 luck tipped it (${roll.raw}→${roll.face})` : '';
 }

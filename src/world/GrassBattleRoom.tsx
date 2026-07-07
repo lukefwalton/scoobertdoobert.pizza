@@ -10,7 +10,7 @@ import { useSceneStore } from '../state/sceneStore';
 import { announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { CRIT_MULT, type Crit } from '../lib/luck';
+import { CRIT_MULT, luckTag, type Crit, type Roll } from '../lib/luck';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ export function GrassBattleRoom({ room }: { room: Room }) {
     [signTex, groundMat, ringMat],
   );
 
-  const onRoll = (face: number, crit: Crit) => {
+  const onRoll = (face: number, crit: Crit, roll?: Roll) => {
     if (resolved.current) return;
     const bout = useMonsterStore.getState().resolve(face, crit);
     resolved.current = true;
@@ -68,9 +68,9 @@ export function GrassBattleRoom({ room }: { room: Room }) {
       useProgressStore.getState().findSecret('grass-cleared'); // the new room is earned
       if (crit === 'nat20') {
         useProgressStore.getState().gainLuck(CRIT_MULT);
-        announce('NAT 20! ✦ the goblin bows · +3 luck · a path opens', 'crit-good');
+        announce(`NAT 20! ✦ the goblin bows · +3 luck · a path opens${luckTag(roll)}`, 'crit-good');
       } else {
-        announce('the goblin yields — a path opens in the grass', 'info');
+        announce(`the goblin yields — a path opens in the grass${luckTag(roll)}`, 'info');
       }
       timers.current.push(
         window.setTimeout(() => useSceneStore.getState().goToRoom('grove', 'default'), 1200),

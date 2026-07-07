@@ -61,6 +61,18 @@ export const QUESTS: Quest[] = [
     done: (p) => p.secretsFound.includes('shrine-clap'),
   },
   {
+    id: 'draw-fortune',
+    label: 'Draw your fortune',
+    hint: 'Beside the offering box at the shrine — shake the おみくじ box for a paper fortune.',
+    room: 'shrine',
+    // A BONUS side-ritual (like the ARG): it shows in the To-Do list with its own ✓ +
+    // toast, giving luck a legible OBJECTIVE, but it stays off the ★100% finale bar so
+    // the always-reachable capstone set is unchanged. Keyed off the draw secret, so any
+    // single fortune completes it (always solvable — the friction budget holds).
+    bonus: true,
+    done: (p) => p.secretsFound.includes('omikuji-drawn'),
+  },
+  {
     id: 'unlock-radio',
     label: 'Tune the radio',
     hint: 'Roll the bone at the jukebox to unlock the flip-through radio.',
