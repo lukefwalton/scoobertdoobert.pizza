@@ -285,13 +285,9 @@ export function JukeboxRoom({ room }: { room: Room }) {
       <RoomBox dims={room.dims} floor={floorMat} ceiling={ceilMat} sides={wallMat} />
 
       <Jukebox title={track.title} onSelect={cycle} />
-      {/* a procedural arcade cabinet humming in the corner of the music shrine */}
-      <ArcadeCabinet
-        position={[-3.6, 0, -4.4]}
-        rotationY={0.7}
-        tint="#b8348f"
-        marquee="PIZZA RUN"
-      />
+      {/* a procedural arcade cabinet humming in the corner of the music shrine —
+          JAZZ SNAKE, the musical one (every bite plays a note), fitting the room */}
+      <ArcadeCabinet position={[-3.6, 0, -4.4]} rotationY={0.7} tint="#b8348f" game="jazz-snake" />
       {/* The dice-music selector: roll for a random track. Off to the side of
           the cabinet, on the player's path in from the door. */}
       {/* the music selector is a LOW-STAKES roll — a "high" face means nothing
