@@ -338,6 +338,49 @@ if (linksManifest && !existsSync(manifestFile)) {
   }
 }
 
+// A11y structural guard (the 2026-07-07 constitution audit): the retro look must
+// never cost crawlability or accessibility (CLAUDE.md), so every prerendered page
+// carries the skeleton a screen reader navigates by — one <h1>, no skipped heading
+// levels, a <main> landmark, and no alt-less <img>. Static checks on the RENDERED
+// HTML, so a component/shell regression fails the build, not an audit six months on.
+// dist/1101.html is exempt: it's Luke's hand-exported Twine story (a shipped asset,
+// not a site page — the SaveSanDiego shell that embeds it is checked like the rest).
+function* distHtmlFiles(dir = 'dist') {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) yield* distHtmlFiles(path);
+    else if (entry.name.endsWith('.html')) yield path;
+  }
+}
+for (const file of distHtmlFiles()) {
+  if (file === 'dist/1101.html') continue;
+  const html = readFileSync(file, 'utf8');
+  const problems = [];
+
+  const h1s = html.match(/<h1[\s>]/g) ?? [];
+  if (h1s.length !== 1) problems.push(`${h1s.length} <h1> elements (want exactly 1)`);
+
+  const levels = [...html.matchAll(/<h([1-6])[\s>]/g)].map((m) => Number(m[1]));
+  for (let i = 1; i < levels.length; i++) {
+    if (levels[i] > levels[i - 1] + 1) {
+      problems.push(`heading order skips h${levels[i - 1]} -> h${levels[i]}`);
+      break;
+    }
+  }
+
+  if (!/<main[\s>]/.test(html)) problems.push('no <main> landmark');
+
+  const badImgs = [...html.matchAll(/<img\s[^>]*>/g)].filter((m) => !/\salt=/.test(m[0]));
+  if (badImgs.length) problems.push(`${badImgs.length} <img> without alt`);
+
+  if (problems.length) {
+    console.error(`  x a11y ${file}: ${problems.join('; ')}`);
+    failed++;
+  } else {
+    console.log(`  ok a11y ${file} -> one h1, ordered headings, <main>, alt'd imgs`);
+  }
+}
+
 if (failed) {
   console.error(`\npost-build check FAILED (${failed}).`);
   process.exit(1);

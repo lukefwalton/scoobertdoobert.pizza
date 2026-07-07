@@ -49,7 +49,7 @@ export default function Arcade() {
 
       <div className="arcade-cabinet">
         <div className="arcade-marquee">
-          <span className="arcade-marquee__neon">THE PIZZA ARCADE</span>
+          <h1 className="arcade-marquee__neon">THE PIZZA ARCADE</h1>
         </div>
 
         {mounted ? (

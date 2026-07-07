@@ -41,7 +41,7 @@ export default function Cultures() {
 
       <div className="cultures-cabinet">
         <div className="cultures-marquee">
-          <span className="cultures-marquee__neon">CULTURES</span>
+          <h1 className="cultures-marquee__neon">CULTURES</h1>
         </div>
 
         {mounted ? (

@@ -145,3 +145,12 @@
 .trapdoor-card__btn:active {
   border-style: inset;
 }
+
+/* The trap door never RENDERS under reduced motion (the JS gate hides the seam —
+   a surprise drop IS motion), so this is belt-and-braces: even if that gate ever
+   regressed, the die wouldn't spin. */
+@media (prefers-reduced-motion: reduce) {
+  .trapdoor-d20.is-rolling {
+    animation: none;
+  }
+}

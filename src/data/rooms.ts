@@ -304,9 +304,11 @@ if (import.meta.env?.DEV) {
           `[rooms] door "${door.id}" → "${door.to}" wants spawn "${door.toSpawn}" which doesn't exist`,
         );
       }
-      // A key must never gate the way DOWN (friction budget) — only side/secret doors.
+      // A key must never gate the way DOWN (friction budget) — only side/secret
+      // doors. This one THROWS (not warn): it's a constitution hard line, and the
+      // smokes only fail on console.error, so a warning could ship green.
       if (door.requiresKey && MAIN_DESCENT.has(door.to)) {
-        console.warn(
+        throw new Error(
           `[rooms] door "${door.id}" locks a MAIN-DESCENT room ("${door.to}") behind key "${door.requiresKey}" — keys may only gate side/secret content`,
         );
       }

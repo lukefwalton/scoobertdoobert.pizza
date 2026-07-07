@@ -77,7 +77,7 @@ export default function Leaderboard() {
       <div className="arcade-cabinet lb-cabinet">
         <div className="arcade-marquee lb-marquee">
           <Gif name="trophy" w={48} h={56} className="lb-trophy" />
-          <span className="arcade-marquee__neon">HIGH SCORES</span>
+          <h1 className="arcade-marquee__neon">HIGH SCORES</h1>
           <Gif name="trophy" w={48} h={56} className="lb-trophy" />
         </div>
 
