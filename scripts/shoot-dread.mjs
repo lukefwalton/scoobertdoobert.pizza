@@ -106,7 +106,9 @@ else {
   if (!(dropout.dipped < 0.5))
     bad(`forceDropout did not dip the curdle gain (rest=${dropout.rest} dipped=${dropout.dipped})`);
   if (!(dropout.recovered > 0.85))
-    bad(`dropout did not FADE BACK within ~2.5s (recovered=${dropout.recovered}) — WCAG audio rule`);
+    bad(
+      `dropout did not FADE BACK within ~2.5s (recovered=${dropout.recovered}) — WCAG audio rule`,
+    );
 }
 
 console.log(

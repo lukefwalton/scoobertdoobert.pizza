@@ -181,18 +181,23 @@ if (inJuke) {
     'a plain roll did not clear the pressing',
   );
 
-  // Re-arm cursed, then walk out the REAL way (the debug room-jump drives the same
-  // unmount cleanup a door does): the pressing must not follow the player out.
-  await page.evaluate(() => window.__sdpRollDice?.(1));
+  // Re-arm a pressing, then walk out the REAL way (the debug room-jump drives the
+  // same unmount cleanup a door does): the pressing must not follow the player out.
+  // PRISTINE is the deliberate pick — it's the most intertwined exit branch: the
+  // roll made the track the player's PREFERRED station, so the exit's
+  // restorePreferred() hits the engine's same-URL no-op guard (no source swap),
+  // and the pristine rate-correction must still ramp back to 1 via the cleanup's
+  // setPressing(null) — the exact seam between JukeboxRoom cleanup and the engine.
+  await page.evaluate(() => window.__sdpRollDice?.(20));
   const rearmed = await curdleIs(
-    () => window.__sdpCurdle?.pressing === 'cursed',
-    'could not re-arm cursed before the exit check',
+    () => window.__sdpCurdle?.pressing === 'pristine' && window.__sdpCurdle.rate > 1,
+    'could not re-arm pristine before the exit check',
   );
   if (rearmed) {
     await page.evaluate(() => window.__sdpGoToRoom?.('hallway'));
     curdleExitClear = await curdleIs(
-      () => window.__sdpCurdle?.pressing === null,
-      'leaving the jukebox room did not clear the cursed pressing',
+      () => window.__sdpCurdle?.pressing === null && window.__sdpCurdle.rate === 1,
+      'leaving the jukebox room did not clear the pristine pressing (or its rate correction)',
     );
   }
 }

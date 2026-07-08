@@ -44,7 +44,11 @@ describe('WCAG 2.3.1 flash-rate tripwire (src/styles/*.css)', () => {
     const luminanceFrames = new Set<string>();
     for (const kf of css.matchAll(/@keyframes\s+([\w-]+)\s*\{([\s\S]*?)\n\}/g)) {
       const body = kf[2];
-      if (/\bopacity\s*:|\bvisibility\s*:|\bbackground\s*:|\bbackground-color\s*:|[^-]\bcolor\s*:/.test(body)) {
+      if (
+        /\bopacity\s*:|\bvisibility\s*:|\bbackground\s*:|\bbackground-color\s*:|[^-]\bcolor\s*:/.test(
+          body,
+        )
+      ) {
         luminanceFrames.add(kf[1]);
       }
     }

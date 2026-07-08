@@ -166,7 +166,9 @@ try {
   const unmutedSent = await sentAfter(false);
   postLoadMuteOk = mutedSent && unmutedSent;
   if (!postLoadMuteOk)
-    fail(`post-load mute toggle did not reach the iframe (mute=${mutedSent} unmute=${unmutedSent})`);
+    fail(
+      `post-load mute toggle did not reach the iframe (mute=${mutedSent} unmute=${unmutedSent})`,
+    );
 } catch (e) {
   fail(`post-load mute pass broke: ${e.message}`);
 }
