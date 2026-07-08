@@ -111,7 +111,15 @@ required (PS1 *everything*, including bought GLBs):
 - **Vertex snapping:** round clip-space xy to a coarse grid in the vertex shader.
 - **Affine texture mapping:** multiply UVs by `position.w` so perspective
   correction drops out — the texture wobble.
-- Textures ≤128px, `THREE.NearestFilter`, no mipmaps.
+- Textures: `THREE.NearestFilter`, no mipmaps. **≤128px is the default grain**
+  for image/photo textures; **generated TEXT atlases and FX canvases may go up
+  to 512px** where legibility/looks demand, and **bought-GLB crunch at 256px is
+  sanctioned** *(AMENDED 2026-07-07, Luke: "we can make shit look good. fuck it.
+  change the standards" — codifies what shipped: the sign atlases, the Sunken
+  Gallery 256px pipeline)*. 512 is the hard ceiling (tripwire-tested). Two
+  deliberate `LinearFilter` exceptions stand — `CoverArt` (press photos) and
+  `FrutigerRoom` (the aero gloss) — "pristine beside crunched is the vibe";
+  anything else stays Nearest.
 - Distance fog with a near far-plane to fake draw distance.
 - Limited color depth via an ordered-dither post pass.
 - Flat/vertex lighting or baked vertex colors. No PBR, no soft shadows.
@@ -126,7 +134,8 @@ required (PS1 *everything*, including bought GLBs):
   until decoded; if it never loads, there's no music and the toggle never lights.
 - The boot loop and the jukebox catalog are **degraded bounces of Scoobert's own
   tracks** (Luke's copyright — fine to ship). The jukebox cycles a real catalog
-  (`public/audio/jukebox/*.wav` from `src/data/jukebox.catalog.json`).
+  (`public/audio/jukebox/*.mp3` from `src/data/jukebox.catalog.json`; status +
+  track details live in `docs/PHASES.md`).
 - The descent pitch-bends/ages the audio with depth; the dread layer (Phase 5)
   curdles it further. Everything respects the global mute.
 

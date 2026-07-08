@@ -110,9 +110,17 @@ export function FaceStretch() {
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
       filter.frequency.value = 8000;
+      // Brickwall limiter — every audio path on the site ends in one (WCAG
+      // 2.3.1 / ears), mirroring the engine + the other cabinets.
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.value = -6;
+      limiter.knee.value = 0;
+      limiter.ratio.value = 20;
+      limiter.attack.value = 0.003;
+      limiter.release.value = 0.25;
       const src = ctx.createBufferSource();
       src.loop = true;
-      src.connect(filter).connect(gain).connect(ctx.destination);
+      src.connect(filter).connect(gain).connect(limiter).connect(ctx.destination);
       audioRef.current = { ctx, src, filter, gain };
       // decode Scoobert's own track (no synth — we warp his real sound)
       fetch(SAMPLE_SRC)

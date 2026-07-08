@@ -18,6 +18,7 @@
 
 import { mapUnease } from '../data/dread';
 import { strikeBell } from '../lib/chimes';
+import { curdleParamsFor, type CurdleParams, type Pressing } from '../lib/curdle';
 import { exposeTestGlobal } from '../lib/testHooks';
 
 /**
@@ -105,6 +106,29 @@ class PizzaAudio {
   private dreadLevel = 0;
   private dreadApplied = -1; // last level written to the param (throttle)
   private hapticBucket = 0; // last vibration tier fired (so we buzz once per step up)
+
+  // ── the curdle insert (the live "how-degraded" — src/lib/curdle.ts is the score) ──
+  // Sits on the SONG path only (songGain → [dry ‖ quantize→wet] → curdleGain →
+  // lowpass), so the instrument one-shots and the bells stay clean and the output
+  // limiter still brickwalls everything. Driven by dread `unease` (bitcrush /
+  // dropouts finally consumed) and by the jukebox PRESSINGS (the d20 crits — the
+  // cursed pressing warbles as actual audio, the pristine one plays cleaner than
+  // the tape should allow). At wet = 0 the dry branch is a unity gain: passthrough.
+  private curdleDry?: GainNode;
+  private curdleWet?: GainNode;
+  private curdleGain?: GainNode; // dropout dips live here (rest 1, always fades back)
+  private wowOsc?: OscillatorNode; // tape-wow LFO — rides source.playbackRate (additive)
+  private wowGain?: GainNode;
+  private flutterOsc?: OscillatorNode;
+  private flutterGain?: GainNode;
+  private curdleParams: CurdleParams = curdleParamsFor(0, null);
+  private curdleAppliedU = -1; // last unease the curdle params were computed at
+  // The armed pressing (a d20 crit) + the exact track it belongs to. It only ever
+  // APPLIES while that url is the live jukebox voice — arming is synchronous on the
+  // roll, the decode is async, so this guard is what makes the race harmless.
+  private pressing: { kind: Exclude<Pressing, null>; url: string } | null = null;
+  private pressingRateSet = false; // we wrote a non-1 rate (pristine) to the source
+  private nextDropoutRoll = 0; // ctx-time gate: at most ~1 dropout roll per second
 
   /** True once the track is fetched + decoded and the loop can actually play. */
   get ready(): boolean {
@@ -201,7 +225,52 @@ class PizzaAudio {
     const songGain = ctx.createGain();
     // honor a duck set before the graph existed (a music room OR a live sound-maker)
     songGain.gain.value = this.musicSuppressed ? 0.0001 : this.songLevel;
-    songGain.connect(lowpass);
+    // The curdle insert (see the field doc): songGain splits into a unity DRY
+    // branch and a quantize-staircase WET branch (a WaveShaper "bitcrush" + its own
+    // fixed lowpass so the crushed aliasing reads tape-ish, not harsh), summed into
+    // curdleGain (where dropout dips happen), then on to the shared descent lowpass.
+    // Intensity is the dry/wet MIX — the curve is never rebuilt — so wet 0 (the
+    // sweet surface, most of every session) is exact passthrough.
+    const curdleGain = ctx.createGain();
+    curdleGain.gain.value = 1;
+    curdleGain.connect(lowpass);
+    const dry = ctx.createGain();
+    dry.gain.value = 1;
+    dry.connect(curdleGain);
+    const shaper = ctx.createWaveShaper();
+    // A 9-level staircase (~3.2-bit): x → round(x·4)/4 over [-1, 1].
+    const staircase = new Float32Array(1025);
+    for (let i = 0; i < staircase.length; i++) {
+      const x = (i / (staircase.length - 1)) * 2 - 1;
+      staircase[i] = Math.round(x * 4) / 4;
+    }
+    shaper.curve = staircase;
+    const wetFilter = ctx.createBiquadFilter();
+    wetFilter.type = 'lowpass';
+    wetFilter.frequency.value = 2000; // fixed — never fights the descent's lowpass
+    const wet = ctx.createGain();
+    wet.gain.value = 0;
+    songGain.connect(dry);
+    songGain.connect(shaper);
+    shaper.connect(wetFilter);
+    wetFilter.connect(wet);
+    wet.connect(curdleGain);
+    // The tape wow/flutter LFOs: osc → depth gain → (per-source) src.playbackRate.
+    // An AudioParam input SUMS with its value/automation, so the descent bend and
+    // the wobble compose without either knowing about the other; at depth 0 the
+    // LFO adds exactly nothing. Started once, run forever (cheap, like the bed).
+    const wowOsc = ctx.createOscillator();
+    wowOsc.frequency.value = this.curdleParams.wow.hz;
+    const wowGain = ctx.createGain();
+    wowGain.gain.value = 0;
+    wowOsc.connect(wowGain);
+    wowOsc.start();
+    const flutterOsc = ctx.createOscillator();
+    flutterOsc.frequency.value = this.curdleParams.flutter.hz;
+    const flutterGain = ctx.createGain();
+    flutterGain.gain.value = 0;
+    flutterOsc.connect(flutterGain);
+    flutterOsc.start();
     master.connect(limiter);
     limiter.connect(ctx.destination);
     this.ctx = ctx;
@@ -209,6 +278,14 @@ class PizzaAudio {
     this.limiter = limiter;
     this.lowpass = lowpass;
     this.songGain = songGain;
+    this.curdleDry = dry;
+    this.curdleWet = wet;
+    this.curdleGain = curdleGain;
+    this.wowOsc = wowOsc;
+    this.wowGain = wowGain;
+    this.flutterOsc = flutterOsc;
+    this.flutterGain = flutterGain;
+    this.applyCurdle(); // honor a pressing/dread level set before the graph existed
   }
 
   /** Resume the context. Must be called from a user gesture. Also remembers that
@@ -270,6 +347,13 @@ class PizzaAudio {
           /* already disconnected */
         }
         og.disconnect();
+        // …and unhook the wobble LFOs from the dead source's playbackRate.
+        try {
+          this.wowGain?.disconnect(os.playbackRate);
+          this.flutterGain?.disconnect(os.playbackRate);
+        } catch {
+          /* never connected (pre-curdle source) or already gone */
+        }
       };
     }
     const src = ctx.createBufferSource();
@@ -295,6 +379,12 @@ class PizzaAudio {
     this.sourceGain = sg;
     this.loopStarts++;
     exposeTestGlobal('__sdpLoopStarts', this.loopStarts);
+    // A fresh source starts at rate 1 with no LFO riders — re-hook the wobble and
+    // (if a pressing is live) its rate so a crossfade swap can't shed the curdle.
+    this.wowGain?.connect(src.playbackRate);
+    this.flutterGain?.connect(src.playbackRate);
+    this.pressingRateSet = false;
+    this.applyCurdle();
   }
 
   // Real-content loop points for a decoded buffer: trim leading/trailing near-
@@ -330,6 +420,12 @@ class PizzaAudio {
         /* already stopped */
       }
       this.source.disconnect();
+      try {
+        this.wowGain?.disconnect(this.source.playbackRate);
+        this.flutterGain?.disconnect(this.source.playbackRate);
+      } catch {
+        /* never connected */
+      }
       this.source = undefined;
     }
     if (this.sourceGain) {
@@ -391,12 +487,19 @@ class PizzaAudio {
     const buf = await this.decodeJukebox(url);
     if (!buf) return; // couldn't load — leave whatever's playing
     if (gen !== this.jukeboxGen) return; // superseded by a newer select OR a leave
+    // A pressing belongs to ONE exact track: playing a different one drops it
+    // (a cursed roll never haunts the next song you pick).
+    if (this.pressing && this.pressing.url !== url) this.pressing = null;
     this.activeBuffer = buf;
     this.activeJukeboxUrl = url;
     this.jukeboxActive = true;
     this.started = true;
     this.restartLoop();
     this.restorePitch(300); // clean rate + full brightness (warble is in the file)
+    // restorePitch just ramped the rate to 1 — re-assert the pressing's rate (the
+    // pristine correction) now that this url is officially the live voice.
+    this.pressingRateSet = false;
+    this.applyCurdle();
     this.applyGain(); // honors mute + the current proximity duck
     this.publishJukeboxState();
     this.emitLoopChange();
@@ -409,6 +512,7 @@ class PizzaAudio {
    *  swap the voice back to the boot loop. */
   restoreBoot(): void {
     this.jukeboxGen++; // cancel any pending select, active or not (the race fix)
+    this.pressing = null; // a pressing is jukebox theatre — it never survives the hand-back
     if (!this.jukeboxActive) return;
     this.jukeboxActive = false;
     this.activeJukeboxUrl = undefined;
@@ -1094,7 +1198,115 @@ class PizzaAudio {
       this.dreadBed.gain.cancelScheduledValues(now);
       this.dreadBed.gain.setTargetAtTime(target, now, 0.4);
     }
+    // The curdle rides the same per-frame call: re-map on a real unease change
+    // (same 0.01 throttle), and roll the (rare) dropout dice on a ~1s gate.
+    if (this.curdleDry && Math.abs(this.dreadLevel - this.curdleAppliedU) >= 0.01) {
+      this.applyCurdle();
+    }
+    this.maybeDropout();
     this.maybeHaptic();
+  }
+
+  // ── the curdle (live degradation) ──────────────────────────────────────────
+
+  /** The pressing that should actually SOUND right now: armed by a d20 crit, but
+   *  only live while its exact track is the jukebox voice (the roll is sync, the
+   *  decode async — this guard is what makes that race harmless). */
+  private activePressing(): Pressing {
+    return this.pressing && this.jukeboxActive && this.activeJukeboxUrl === this.pressing.url
+      ? this.pressing.kind
+      : null;
+  }
+
+  /** Write the current curdle score (dread unease × pressing) to the insert.
+   *  Cheap; throttled by callers. All moves are short ramps — never a hard step
+   *  (the WCAG audio rule holds inside the insert too). */
+  private applyCurdle(): void {
+    this.curdleAppliedU = this.dreadLevel;
+    const kind = this.activePressing();
+    const p = curdleParamsFor(this.dreadLevel, kind);
+    this.curdleParams = p;
+    exposeTestGlobal('__sdpCurdle', {
+      pressing: kind,
+      wet: p.wet,
+      dropoutChance: p.dropoutChance,
+      rate: p.rate,
+    });
+    if (!this.ctx || !this.curdleDry || !this.curdleWet) return;
+    const now = this.ctx.currentTime;
+    this.curdleDry.gain.setTargetAtTime(1 - p.wet, now, 0.15);
+    this.curdleWet.gain.setTargetAtTime(p.wet, now, 0.15);
+    if (this.wowOsc && this.wowGain) {
+      this.wowOsc.frequency.setTargetAtTime(p.wow.hz, now, 0.2);
+      this.wowGain.gain.setTargetAtTime(p.wow.depth, now, 0.2);
+    }
+    if (this.flutterOsc && this.flutterGain) {
+      this.flutterOsc.frequency.setTargetAtTime(p.flutter.hz, now, 0.2);
+      this.flutterGain.gain.setTargetAtTime(p.flutter.depth, now, 0.2);
+    }
+    // The pristine rate-correction (the only non-1 rate a pressing carries).
+    // Guarded by a flag so the frequent dread-path calls never touch playbackRate
+    // — the descent bend owns that param everywhere a pressing can't exist.
+    if (this.source) {
+      const rate = this.source.playbackRate;
+      if (p.rate !== 1 && !this.pressingRateSet) {
+        rate.cancelScheduledValues(now);
+        rate.setValueAtTime(rate.value, now);
+        rate.linearRampToValueAtTime(p.rate, now + 0.3);
+        this.pressingRateSet = true;
+      } else if (p.rate === 1 && this.pressingRateSet) {
+        rate.cancelScheduledValues(now);
+        rate.setValueAtTime(rate.value, now);
+        rate.linearRampToValueAtTime(1, now + 0.3);
+        this.pressingRateSet = false;
+      }
+    }
+  }
+
+  /** Arm (or clear) a jukebox pressing — the d20 crit made audible. `url` is the
+   *  catalog track the crit rolled; the pressing only sounds while that url is the
+   *  live voice and clears on any track change (see playJukeboxTrack/restoreBoot).
+   *  ROOM THEATRE: the jukebox room's unmount also clears it, so a cursed warble
+   *  never follows the player out into the world (out there, curdle belongs to
+   *  the dread layer alone). */
+  setPressing(kind: Pressing, url?: string): void {
+    this.pressing = kind && url ? { kind, url } : null;
+    this.applyCurdle();
+  }
+
+  /** The dropout scheduler: at most one roll per ~0.9–1.5s, only while audible
+   *  and only with whatever chance the current score allows (0 everywhere but
+   *  deep-dread — a pressing never dropouts; the jukebox stays sweet). */
+  private maybeDropout(): void {
+    if (!this.ctx || !this.curdleGain || this.muted || !this.started) return;
+    const now = this.ctx.currentTime;
+    if (now < this.nextDropoutRoll) return;
+    this.nextDropoutRoll = now + 0.9 + Math.random() * 0.6;
+    if (Math.random() < this.curdleParams.dropoutChance) this.fireDropout();
+  }
+
+  /** One dropout: a fast FADE down and a pre-scheduled fade back up — dip and
+   *  recovery are committed in the same call, so the return can never be lost to
+   *  a dropped frame and never spikes (the WCAG "audio strobe" rule; the output
+   *  limiter is downstream regardless). */
+  private fireDropout(): void {
+    if (!this.ctx || !this.curdleGain) return;
+    const g = this.curdleGain.gain;
+    const now = this.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(Math.max(0.0001, g.value), now);
+    g.setTargetAtTime(0.08, now, 0.04); // the dip — fast but still a fade
+    g.setTargetAtTime(1, now + 0.25, 0.35); // the fade-BACK, ~1.5s to full
+  }
+
+  /** Force one dropout (smokes assert the dip-and-fade-back shape). */
+  forceDropout(): void {
+    this.fireDropout();
+  }
+
+  /** Live value of the dropout gain (rest 1) — the smoke watches the recovery. */
+  get curdleLevel(): number {
+    return this.curdleGain?.gain.value ?? 1;
   }
 
   /** Mobile haptics on the sharpest dread beats: a short buzz when unease crosses

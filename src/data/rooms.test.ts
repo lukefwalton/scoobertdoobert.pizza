@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import {
   ROOMS,
   ROOM_MAP,
+  MAIN_DESCENT,
   roomById,
   trapDropForRoll,
   fogFor,
@@ -71,6 +72,27 @@ describe('rooms graph', () => {
     const ids = new Set(ROOMS.map((r) => r.id));
     for (const id of Object.keys(ROOM_MAP)) {
       expect(ids.has(id), `ROOM_MAP has "${id}" which is not a real room`).toBe(true);
+    }
+  });
+
+  // The friction-budget hard line (CLAUDE.md): a key may only gate SIDE/SECRET
+  // content — the main descent has zero hard gates. The dev guard in rooms.ts
+  // throws on this too, but the smokes only fail on console.error, so this is
+  // the CI-blocking half the docs always claimed existed.
+  it('no door locks a MAIN_DESCENT room behind a key', () => {
+    for (const room of ROOMS) {
+      for (const door of room.doors) {
+        if (!door.requiresKey) continue;
+        expect(
+          MAIN_DESCENT.has(door.to),
+          `door "${door.id}" in "${room.id}" locks main-descent room "${door.to}" behind key "${door.requiresKey}"`,
+        ).toBe(false);
+      }
+    }
+    // ...and the set itself stays anchored to real rooms (a renamed room id would
+    // silently un-protect its descent slot).
+    for (const id of MAIN_DESCENT) {
+      expect(roomById(id).id, `MAIN_DESCENT lists "${id}" which is not a real room`).toBe(id);
     }
   });
 
