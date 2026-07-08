@@ -8,6 +8,10 @@
 //      ceremony runs (windup → sweep → handoff) and the engine's loop voice
 //      lands on the HI-FI url; the rite persists to progressStore.
 //   4) RESTORED — a second E is a flat no-op (no double-bank, voice unchanged).
+// REAL-PATH SIBLINGS (the repo's real-entry rule): shoot:descent owns the
+// storefront → install → world front door; shoot:studio WALKS the doors into
+// this wing (practice → live → control → vault). This smoke teleports for the
+// mechanics but still WALKS to the bench and presses the real E.
 // Then RELOADS and enters the jukebox room cold: the dial's first track now
 // plays straight off the hi-fi file (playbackUrlFor reads the durable rite) and
 // the curdle insert reports rate 1 (no false pristine pitch-up on hi-fi).
@@ -64,7 +68,10 @@ const bootWorld = async () => {
   } catch (e) {
     fail(`world did not mount: ${e.message}`);
   }
-  await page.waitForTimeout(1500); // WebGL warmup
+  // World interactive = the debug nav hook has mounted (concrete, not a timer).
+  await page
+    .waitForFunction(() => typeof window.__sdpGoToRoom === 'function', null, { timeout: 12000 })
+    .catch(() => fail('the world never exposed its debug nav hook'));
   const ready = await page
     .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, {
       timeout: 12000,
@@ -74,11 +81,10 @@ const bootWorld = async () => {
       () => false,
     );
   if (!ready) fail('boot ambience never decoded — engine not ready');
-  await page
-    .getByRole('button', { name: 'dismiss intro' })
-    .click({ timeout: 4000 })
-    .catch(() => {});
-  await page.waitForTimeout(200);
+  const dismiss = page.getByRole('button', { name: 'dismiss intro' });
+  await dismiss.click({ timeout: 4000 }).catch(() => {});
+  // …and gone (a concrete wait; absent-from-the-start resolves immediately).
+  await dismiss.waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
 };
 
 await bootWorld();

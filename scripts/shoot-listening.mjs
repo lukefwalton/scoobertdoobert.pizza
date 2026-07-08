@@ -7,6 +7,10 @@
 //   3) Seeded progress (a discovered room-song + a restored seed) flips the same
 //      exhibits: the discovered one plays lo-fi, the restored one plays HI-FI.
 //   4) The vault ⇄ listening doors WALK both ways (the real prompt + E).
+// REAL-PATH SIBLINGS (the repo's real-entry rule): shoot:descent owns the
+// storefront → install → world front door; shoot:studio WALKS the doors into
+// this wing (practice → live → control → vault); step 4 here walks the one
+// new door edge both ways.
 import { mkdirSync } from 'node:fs';
 import {
   holdUntilDoorPrompt,
@@ -57,17 +61,19 @@ const bootWorld = async () => {
   } catch (e) {
     fail(`world did not mount: ${e.message}`);
   }
-  await page.waitForTimeout(1500);
+  // World interactive = the debug nav hook has mounted (concrete, not a timer).
+  await page
+    .waitForFunction(() => typeof window.__sdpGoToRoom === 'function', null, { timeout: 12000 })
+    .catch(() => fail('the world never exposed its debug nav hook'));
   await page
     .waitForFunction(() => window.__sdpAudio && window.__sdpAudio.ready === true, null, {
       timeout: 12000,
     })
     .catch(() => fail('boot ambience never decoded — engine not ready'));
-  await page
-    .getByRole('button', { name: 'dismiss intro' })
-    .click({ timeout: 4000 })
-    .catch(() => {});
-  await page.waitForTimeout(200);
+  const dismiss = page.getByRole('button', { name: 'dismiss intro' });
+  await dismiss.click({ timeout: 4000 }).catch(() => {});
+  // …and gone (a concrete wait; absent-from-the-start resolves immediately).
+  await dismiss.waitFor({ state: 'detached', timeout: 4000 }).catch(() => {});
 };
 const exhibit = (slug) =>
   page.waitForFunction(
