@@ -150,6 +150,15 @@ export const LOOKABLES: Lookable[] = [
       'The box says MASTER — DO NOT ERASE. It plays back as pure silence. Or you just can’t hear it yet.',
   },
   {
+    id: 'listening-look',
+    room: 'listening',
+    anchor: 'back',
+    label: 'the visitor’s book',
+    glyph: '📖',
+    story:
+      'A museum guest book on a little stand. One entry, over and over, in the same hand: “came back for the songs.” The pen is warm.',
+  },
+  {
     id: 'lounge-look',
     room: 'lounge',
     kind: 'animalHead',

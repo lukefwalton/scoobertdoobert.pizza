@@ -17,8 +17,15 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import { mapUnease } from '../data/dread';
+import { isHifiUrl } from '../data/jukebox';
 import { strikeBell } from '../lib/chimes';
-import { curdleParamsFor, type CurdleParams, type Pressing } from '../lib/curdle';
+import {
+  curdleParamsFor,
+  PRISTINE_RATE,
+  WET_CAP,
+  type CurdleParams,
+  type Pressing,
+} from '../lib/curdle';
 import { exposeTestGlobal } from '../lib/testHooks';
 
 /**
@@ -47,6 +54,12 @@ const DREAD_BED_MAX = 0.16;
 // jukebox↔jukebox. Short: a smooth blend that hides the seam so one song never
 // "steps over" another with a hard cut, but not a slow DJ mix.
 const XFADE = 0.28;
+
+// The restoration ceremony's timing (restoreCeremony below). Exported so the
+// bench theatre (ControlRoom's spinning reels) and the smoke pace themselves off
+// the same score. windup: the reels grab (curdle to the cap); sweep: the long
+// un-warble up to true pitch; the handoff crossfade (XFADE) lands right after.
+export const CEREMONY_MS = { windup: 1400, sweep: 2800 } as const;
 
 class PizzaAudio {
   private ctx?: AudioContext;
@@ -129,6 +142,11 @@ class PizzaAudio {
   private pressing: { kind: Exclude<Pressing, null>; url: string } | null = null;
   private pressingRateSet = false; // we wrote a non-1 rate (pristine) to the source
   private nextDropoutRoll = 0; // ctx-time gate: at most ~1 dropout roll per second
+  // A restoration CEREMONY owns the curdle insert while it runs (the bench's
+  // wind-up → sweep theatre): applyCurdle becomes a no-op writer so the per-frame
+  // dread calls can't fight the scripted ramps — the pressingRateSet discipline,
+  // extended to the whole insert. Cleared defensively on any voice change.
+  private ceremony = false;
 
   /** True once the track is fetched + decoded and the loop can actually play. */
   get ready(): boolean {
@@ -484,6 +502,7 @@ class PizzaAudio {
       return;
     }
     const gen = ++this.jukeboxGen;
+    this.ceremony = false; // a real track change mid-rite hands the insert back
     const buf = await this.decodeJukebox(url);
     if (!buf) return; // couldn't load — leave whatever's playing
     if (gen !== this.jukeboxGen) return; // superseded by a newer select OR a leave
@@ -513,6 +532,7 @@ class PizzaAudio {
   restoreBoot(): void {
     this.jukeboxGen++; // cancel any pending select, active or not (the race fix)
     this.pressing = null; // a pressing is jukebox theatre — it never survives the hand-back
+    this.ceremony = false; // leaving mid-rite hands the insert back (rite unbanked)
     if (!this.jukeboxActive) return;
     this.jukeboxActive = false;
     this.activeJukeboxUrl = undefined;
@@ -533,6 +553,115 @@ class PizzaAudio {
   /** Whether a jukebox track is currently the loop voice (exposed for tests). */
   get isJukeboxPlaying(): boolean {
     return this.jukeboxActive;
+  }
+
+  /** THE RESTORATION CEREMONY (the control-room bench): sweep the LIVE lo-fi
+   *  voice curdled → clean, then crossfade to the hi-fi file. Pure theatre made
+   *  of the parts already here — the curdle insert plays the "reels grabbing the
+   *  tape" wind-up, un-warbles through the sweep while the playbackRate lifts to
+   *  true pitch (the PRISTINE_RATE un-slow), and the ordinary playJukeboxTrack
+   *  crossfade (XFADE) is the final beat onto the clean pressing. All ramps,
+   *  never a step (the WCAG audio rule); dropout vocabulary untouched (the
+   *  studio stays sweet). Resolves true if the handoff landed; false if the rite
+   *  was superseded mid-way (a track change, leaving the room) — the caller only
+   *  banks the restoration on true, so an interrupted rite is simply redoable. */
+  async restoreCeremony(lofiUrl: string, hifiUrl: string): Promise<boolean> {
+    this.unlock(); // the bench click/E is the gesture
+    if (
+      !this.ctx ||
+      this.ceremony ||
+      !this.jukeboxActive ||
+      this.activeJukeboxUrl !== lofiUrl ||
+      !this.started ||
+      !this.source
+    ) {
+      return false;
+    }
+    const ctx = this.ctx;
+    this.pressing = null; // the rite replaces any lingering pressing theatre
+    this.ceremony = true; // applyCurdle goes quiet — the rite owns the insert
+    const gen = this.jukeboxGen; // any select/leave bumps this → the rite is stale
+    // Kick the hi-fi decode NOW — the wind-up (1.4s of reels straining) is its
+    // cover. We await it before the sweep begins (below), so the handoff always
+    // lands exactly at sweep end, cold cache or not — and a failed decode aborts
+    // EARLY, before any un-warbling the ear would have to walk back.
+    const decode = this.decodeJukebox(hifiUrl);
+    exposeTestGlobal('__sdpCeremony', 'windup');
+
+    // Phase changes ride the AUDIO clock, not wall-clock timers: the ramps are
+    // scheduled on ctx time, so the state machine waits for ctx.currentTime to
+    // reach the same deadlines. A throttled/background tab clamps the poll to
+    // ~1 s granularity but can't DRIFT the rite from its own audio — the handoff
+    // lands when the sweep audibly ends, whatever setTimeout was doing.
+    const waitForCtxTime = (t: number) =>
+      new Promise<void>((resolve) => {
+        const tick = () => {
+          if (ctx.currentTime >= t || !this.ceremony) resolve();
+          else setTimeout(tick, 100);
+        };
+        tick();
+      });
+    const stale = () =>
+      !this.ceremony ||
+      gen !== this.jukeboxGen ||
+      !this.jukeboxActive ||
+      this.activeJukeboxUrl !== lofiUrl;
+    const abort = () => {
+      this.ceremony = false;
+      this.applyCurdle(); // hand the insert back to dread (rate ramps home too)
+      exposeTestGlobal('__sdpCeremony', undefined);
+      return false;
+    };
+
+    // ── wind-up (0 → windup): the reels grab — the tape audibly strains. Wet to
+    // the cap, a heavy slow wobble; τ 0.35 reaches ~98% inside the window.
+    const windupEnd = ctx.currentTime + CEREMONY_MS.windup / 1000;
+    {
+      const now = ctx.currentTime;
+      this.curdleDry?.gain.setTargetAtTime(1 - WET_CAP, now, 0.35);
+      this.curdleWet?.gain.setTargetAtTime(WET_CAP, now, 0.35);
+      this.wowGain?.gain.setTargetAtTime(0.05, now, 0.35);
+      this.flutterGain?.gain.setTargetAtTime(0.012, now, 0.35);
+    }
+    await waitForCtxTime(windupEnd);
+    if (stale()) return abort();
+    // The hi-fi buffer must be IN HAND before the sweep starts (usually decoded
+    // long since — the wind-up covered it). A slow decode holds the rite at full
+    // warble (the reels straining, thematically free); a failed one aborts here.
+    const hifiBuf = await decode;
+    if (stale()) return abort();
+    if (!hifiBuf) return abort();
+
+    // ── the sweep (windup → windup+sweep): the song un-warbles and LIFTS to true
+    // pitch — "cleaner than the tape should allow", earned in real time.
+    const now = ctx.currentTime;
+    const sweepEnd = now + CEREMONY_MS.sweep / 1000;
+    {
+      const ramp = (param: AudioParam | undefined, to: number) => {
+        if (!param) return;
+        param.cancelScheduledValues(now);
+        param.setValueAtTime(param.value, now);
+        param.linearRampToValueAtTime(to, sweepEnd);
+      };
+      ramp(this.curdleDry?.gain, 1);
+      ramp(this.curdleWet?.gain, 0);
+      ramp(this.wowGain?.gain, 0);
+      ramp(this.flutterGain?.gain, 0);
+      ramp(this.source.playbackRate, PRISTINE_RATE);
+      this.pressingRateSet = true; // so the post-rite applyCurdle ramps rate home
+      exposeTestGlobal('__sdpCeremony', 'sweep');
+    }
+    await waitForCtxTime(sweepEnd);
+    if (stale()) return abort();
+
+    // ── handoff: the ordinary crossfade IS the final beat. Clear the flag first
+    // so playJukeboxTrack's own applyCurdle (fresh source, hi-fi rate rules)
+    // reclaims the insert cleanly.
+    this.ceremony = false;
+    await this.playJukeboxTrack(hifiUrl);
+    const landed = this.jukeboxActive && this.activeJukeboxUrl === hifiUrl;
+    exposeTestGlobal('__sdpCeremony', landed ? 'done' : undefined);
+    return landed;
   }
 
   /** Mirror the jukebox voice state to a window global for the rooms smoke (it
@@ -1222,9 +1351,13 @@ class PizzaAudio {
    *  Cheap; throttled by callers. All moves are short ramps — never a hard step
    *  (the WCAG audio rule holds inside the insert too). */
   private applyCurdle(): void {
+    if (this.ceremony) return; // the bench rite owns the insert until it resolves
     this.curdleAppliedU = this.dreadLevel;
     const kind = this.activePressing();
-    const p = curdleParamsFor(this.dreadLevel, kind);
+    // A restored track's hi-fi file has no baked tape slow-down, so the pristine
+    // rate-correction must not apply (curdleParamsFor returns rate 1 for it).
+    const hifi = this.jukeboxActive && isHifiUrl(this.activeJukeboxUrl ?? '');
+    const p = curdleParamsFor(this.dreadLevel, kind, { hifi });
     this.curdleParams = p;
     exposeTestGlobal('__sdpCurdle', {
       pressing: kind,

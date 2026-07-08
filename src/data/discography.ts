@@ -12,6 +12,8 @@
 // duplicating — or risking drift from — that authoritative metadata.
 
 import albums from './albums.json';
+import { JUKEBOX_TRACKS } from './jukebox';
+import { SONG_META } from './songMeta';
 
 const ORIGIN = 'https://www.scoobertdoobert.pizza';
 const SCOOBERT_ID = 'https://lukefwalton.com/#scoobert';
@@ -36,5 +38,37 @@ export function discographyGraph() {
   return {
     '@context': 'https://schema.org',
     '@graph': albumNodes(),
+  };
+}
+
+// One MusicRecording per catalog track (the /catalog liner-notes page), built
+// data-driven from jukebox.catalog.json × songMeta.json — adding a song never
+// means hand-editing JSON-LD. `inAlbum` points at the SAME #album-<slug> ids
+// albumNodes() declares (catalogGraph ships both, so the references resolve
+// in-page); description/copyrightYear come from the placard data. Same rule as
+// albums: #scoobert is referenced, never re-declared.
+export function recordingNodes() {
+  const art = new Map((albums as AlbumEntry[]).map((a) => [a.slug, a.art]));
+  return JUKEBOX_TRACKS.map(({ slug }) => {
+    const meta = SONG_META[slug];
+    return {
+      '@type': 'MusicRecording',
+      '@id': `${ORIGIN}/#song-${slug}`,
+      name: meta?.title ?? slug,
+      byArtist: { '@id': SCOOBERT_ID },
+      ...(meta?.album ? { inAlbum: { '@id': `${ORIGIN}/#album-${meta.album}` } } : {}),
+      ...(meta?.meaning ? { description: meta.meaning } : {}),
+      ...(meta?.year ? { copyrightYear: meta.year } : {}),
+      ...(meta?.album && art.get(meta.album) ? { image: `${ORIGIN}${art.get(meta.album)}` } : {}),
+    };
+  });
+}
+
+// The /catalog page's @graph: every album + every recording, so each
+// recording's `inAlbum` @id-reference resolves without leaving the page.
+export function catalogGraph() {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [...albumNodes(), ...recordingNodes()],
   };
 }

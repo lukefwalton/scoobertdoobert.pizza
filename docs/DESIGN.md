@@ -25,8 +25,8 @@ to come back and share it. It is NOT a full RPG, NOT a horror game.
 ## The pillars (load-bearing — check every feature against these)
 
 1. **Exploration's reward is sound.** This is the spine. Going deeper and poking
-   around is rewarded with music, in three escalating modes of *agency*:
-   **hear it → play it → gamble for it.** (See "The music ladder.")
+   around is rewarded with music, in four escalating modes of *agency*:
+   **hear it → play it → gamble for it → restore it.** (See "The music ladder.")
 2. **A memory of the 90s/2000s, not the time itself** — hazy, dreamlike, a little
    wrong. Imperfection is the ideal; degrade on purpose. It's backrooms.
 3. **Doors everywhere.** Doors are the connective tissue — flat era floors and 3D
@@ -151,7 +151,7 @@ The unifying trick: most of these are *one mechanic that reads sweet near the
 surface and wrong in the depths*, driven by the same `unease` conductor — the
 rat, the music, recurrence, even the loaders all flip the same way.
 
-### The music ladder — hear → play → gamble (the reward spine)
+### The music ladder — hear → play → gamble → restore (the reward spine)
 - **Hear it.** Each descent layer has a track (Luke's map: "Jolly Roger Bay (64)"
   on top / current boot loop, "Information" a layer down, "1101" → the
   `/save-san-diego` ARG). The **"fucked up" version is the same track *curdling*
@@ -228,7 +228,47 @@ rat, the music, recurrence, even the loaders all flip the same way.
     change / leaving the room. The same insert is what the dread layer drives
     (below); a future deepening is a per-entry `curdleBias` in
     `jukebox.catalog.json` (how curdle-prone each pressing is) — an extension
-    point, not built.
+    point, not built. (2026-07-08: the insert grew a `hifi` flag — a pristine
+    pressing on a RESTORED track's hi-fi file plays at rate 1, since there's no
+    baked slow-down to correct; dread + cursed stay variant-blind.)
+
+- **Restore it (SHIPPED 2026-07-08 — the museum rung).** The whole catalog ships
+  as degraded bounces on purpose — so the ladder's top rung is *undoing* it, one
+  song at a time. Every track now has a second, genuinely clean **HI-FI** bounce
+  (44.1 kHz stereo, no tape pass/hiss/crush — `make-jukebox-audio.mjs`, lazy-
+  loaded from `public/audio/jukebox/hifi/`), and the control room's reel-to-reel
+  is the **RESTORATION BENCH**: play a DISCOVERED song, press E, and a ~4.5 s
+  ceremony runs — the reels grab, the tape audibly strains (the curdle insert
+  driven to the cap), then the whole thing sweeps clean while the pitch lifts
+  through the baked 0.965 slow-down, and the ordinary crossfade lands on the
+  hi-fi file. **Durable forever** (`progressStore.restoredSongs`, banked at
+  completion so an interrupted rite is just redoable); a restored track plays
+  hi-fi EVERYWHERE via the one url chooser (`src/lib/trackSource.playbackUrlFor`).
+  **Holding a studio master tape IS the restoration** (derived from `itemsHeld`
+  in `src/data/restoration.ts` — instant, and retroactive for old saves). The
+  storefront's "Lo-Fi • Hi-Fi" promise, made mechanical. Friction budget holds:
+  one trivial rite per track, refusals always explain themselves, nothing gates
+  on it (the quest is a BONUS). `shoot:restore`.
+
+### The Listening Room + /catalog — the museum layer (SHIPPED 2026-07-08)
+The collection made legible, in three surfaces off ONE data spine (songMeta's
+`{title, meaning, year, album}` + the discovered/restored derivations in
+`src/data/restoration.ts`):
+- **The Listening Room (視聴室)** — a hushed gallery nave off the Tape Vault:
+  one exhibit per catalog track (the album's cover in a gilt frame over a
+  placard: title · year · meaning). An UNFOUND song hangs as an empty **???
+  frame** whose placard names where it was last heard — the Pokédex itch as
+  furniture; a RESTORED one wears a gold **HI-FI chip**. Click a discovered
+  exhibit and it plays (and becomes your station) — a museum where every piece
+  is playable. Sweet, below-SAFE dread. `shoot:listening`.
+- **/catalog** — the crawlable liner-notes shelf (the 2026 backend under the
+  1996 skin): every track, always (discovery is a game concept, never a crawl
+  gate), with a `MusicRecording` JSON-LD @graph reconciling into the shared
+  `#scoobert` identity. One mounted-gated column layers YOUR copy's state on
+  top (✓ found / ★ HI-FI). Linked from `/text`; `shoot:catalog`.
+- **The terminal `catalog` command** — the same index from the command line
+  (★ restored / ✓ found / `???` for the unfound — the terminal never spoils
+  the museum), then navigates to /catalog.
 
 ### The game layer — LUCK & the universal d20 (SHIPPED; the RPG spine)
 The "make a damn game" pivot (pillar #6 above), built on the gamble rung.

@@ -20,6 +20,7 @@ const base: Progress = {
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  restoredSongs: [],
   knownSpells: [],
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
@@ -111,5 +112,36 @@ describe('terminal: the new readouts are discoverable', () => {
     expect(out).toMatch(/\bluck\b/);
     expect(out).toMatch(/\bspells\b/);
     expect(out).toMatch(/\broll\b/);
+  });
+});
+
+describe('terminal `catalog`', () => {
+  it('lists every track, hides unfound titles as ???, and navigates to /catalog', () => {
+    const cmd = lookupCommand('catalog')!;
+    const result = cmd.run({ args: [], history: [], progress: base });
+    const text = result.output.join('\n');
+    // seeds read by name; unfound room-songs stay masked
+    expect(text).toContain('Information');
+    expect(text).toContain('???');
+    expect(text).not.toContain('Boardwalk'); // a room-song, unfound on a cold snapshot
+    expect(result.action).toEqual({ type: 'navigate', href: '/catalog' });
+  });
+
+  it('marks a discovered song ✓ and a restored song ★', () => {
+    const text = run('catalog', {
+      discoveredSongs: ['boardwalk'],
+      restoredSongs: ['information'],
+    });
+    expect(text).toContain('★ Information');
+    expect(text).toContain('✓ Boardwalk');
+  });
+
+  it('a held master tape reads ★ (holding the master IS the restoration)', () => {
+    const text = run('catalog', { itemsHeld: ['tape-jolly-roger-bay'] });
+    expect(text).toContain('★ Jolly Roger Bay (64)');
+  });
+
+  it('is listed in help (discography already advertises it)', () => {
+    expect(run('help')).toContain('catalog');
   });
 });

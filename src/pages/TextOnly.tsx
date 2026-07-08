@@ -43,6 +43,10 @@ export default function TextOnly() {
         On a phone? Play <a href="/arcade">the Pizza Arcade</a> &mdash; jump the broken web buttons.
       </p>
       <p>
+        Every song on file: <a href="/catalog">the song catalog</a> &mdash; liner notes for the
+        whole discography.
+      </p>
+      <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>
       </p>
 

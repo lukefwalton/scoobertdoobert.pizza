@@ -44,3 +44,17 @@ describe('room songs (Room.song)', () => {
     });
   }
 });
+
+// A restored track's hi-fi url must map to the SAME dial index as its lo-fi twin,
+// so the HUD readout, setPreferred, and the jukebox dial stay coherent whichever
+// variant the engine is actually looping.
+describe('loopIndexForUrl — hi-fi variant coherence', () => {
+  it('maps a hi-fi url to the same LOOP_OPTIONS index as the lo-fi url', async () => {
+    const { hifiTrackUrl } = await import('./jukebox');
+    for (const t of JUKEBOX_TRACKS) {
+      expect(loopIndexForUrl(hifiTrackUrl(t.slug))).toBe(loopIndexForUrl(jukeboxTrackUrl(t.slug)));
+    }
+    const first = JUKEBOX_TRACKS[0];
+    expect(loopIndexForUrl(hifiTrackUrl(first.slug))).toBe(1);
+  });
+});

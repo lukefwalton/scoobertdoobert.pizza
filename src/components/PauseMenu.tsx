@@ -6,7 +6,8 @@ import { useAudioStore } from '../state/audioStore';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, selectLuck, selectSpellSlots } from '../state/progressStore';
 import { useScoreStore } from '../state/scoreStore';
-import { LOOP_OPTIONS } from '../data/music';
+import { JUKEBOX_TRACKS, LOOP_OPTIONS } from '../data/music';
+import { restoredCount } from '../data/restoration';
 import { ROOMS } from '../data/rooms';
 import { itemById, CASSETTE_IDS } from '../data/items';
 import { LOOT } from '../data/loot';
@@ -81,6 +82,7 @@ export function PauseMenu() {
       luckSpent: s.luckSpent,
       itemsHeld: s.itemsHeld,
       discoveredSongs: s.discoveredSongs,
+      restoredSongs: s.restoredSongs,
       knownSpells: s.knownSpells,
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
@@ -97,6 +99,8 @@ export function PauseMenu() {
   const itemsHeld = progress.itemsHeld;
   const visitedRooms = progress.visitedRooms;
   const tapesHeld = CASSETTE_IDS.filter((id) => itemsHeld.includes(id)).length;
+  // Tracks playing hi-fi (bench rites + held masters — the museum tally).
+  const restoredTracks = restoredCount(progress);
   const radioUnlocked = progress.radioUnlocked;
 
   return (
@@ -193,6 +197,14 @@ export function PauseMenu() {
                 Tapes{' '}
                 <strong>
                   {tapesHeld}/{CASSETTE_IDS.length}
+                </strong>
+              </span>
+            )}
+            {restoredTracks > 0 && (
+              <span>
+                HI-FI{' '}
+                <strong>
+                  {restoredTracks}/{JUKEBOX_TRACKS.length}
                 </strong>
               </span>
             )}

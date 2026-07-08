@@ -12,7 +12,7 @@ import { useMusicStore } from '../state/musicStore';
 import { announce } from '../state/toastStore';
 import { CRIT_MULT, luckTag, type Crit, type Roll } from '../lib/luck';
 import { DREAD } from '../data/dread';
-import { cueUrl } from '../data/music';
+import { cuePlaybackUrl } from '../lib/trackSource';
 import { audio } from '../audio/engine';
 import { useDispose } from '../lib/useDispose';
 import { fogFor, type Room } from '../data/rooms';
@@ -94,7 +94,7 @@ export function DicePitRoom({ room }: { room: Room }) {
   // Warm the reward track on entry; hand the loop back to the boot ambience on
   // leave (and clear the test hook).
   useEffect(() => {
-    audio.preloadJukebox([cueUrl('diceReward')]);
+    audio.preloadJukebox([cuePlaybackUrl('diceReward')]);
     return () => {
       // Hand the loop voice back to the user's chosen track (the switcher), not
       // unconditionally to boot — the user's pick stays authoritative.
@@ -114,7 +114,7 @@ export function DicePitRoom({ room }: { room: Room }) {
   const onRoll = (face: number, crit: Crit, roll?: Roll) => {
     const bout = useMonsterStore.getState().resolve(face, crit);
     if (bout.won) {
-      void audio.playJukeboxTrack(cueUrl('diceReward'));
+      void audio.playJukeboxTrack(cuePlaybackUrl('diceReward'));
       useProgressStore.getState().findSecret('dice-monster'); // the rat clocks it
       if (crit === 'nat20') {
         useProgressStore.getState().gainLuck(CRIT_MULT); // the dice love you → +3 luck

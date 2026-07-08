@@ -81,6 +81,15 @@ type SceneState = {
    *  null — drives the "Press E to switch on the TV" prompt + the E action (openTv).
    *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
   nearTv: TvVideo | null;
+  /** the camera is standing at the control room's RESTORATION BENCH (the
+   *  reel-to-reel) — drives its "Press E" prompt + the E action (restoreAtBench).
+   *  Boolean: one bench in the world. Set by the deck's proximity scan; cleared
+   *  on the same sweeps as the other near* fields. */
+  nearRestoreBench: boolean;
+  /** the slug mid-restoration at the bench, or null — THE "rite is running"
+   *  latch (lib/restoration reads it to refuse re-entry; the deck theatre spins
+   *  off it; WorldHud renders the running prompt from it). One source. */
+  benchBusy: string | null;
   /** the camera is standing in front of an arcade CABINET — drives its "Press E to
    *  play" prompt. Boolean, not an id: at most one cabinet per room. Cleared when the
    *  cabinet unmounts (you leave the room). */
@@ -208,6 +217,8 @@ type SceneState = {
     pickup: { id: string; label: string; glyph: string; kind: 'item' | 'loot' } | null,
   ) => void;
   setNearTv: (video: TvVideo | null) => void;
+  setNearRestoreBench: (near: boolean) => void;
+  setBenchBusy: (slug: string | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   setNearInteractable: (it: RoomInteractable | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
@@ -253,6 +264,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearDoor: null,
   nearPickup: null,
   nearTv: null,
+  nearRestoreBench: false,
+  benchBusy: null,
   nearEntity: null,
   nearInteractable: null,
   objectiveHudOn: true,
@@ -307,6 +320,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearDoor: null,
       nearPickup: null,
       nearTv: null,
+      nearRestoreBench: false,
       nearEntity: null,
       nearInteractable: null,
       nearNpc: null,
@@ -333,6 +347,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearDoor: null,
       nearPickup: null,
       nearTv: null,
+      nearRestoreBench: false,
       nearEntity: null,
       nearInteractable: null,
       nearNpc: null,
@@ -404,6 +419,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearHotspot: null,
         nearLookable: null,
         nearTv: null,
+        nearRestoreBench: false,
         nearEntity: null,
         nearInteractable: null,
         nearNpc: null,
@@ -431,6 +447,7 @@ export const useSceneStore = create<SceneState>((set) => ({
         nearHotspot: null,
         nearLookable: null,
         nearTv: null,
+        nearRestoreBench: false,
         nearEntity: null,
         nearInteractable: null,
         nearNpc: null,
@@ -454,6 +471,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearDoor: (door) => set({ nearDoor: door }),
   setNearPickup: (pickup) => set({ nearPickup: pickup }),
   setNearTv: (video) => set({ nearTv: video }),
+  setNearRestoreBench: (near) => set({ nearRestoreBench: near }),
+  setBenchBusy: (slug) => set({ benchBusy: slug }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   setNearInteractable: (it) => set({ nearInteractable: it }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),

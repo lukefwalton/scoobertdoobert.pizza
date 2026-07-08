@@ -147,7 +147,12 @@ export type RoomKind =
   | 'liveroom'
   | 'controlroom'
   | 'tapevault'
-  | 'lounge';
+  | 'lounge'
+  // The Listening Room (視聴室) — the museum wing off the Tape Vault: one framed
+  // exhibit per catalog track (cover art + a placard: title · year · meaning),
+  // an empty ??? frame until a song is found, a gold HI-FI chip once restored.
+  // The site's thesis made a PLACE: the archive, curated, playable.
+  | 'listening';
 
 /** How many forward laps it takes for the Möbius corridor to "break on its own"
  *  and reveal the way onward (the `revealOn: 'mobius'` door). Kept low — the loop
