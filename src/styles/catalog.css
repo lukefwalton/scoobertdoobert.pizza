@@ -1,0 +1,80 @@
+/* /catalog — the liner-notes shelf, in the site's dead-plain 1997 register:
+   default serif, blue links, <hr> rules. The one modern move is a quiet grid so
+   the covers line up; everything reads fine without it. */
+.catalog-page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: 'Times New Roman', Times, serif;
+  background: #fff;
+  color: #000;
+}
+.catalog-page h1 {
+  font-size: 1.7rem;
+}
+.catalog-page a {
+  color: #0000ee;
+}
+.catalog-page a:visited {
+  color: #551a8b;
+}
+.catalog-list {
+  list-style: decimal;
+  padding-left: 1.4rem;
+}
+.catalog-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 0.9rem;
+  margin: 1.1rem 0;
+  align-items: start;
+}
+.catalog-row h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.15rem;
+}
+.catalog-cover {
+  width: 96px;
+  height: 96px;
+  border: 1px solid #888;
+  image-rendering: pixelated;
+}
+.catalog-cover--none {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #777;
+  background: #eee;
+}
+.catalog-facts {
+  margin: 0 0 0.3rem;
+  color: #333;
+}
+.catalog-meaning {
+  margin: 0;
+}
+.catalog-chip {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85em;
+  border: 1px solid #888;
+  padding: 0 0.3em;
+  background: #f4f4e8;
+  white-space: nowrap;
+}
+.catalog-chip--hifi {
+  background: #f6e7b0;
+  border-color: #b8962e;
+}
+.catalog-chip--dim {
+  color: #777;
+}
+@media (max-width: 480px) {
+  .catalog-row {
+    grid-template-columns: 64px 1fr;
+  }
+  .catalog-cover {
+    width: 64px;
+    height: 64px;
+  }
+}

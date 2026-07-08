@@ -25,12 +25,6 @@ export const MASTER_TAPES = ITEMS.filter((i) => i.master && i.track).map((i) => 
   track: i.track as string,
 }));
 
-/** Has this track found the player yet? Seeds are always discovered; a room-song
- *  is discovered once its room banked it (or a master tape carried it home). */
-export function isSongDiscovered(p: Progress, slug: string): boolean {
-  return !isRoomSong(slug) || p.discoveredSongs.includes(slug);
-}
-
 /** Does this track play its clean hi-fi variant? A bench rite banks it — or you
  *  hold its master tape (the master IS the restoration). */
 export function isSongRestored(p: Progress, slug: string): boolean {
@@ -38,6 +32,15 @@ export function isSongRestored(p: Progress, slug: string): boolean {
     p.restoredSongs.includes(slug) ||
     MASTER_TAPES.some((m) => m.track === slug && p.itemsHeld.includes(m.id))
   );
+}
+
+/** Has this track found the player yet? Seeds are always discovered; a room-song
+ *  is discovered once its room banked it. RESTORED ⇒ DISCOVERED: pocketing a
+ *  master also banks discoverSong going forward, but a save that held a master
+ *  from BEFORE that side-effect existed must never read "??? — not yet archived"
+ *  under a HI-FI badge, so the derivation closes the loop itself. */
+export function isSongDiscovered(p: Progress, slug: string): boolean {
+  return !isRoomSong(slug) || p.discoveredSongs.includes(slug) || isSongRestored(p, slug);
 }
 
 /** How many catalog tracks play hi-fi (bench rites + held masters, deduped). */
