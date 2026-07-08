@@ -54,7 +54,7 @@ and installing it descends you through the eras into the world below.
 > Every frame above is the real site — captured by `scripts/make-readme-shots.mjs`,
 > and the GIF is stitched + crunched by the repo's own
 > [`gif89a` encoder](./scripts/lib/gif89a.mjs) (no image libraries). See
-> [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how the whole thing is wired.
+> [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how the whole thing is wired.
 
 ## Architecture — fallback first
 
@@ -80,10 +80,10 @@ progressive enhancement layered on top:
   point asks ("this has motion — enter anyway?") with the flat `/text` list as the
   safe default. JS-off always gets the storefront + `/text`.
 
-See [`ARCHITECTURE.md`](./ARCHITECTURE.md) for how it's wired,
+See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how it's wired,
 [`CLAUDE.md`](./CLAUDE.md) for the rules + PS1 hard constraints,
 [`docs/PHASES.md`](./docs/PHASES.md) for the roadmap + live status, and
-[`docs/DESIGN.md`](./docs/DESIGN.md) for the vision + systems. [`STRUCTURE.md`](./STRUCTURE.md)
+[`docs/DESIGN.md`](./docs/DESIGN.md) for the vision + systems. [`docs/STRUCTURE.md`](./docs/STRUCTURE.md)
 maps the repo.
 
 ## Run
@@ -131,7 +131,7 @@ npm run typecheck  # tsc --noEmit
 
 ## Repository layout
 
-A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
+A full map lives in [`docs/STRUCTURE.md`](./docs/STRUCTURE.md); the short version:
 
 ```
 ├── index.html            # Vite entry (the old hand-built site lives in git history)
@@ -162,8 +162,8 @@ A full map lives in [`STRUCTURE.md`](./STRUCTURE.md); the short version:
 │   ├── photos/           # full-res photo archive, grouped by shoot
 │   └── brand/            # brand-logo source
 ├── links.md              # source of truth for the /links archive
-├── docs/                 # PHASES.md (roadmap + status) · DESIGN.md (vision + systems)
-├── STRUCTURE.md          # the repo map ("start here")
+├── docs/                 # STRUCTURE (repo map) · ARCHITECTURE · PHASES (status) · DESIGN (vision) · MUSIC
+├── .github/              # CONTRIBUTING · CODE_OF_CONDUCT · SECURITY · issue+PR templates · workflows/ci.yml
 └── CLAUDE.md             # the rules/guardrails (the constitution)
 ```
 
@@ -290,9 +290,9 @@ DNS points at Vercel. (The build output no longer carries a `CNAME`.)
 It's a solo art project, not an open-source one — but bug reports are welcome.
 Found a dead link, audio that won't play, or a floor that renders wrong? Open an
 [issue](https://github.com/lukefwalton/scoobertdoobert.pizza/issues/new/choose).
-See [CONTRIBUTING.md](CONTRIBUTING.md), the [Code of Conduct](CODE_OF_CONDUCT.md),
-and — for anything touching the `api/` functions or stored emails —
-[SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md), the
+[Code of Conduct](.github/CODE_OF_CONDUCT.md), and — for anything touching the
+`api/` functions or stored emails — [SECURITY.md](.github/SECURITY.md).
 
 ## Copyright & licensing
 

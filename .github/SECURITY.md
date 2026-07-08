@@ -2,7 +2,7 @@
 
 scoobertdoobert.pizza is a mostly-static site (Vite + React, prerendered, hosted
 on Vercel). It has a small backend surface — two serverless functions under
-[`api/`](api/):
+[`api/`](../api/):
 
 - **`api/order.ts`** — the (theatrical) order form. If a visitor types an email
   **and** ticks the opt-in box, that one address is written to a **private**
@@ -38,7 +38,7 @@ Please **do not open a public issue** for a security problem. Instead:
   that renders wrong) — please use
   [GitHub Issues](https://github.com/lukefwalton/scoobertdoobert.pizza/issues).
 - Reminder: the source code and the creative content are both **all rights
-  reserved** (see [LICENSE](LICENSE)). Security reports are welcome regardless.
+  reserved** (see [LICENSE](../LICENSE)). Security reports are welcome regardless.
 
 ## Supported versions
 
