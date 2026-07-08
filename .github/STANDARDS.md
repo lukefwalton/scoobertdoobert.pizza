@@ -27,9 +27,13 @@ longer-form rules live in [`CLAUDE.md`](../CLAUDE.md) (the constitution),
   *licensed* to this repo. Any OSS license ever added covers **source code only** —
   never add a repo-wide `LICENSE` that could read as covering the content.
 - **The PS1/N64 look is a hard constraint**, not a style: low-res render target +
-  `image-rendering: pixelated`, vertex snapping, affine texture mapping, textures
-  ≤128px `NearestFilter` no mipmaps, distance fog, flat/vertex lighting, ordered
-  dither. This applies to bought GLBs too.
+  `image-rendering: pixelated`, vertex snapping, affine texture mapping, distance
+  fog, flat/vertex lighting, ordered dither. Textures: `NearestFilter`, no mipmaps;
+  **≤128px is the default grain** for image/photo textures, generated text atlases
+  / FX canvases may go up to **512px** (the hard, tripwire-tested ceiling), bought-
+  GLB crunch at 256px is sanctioned, and two deliberate `LinearFilter` exceptions
+  stand (`CoverArt`, `FrutigerRoom`) — see CLAUDE.md's amended PS1 constraints
+  (2026-07-07, Luke). This applies to bought GLBs too.
 - **Lazy-load all WebGL** behind the install gag; the initial storefront bundle
   ships **zero three.js** (asserted by `scripts/check-build.mjs`). Other heavy,
   debug-only deps (e.g. `leva`) are lazy too.

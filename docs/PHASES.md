@@ -113,6 +113,19 @@ commands + the Möbius/dice pokes are wired triggers.
   master → limiter → destination) sits across ALL audio, so no sum of sources or
   sudden onset can spike the speakers (WCAG 2.3.1 audio rule + ears). Covered by
   `shoot:dread` alongside the dosage curve (sweet surface/shrine, bitter deep).
+- ✅ **The CURDLE (2026-07-07) — step 2's dormant half is live.** `mapUnease`'s
+  long-unconsumed `bitcrush` + `dropoutChance` finally drive real audio: a
+  **curdle insert** on the engine's song path (`src/lib/curdle.ts` pure score +
+  `curdle.test.ts`; a dry/wet WaveShaper quantize branch, tape wow/flutter LFOs
+  summed into `source.playbackRate` so the descent bend composes untouched, and
+  rare dropout dips on a dedicated gain whose **fade-back is pre-scheduled in the
+  same call** — never a spike, machine-checked). Deep-dread now audibly curdles
+  whatever song is playing; the surface stays bit-exact passthrough. The same
+  insert powers the jukebox **pressings** (Phase 8's d20 crits as REAL audio —
+  cursed genuinely warbles, pristine rate-corrects the baked slow-down; room
+  theatre, cleared on cycle/track-change/exit). `shoot:dread` asserts the
+  u=1→wet / u=0→clean map + the dropout dip-and-fade-back shape; `shoot:dice`
+  asserts all four pressing transitions through the real roll/exit paths.
 
 Build in this order, checkpoint at each. **Trim point:** steps 1–3 are the
 viable spine (audio bed + visual ramp make it visceral). Ship 1–3, then the rat,
@@ -524,7 +537,9 @@ anyway), which makes the joke land harder: a 2026 site that PRINTS its own 1999 
   frame; **`shoot:gifs` decodes each GIF in real Chromium** (the spec oracle that
   caught that width-bump bug) and rewraps every later frame's verbatim bytes to
   validate them too. Fail-fast palette-index validation; spec-correct LSD color bits.
-- ✅ **Four original GIFs (`public/gifs/`):** a bopping **dancing-pizza** (the site's
+- ✅ **This pass's four original GIFs** (later passes grew `public/gifs/` well
+  past four — the NEW! blinky, @-mail, globe, and leaderboard trio below): a
+  bopping **dancing-pizza** (the site's
   "dancing baby"), a scrolling **construction** caution-bar, a shimmering **rainbow
   `<hr>`**, and a tiled **starfield wallpaper** — each animated GIF paired with a
   1-frame `*-static.gif` served under `prefers-reduced-motion` via `<picture>` (a
@@ -695,6 +710,49 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
   broken-CRT no-modal guard, the walk-to-mic cheer).
 
 ## Open hygiene / notes
+- **Constitution audit (2026-07-07):** an adversarial re-check of every CLAUDE.md
+  hard line against the whole codebase (they'd only ever been verified per-feature
+  as each shipped). Findings → dispositions:
+  - **FIXED — Poke's audio path had no brickwall limiter** (`FaceStretch.tsx` ran
+    its own AudioContext `src→filter→gain→destination`); it now ends in the same
+    DynamicsCompressor as the other cabinets.
+  - **FIXED — YouTube CRT iframes ignored the global mute.** `YoutubeFacade` now
+    bakes `mute=1` into the src when muted at click time and forwards later
+    toggles over the YT iframe API (`enablejsapi=1` + postMessage). `shoot:tv`
+    asserts both directions of the click-time contract.
+  - **FIXED — the MAIN_DESCENT key guard was a silent `console.warn`** (smokes
+    only fail on `console.error`) **and the unit test the docs claimed didn't
+    exist.** The dev guard now THROWS, and `rooms.test.ts` pins the data
+    invariant (no `requiresKey` door targets a descent room) in CI.
+  - **FIXED — the arcade/leaderboard/instrument pages had NO `<h1>`** (marquee
+    titles were spans). Every marquee is a real `<h1>` now, visually unchanged.
+  - **NEW GUARDS:** `src/constitution.test.ts` — a WCAG 2.3.1 flash-rate tripwire
+    (any luminance-keyframe `infinite` animation must loop ≥0.34s; every animated
+    CSS file must carry a reduced-motion block — trapdoor.css was missing its
+    belt-and-braces block, added) and a PS1 texture-ceiling tripwire (≤512px).
+    Plus `check-build.mjs` now asserts a11y structure on every prerendered page
+    (exactly one `<h1>`, no skipped heading levels, a `<main>` landmark, no
+    alt-less `<img>`; `1101.html` exempt — it's the hand-exported Twine story).
+  - **AMENDED — the texture cap** (Luke: "we can make shit look good. fuck it.
+    change the standards"): see CLAUDE.md's PS1 constraints — 128px stays the
+    default grain, text atlases/FX canvases to 512, GLB crunch at 256,
+    `CoverArt`/`FrutigerRoom` LinearFilter exceptions recorded.
+  - **REWORDED — one shipped mark reference:** the `/poke` meta description named
+    a Nintendo title; now "'96-console". (Comments + Luke's own lyrics/lore that
+    reference brands are his creative content / nominative and stay.)
+  - **VERIFIED CLEAN / NO-OP:** `public/1101.html` has no audio (its only "audio"
+    string is Harlowe's internal CSS tag table), so the Twine iframes can't leak
+    sound past the mute; no `href="#"` anywhere; chimes/cultures cabinets carry
+    their own limiter+mute (already smoke-tested); heading order on all content
+    pages was already sound.
+- **Docs reconciliation pass (2026-07-07):** a drift audit of the three governing
+  docs + README against the code fixed 7 stale claims — jukebox `*.wav` → `*.mp3`
+  (CLAUDE/DESIGN), DESIGN's "four tracks" → the real catalog, the trap-door and
+  grass-encounter DESIGN sections re-tagged SHIPPED, the spinning-globe "still
+  open" line closed, README's hard-coded "seven cabinets" replaced with a pointer
+  at the `arcadeGames.ts` registry, and the "Four original GIFs" line rescoped to
+  its pass. Rule of thumb reaffirmed: don't hard-code counts a registry/catalog
+  owns — point at the source of truth.
 - **CI + smoke gate (shipped):** `.github/workflows/ci.yml` runs typecheck +
   build + `npm run shoot:all` (auto-discovers every `shoot:*`, one preview, retry-
   once). A `shoot`/`shoot:*` script == a CI-gating smoke; non-gating helpers must
@@ -774,9 +832,11 @@ guardrail before anything that adds a place/NPC/system):
   add per-room touch-walk coverage beyond the beach shop that `shoot:touch` drives.
 - **More GeoCities fun.** ✅ The **"Sign My Guestbook"** anchor (→ `contact`), the
   **"NEW!" blinky**, and the printed **@-mail envelope** GIF all shipped (above).
-  Still open: more **blinkies** on other surfaces, a spinning-globe / flame divider —
-  extend the retro furniture while adding real nav anchors, not just decoration.
-  Reuses the GIF89a encoder (`make-gifs.mjs`) already in the repo.
+  ✅ The **spinning WORLD WIDE WEB globe** shipped too (`public/gifs/globe.gif`,
+  a real `<a href="/links">` on the 1999 floor — `StarburstFloor.tsx`). Still open:
+  more **blinkies** on other surfaces, a flame divider — extend the retro furniture
+  while adding real nav anchors, not just decoration. Reuses the GIF89a encoder
+  (`make-gifs.mjs`) already in the repo.
 - **3D world delight.** ✅ First beat shipped — the **pizza pan chimes** "play it"
   instrument in the park (above); ✅ and **The Aerial** — the deep proximity-played
   theremin room (the music ladder's first SUSTAINED voice). More to feed the

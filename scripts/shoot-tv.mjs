@@ -105,9 +105,86 @@ if (closed) {
   if (!musicRestored) fail('the radio did not restore after the TV video closed');
 }
 
+// GLOBAL-MUTE contract (the constitution audit): the click-to-load iframe must
+// honor the site mute — enablejsapi=1 always (so later toggles can postMessage
+// through), and mute=1 baked into the src when the site is muted at click time.
+// Muting is a persisted store read (localStorage 'sdp_muted'), so a reload with
+// the flag set IS the muted-user case; the walk re-runs deterministically.
+async function openTvAndPressPlay() {
+  await page.waitForSelector('.hud-menu-btn', { timeout: 12000 });
+  await page.waitForTimeout(1500);
+  await page.keyboard.down('w');
+  await page.keyboard.down('d');
+  for (let i = 0; i < 60; i++) {
+    if (await has('.hud-prompt--tv')) break;
+    await page.waitForTimeout(80);
+  }
+  await page.keyboard.up('w');
+  await page.keyboard.up('d');
+  await page.keyboard.press('e');
+  await page.waitForSelector('.hud-dialog--tv', { timeout: 4000 });
+  await page.click('.hud-dialog--tv .tv__play');
+  await page.waitForSelector('.hud-dialog--tv .tv__iframe', { timeout: 4000 });
+  return page.$eval('.hud-dialog--tv .tv__iframe', (el) => el.getAttribute('src') ?? '');
+}
+
+let mutedSrcOk = false;
+let unmutedSrcOk = false;
+try {
+  await page.evaluate(() => localStorage.setItem('sdp_muted', '1'));
+  await page.goto(base + '/?room=frutiger&debug=1', { waitUntil: 'commit' });
+  const mutedSrc = await openTvAndPressPlay();
+  mutedSrcOk = mutedSrc.includes('enablejsapi=1') && mutedSrc.includes('mute=1');
+  if (!mutedSrcOk) fail(`muted-at-click iframe src lacks enablejsapi/mute params: ${mutedSrc}`);
+
+  await page.evaluate(() => localStorage.setItem('sdp_muted', '0'));
+  await page.goto(base + '/?room=frutiger&debug=1', { waitUntil: 'commit' });
+  const unmutedSrc = await openTvAndPressPlay();
+  unmutedSrcOk = unmutedSrc.includes('enablejsapi=1') && !unmutedSrc.includes('mute=1');
+  if (!unmutedSrcOk) fail(`unmuted iframe src wrong (want enablejsapi, no mute=1): ${unmutedSrc}`);
+} catch (e) {
+  fail(`mute-contract pass broke: ${e.message}`);
+}
+
+// POST-LOAD toggles too, not just click time: with the iframe already playing,
+// flip the global mute through the REAL store path (__sdpSetMuted → audioStore →
+// the facade's subscriber) and assert a YT API command was actually posted to the
+// iframe (__sdpTvMuteSent counts sends). Both directions.
+//
+// "SENT" is deliberately the bar here, not "accepted": the player is a
+// cross-origin iframe, so the page can't observe its internal mute state, and
+// the YT API offers no local ack we could read without wiring a message-event
+// listener into product code just for a test. The un-smokable remainder is
+// covered by construction — the origin is derived from `video.embed` (pinned
+// absolute + no-cookie by videos.test.ts) and the load-event retries re-assert
+// the state after player init. Don't overread this check.
+let postLoadMuteOk = false;
+try {
+  const sentAfter = async (flip) => {
+    const before = (await page.evaluate(() => window.__sdpTvMuteSent)) ?? 0;
+    await page.evaluate((m) => window.__sdpSetMuted?.(m), flip);
+    return page
+      .waitForFunction((n) => (window.__sdpTvMuteSent ?? 0) > n, before, { timeout: 4000 })
+      .then(
+        () => true,
+        () => false,
+      );
+  };
+  const mutedSent = await sentAfter(true);
+  const unmutedSent = await sentAfter(false);
+  postLoadMuteOk = mutedSent && unmutedSent;
+  if (!postLoadMuteOk)
+    fail(
+      `post-load mute toggle did not reach the iframe (mute=${mutedSent} unmute=${unmutedSent})`,
+    );
+} catch (e) {
+  fail(`post-load mute pass broke: ${e.message}`);
+}
+
 console.log(
   `tv: frutiger=${inFrutiger} noPromptAtSpawn=${noPromptAtSpawn} prompted=${prompted} ` +
     `modalOpen=${modalOpen} albumTitled=${titledForAlbum} escClosed=${closed} ` +
-    `ducked=${duckedForVideo} restored=${musicRestored} | errors=${failures()}`,
+    `ducked=${duckedForVideo} restored=${musicRestored} mutedSrc=${mutedSrcOk} ` +
+    `unmutedSrc=${unmutedSrcOk} postLoadMute=${postLoadMuteOk} | errors=${failures()}`,
 );
 await finish();

@@ -72,6 +72,10 @@
   border: 3px inset #4a4a5e;
 }
 .arcade-marquee__neon {
+  /* an <h1> since the a11y pass — keep the marquee look, drop the UA h1 box */
+  margin: 0;
+  font-size: inherit;
+  display: inline;
   font-weight: bold;
   letter-spacing: 4px;
   color: #ff44cc;

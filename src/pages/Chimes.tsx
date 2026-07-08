@@ -41,7 +41,7 @@ export default function Chimes() {
 
       <div className="chimes-cabinet">
         <div className="chimes-marquee">
-          <span className="chimes-marquee__neon">PENDULUM CHIMES</span>
+          <h1 className="chimes-marquee__neon">PENDULUM CHIMES</h1>
         </div>
 
         {mounted ? (
