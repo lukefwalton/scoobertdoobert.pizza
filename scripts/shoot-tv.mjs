@@ -150,6 +150,14 @@ try {
 // flip the global mute through the REAL store path (__sdpSetMuted → audioStore →
 // the facade's subscriber) and assert a YT API command was actually posted to the
 // iframe (__sdpTvMuteSent counts sends). Both directions.
+//
+// "SENT" is deliberately the bar here, not "accepted": the player is a
+// cross-origin iframe, so the page can't observe its internal mute state, and
+// the YT API offers no local ack we could read without wiring a message-event
+// listener into product code just for a test. The un-smokable remainder is
+// covered by construction — the origin is derived from `video.embed` (pinned
+// absolute + no-cookie by videos.test.ts) and the load-event retries re-assert
+// the state after player init. Don't overread this check.
 let postLoadMuteOk = false;
 try {
   const sentAfter = async (flip) => {

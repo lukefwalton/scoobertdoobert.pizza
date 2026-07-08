@@ -98,6 +98,28 @@ describe('video ids are well-formed (no truncation / typos ship)', () => {
   }
 });
 
+// The GLOBAL-MUTE contract's data half: YoutubeFacade derives its postMessage
+// target from `new URL(video.embed).origin`, so every embed the registry can
+// ever hand it must be an ABSOLUTE, parseable URL on the no-cookie host — a
+// malformed/relative embed would silently degrade post-load mute forwarding
+// into the catch path (the review bot's flag). ytEmbed() constructs these, so
+// this pins the constructor's output shape across every resolvable video.
+describe('every embed is an absolute no-cookie URL (the mute postMessage target)', () => {
+  const allEmbeds: Array<[string, string]> = [
+    ['TV_SPOTS', TV_SPOTS.embed],
+    ...ALBUMS.map((a) => [`album ${a.slug}`, albumVideo(a.slug).embed] as [string, string]),
+    ...ROOMS.filter((r) => r.tv).map(
+      (r) => [`room ${r.id} CRT`, tvVideoFor(r.tv!).embed] as [string, string],
+    ),
+  ];
+  for (const [label, embed] of allEmbeds) {
+    it(`${label} embed parses to the no-cookie origin`, () => {
+      const origin = new URL(embed).origin; // throws on a relative/malformed embed
+      expect(origin).toBe('https://www.youtube-nocookie.com');
+    });
+  }
+});
+
 // Every in-world CRT (room.tv) must resolve to a real, non-empty clip — and if it
 // names a songSlug, that resolution must surface a usable embed (the whole point
 // of the room having a TV). Guards a room.tv typo from shipping a dead screen.
