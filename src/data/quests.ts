@@ -13,6 +13,7 @@
 
 import type { Progress } from '../state/progressStore';
 import { CASSETTE_IDS } from './items';
+import { restoredCount } from './restoration';
 
 export type Quest = {
   /** Stable id (for keys + the announce-on-complete diff). */
@@ -145,6 +146,17 @@ export const QUESTS: Quest[] = [
     hint: 'Follow the shrine’s tracks down, then to where they finally stop.',
     room: 'terminus',
     done: (p) => p.visitedRooms.includes('terminus'),
+  },
+  {
+    id: 'restore-master',
+    label: 'Restore a master',
+    hint: 'Thread a song you’ve found onto the control room’s reel-to-reel — or pocket a master tape.',
+    room: 'controlroom',
+    // A BONUS ritual (the おみくじ precedent): the hi-fi museum layer is optional
+    // depth, so it never moves the ★100% finale bar. Bench rites AND held master
+    // tapes both count — restoredCount derives across the two.
+    bonus: true,
+    done: (p) => restoredCount(p) > 0,
   },
   {
     id: 'saved-san-diego',

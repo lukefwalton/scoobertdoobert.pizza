@@ -222,6 +222,7 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   liveroom: { x: 1.5, y: 3.6 },
   controlroom: { x: 0.2, y: 3.5 },
   tapevault: { x: 0.2, y: 4.7 },
+  listening: { x: -1.2, y: 4.8 }, // the museum wing west off the vault
   lounge: { x: 1.3, y: 4.8 },
   poolrooms: { x: 5, y: 3.6 },
   // sunken gallery wing — a side branch off the poolrooms (right), dipping then
