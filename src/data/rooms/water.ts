@@ -239,9 +239,9 @@ export const WATER_ROOMS: Room[] = [
     id: 'deeppool',
     kind: 'liminal',
     title: 'The Abandoned Pool',
-    // The bitter bottom of the water descent — a heavy (52 MB → 5 MB crunched)
-    // GLB environment, lazy-loaded behind the loader minigame (this is the load
-    // the minigame earns its keep on). A GLB → GLB hop down from the liminal.
+    // The bitter bottom of the water descent — a crunched GLB environment
+    // (a tiled poolroom, ~52 KB shipped), lazy-loaded behind the loader
+    // minigame. A GLB → GLB hop down from the liminal.
     glb: {
       url: '/models/abandoned-pool.glb',
       fit: 22,
