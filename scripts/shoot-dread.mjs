@@ -95,10 +95,24 @@ const dropout = await page.evaluate(async () => {
   const at = (ms) => new Promise((r) => setTimeout(r, ms));
   const rest = a.curdleLevel;
   a.forceDropout();
-  await at(300);
-  const dipped = a.curdleLevel;
-  await at(2200);
-  const recovered = a.curdleLevel;
+  // The dip is a scheduled ramp on the AUDIO clock (bottom ~0.08 by ~200ms,
+  // fade-back from 250ms) — its below-0.5 window is only ~450ms wide, so a
+  // single wall-clock sample races timer lag on a loaded CI runner (a +350ms
+  // late fire reads the RECOVERY slope and flakes). Poll fast and keep the
+  // MINIMUM seen instead: any one sample inside the window proves the dip.
+  let dipped = rest;
+  const t0 = Date.now();
+  while (Date.now() - t0 < 1500 && dipped >= 0.5) {
+    await at(25);
+    dipped = Math.min(dipped, a.curdleLevel);
+  }
+  // Recovery: poll until it climbs back (same ~2.5s budget as before).
+  let recovered = a.curdleLevel;
+  const t1 = Date.now();
+  while (Date.now() - t1 < 2500 && recovered <= 0.85) {
+    await at(50);
+    recovered = a.curdleLevel;
+  }
   return { hook: true, rest, dipped, recovered };
 });
 if (!dropout.hook) bad('__sdpAudio not exposed for the dropout check');

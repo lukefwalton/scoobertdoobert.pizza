@@ -88,7 +88,18 @@ const clickedEmpty = await exhibit('boardwalk').then(
   () => false,
 );
 if (!clickedEmpty) fail('the boardwalk exhibit hook never mounted');
-await page.waitForTimeout(400);
+// concrete wait: the empty-frame toast IS the completion signal for the no-op
+const emptyToast = await page
+  .waitForFunction(
+    () => /empty frame/i.test(document.querySelector('.hud-toast')?.textContent ?? ''),
+    null,
+    { timeout: 5000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!emptyToast) fail('clicking the ??? frame never toasted');
 {
   const active = await page.evaluate(() => window.__sdpJukeboxActive === true);
   if (active) fail('clicking an EMPTY ??? frame seized the loop voice');

@@ -584,7 +584,19 @@ class PizzaAudio {
     void this.decodeJukebox(hifiUrl); // the decode races the theatre
     exposeTestGlobal('__sdpCeremony', 'windup');
 
-    const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+    // Phase changes ride the AUDIO clock, not wall-clock timers: the ramps are
+    // scheduled on ctx time, so the state machine waits for ctx.currentTime to
+    // reach the same deadlines. A throttled/background tab clamps the poll to
+    // ~1 s granularity but can't DRIFT the rite from its own audio — the handoff
+    // lands when the sweep audibly ends, whatever setTimeout was doing.
+    const waitForCtxTime = (t: number) =>
+      new Promise<void>((resolve) => {
+        const tick = () => {
+          if (ctx.currentTime >= t || !this.ceremony) resolve();
+          else setTimeout(tick, 100);
+        };
+        tick();
+      });
     const stale = () =>
       !this.ceremony ||
       gen !== this.jukeboxGen ||
@@ -599,6 +611,7 @@ class PizzaAudio {
 
     // ── wind-up (0 → windup): the reels grab — the tape audibly strains. Wet to
     // the cap, a heavy slow wobble; τ 0.35 reaches ~98% inside the window.
+    const windupEnd = ctx.currentTime + CEREMONY_MS.windup / 1000;
     {
       const now = ctx.currentTime;
       this.curdleDry?.gain.setTargetAtTime(1 - WET_CAP, now, 0.35);
@@ -606,19 +619,19 @@ class PizzaAudio {
       this.wowGain?.gain.setTargetAtTime(0.05, now, 0.35);
       this.flutterGain?.gain.setTargetAtTime(0.012, now, 0.35);
     }
-    await sleep(CEREMONY_MS.windup);
+    await waitForCtxTime(windupEnd);
     if (stale()) return abort();
 
     // ── the sweep (windup → windup+sweep): the song un-warbles and LIFTS to true
     // pitch — "cleaner than the tape should allow", earned in real time.
+    const now = ctx.currentTime;
+    const sweepEnd = now + CEREMONY_MS.sweep / 1000;
     {
-      const now = ctx.currentTime;
-      const end = now + CEREMONY_MS.sweep / 1000;
       const ramp = (param: AudioParam | undefined, to: number) => {
         if (!param) return;
         param.cancelScheduledValues(now);
         param.setValueAtTime(param.value, now);
-        param.linearRampToValueAtTime(to, end);
+        param.linearRampToValueAtTime(to, sweepEnd);
       };
       ramp(this.curdleDry?.gain, 1);
       ramp(this.curdleWet?.gain, 0);
@@ -628,7 +641,7 @@ class PizzaAudio {
       this.pressingRateSet = true; // so the post-rite applyCurdle ramps rate home
       exposeTestGlobal('__sdpCeremony', 'sweep');
     }
-    await sleep(CEREMONY_MS.sweep);
+    await waitForCtxTime(sweepEnd);
     if (stale()) return abort();
 
     // ── handoff: the ordinary crossfade IS the final beat. Clear the flag first
