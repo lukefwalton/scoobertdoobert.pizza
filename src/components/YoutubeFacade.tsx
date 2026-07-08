@@ -20,7 +20,6 @@ import { useAudioStore } from '../state/audioStore';
 // (idempotent commands — a repeat of the current state is a no-op). The player's
 // own volume control still works after an unmute.
 // ───────────────────────────────────────────────────────────────────────────
-const YT_ORIGIN = 'https://www.youtube-nocookie.com';
 // Post-load retry delays (ms): the YT player's JS API comes up a beat AFTER the
 // iframe's load event; the second retry covers a slow init.
 const MUTE_RETRY_MS = [300, 1400];
@@ -46,9 +45,12 @@ export function YoutubeFacade({
     const win = iframeRef.current?.contentWindow;
     if (!win) return;
     try {
+      // Target origin is DERIVED from the embed url (not hard-coded), so if the
+      // embed host ever changes, mute forwarding can't silently start missing —
+      // the postMessage target moves with the data layer.
       win.postMessage(
         JSON.stringify({ event: 'command', func: m ? 'mute' : 'unMute', args: [] }),
-        YT_ORIGIN,
+        new URL(video.embed).origin,
       );
       // Instrumentation for the tv smoke (test entrances only): proves a post-load
       // store toggle actually reaches the iframe, not just the click-time URL param.
@@ -79,10 +81,7 @@ export function YoutubeFacade({
       }, ms),
     );
   };
-  useEffect(
-    () => () => retryTimers.current.forEach((t) => window.clearTimeout(t)),
-    [],
-  );
+  useEffect(() => () => retryTimers.current.forEach((t) => window.clearTimeout(t)), []);
 
   // The clip's own caption (a song/album line) wins; fall back to the channel blurb.
   const cap = caption ?? video.blurb ?? TV_SPOTS.blurb;
