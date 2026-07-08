@@ -39,6 +39,11 @@ export type Item = {
    *  the way opens." Durable (you found it, it stays found). Used by the "1101"
    *  master reel → the Save San Diego level door. */
   revealsSecret?: string;
+  /** MASTER tapes: holding the studio master IS the restoration — its `track`
+   *  counts as restored (plays hi-fi) the moment it's pocketed, no bench rite
+   *  needed. Derived in data/restoration.ts off itemsHeld, so it's retroactive
+   *  for saves that already hold a master. Only meaningful with `track` set. */
+  master?: true;
 };
 
 export const ITEMS: Item[] = [
@@ -100,6 +105,7 @@ export const ITEMS: Item[] = [
     blurb: 'A reel-to-reel box, “INFORMATION — MASTER” in grease pencil. Heavy.',
     glyph: '📼',
     track: 'information',
+    master: true,
   },
   {
     id: 'tape-1101',
@@ -108,6 +114,7 @@ export const ITEMS: Item[] = [
     blurb: 'A cassette labeled only 1101. Seven-bit ASCII, sung — it decodes to a URL.',
     glyph: '📼',
     track: '1101',
+    master: true,
     // Pocketing the 1101 reel decodes the URL and opens the way IN — a doorway hums
     // open in the vault wall onto the "Save San Diego" text-adventure level.
     revealsSecret: 'save-san-diego',
@@ -119,6 +126,7 @@ export const ITEMS: Item[] = [
     blurb: 'A water-warped shell with a doodled pirate flag. Side B is just tape hiss.',
     glyph: '📼',
     track: 'jolly-roger-bay',
+    master: true,
   },
   // ── Tomes — the spell scrolls (the RPG layer's magic, earned by finding them).
   {

@@ -53,7 +53,17 @@ function ramp(u: number, start: number, end: number): number {
   return Math.min(1, Math.max(0, (u - start) / (end - start)));
 }
 
-export function curdleParamsFor(unease: number, pressing: Pressing = null): CurdleParams {
+export function curdleParamsFor(
+  unease: number,
+  pressing: Pressing = null,
+  opts: {
+    /** The live voice is a RESTORED hi-fi file (no baked 0.965 slow-down), so a
+     *  pristine pressing has nothing to rate-correct — it plays at 1. Dread's
+     *  curdle and the cursed pressing apply to hi-fi UNCHANGED: the depths
+     *  curdle even restored masters, and a nat 1 curses the clean pressing too. */
+    hifi?: boolean;
+  } = {},
+): CurdleParams {
   // Pristine overrides: the nat-20 record plays CLEAN no matter how deep the
   // conductor sits (it's the reward — luck beats dread for one pressing).
   if (pressing === 'pristine') {
@@ -62,7 +72,7 @@ export function curdleParamsFor(unease: number, pressing: Pressing = null): Curd
       wow: { hz: 0.55, depth: 0 },
       flutter: { hz: 6.5, depth: 0 },
       dropoutChance: 0,
-      rate: PRISTINE_RATE,
+      rate: opts.hifi ? 1 : PRISTINE_RATE,
     };
   }
 

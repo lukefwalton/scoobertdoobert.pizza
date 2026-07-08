@@ -1,6 +1,7 @@
 import type { RouteRecord } from 'vite-react-ssg';
 import Storefront from './pages/Storefront';
 import TextOnly from './pages/TextOnly';
+import Catalog from './pages/Catalog';
 import LinkArchive from './pages/LinkArchive';
 import About from './pages/About';
 import AboutJp from './pages/AboutJp';
@@ -30,6 +31,7 @@ export const routes: RouteRecord[] = [
   { path: '/', element: <Storefront /> },
   { path: '/text', element: <TextOnly /> },
   { path: '/links', element: <LinkArchive /> },
+  { path: '/catalog', element: <Catalog /> },
   { path: '/about', element: <About /> },
   // /about/jp -> the Japanese-language twin of /about (the one translated page),
   // reciprocally hreflang-linked with /about. Stresses the Japan credits.

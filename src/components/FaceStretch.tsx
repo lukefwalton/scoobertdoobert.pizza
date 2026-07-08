@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAudioStore } from '../state/audioStore';
-import { cueUrl } from '../data/music';
+import { cuePlaybackUrl } from '../lib/trackSource';
 import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -20,7 +20,9 @@ const W = 270; // logical canvas size (portrait, to frame a face)
 const H = 320;
 const N = 9; // control points per axis (N-1 cells)
 const FACE_SRC = '/press/scoobert-poke.jpg';
-const SAMPLE_SRC = cueUrl('pokeSample'); // which Scoobert track the face warps — see data/music CUES
+// Which Scoobert track the face warps — see data/music CUES. Resolved at fetch
+// time (not module load) so a restored track feeds the toy its hi-fi master.
+const sampleSrc = () => cuePlaybackUrl('pokeSample');
 
 type Node = { x: number; y: number; vx: number; vy: number; rx: number; ry: number; grab: number };
 
@@ -123,7 +125,7 @@ export function FaceStretch() {
       src.connect(filter).connect(gain).connect(limiter).connect(ctx.destination);
       audioRef.current = { ctx, src, filter, gain };
       // decode Scoobert's own track (no synth — we warp his real sound)
-      fetch(SAMPLE_SRC)
+      fetch(sampleSrc())
         .then((r) => r.arrayBuffer())
         .then((buf) => ctx.decodeAudioData(buf))
         .then((decoded) => {

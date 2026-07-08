@@ -14,10 +14,12 @@
 
 import type { Progress } from '../state/progressStore';
 import { LYRICS, lyricFor, songsWithLyrics, findLyricSlug, hasLyrics } from './lyrics';
-import { SONG_META, songMeta, fuzzyFindSlug } from './songMeta';
+import { SONG_META, songMeta, songTitle, fuzzyFindSlug } from './songMeta';
 import { LMM_EPISODES, LMM_CONCEPT, LMM_HOME } from './lmm';
 import { loreAt } from './lore';
 import { ALBUMS } from './albums';
+import { JUKEBOX_TRACKS } from './jukebox';
+import { isSongDiscovered, isSongRestored } from './restoration';
 import { spellById, isCantrip, SPELL_SLOTS_MAX, type Spell } from './spells';
 import { rollLuckyD20, critBanner } from '../lib/luck-core';
 
@@ -354,6 +356,34 @@ export const COMMANDS: Command[] = [
           '',
           '(switch a CRT on in the world to watch one. or `catalog` for the shop.)',
         ],
+      };
+    },
+  },
+  {
+    name: 'catalog',
+    help: 'every song on file (and the state of your copy)',
+    run: (ctx) => {
+      // The museum's index, from the command line: one line per catalog track.
+      // ★ = restored (plays hi-fi) · ✓ = discovered · a dot + ??? = still out
+      // there (the terminal never spoils an unfound title — the museum's rule).
+      const rows = JUKEBOX_TRACKS.map(({ slug }) => {
+        const restored = isSongRestored(ctx.progress, slug);
+        const found = isSongDiscovered(ctx.progress, slug);
+        const glyph = restored ? '★' : found ? '✓' : '·';
+        return `  ${glyph} ${found ? songTitle(slug) : '???'}`;
+      });
+      const foundCount = JUKEBOX_TRACKS.filter((t) =>
+        isSongDiscovered(ctx.progress, t.slug),
+      ).length;
+      return {
+        output: [
+          'THE SONG CATALOG:',
+          ...rows,
+          '',
+          `${foundCount}/${JUKEBOX_TRACKS.length} found · ★ = restored to hi-fi (the control-room reel-to-reel)`,
+          'opening the liner notes…',
+        ],
+        action: { type: 'navigate', href: '/catalog' },
       };
     },
   },

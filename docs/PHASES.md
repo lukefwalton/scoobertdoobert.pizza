@@ -26,6 +26,7 @@ unless the work is genuinely ambiguous.
 | 7+ | instruments (vendored from Luke's `fun` playground) → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
 | 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
 | — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
+| — | The audio-museum pass — RESTORATION (hi-fi masters + the bench), the Listening Room, /catalog | ✅ shipped |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -708,6 +709,53 @@ The "make it feel fun like a video game" pass, built from Luke's reference photo
   balboa⇄garden + garden⇄grotto + bamboo→garden edges, ribbit, the full ride
   state machine) and **`shoot:turtle`** (real northpark⇄turtle edges, drums,
   broken-CRT no-modal guard, the walk-to-mic cheer).
+
+## ✅ The audio-museum pass — RESTORATION · the Listening Room · /catalog (2026-07-08)
+The "fun game AND an audio museum" direction (Luke): stop treating songs as
+scattered loot — make them an incomplete permanent collection the player curates.
+Full design in `docs/DESIGN.md` ("Restore it" rung + "The Listening Room +
+/catalog"). Four chunks, one per commit, each smoked:
+- ✅ **The hi-fi masters + restored-aware urls.** `make-jukebox-audio.mjs` grew a
+  HI-FI pass (44.1 kHz stereo, no tape/hiss/crush, same silence-skip so both
+  bounces open on the same bar) → `public/audio/jukebox/hifi/<slug>.mp3`, all 18
+  shipped (~241 kB each, lazy-decoded); `--hifi-only` avoids churning the
+  random-hiss lo-fi bytes. `progressStore.restoredSongs` (monotonic, no
+  migration) + `data/restoration.ts` (pure derived view — **holding a studio
+  master tape IS the restoration**, retroactive for old saves; master pickups
+  also bank `discoverSong`). `lib/trackSource.playbackUrlFor()` is THE one
+  restored-aware chooser — every play site (dial, d20, Room.song, cassettes,
+  cues, dives, Poke's sample) resolves through it; `loopIndexForUrl` folds hi-fi
+  urls onto the same dial index. `curdleParamsFor` grew a `hifi` flag (pristine
+  on hi-fi = rate 1 — no false pitch-up; dread/cursed variant-blind).
+- ✅ **The restoration bench** (`shoot:restore`). `engine.restoreCeremony(lofi,
+  hifi)`: a ~4.5 s all-ramps rite (wind-up → sweep → the ordinary crossfade as
+  the final beat), a `ceremony` flag parks the per-frame dread `applyCurdle`
+  writes, url+generation guards abort stale rites, banked at COMPLETION.
+  `lib/restoration.ts` `benchState`/`restoreAtBench` behind the E key, the deck
+  click, and the smoke hook alike; refusals toast a reason (never a dead key).
+  `sceneStore.nearRestoreBench` + a WorldHud `hud-prompt--bench` line that
+  tracks what's threaded; the ControlRoom's first `TapeDeck` became the
+  `RestorationDeck` (RESTORE·修復 placard, reels spin hard mid-rite, a 1.5 Hz
+  breathing lamp — WCAG-safe, collect-burst on bank).
+- ✅ **The Listening Room** (`shoot:listening`) — the museum wing off the Tape
+  Vault (new `listening` room + −X vault door, spawn-contract-verified): one
+  exhibit per track (FramedCover + a wrapped placard off `songMeta`, which grew
+  the `album` attribution field), ??? frames until found (the placard names the
+  owning room — the hint IS the label), gold HI-FI chips once restored, click a
+  discovered exhibit to play it (hi-fi-aware). Pause menu gained the `HI-FI n/N`
+  tally + the BONUS quest "Restore a master" (the おみくじ precedent — the ★100%
+  bar never moves). Also FIXED a pre-existing leak the smoke shots surfaced:
+  `Hotspots` (shop-only) neither froze during room swaps nor cleared on unmount,
+  so a mid-wipe frame could strand a stale shop prompt in another room — it now
+  uses the Interactables freeze set + clears on unmount.
+- ✅ **/catalog + the terminal** (`shoot:catalog`) — the crawlable liner-notes
+  shelf: every track always (discovery never gates the crawl surface), dead-plain
+  1997 register, `MusicRecording` JSON-LD (`discography.recordingNodes` /
+  `catalogGraph`, @id-parity-tested against `albumNodes`), one mounted-gated
+  "your copy" column (✓ found / ★ HI-FI), sitemap + check-build case + a real
+  `/text` anchor. The long-advertised terminal `catalog` command exists now
+  (★/✓/`???` per track — the terminal never spoils the museum — then navigates
+  to /catalog).
 
 ## Open hygiene / notes
 - **Constitution audit (2026-07-07):** an adversarial re-check of every CLAUDE.md

@@ -20,6 +20,7 @@ const COLD: Progress = {
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  restoredSongs: [],
   knownSpells: [],
   spellSlotsGained: 0,
   spellSlotsSpent: 0,

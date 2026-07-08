@@ -10,7 +10,9 @@ around. This is the map.
 |---|---|
 | `src/data/jukebox.catalog.json` | **The catalog.** One row per song: `{ slug, title, source }`. `source` is the master; `slug` is the shipped filename; `title` is the jukebox/switcher label. |
 | `src/data/music.ts` | **The semantic layer.** The boot loop, the **CUES** (which song plays at each spot), and the switcher's `LOOP_OPTIONS`. Edit cues here. |
-| `scripts/make-jukebox-audio.mjs` | Renders each catalog row → a degraded, tape-warbled, lo-fi **MP3** loop in `public/audio/jukebox/<slug>.mp3`. |
+| `scripts/make-jukebox-audio.mjs` | Renders each catalog row → a degraded, tape-warbled, lo-fi **MP3** loop in `public/audio/jukebox/<slug>.mp3` **and** its clean **HI-FI** twin in `public/audio/jukebox/hifi/<slug>.mp3` (the restoration reward — 44.1 kHz stereo, no tape pass). `--hifi-only` renders just the hi-fi set (the lo-fi pass seeds random hiss, so re-running it churns shipped bytes). |
+| `src/lib/trackSource.ts` | **The one restored-aware url chooser.** Every play site resolves a slug through `playbackUrlFor(slug)` / `cuePlaybackUrl(cue)` — a RESTORED track (bench rite or held master; `src/data/restoration.ts`) plays its hi-fi file everywhere, automatically. Never build a track url by hand. |
+| `src/data/songMeta.json` | The liner notes: `{ title, meaning, year, album }` per slug — the Listening Room placards, `/catalog`, and the terminal read it. |
 | `scripts/make-boot-audio.mjs` | Renders the single storefront/boot ambience → `public/audio/boot.mp3`. |
 | `public/audio/**` | The shipped MP3s (only MP3 — no WAV in this repo). |
 
@@ -26,9 +28,14 @@ around. This is the map.
    - `slug` is the output filename + the id everything references. Lowercase, hyphenated, unique.
    - Array **order = the jukebox cycle order** and the switcher order.
 3. Render it: `node scripts/make-jukebox-audio.mjs` (decodes in headless Chromium —
-   no ffmpeg needed; preflights for missing masters / duplicate slugs).
-4. Done. The song now appears in the in-world **jukebox**, the d20 selector, AND
-   the **pause-menu song switcher** automatically. No code changes.
+   no ffmpeg needed; preflights for missing masters / duplicate slugs). This
+   writes BOTH bounces — the lo-fi loop and the `hifi/` twin.
+4. Give it liner notes: a `src/data/songMeta.json` entry (`title` / `meaning` /
+   `year` / `album` — the albums.json slug whose cover represents it, or null).
+   `songMeta.test` fails the build until every catalog slug has one.
+5. Done. The song now appears in the in-world **jukebox**, the d20 selector, the
+   **pause-menu song switcher**, the **Listening Room** exhibit wall, and
+   **/catalog** automatically. No code changes.
 
 ## Move a song (change what plays where)
 

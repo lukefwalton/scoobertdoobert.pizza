@@ -70,6 +70,11 @@ export type Progress = {
    *  sound"). Room-songs are hidden from the jukebox until found; finding the room
    *  adds its track to the cabinet forever. Monotonic (the array only grows). */
   discoveredSongs: string[];
+  /** Jukebox slugs RESTORED at the control-room bench — each plays its clean
+   *  hi-fi variant forever ("Lo-Fi • Hi-Fi", made mechanical). Records only the
+   *  bench ceremonies; holding a master TAPE also counts as restored, but that's
+   *  DERIVED from itemsHeld (data/restoration.ts), never written here. Monotonic. */
+  restoredSongs: string[];
   /** Spell ids the player has LEARNED (spells.ts) — earned by finding a scroll.
    *  Durable so a spell stays yours across visits. Monotonic (array only grows). */
   knownSpells: string[];
@@ -106,6 +111,7 @@ const DEFAULTS: Progress = {
   luckSpent: 0,
   itemsHeld: [],
   discoveredSongs: [],
+  restoredSongs: [],
   knownSpells: [],
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
@@ -150,6 +156,7 @@ function read(): Progress {
       luckSpent: num(p.luckSpent, 0),
       itemsHeld: strArr(p.itemsHeld),
       discoveredSongs: strArr(p.discoveredSongs),
+      restoredSongs: strArr(p.restoredSongs),
       knownSpells: strArr(p.knownSpells),
       spellSlotsGained: num(p.spellSlotsGained, 0),
       spellSlotsSpent: num(p.spellSlotsSpent, 0),
@@ -207,6 +214,7 @@ function mergeProgress(a: Progress, b: Progress): Progress {
     luckSpent: Math.max(a.luckSpent, b.luckSpent),
     itemsHeld: uniq(a.itemsHeld, b.itemsHeld),
     discoveredSongs: uniq(a.discoveredSongs, b.discoveredSongs),
+    restoredSongs: uniq(a.restoredSongs, b.restoredSongs),
     knownSpells: uniq(a.knownSpells, b.knownSpells),
     spellSlotsGained: Math.max(a.spellSlotsGained, b.spellSlotsGained),
     spellSlotsSpent: Math.max(a.spellSlotsSpent, b.spellSlotsSpent),
@@ -243,6 +251,10 @@ type ProgressState = Progress & {
    *  true only the FIRST time (so the caller can chime/announce just on the new
    *  find); idempotent thereafter. */
   discoverSong: (slug: string) => boolean;
+  /** Restore a song at the control-room bench → it plays hi-fi forever. Returns
+   *  true only the FIRST time (the caller announces just on the new rite);
+   *  idempotent thereafter. */
+  restoreSong: (slug: string) => boolean;
   /** Learn a spell (its scroll was found). Idempotent. Learning also grants a full
    *  rest, so a fresh caster starts with a full slot pool. */
   learnSpell: (id: string) => void;
@@ -278,6 +290,7 @@ const snapshot = (s: ProgressState): Progress => ({
   luckSpent: s.luckSpent,
   itemsHeld: s.itemsHeld,
   discoveredSongs: s.discoveredSongs,
+  restoredSongs: s.restoredSongs,
   knownSpells: s.knownSpells,
   spellSlotsGained: s.spellSlotsGained,
   spellSlotsSpent: s.spellSlotsSpent,
@@ -371,6 +384,11 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     discoverSong: (slug) => {
       if (get().discoveredSongs.includes(slug)) return false;
       apply({ discoveredSongs: [...get().discoveredSongs, slug] });
+      return true;
+    },
+    restoreSong: (slug) => {
+      if (get().restoredSongs.includes(slug)) return false;
+      apply({ restoredSongs: [...get().restoredSongs, slug] });
       return true;
     },
     learnSpell: (id) => {

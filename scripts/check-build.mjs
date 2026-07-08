@@ -24,6 +24,11 @@ const cases = [
     files: ['dist/leaderboard.html', 'dist/leaderboard/index.html'],
     needle: 'HIGH SCORES',
   },
+  {
+    label: 'catalog (/catalog)',
+    files: ['dist/catalog.html', 'dist/catalog/index.html'],
+    needle: 'liner notes',
+  },
 ];
 
 let failed = 0;
