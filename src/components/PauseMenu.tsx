@@ -81,6 +81,7 @@ export function PauseMenu() {
       luckSpent: s.luckSpent,
       itemsHeld: s.itemsHeld,
       discoveredSongs: s.discoveredSongs,
+      restoredSongs: s.restoredSongs,
       knownSpells: s.knownSpells,
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,

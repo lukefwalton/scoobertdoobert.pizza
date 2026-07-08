@@ -15,7 +15,7 @@
 //
 // See docs/MUSIC.md.
 // ───────────────────────────────────────────────────────────────────────────
-import { JUKEBOX_TRACKS, jukeboxTrackUrl, type JukeboxTrack } from './jukebox';
+import { JUKEBOX_TRACKS, jukeboxTrackUrl, slugForTrackUrl, type JukeboxTrack } from './jukebox';
 
 export { JUKEBOX_TRACKS, jukeboxTrackUrl };
 export type { JukeboxTrack };
@@ -41,10 +41,13 @@ export type CueName = keyof typeof CUES;
 export const cueUrl = (cue: CueName): string => jukeboxTrackUrl(CUES[cue]);
 
 /** The LOOP_OPTIONS index for an actually-playing url (null/boot → 0). Lets the
- *  music store mirror the engine's real loop voice. */
+ *  music store mirror the engine's real loop voice. Resolves through the SLUG so
+ *  a restored track's hi-fi url maps to the same dial index as its lo-fi twin —
+ *  the HUD, the jukebox dial, and setPreferred stay coherent per-variant. */
 export const loopIndexForUrl = (url: string | null): number => {
-  if (!url) return 0;
-  const i = JUKEBOX_TRACKS.findIndex((t) => jukeboxTrackUrl(t.slug) === url);
+  const slug = slugForTrackUrl(url);
+  if (!slug) return 0;
+  const i = JUKEBOX_TRACKS.findIndex((t) => t.slug === slug);
   return i >= 0 ? i + 1 : 0; // +1: LOOP_OPTIONS[0] is the boot loop
 };
 

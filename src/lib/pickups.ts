@@ -11,7 +11,8 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from './chimes';
 import { itemById } from '../data/items';
 import { spellById } from '../data/spells';
-import { jukeboxTrackUrl, loopIndexForUrl } from '../data/music';
+import { loopIndexForUrl } from '../data/music';
+import { playbackUrlFor } from './trackSource';
 import { useProgressStore } from '../state/progressStore';
 import { useMusicStore } from '../state/musicStore';
 import { announce } from '../state/toastStore';
@@ -55,11 +56,20 @@ export function collectInventoryItem(itemId: string): boolean {
       'crit-good',
     );
   } else if (item?.track) {
-    const url = jukeboxTrackUrl(item.track);
+    // A MASTER tape: holding it IS the restoration (data/restoration derives
+    // restored-ness from itemsHeld). Also bank the discovery — a room-song master
+    // carried home must never read "not yet archived" while wearing a HI-FI badge.
+    if (item.master) prog.discoverSong(item.track);
+    const url = playbackUrlFor(item.track); // masters resolve hi-fi right here
     void audio.playJukeboxTrack(url);
     useMusicStore.getState().setPreferred(loopIndexForUrl(url));
     prog.unlockRadio();
-    announce(`${item.glyph} ${item.label} — give it a spin · +1 luck`, 'luck');
+    announce(
+      item.master
+        ? `${item.glyph} ${item.label} — the master itself · plays hi-fi · +1 luck`
+        : `${item.glyph} ${item.label} — give it a spin · +1 luck`,
+      'luck',
+    );
   } else {
     announce(`${item?.glyph ?? '🎒'} You pocket the ${item?.label ?? 'item'}`, 'luck');
   }

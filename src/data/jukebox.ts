@@ -35,8 +35,22 @@ export const JUKEBOX_TRACKS: JukeboxTrack[] = (catalog as { slug: string; title:
   ({ slug, title }) => ({ slug, title }),
 );
 
-/** The shipped loop for a track slug. */
+/** The shipped lo-fi loop for a track slug. */
 export const jukeboxTrackUrl = (slug: string): string => `/audio/jukebox/${slug}.mp3`;
+
+/** The clean HI-FI variant (the restoration reward) — same 18 s of the same
+ *  master, rendered without the tape pass / hiss / crush (44.1 kHz stereo). */
+export const hifiTrackUrl = (slug: string): string => `/audio/jukebox/hifi/${slug}.mp3`;
+
+/** Is this url the hi-fi variant of a track? */
+export const isHifiUrl = (url: string): boolean => url.startsWith('/audio/jukebox/hifi/');
+
+/** The catalog slug behind either variant's url (null for boot/non-jukebox). */
+export const slugForTrackUrl = (url: string | null): string | null => {
+  if (!url) return null;
+  const m = /^\/audio\/jukebox\/(?:hifi\/)?([^/]+)\.mp3$/.exec(url);
+  return m ? m[1] : null;
+};
 
 /** Is this a "find it in its room" song (owned by some Room.song), vs an
  *  always-available seed track? */

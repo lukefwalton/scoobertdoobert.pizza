@@ -177,3 +177,15 @@ describe('progressStore trophy-case stats', () => {
     expect(useProgressStore.getState().lootTotals.pizza).toBe(6);
   });
 });
+
+describe('restoredSongs (the bench rites)', () => {
+  it('restoreSong returns true only on the first rite, then persists', async () => {
+    const { useProgressStore } = await freshStore();
+    expect(useProgressStore.getState().restoreSong('information')).toBe(true);
+    expect(useProgressStore.getState().restoreSong('information')).toBe(false); // idempotent
+    expect(useProgressStore.getState().restoredSongs).toEqual(['information']);
+    // survives a reload (a fresh store re-reads the same disk)
+    const { useProgressStore: reloaded } = await freshStore();
+    expect(reloaded.getState().restoredSongs).toEqual(['information']);
+  });
+});
