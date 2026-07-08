@@ -23,6 +23,9 @@ import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { interactNearby, grabNearby } from '../lib/worldActions';
+import { benchStateFor, benchPrompt } from '../lib/restoration';
+import { LOOP_OPTIONS } from '../data/music';
+import { useMusicStore } from '../state/musicStore';
 import { ScoreHud } from './ScoreHud';
 import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
@@ -46,6 +49,10 @@ export function WorldHud() {
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
+  const nearRestoreBench = useSceneStore((s) => s.nearRestoreBench);
+  // The bench prompt tracks the PLAYING track (the radio is how you choose what's
+  // threaded), so subscribe to the engine mirror — the line flips live as it turns.
+  const playingSlug = useMusicStore((s) => LOOP_OPTIONS[s.index]?.slug ?? null);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const nearInteractable = useSceneStore((s) => s.nearInteractable);
   const rhythmActive = useRhythmStore((s) => s.active);
@@ -122,6 +129,9 @@ export function WorldHud() {
   // The one durable field WorldHud itself still needs (the locked-door prompt);
   // every other readout moved into PauseMenu / SpellHotbar with its JSX.
   const itemsHeld = progress.itemsHeld;
+  // The restoration-bench prompt state (null away from the deck). Pure derive off
+  // the two reactive inputs above, so it can't drift from what E would do.
+  const benchSt = nearRestoreBench ? benchStateFor(playingSlug, progress) : null;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
@@ -402,6 +412,15 @@ export function WorldHud() {
 
       {nearTv && !nearDoor && !nearInteractable && !open && !paused && !pendingRoom && (
         <div className="hud-prompt hud-prompt--tv">Press E to switch on the TV</div>
+      )}
+
+      {/* The restoration bench (the control room's reel-to-reel) — ranks with the
+          TV (matches worldActions). The line tracks what's actually threaded: a
+          ready track invites the E; the other states read as the deck's reason. */}
+      {benchSt && !nearDoor && !nearInteractable && !nearTv && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--bench">
+          {benchSt.kind === 'ready' ? `Press E to ${benchPrompt(benchSt)}` : benchPrompt(benchSt)}
+        </div>
       )}
 
       {nearArcade &&

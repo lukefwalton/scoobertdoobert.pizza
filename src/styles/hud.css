@@ -47,6 +47,12 @@
   border-color: rgba(255, 207, 77, 0.9);
   color: #ffedb0;
 }
+/* the restoration bench cue — studio-lamp ice blue, the hi-fi color (matches the
+   deck's lamp + the RESTORE placard). */
+.hud-prompt--bench {
+  border-color: rgba(126, 201, 255, 0.85);
+  color: #d8edff;
+}
 
 /* the arcade SCORE readout — top-right, stacked chips (points · live combo · how
    tall the snacks made you). Mirrors the objective chip's quiet HUD voice. */

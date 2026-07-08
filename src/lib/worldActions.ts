@@ -5,6 +5,7 @@ import { launchArcadeGame, launchRandomArcade } from './arcade';
 import { collectInventoryItem } from './pickups';
 import { collectLootById } from './loot';
 import { fireInteractable } from './interactables';
+import { restoreAtBench } from './restoration';
 
 // The world's context verbs, shared by the keyboard handler (WorldHud) and the
 // on-screen touch buttons (TouchControls) so the two never drift. Each reads the
@@ -51,6 +52,10 @@ export function interactNearby(): void {
     fireInteractable(st.nearInteractable);
   } else if (st.nearTv) {
     st.openTv(st.nearTv);
+  } else if (st.nearRestoreBench) {
+    // The control room's reel-to-reel: restore the playing track (or hear the
+    // deck's reason). Repeatable, so it's a near* verb — never an Interactable.
+    void restoreAtBench();
   } else if (st.nearArcade) {
     // A dedicated cabinet launches ITS game; the mystery cabinet (null) rolls.
     if (st.nearArcadeGame) launchArcadeGame(st.nearArcadeGame);

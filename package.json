@@ -23,6 +23,7 @@
     "shoot:fallback": "node scripts/shoot-fallback.mjs",
     "shoot:mobile": "node scripts/shoot-mobile.mjs",
     "shoot:gifs": "node scripts/shoot-gifs.mjs",
+    "shoot:restore": "node scripts/shoot-restore.mjs",
     "shoot:rooms": "node scripts/shoot-rooms.mjs",
     "shoot:levels": "node scripts/shoot-levels.mjs",
     "shoot:dice": "node scripts/shoot-dice.mjs",
