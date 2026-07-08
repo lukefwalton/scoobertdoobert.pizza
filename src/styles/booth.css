@@ -1,0 +1,221 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   /booth — the Pizza Cam™ cabinet. The shared period shell lives in
+   cabinet.css (the booth-* page classes are grouped in there alongside
+   poke/chimes/cultures); this file carries only the booth's differences:
+   its VHS-red accent, the dithered camera stage + overlays, the consent
+   gate, and the ● CAMERA ON chip. The chip's blink is 1 Hz opacity steps —
+   far under WCAG 2.3.1's three-flashes threshold, and dropped entirely
+   under reduced motion. Imported by the COMPONENT (not just the page), so
+   the in-world ArcadeModal host is styled too.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.booth-page {
+  --cab-accent: #ff5a49;
+}
+
+.booth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+/* ── consent gate ── */
+.booth-gate {
+  width: 100%;
+  max-width: 340px;
+  text-align: left;
+}
+.booth-gate__body {
+  font-size: 12px;
+}
+.booth-gate__body p {
+  margin: 6px 0;
+}
+.booth-gate__terms {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+.booth-gate__terms li {
+  margin: 4px 0;
+}
+.booth-gate__audit {
+  font-size: 11px;
+  color: #4a5160;
+}
+.booth-gate__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+/* ── cold / off / denied screens (shape shared with the cabinet family) ── */
+.booth-screen--cold {
+  width: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+  border: 3px inset #4a4a5e;
+  gap: 8px;
+}
+.booth-cold-title {
+  margin: 0;
+  font-weight: bold;
+  color: var(--cab-accent, #ff5a49);
+}
+.booth-cold-sub {
+  margin: 0;
+  font-size: 11px;
+  color: #9fb6bd;
+  max-width: 280px;
+}
+
+.booth-power,
+.booth-off,
+.booth-ch {
+  appearance: none;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 12px;
+  background: #20202c;
+  color: #cfe9ef;
+  border: 3px outset #4a4a5e;
+  cursor: pointer;
+}
+.booth-power:active,
+.booth-off:active,
+.booth-ch:active {
+  border-style: inset;
+}
+.booth-ch--on {
+  border-style: inset;
+  color: var(--cab-accent, #ff5a49);
+}
+.booth-link {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: #5a7cff;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── the live stage: the dithered grid IS the picture ── */
+.booth-stage {
+  position: relative;
+  width: 100%;
+  max-width: 384px;
+}
+.booth-canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 3px inset #4a4a5e;
+  background: #04040a;
+  image-rendering: pixelated;
+}
+.booth-overlay {
+  position: absolute;
+  inset: 3px; /* match the canvas border */
+  pointer-events: none;
+}
+
+/* CH 1 pitch cursor */
+.booth-cursor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  margin-left: -1px;
+  background: #d6ffe0;
+  opacity: 0.25;
+  transition: opacity 120ms linear;
+}
+
+/* CH 2 topping zones */
+.booth-zone {
+  position: absolute;
+  border: 1px dashed rgba(255, 190, 69, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.booth-zone__label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255, 244, 214, 0.7);
+  padding-bottom: 2px;
+  text-transform: uppercase;
+}
+.booth-zone--hit {
+  background: rgba(255, 190, 69, 0.28);
+  border-style: solid;
+}
+
+/* ── controls ── */
+.booth-controls {
+  width: 100%;
+  max-width: 384px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.booth-channels {
+  display: flex;
+  gap: 8px;
+}
+.booth-readout {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: #9fb6bd;
+  min-height: 1.2em;
+}
+
+/* ── the CAMERA ON chip: present ⟺ the stream is live ── */
+.booth-chip {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 300; /* above the world HUD + modal chrome */
+  appearance: none;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  background: #1a0605;
+  color: #ffd9d4;
+  border: 2px outset #7a2a20;
+  cursor: pointer;
+}
+.booth-chip:active {
+  border-style: inset;
+}
+.booth-dot {
+  color: #ff3b2f;
+}
+/* 1 Hz two-step blink — one "flash" per second, well under WCAG 2.3.1. */
+.booth-dot--blink {
+  animation: booth-blink 1s steps(2, jump-none) infinite;
+}
+@keyframes booth-blink {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.25;
+  }
+}
+.booth--reduced .booth-dot--blink {
+  animation: none;
+}

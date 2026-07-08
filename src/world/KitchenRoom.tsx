@@ -2,8 +2,10 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeBilingualSign } from './ps1';
 import { useDispose } from '../lib/useDispose';
+import { useTouchDevice } from '../lib/lowPower';
 import { PizzaPanChimes } from './PizzaPanChimes';
 import { ArcadeCabinet } from './ArcadeCabinet';
+import { PizzaCamProp } from './PizzaCamProp';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -21,6 +23,9 @@ export function KitchenRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
+  // The Pizza Cam tripod is desktop-only, like the machine-room CRT — the booth
+  // it opens is a parallel-port gag on touch anyway (Webcam policy).
+  const touch = useTouchDevice();
 
   const signTex = useMemo(
     () =>
@@ -152,6 +157,9 @@ export function KitchenRoom({ room }: { room: Room }) {
       {/* ORDER UP against the back (-Z) wall on the right, clear of the oven + the
           back door — the kitchen's own memory game (call the order, ring it back) */}
       <ArcadeCabinet position={[3.5, 0, -D + 0.7]} rotationY={0} tint="#e0662e" game="order-up" />
+      {/* the Pizza Cam™ tripod in the back-right corner — the in-world door to
+          the consent-gated camera instrument (openArcade('booth')). */}
+      {!touch && <PizzaCamProp position={[W - 1.5, 0, -D + 1.5]} rotationY={-Math.PI / 4} />}
     </group>
   );
 }

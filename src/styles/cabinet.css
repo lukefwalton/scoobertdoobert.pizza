@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────
-   cabinet.css — the shared period arcade-cabinet shell for the three
-   touch-first instrument routes: /poke, /chimes, /cultures. They wear the same
+   cabinet.css — the shared period arcade-cabinet shell for the
+   touch-first instrument routes: /poke, /chimes, /cultures, /booth. They wear the same
    grammar (sharp corners, beveled inset/outset chrome, a flat palette, a hard
    zero-blur RGB chroma-split marquee), so the skeleton lives here ONCE instead
    of being copy-pasted into three near-identical stylesheets.
@@ -15,7 +15,8 @@
 
 .poke-page,
 .chimes-page,
-.cultures-page {
+.cultures-page,
+.booth-page {
   min-height: 100vh;
   min-height: 100dvh;
   margin: 0;
@@ -33,21 +34,24 @@
 
 .poke-util,
 .chimes-util,
-.cultures-util {
+.cultures-util,
+.booth-util {
   width: 100%;
   max-width: 360px;
   margin: 0;
 }
 .poke-util a,
 .chimes-util a,
-.cultures-util a {
+.cultures-util a,
+.booth-util a {
   color: #5a7cff;
   text-decoration: underline;
 }
 
 .poke-cabinet,
 .chimes-cabinet,
-.cultures-cabinet {
+.cultures-cabinet,
+.booth-cabinet {
   width: 100%;
   max-width: 360px;
   background: #20202c;
@@ -60,7 +64,8 @@
 
 .poke-marquee,
 .chimes-marquee,
-.cultures-marquee {
+.cultures-marquee,
+.booth-marquee {
   text-align: center;
   padding: 7px 6px;
   background: #0a0a12;
@@ -71,7 +76,8 @@
    read it here. The hard cyan/red chroma-split is shared. */
 .poke-marquee__neon,
 .chimes-marquee__neon,
-.cultures-marquee__neon {
+.cultures-marquee__neon,
+.booth-marquee__neon {
   /* an <h1> since the a11y pass — keep the marquee look, drop the UA h1 box */
   margin: 0;
   font-size: inherit;
@@ -114,7 +120,8 @@
 
 .poke-coinslot,
 .chimes-coinslot,
-.cultures-coinslot {
+.cultures-coinslot,
+.booth-coinslot {
   margin: 0;
   text-align: center;
   font-size: 10px;
@@ -150,7 +157,8 @@
 
 .poke-foot,
 .chimes-foot,
-.cultures-foot {
+.cultures-foot,
+.booth-foot {
   max-width: 360px;
   margin: 0;
   text-align: center;
@@ -159,12 +167,14 @@
 }
 .poke-foot a,
 .chimes-foot a,
-.cultures-foot a {
+.cultures-foot a,
+.booth-foot a {
   color: #5a7cff;
   text-decoration: underline;
 }
 .poke-foot--copy,
 .chimes-foot--copy,
-.cultures-foot--copy {
+.cultures-foot--copy,
+.booth-foot--copy {
   color: #4a5160;
 }

@@ -719,6 +719,34 @@ instrument:
   in doubt: mic / device-tilt / gesture-control get most of the "you play the
   site" delight with less surveillance charge.)
 
+**SHIPPED (2026-07-08) as the PIZZA CAM™ — the settled decisions:**
+- **Lo-fi own-code CV, no ML dependency.** Not MediaPipe/hand-skeletons: the feed
+  is downscaled to a **32×24 luminance grid** and read by ~250 lines of our own
+  frame-differencing (peak-hold field, self-calibrating noise floor, motion
+  centroid) in **one auditable pure file, `src/lib/pizzacam.ts`** — the consent
+  dialog links to it ("don't take our word for it"). EyeToy-grade on purpose:
+  crunchier, honest, period-correct, and the "never leaves your device" claim is
+  verifiable by reading a single file.
+- **Two instruments, one pipeline, one booth** (`PizzaCamBooth`): CH 1 **AIR
+  DOUGH** (centroid X → D-major-pentatonic snap → the theremin's sustained
+  voice; stillness is silence) and CH 2 **TOPPING DRUMS** (3×2 topping zones →
+  panned bells, per-zone hysteresis + 200 ms refractory).
+- **Stronger than the policy required:** the raw feed renders NOWHERE — the
+  screen shows only the Bayer-dithered grid (green phosphor / oven amber), so
+  what the player sees IS everything the machine sees. The kitchen tripod prop's
+  monitor shows frozen procedural static, never video.
+- **Consent shape:** the green-load-screen line (`PIZZA CAM ... NOT DETECTED` +
+  ENABLE/NO THANKS) only ARMS a session flag (`sdp:camera-choice`, sessionStorage
+  like motionConsent); `getUserMedia` fires only inside the booth at point of
+  use; the fixed ● CAMERA ON chip is itself the kill switch (tracks truly end);
+  the stream dies with tab-hide and unmount; video-only, never audio.
+- **Placement + gating:** surface-sweet — the kitchen prop and `/booth`
+  (`rollable:false`; a camera instrument is entered deliberately, never dealt by
+  the cabinet slot machine). Desktop-only; touch gets a "ships on a parallel
+  port" gag. The dread firewall is a failing unit test
+  (`pizzacam.firewall.test.ts`): pizzacam and dread modules may never import
+  each other.
+
 ### Persistence / retention (cross-cutting spine — localStorage, no backend)
 The mechanism that turns "spooky, cool, closed the tab" into "come back." The
 reference is BrowserQuest's `localStorage` trick (continuous save, zero backend).

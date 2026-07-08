@@ -20,6 +20,12 @@ describe('arcade game registry', () => {
     for (let i = 0; i < 200; i++) expect(ids.has(rollArcadeGame().id)).toBe(true);
   });
 
+  it('never rolls a non-rollable cabinet (the Pizza Cam is entered on purpose)', () => {
+    const banned = new Set(ARCADE_GAMES.filter((g) => g.rollable === false).map((g) => g.id));
+    expect(banned.has('booth')).toBe(true); // the flag is actually set
+    for (let i = 0; i < 500; i++) expect(banned.has(rollArcadeGame().id)).toBe(false);
+  });
+
   it('arcadeGameTitle resolves a known id and falls back for an unknown one', () => {
     expect(arcadeGameTitle('jazz-snake')).toBe('JAZZ SNAKE');
     expect(arcadeGameTitle('nope' as ArcadeGameId)).toBe('ARCADE');

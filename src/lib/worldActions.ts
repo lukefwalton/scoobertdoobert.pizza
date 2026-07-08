@@ -60,6 +60,10 @@ export function interactNearby(): void {
     // A dedicated cabinet launches ITS game; the mystery cabinet (null) rolls.
     if (st.nearArcadeGame) launchArcadeGame(st.nearArcadeGame);
     else launchRandomArcade();
+  } else if (st.nearBooth) {
+    // The kitchen's Pizza Cam™ tripod — always the booth, never a roll (the
+    // camera instrument is entered on purpose; consent gate lives inside).
+    st.openArcade('booth');
   } else if (st.nearHotspot) {
     st.openHotspotDialog(st.nearHotspot);
   } else if (st.nearNpc) {
