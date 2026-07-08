@@ -5,6 +5,7 @@ import { getCameraChoice, armCamera, declineCamera } from '../lib/cameraConsent'
 import { useReducedMotion, useTouchDevice } from '../lib/lowPower';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { announce } from '../state/toastStore';
+import { useProgressStore } from '../state/progressStore';
 import {
   CAM_W,
   CAM_H,
@@ -97,6 +98,21 @@ export function PizzaCamBooth() {
   const cursorEl = useRef<HTMLDivElement>(null);
   const noteEl = useRef<HTMLSpanElement>(null);
   const hitCount = useRef(0);
+  const rewarded = useRef(false);
+
+  // First-ever sound out of the Pizza Cam (either channel) banks a durable
+  // secret + a little luck — the same sweet first-discovery beat as the other
+  // instruments (Lounge rat / shrine). Ref-guarded so the per-frame path only
+  // ever reads the store once; the secret makes it once per SAVE, not per visit.
+  const maybeReward = () => {
+    if (rewarded.current) return;
+    rewarded.current = true;
+    const prog = useProgressStore.getState();
+    if (prog.secretsFound.includes('pizza-cam-first-play')) return;
+    prog.findSecret('pizza-cam-first-play');
+    prog.gainLuck(1);
+    announce('📹 +1 LUCK — the Pizza Cam likes your moves', 'luck');
+  };
 
   // One shared frame handler for the real camera AND the debug inject hook, so
   // the smoke exercises the exact pipeline a real hand does: draw the dithered
@@ -109,6 +125,7 @@ export function PizzaCamBooth() {
       voiceRef.current ??= audio.startVoice();
       dough = airDoughVoice(f.stats);
       voiceRef.current?.set(dough.freq, dough.gain);
+      if (dough.playing) maybeReward();
       // Pitch cursor + note readout via direct DOM (never a per-frame render).
       if (cursorEl.current) {
         cursorEl.current.style.left = `${(f.stats.cx * 100).toFixed(1)}%`;
@@ -120,6 +137,7 @@ export function PizzaCamBooth() {
       for (const h of hits) {
         audio.playChime(h.zone.freq, h.zone.pan, 0.12 * h.velocity);
         hitCount.current++;
+        maybeReward();
         const zi = ZONES.indexOf(h.zone);
         const el = zoneEls.current[zi];
         if (el) {
