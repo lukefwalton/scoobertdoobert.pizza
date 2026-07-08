@@ -9,7 +9,7 @@ body:
 
         Found a **security vulnerability** (the `api/` functions, the
         leaderboard, anything touching stored emails)? Don't file it here — see
-        [SECURITY.md](https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/SECURITY.md).
+        [SECURITY.md](https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/.github/SECURITY.md).
   - type: textarea
     id: what-happened
     attributes:
