@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TV_SPOTS, type TvVideo } from '../data/videos';
+import { exposeTestGlobal } from '../lib/testHooks';
 import { useAudioStore } from '../state/audioStore';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -13,10 +14,16 @@ import { useAudioStore } from '../state/audioStore';
 //
 // The iframe honors the site's GLOBAL MUTE: it starts muted when the site is muted
 // at click time (URL param — no postMessage race with player init), and later mute
-// toggles are forwarded via the YT iframe API (enablejsapi=1 + postMessage). The
-// player's own volume control still works after an unmute.
+// toggles are forwarded via the YT iframe API (enablejsapi=1 + postMessage). A
+// toggle can land while the player is still initializing and be dropped, so the
+// iframe's load event re-asserts the CURRENT desired state on two delayed retries
+// (idempotent commands — a repeat of the current state is a no-op). The player's
+// own volume control still works after an unmute.
 // ───────────────────────────────────────────────────────────────────────────
 const YT_ORIGIN = 'https://www.youtube-nocookie.com';
+// Post-load retry delays (ms): the YT player's JS API comes up a beat AFTER the
+// iframe's load event; the second retry covers a slow init.
+const MUTE_RETRY_MS = [300, 1400];
 
 export function YoutubeFacade({
   video = TV_SPOTS,
@@ -32,23 +39,50 @@ export function YoutubeFacade({
   const mutedAtClick = useRef(false);
   const muted = useAudioStore((s) => s.muted);
   const prevMuted = useRef(muted);
+  const retryTimers = useRef<number[]>([]);
+  const sentCount = useRef(0);
+
+  const sendMuteCmd = (m: boolean) => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    try {
+      win.postMessage(
+        JSON.stringify({ event: 'command', func: m ? 'mute' : 'unMute', args: [] }),
+        YT_ORIGIN,
+      );
+      // Instrumentation for the tv smoke (test entrances only): proves a post-load
+      // store toggle actually reaches the iframe, not just the click-time URL param.
+      exposeTestGlobal('__sdpTvMuteSent', ++sentCount.current);
+    } catch {
+      /* cross-origin hiccup — a later toggle/retry re-sends */
+    }
+  };
 
   useEffect(() => {
     // Forward mute CHANGES only (not the initial value — the URL param covers it).
     if (muted === prevMuted.current) return;
     prevMuted.current = muted;
     if (!playing) return;
-    const win = iframeRef.current?.contentWindow;
-    if (!win) return;
-    try {
-      win.postMessage(
-        JSON.stringify({ event: 'command', func: muted ? 'mute' : 'unMute', args: [] }),
-        YT_ORIGIN,
-      );
-    } catch {
-      /* cross-origin hiccup — the next toggle retries */
-    }
+    sendMuteCmd(muted);
   }, [muted, playing]);
+
+  // If a toggle raced the player's init, the fire-and-forget command above was
+  // dropped. Once the iframe has LOADED, re-assert the current desired state on a
+  // couple of delayed retries — only when it differs from what the URL encoded
+  // (otherwise the param already did the job and there's nothing to fix).
+  const onIframeLoad = () => {
+    retryTimers.current.forEach((t) => window.clearTimeout(t));
+    retryTimers.current = MUTE_RETRY_MS.map((ms) =>
+      window.setTimeout(() => {
+        const want = useAudioStore.getState().muted;
+        if (want !== mutedAtClick.current) sendMuteCmd(want);
+      }, ms),
+    );
+  };
+  useEffect(
+    () => () => retryTimers.current.forEach((t) => window.clearTimeout(t)),
+    [],
+  );
 
   // The clip's own caption (a song/album line) wins; fall back to the channel blurb.
   const cap = caption ?? video.blurb ?? TV_SPOTS.blurb;
@@ -64,6 +98,7 @@ export function YoutubeFacade({
               title={video.title}
               allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
+              onLoad={onIframeLoad}
             />
           ) : (
             <button

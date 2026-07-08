@@ -146,10 +146,35 @@ try {
   fail(`mute-contract pass broke: ${e.message}`);
 }
 
+// POST-LOAD toggles too, not just click time: with the iframe already playing,
+// flip the global mute through the REAL store path (__sdpSetMuted → audioStore →
+// the facade's subscriber) and assert a YT API command was actually posted to the
+// iframe (__sdpTvMuteSent counts sends). Both directions.
+let postLoadMuteOk = false;
+try {
+  const sentAfter = async (flip) => {
+    const before = (await page.evaluate(() => window.__sdpTvMuteSent)) ?? 0;
+    await page.evaluate((m) => window.__sdpSetMuted?.(m), flip);
+    return page
+      .waitForFunction((n) => (window.__sdpTvMuteSent ?? 0) > n, before, { timeout: 4000 })
+      .then(
+        () => true,
+        () => false,
+      );
+  };
+  const mutedSent = await sentAfter(true);
+  const unmutedSent = await sentAfter(false);
+  postLoadMuteOk = mutedSent && unmutedSent;
+  if (!postLoadMuteOk)
+    fail(`post-load mute toggle did not reach the iframe (mute=${mutedSent} unmute=${unmutedSent})`);
+} catch (e) {
+  fail(`post-load mute pass broke: ${e.message}`);
+}
+
 console.log(
   `tv: frutiger=${inFrutiger} noPromptAtSpawn=${noPromptAtSpawn} prompted=${prompted} ` +
     `modalOpen=${modalOpen} albumTitled=${titledForAlbum} escClosed=${closed} ` +
     `ducked=${duckedForVideo} restored=${musicRestored} mutedSrc=${mutedSrcOk} ` +
-    `unmutedSrc=${unmutedSrcOk} | errors=${failures()}`,
+    `unmutedSrc=${unmutedSrcOk} postLoadMute=${postLoadMuteOk} | errors=${failures()}`,
 );
 await finish();
