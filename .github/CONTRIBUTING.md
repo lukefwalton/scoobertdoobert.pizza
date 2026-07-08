@@ -3,7 +3,7 @@
 scoobertdoobert.pizza is a personal art-and-music project — the goblin-mode home
 of **Scoobert Doobert** (a solo music project by Luke F. Walton). It is **not
 open source**: the source code and the creative content (music, lyrics, words,
-art) are both © Luke F. Walton, all rights reserved — see [LICENSE](LICENSE).
+art) are both © Luke F. Walton, all rights reserved — see [LICENSE](../LICENSE).
 You're very welcome to read the code and see how the site works; the content
 isn't yours to reuse.
 
@@ -33,11 +33,11 @@ npm test           # Vitest unit suite
 npm run shoot:all  # Playwright smoke suite (needs a build)
 ```
 
-Anything that touches the code must respect the rules in [`CLAUDE.md`](CLAUDE.md):
+Anything that touches the code must respect the rules in [`CLAUDE.md`](../CLAUDE.md):
 the JS-off storefront stays crawlable, every destination is a real `<a href>`, no
 copyrighted assets, and the PS1/N64 look is a hard constraint.
-[`ARCHITECTURE.md`](ARCHITECTURE.md) explains how it's wired;
-[`STRUCTURE.md`](STRUCTURE.md) maps where everything lives.
+[`ARCHITECTURE.md`](../docs/ARCHITECTURE.md) explains how it's wired;
+[`STRUCTURE.md`](../docs/STRUCTURE.md) maps where everything lives.
 
 ## Line endings
 
