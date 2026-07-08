@@ -72,6 +72,9 @@ export const DREAD: DreadConfig = {
     //                       (don't let dread smother the gag — dial it down)
     shrine: 0.02, // the OUTDOOR sweet breather — a deliberate relief beat (below
     //              SAFE so it DECAYS): the exhale that makes the tunnel land
+    listening: 0.02, // the museum wing off the vault — a HUSHED sweet gallery
+    //                  (below SAFE so it DECAYS): the archive curated, never bitter;
+    //                  the exhibits' own songs are the room's only voice
     grassrooms: 0.02, // the overgrown-backrooms breather off the liminal — FULLY
     //                   SWEET (below SAFE so it DECAYS): nature reclaimed the
     //                   office, sunlit and calm; the exhale after the liminal

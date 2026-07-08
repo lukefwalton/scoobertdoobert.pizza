@@ -71,6 +71,8 @@ describe('quests', () => {
       'clear-goblin': { secretsFound: ['grass-cleared'] },
       'dance-with-entity': { secretsFound: ['danced:deep-lurker'] },
       'reach-terminus': { visitedRooms: ['terminus'] },
+      // a bench rite counts; a held master tape is the other path (restoration.test)
+      'restore-master': { restoredSongs: ['information'] },
       'saved-san-diego': { secretsFound: ['saved-san-diego'] },
     };
     for (const q of QUESTS) {
@@ -98,6 +100,7 @@ describe('quests', () => {
     const bonusFlips: Record<string, Partial<Progress>> = {
       'saved-san-diego': { secretsFound: ['saved-san-diego'] },
       'draw-fortune': { secretsFound: ['omikuji-drawn'] },
+      'restore-master': { restoredSongs: ['information'] },
     };
     for (const b of bonuses) {
       const flip = bonusFlips[b.id];

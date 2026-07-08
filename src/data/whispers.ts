@@ -27,6 +27,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
     'the desk, every fader his own hand. Before any of this he interned at Surfdog Records, packing Brian Setzer CDs into mailers down the coast.',
   tapevault:
     'shelves of reels, hundreds of them. Every song on his debut LP “Finding SD” was written, recorded, mixed and mastered in a single day.',
+  listening:
+    'a museum of his own catalog, placards and all. The empty frames aren’t missing — they’re waiting for the songs you haven’t found yet.',
   lounge:
     'the rat fast asleep in the good armchair, paying its rent in dreams. A lava lamp, a TV warming up — the one room he lets himself rest.',
   // ── the deep / wrong rooms (still sweet things to notice) ──

@@ -59,6 +59,7 @@ import { LiveRoom } from './LiveRoom';
 import { ControlRoom } from './ControlRoom';
 import { TapeVault } from './TapeVault';
 import { Lounge } from './Lounge';
+import { ListeningRoom } from './ListeningRoom';
 import { ItemPickup } from './ItemPickup';
 import { LootPickup } from './LootPickup';
 import { Wanderer } from './Wanderer';
@@ -183,6 +184,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   controlroom: (room) => <ControlRoom room={room} />,
   tapevault: (room) => <TapeVault room={room} />,
   lounge: (room) => <Lounge room={room} />,
+  listening: (room) => <ListeningRoom room={room} />,
 };
 
 // Which room geometry to render. GLB levels short-circuit (lazy useGLTF); every

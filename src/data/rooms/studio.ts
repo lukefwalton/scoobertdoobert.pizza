@@ -126,6 +126,9 @@ export const STUDIO_ROOMS: Room[] = [
       // door radius (2.8).
       default: { position: [0, EYE, 2], yaw: Math.PI },
       fromControl: { position: [0, EYE, 2], yaw: Math.PI },
+      // Back up from the Listening Room (-X door): facing +X into the vault, clear
+      // of both visible door radii (listening r2.6 at x -4.95; control r2.8 at +Z).
+      fromListening: { position: [-1.8, EYE, 1.5], yaw: Math.PI / 2 },
     },
     doors: [
       {
@@ -136,6 +139,18 @@ export const STUDIO_ROOMS: Room[] = [
         rotationY: 0,
         label: 'back to the control room',
         radius: 2.8,
+      },
+      {
+        // Into the LISTENING ROOM (視聴室) — the museum wing: the vault archives
+        // the masters, next door CURATES them. On the -X wall, forward of the -X
+        // shelf (the shelf spans z ≈ -2.95..-0.05; the door frame sits at z 1.5).
+        id: 'vault-to-listening',
+        to: 'listening',
+        toSpawn: 'default',
+        position: [-4.95, 0, 1.5], // -X wall, opening faces +X into the vault
+        rotationY: Math.PI / 2,
+        label: 'into the listening room',
+        radius: 2.6,
       },
       {
         // THE 1101 LEVEL DOOR (Luke, 2026-07): pocket the "1101" master reel (the
@@ -153,6 +168,38 @@ export const STUDIO_ROOMS: Room[] = [
         hidden: true,
         revealSecret: 'save-san-diego',
         opensLevel: 'save-san-diego',
+      },
+    ],
+  },
+  {
+    id: 'listening',
+    kind: 'listening',
+    title: 'The Listening Room',
+    // THE MUSEUM WING (視聴室) — a long, hushed gallery nave off the Tape Vault:
+    // one framed exhibit per catalog track down each long wall (cover art + a
+    // placard: title · year · meaning). A song you haven't FOUND yet hangs as an
+    // empty "???" frame (the collection you're still assembling — the itch); a
+    // RESTORED one wears a gold HI-FI chip. Click a discovered exhibit and it
+    // plays (and becomes your station) — a museum where every piece is playable.
+    dims: { halfW: 5.5, halfD: 9.5, height: 3.8, eye: EYE },
+    // Deep museum dusk — cool violet-dark, long sightline (the fog opens so the
+    // far frames read as a receding colonnade of little lights).
+    palette: { background: '#0f0d12', fog: '#171420', fogNear: 5, fogFar: 30 },
+    // No Room.song and NOT a musicRoom: the exhibits themselves are the sound —
+    // a musicRoom would fade the very track a clicked frame just started.
+    spawns: {
+      // In from the vault (-Z door), facing +Z down the nave of exhibits.
+      default: { position: [0, EYE, -6.3], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'listening-to-vault',
+        to: 'tapevault',
+        toSpawn: 'fromListening',
+        position: [0, 0, -9.45], // -Z end wall — back into the archive
+        rotationY: Math.PI,
+        label: 'back into the tape vault',
+        radius: 2.8,
       },
     ],
   },

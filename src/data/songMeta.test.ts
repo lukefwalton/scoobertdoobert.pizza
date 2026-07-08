@@ -72,3 +72,25 @@ describe('fuzzyFindSlug (the forgiving terminal song/lyric lookup)', () => {
     expect(fuzzyFindSlug(slugs, 'zzz-nope', titleOf)).toBeUndefined();
   });
 });
+
+// The song→album attribution (the exhibit art + /catalog's covers).
+describe('songMeta album attribution', () => {
+  it('every non-null album resolves to a real albums.json record with art', async () => {
+    const { SONG_META, songAlbum } = await import('./songMeta');
+    const { albumBySlug } = await import('./albums');
+    for (const [slug, meta] of Object.entries(SONG_META)) {
+      expect(meta.album !== undefined, `${slug} is missing the album field`).toBe(true);
+      if (meta.album === null) continue;
+      const album = albumBySlug(meta.album);
+      expect(album, `${slug} → unknown album "${meta.album}"`).toBeTruthy();
+      expect(album?.art, `${slug} → album "${meta.album}" has no art`).toBeTruthy();
+      expect(songAlbum(slug)).toBe(meta.album);
+    }
+  });
+
+  it('the most specific record wins the two moonlight-adjacent tracks', async () => {
+    const { songAlbum } = await import('./songMeta');
+    expect(songAlbum('ocean-view')).toBe('ocean-view'); // the single, not the LP
+    expect(songAlbum('dancing-in-the-moonlight')).toBe('dancing-in-the-moonlight-beach');
+  });
+});
