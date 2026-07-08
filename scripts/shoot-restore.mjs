@@ -89,7 +89,18 @@ await page.waitForFunction(() => typeof window.__sdpRestore === 'function', null
   timeout: 8000,
 });
 await page.evaluate(() => window.__sdpRestore());
-await page.waitForTimeout(400);
+// concrete wait: the deck's refusal toast IS the completion signal for a no-op verb
+const noTapeToast = await page
+  .waitForFunction(
+    () => /deck is empty/i.test(document.querySelector('.hud-toast')?.textContent ?? ''),
+    null,
+    { timeout: 5000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!noTapeToast) fail('the no-tape bench never toasted its refusal');
 {
   const p = await prog();
   if ((p.restoredSongs ?? []).length !== 0)
@@ -103,7 +114,17 @@ await page.evaluate(() => window.__sdpAudio.playJukeboxTrack('/audio/jukebox/boa
 if (!(await songIs('/audio/jukebox/boardwalk.mp3')))
   fail('could not put the undiscovered room-song on the voice');
 await page.evaluate(() => window.__sdpRestore());
-await page.waitForTimeout(400);
+const refusedToast = await page
+  .waitForFunction(
+    () => /hasn’t found you/i.test(document.querySelector('.hud-toast')?.textContent ?? ''),
+    null,
+    { timeout: 5000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!refusedToast) fail('the undiscovered bench never toasted its refusal');
 {
   const p = await prog();
   if ((p.restoredSongs ?? []).length !== 0)
@@ -171,7 +192,17 @@ await page.screenshot({ path: '.shots/restore-3-done.png' });
 
 // ── 4) RESTORED: a second E is a flat no-op — no double-bank, voice unchanged.
 await page.keyboard.press('e');
-await page.waitForTimeout(400);
+const cleanToast = await page
+  .waitForFunction(
+    () => /already clean/i.test(document.querySelector('.hud-toast')?.textContent ?? ''),
+    null,
+    { timeout: 5000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!cleanToast) fail('a second E never toasted the already-restored refusal');
 {
   const p = await prog();
   if ((p.restoredSongs ?? []).length !== 1)
