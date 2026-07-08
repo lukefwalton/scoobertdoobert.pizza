@@ -139,6 +139,64 @@ if (inJuke) {
   await page.screenshot({ path: '.shots/dice-crit.png' });
 }
 
+// The crit is REAL AUDIO now (the "per-track curdle variant"): the engine's live
+// curdle insert mirrors itself to __sdpCurdle whenever it re-scores. Force each
+// outcome and assert the insert actually follows — cursed engages the warble
+// (wet > 0.3 once that exact track is the live voice), pristine locks it OFF and
+// rate-corrects the baked tape slow-down (rate > 1), a plain roll clears it, and
+// LEAVING THE ROOM clears it through the real unmount cleanup (__sdpGoToRoom).
+let curdleCursed = false;
+let curdlePristine = false;
+let curdlePlainClear = false;
+let curdleExitClear = false;
+if (inJuke) {
+  const curdleIs = (pred, label) =>
+    page.waitForFunction(pred, null, { timeout: 6000 }).then(
+      () => true,
+      async () => {
+        const s = await page.evaluate(() => JSON.stringify(window.__sdpCurdle));
+        fail(`${label} (curdle=${s})`);
+        return false;
+      },
+    );
+
+  await page.evaluate(() => window.__sdpRollDice?.(1));
+  curdleCursed = await curdleIs(
+    () => window.__sdpCurdle?.pressing === 'cursed' && window.__sdpCurdle.wet > 0.3,
+    'nat 1 did not engage the CURSED curdle on the live voice',
+  );
+
+  await page.evaluate(() => window.__sdpRollDice?.(20));
+  curdlePristine = await curdleIs(
+    () =>
+      window.__sdpCurdle?.pressing === 'pristine' &&
+      window.__sdpCurdle.wet === 0 &&
+      window.__sdpCurdle.rate > 1,
+    'nat 20 did not lock the curdle off + rate-correct (PRISTINE)',
+  );
+
+  await page.evaluate(() => window.__sdpRollDice?.(10));
+  curdlePlainClear = await curdleIs(
+    () => window.__sdpCurdle?.pressing === null && window.__sdpCurdle.wet === 0,
+    'a plain roll did not clear the pressing',
+  );
+
+  // Re-arm cursed, then walk out the REAL way (the debug room-jump drives the same
+  // unmount cleanup a door does): the pressing must not follow the player out.
+  await page.evaluate(() => window.__sdpRollDice?.(1));
+  const rearmed = await curdleIs(
+    () => window.__sdpCurdle?.pressing === 'cursed',
+    'could not re-arm cursed before the exit check',
+  );
+  if (rearmed) {
+    await page.evaluate(() => window.__sdpGoToRoom?.('hallway'));
+    curdleExitClear = await curdleIs(
+      () => window.__sdpCurdle?.pressing === null,
+      'leaving the jukebox room did not clear the cursed pressing',
+    );
+  }
+}
+
 // Containment, end-to-end and FLAKE-FREE: the ?debug roll hook must never leak into
 // a real, non-debug session — even with the jukebox fully MOUNTED. Enter the SAME
 // room the deterministic ?room= way but WITHOUT &debug=1, confirm via the visible HUD
@@ -231,6 +289,7 @@ let worldGated = false;
 }
 
 console.log(
-  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} contained=${contained} worldGated=${worldGated} | errors=${failures()}`,
+  `dice: juke=${inJuke} rolled=${rolled} trackJumped=${trackJumped} pristine=${critPristine} cursed=${critCursed} plainNoCrit=${noCritOnPlain} junkIgnored=${junkIgnored} ` +
+    `curdleCursed=${curdleCursed} curdlePristine=${curdlePristine} curdlePlainClear=${curdlePlainClear} curdleExitClear=${curdleExitClear} contained=${contained} worldGated=${worldGated} | errors=${failures()}`,
 );
 await finish();

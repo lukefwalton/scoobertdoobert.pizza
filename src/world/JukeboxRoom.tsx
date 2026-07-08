@@ -184,6 +184,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   const track = tracks[Math.min(index, tracks.length - 1)];
   const cycle = () => {
     audio.playChime(noteToFreq('E', 5), 0.25, 0.09, 0.5); // a little bell on track change
+    audio.setPressing(null); // hand-cycling puts the ordinary pressing back on
     setIndex((i) => (i + 1) % tracks.length);
   };
   // A d20 face (1..20) maps onto the VISIBLE tracks by modulo, so every unlocked
@@ -203,7 +204,15 @@ export function JukeboxRoom({ room }: { room: Room }) {
     // the d20 roll specifically — pocketing a tape also unlocks the radio, but must
     // not tick this quest.
     useProgressStore.getState().findSecret('jukebox-roll');
-    useMusicStore.getState().setPreferred(loopIndexForUrl(jukeboxTrackUrl(tracks[i].slug)));
+    const url = jukeboxTrackUrl(tracks[i].slug);
+    useMusicStore.getState().setPreferred(loopIndexForUrl(url));
+    // The crit is REAL AUDIO now, not just flavour (DESIGN's "per-track curdle
+    // variant"): a nat 1 arms the CURSED pressing — the engine's live curdle
+    // warbles this exact track while it spins; a nat 20 arms PRISTINE — curdle
+    // locked off + the baked tape slow-down rate-corrected ("cleaner than
+    // possible"). A plain roll clears any leftover pressing. Room theatre only:
+    // it drops on cycle / track change / leaving the room.
+    audio.setPressing(crit === 'nat20' ? 'pristine' : crit === 'nat1' ? 'cursed' : null, url);
     playCritFlavor(crit); // nat 20 → pristine, nat 1 → cursed (the gamble payoff)
     exposeTestGlobal('__sdpDice', face);
     exposeTestGlobal('__sdpDiceCrit', crit);
@@ -242,6 +251,10 @@ export function JukeboxRoom({ room }: { room: Room }) {
       tracks.map((t) => t.slug),
     );
     return () => {
+      // Clear any armed pressing BEFORE restoring the preferred track: if the
+      // preferred track IS the rolled one, the engine's same-URL guard would skip
+      // the swap and a stale cursed warble would follow the player out.
+      audio.setPressing(null);
       // Leaving the cabinet hands the loop voice back to the user's chosen track
       // (the switcher), not unconditionally to boot.
       useMusicStore.getState().restorePreferred();
