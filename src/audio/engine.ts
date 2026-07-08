@@ -581,7 +581,11 @@ class PizzaAudio {
     this.pressing = null; // the rite replaces any lingering pressing theatre
     this.ceremony = true; // applyCurdle goes quiet — the rite owns the insert
     const gen = this.jukeboxGen; // any select/leave bumps this → the rite is stale
-    void this.decodeJukebox(hifiUrl); // the decode races the theatre
+    // Kick the hi-fi decode NOW — the wind-up (1.4s of reels straining) is its
+    // cover. We await it before the sweep begins (below), so the handoff always
+    // lands exactly at sweep end, cold cache or not — and a failed decode aborts
+    // EARLY, before any un-warbling the ear would have to walk back.
+    const decode = this.decodeJukebox(hifiUrl);
     exposeTestGlobal('__sdpCeremony', 'windup');
 
     // Phase changes ride the AUDIO clock, not wall-clock timers: the ramps are
@@ -621,6 +625,12 @@ class PizzaAudio {
     }
     await waitForCtxTime(windupEnd);
     if (stale()) return abort();
+    // The hi-fi buffer must be IN HAND before the sweep starts (usually decoded
+    // long since — the wind-up covered it). A slow decode holds the rite at full
+    // warble (the reels straining, thematically free); a failed one aborts here.
+    const hifiBuf = await decode;
+    if (stale()) return abort();
+    if (!hifiBuf) return abort();
 
     // ── the sweep (windup → windup+sweep): the song un-warbles and LIFTS to true
     // pitch — "cleaner than the tape should allow", earned in real time.
