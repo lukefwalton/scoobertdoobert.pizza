@@ -74,7 +74,6 @@ Sea / pool surfaces. NB: the beach-shop water is currently **procedural**
 ## `props/` — set dressing
 | file | ← original | notes |
 |---|---|---|
-| `arcade-cabinet-space-invaders.glb` | `arcade_game_-_space_invaders.glb` | **⚠️ IP — reference only, do not ship.** The CC Attribution Sketchfab license covers the 3D scan, not the depicted game: its emissive/marquee texture is literal *Space Invaders* screen art, scoring chart, and wordmark (Taito/Midway IP). CLAUDE.md's "no copyrighted marks" rule applies regardless of the model's own license. Rejected as the `arcade-cabinet.glb` crunch source 2026-07-08 — [sketchfab.com/3d-models/arcade-game-space-invaders-d3959de1a78747f58fb46915e111a265](https://sketchfab.com/3d-models/arcade-game-space-invaders-d3959de1a78747f58fb46915e111a265) |
 | `arcade-cabinet.glb` | `arcade_cabinet.glb` | shipped as `public/models/arcade-cabinet.glb` (original synthwave-robot art, generic "ARCADE" wordmark — no confirmed IP issue). License still unverified. |
 | `palm-tree.glb` | `palm_tree.glb` | shipped as `public/models/palm-tree.glb`. CC Attribution — [sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca](https://sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca) |
 | `low-poly-fried-chicken-bucket.glb` | `low_poly_bucket_of_fried_chicken_psx_n64_style.glb` | |

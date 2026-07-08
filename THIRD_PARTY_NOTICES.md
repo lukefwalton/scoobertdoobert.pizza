@@ -35,9 +35,10 @@ texture turned out to be literal *Space Invaders* screen art, scoring chart, and
 wordmark — the CC license covers the scan, not Taito/Midway's IP baked into the
 texture. Reverted to the original `props/arcade-cabinet.glb` source (still
 unverified license, but a generic synthwave-robot design with no depicted
-third-party IP). The rejected source is kept at
-`media/models/props/arcade-cabinet-space-invaders.glb`, marked **⚠️ IP,
-reference-only** — see `media/models/README.md`.
+third-party IP). Unlike the animatronic reference models (kept in-tree as
+active style reference for the Phase 5 dread level), this one has no future
+use, so the rejected binary was deleted outright rather than retained — see
+`media/models/README.md`.
 
 ## Minigames (arcade cabinets)
 
