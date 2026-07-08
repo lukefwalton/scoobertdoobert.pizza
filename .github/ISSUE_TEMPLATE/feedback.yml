@@ -7,7 +7,7 @@ body:
       value: |
         This is a solo art project, so ideas are welcome but not promises —
         feature PRs aren't accepted (see
-        [CONTRIBUTING](https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/CONTRIBUTING.md)).
+        [CONTRIBUTING](https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/.github/CONTRIBUTING.md)).
         Still, tell me what you think.
   - type: textarea
     id: idea

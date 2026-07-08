@@ -5,8 +5,8 @@ website that progressively enhances itself into a 3D game — and almost everyth
 you can add to it (a link, a floor, a room, a song) is a **data edit**, not scene
 code.
 
-For the rules it must never break see [`CLAUDE.md`](./CLAUDE.md); for the vision,
-[`docs/DESIGN.md`](./docs/DESIGN.md); for live status, [`docs/PHASES.md`](./docs/PHASES.md);
+For the rules it must never break see [`CLAUDE.md`](../CLAUDE.md); for the vision,
+[`DESIGN.md`](./DESIGN.md); for live status, [`PHASES.md`](./PHASES.md);
 for where files live, [`STRUCTURE.md`](./STRUCTURE.md).
 
 ## Fallback first

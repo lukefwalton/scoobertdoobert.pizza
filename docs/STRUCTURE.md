@@ -1,9 +1,9 @@
 # Repository structure — start here
 
 A map of the repo, grouped by purpose. For *what the project is*, read
-[`README.md`](README.md); for the rules/guardrails read [`CLAUDE.md`](CLAUDE.md),
-the roadmap + live status [`docs/PHASES.md`](docs/PHASES.md), and the vision +
-systems [`docs/DESIGN.md`](docs/DESIGN.md). This file is just **where everything
+[`README.md`](../README.md); for the rules/guardrails read [`CLAUDE.md`](../CLAUDE.md),
+the roadmap + live status [`PHASES.md`](PHASES.md), and the vision +
+systems [`DESIGN.md`](DESIGN.md). This file is just **where everything
 lives and why**.
 
 Everything sorts into four buckets:
@@ -19,9 +19,17 @@ scoobertdoobert.pizza/
 │
 ├── README.md              # what the project is + how to run it
 ├── CLAUDE.md              # the rules/guardrails (the constitution)
-├── STRUCTURE.md           # ← you are here: the repo map
-├── docs/                  # PHASES.md (roadmap + live status) · DESIGN.md (vision + systems)
+├── LICENSE · THIRD_PARTY_NOTICES.md   # all-rights-reserved statement + third-party asset attributions
 ├── links.md               # source of truth for the /links archive (?raw-imported)
+│
+├── docs/                  # ── LONG-FORM DOCS ──
+│   ├── STRUCTURE.md       # ← you are here: the repo map
+│   ├── ARCHITECTURE.md    # how the whole thing is wired
+│   ├── PHASES.md          # roadmap + live status
+│   ├── DESIGN.md          # the vision + systems
+│   └── MUSIC.md           # the catalog / music notes
+│
+├── .github/               # CONTRIBUTING · CODE_OF_CONDUCT · SECURITY · issue+PR templates · workflows/ci.yml · media/
 │
 ├── index.html             # Vite entry (the live site; the old hand-built site is in git history)
 ├── package.json · tsconfig*.json · vite.config.ts · vercel.json · CNAME · .gitignore
