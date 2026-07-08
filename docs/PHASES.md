@@ -113,6 +113,19 @@ commands + the Möbius/dice pokes are wired triggers.
   master → limiter → destination) sits across ALL audio, so no sum of sources or
   sudden onset can spike the speakers (WCAG 2.3.1 audio rule + ears). Covered by
   `shoot:dread` alongside the dosage curve (sweet surface/shrine, bitter deep).
+- ✅ **The CURDLE (2026-07-07) — step 2's dormant half is live.** `mapUnease`'s
+  long-unconsumed `bitcrush` + `dropoutChance` finally drive real audio: a
+  **curdle insert** on the engine's song path (`src/lib/curdle.ts` pure score +
+  `curdle.test.ts`; a dry/wet WaveShaper quantize branch, tape wow/flutter LFOs
+  summed into `source.playbackRate` so the descent bend composes untouched, and
+  rare dropout dips on a dedicated gain whose **fade-back is pre-scheduled in the
+  same call** — never a spike, machine-checked). Deep-dread now audibly curdles
+  whatever song is playing; the surface stays bit-exact passthrough. The same
+  insert powers the jukebox **pressings** (Phase 8's d20 crits as REAL audio —
+  cursed genuinely warbles, pristine rate-corrects the baked slow-down; room
+  theatre, cleared on cycle/track-change/exit). `shoot:dread` asserts the
+  u=1→wet / u=0→clean map + the dropout dip-and-fade-back shape; `shoot:dice`
+  asserts all four pressing transitions through the real roll/exit paths.
 
 Build in this order, checkpoint at each. **Trim point:** steps 1–3 are the
 viable spine (audio bed + visual ramp make it visceral). Ship 1–3, then the rat,
