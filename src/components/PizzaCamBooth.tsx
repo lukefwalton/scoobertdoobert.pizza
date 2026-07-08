@@ -205,7 +205,12 @@ export function PizzaCamBooth() {
   // through the REAL pipeline (diff → floor → stats → channel → audio → draw),
   // maintaining its own prev/field/floor exactly as useCameraGrid does. This is
   // how the smoke plays the instruments deterministically with no camera at all.
-  const inject = useRef({ prev: new Uint8Array(CELLS), field: new Float32Array(CELLS), floor: 0, t: 0 });
+  const inject = useRef({
+    prev: new Uint8Array(CELLS),
+    field: new Float32Array(CELLS),
+    floor: 0,
+    t: 0,
+  });
   useEffect(() => {
     if (!isDebugEntrance()) return;
     exposeTestGlobal('__sdpBoothInject', (arr: number[]) => {
@@ -317,7 +322,9 @@ export function PizzaCamBooth() {
       {!gateOpen && !declined && status === 'off' && (
         <div className="booth-screen booth-screen--cold">
           <p className="booth-cold-title">PIZZA CAM™ READY</p>
-          <p className="booth-cold-sub">camera instrument · stays on your device · never sent to us</p>
+          <p className="booth-cold-sub">
+            camera instrument · stays on your device · never sent to us
+          </p>
           <button className="booth-power" onClick={powerOn}>
             TURN CAMERA ON
           </button>
@@ -334,8 +341,8 @@ export function PizzaCamBooth() {
         <div className="booth-screen booth-screen--cold">
           <p className="booth-cold-title">NO CAMERA — AND THAT'S FINE</p>
           <p className="booth-cold-sub">
-            Your browser said no. That's the kill switch working. If you change your mind, allow
-            the camera in your browser settings and press the button again.
+            Your browser said no. That's the kill switch working. If you change your mind, allow the
+            camera in your browser settings and press the button again.
           </p>
           <button className="booth-power" onClick={powerOn}>
             TRY AGAIN
@@ -346,7 +353,9 @@ export function PizzaCamBooth() {
       {status === 'error' && (
         <div className="booth-screen booth-screen--cold">
           <p className="booth-cold-title">PIZZA CAM™ NOT DETECTED</p>
-          <p className="booth-cold-sub">No usable camera on this machine. The band plays on without you.</p>
+          <p className="booth-cold-sub">
+            No usable camera on this machine. The band plays on without you.
+          </p>
         </div>
       )}
 

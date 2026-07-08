@@ -173,7 +173,14 @@ export type Zone = {
   pan: number;
 };
 
-const zone = (id: string, label: string, col: 0 | 1 | 2, row: 0 | 1, note: string, octave: number): Zone => ({
+const zone = (
+  id: string,
+  label: string,
+  col: 0 | 1 | 2,
+  row: 0 | 1,
+  note: string,
+  octave: number,
+): Zone => ({
   id,
   label,
   col,

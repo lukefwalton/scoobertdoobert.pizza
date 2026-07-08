@@ -51,7 +51,9 @@ export default function Booth() {
         ) : (
           <div className="booth-screen booth-screen--cold">
             <p className="booth-cold-title">PIZZA CAM&trade;</p>
-            <p className="booth-cold-sub">Insert JavaScript &mdash; and a camera &mdash; to play.</p>
+            <p className="booth-cold-sub">
+              Insert JavaScript &mdash; and a camera &mdash; to play.
+            </p>
           </div>
         )}
 
