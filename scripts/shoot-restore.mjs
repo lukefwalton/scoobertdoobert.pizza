@@ -145,6 +145,19 @@ const sawCeremony = await page
     () => false,
   );
 if (!sawCeremony) fail('pressing E at the bench never started the ceremony');
+// …the HUD prompt flips to the RUNNING line (the benchBusy latch is the same
+// source the verb reads, so the prompt can never invite an E that would no-op)…
+const runningPrompt = await page
+  .waitForFunction(
+    () => /restoring/i.test(document.querySelector('.hud-prompt--bench')?.textContent ?? ''),
+    null,
+    { timeout: 3000 },
+  )
+  .then(
+    () => true,
+    () => false,
+  );
+if (!runningPrompt) fail('the bench prompt did not show the running state mid-ceremony');
 await page.screenshot({ path: '.shots/restore-2-ceremony.png' });
 // …and lands on the hi-fi pressing.
 if (!(await songIs('/audio/jukebox/hifi/information.mp3')))

@@ -86,6 +86,10 @@ type SceneState = {
    *  Boolean: one bench in the world. Set by the deck's proximity scan; cleared
    *  on the same sweeps as the other near* fields. */
   nearRestoreBench: boolean;
+  /** the slug mid-restoration at the bench, or null — THE "rite is running"
+   *  latch (lib/restoration reads it to refuse re-entry; the deck theatre spins
+   *  off it; WorldHud renders the running prompt from it). One source. */
+  benchBusy: string | null;
   /** the camera is standing in front of an arcade CABINET — drives its "Press E to
    *  play" prompt. Boolean, not an id: at most one cabinet per room. Cleared when the
    *  cabinet unmounts (you leave the room). */
@@ -214,6 +218,7 @@ type SceneState = {
   ) => void;
   setNearTv: (video: TvVideo | null) => void;
   setNearRestoreBench: (near: boolean) => void;
+  setBenchBusy: (slug: string | null) => void;
   setNearEntity: (entity: { id: string; label: string } | null) => void;
   setNearInteractable: (it: RoomInteractable | null) => void;
   /** Dance along with an entity → pulse its cheer (the Wanderer flourishes). */
@@ -260,6 +265,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearPickup: null,
   nearTv: null,
   nearRestoreBench: false,
+  benchBusy: null,
   nearEntity: null,
   nearInteractable: null,
   objectiveHudOn: true,
@@ -466,6 +472,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   setNearPickup: (pickup) => set({ nearPickup: pickup }),
   setNearTv: (video) => set({ nearTv: video }),
   setNearRestoreBench: (near) => set({ nearRestoreBench: near }),
+  setBenchBusy: (slug) => set({ benchBusy: slug }),
   setNearEntity: (entity) => set({ nearEntity: entity }),
   setNearInteractable: (it) => set({ nearInteractable: it }),
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),

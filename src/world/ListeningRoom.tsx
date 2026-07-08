@@ -217,7 +217,7 @@ export function ListeningRoom({ room }: { room: Room }) {
     () => new THREE.MeshBasicMaterial({ map: signTex, transparent: true }),
     [signTex],
   );
-  useDispose(floorTex, benchMat, signTex, signMat);
+  useDispose(floorTex, floorMat, wallMat, ceilMat, benchMat, signTex, signMat);
 
   return (
     <group>
