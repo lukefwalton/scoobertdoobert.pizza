@@ -18,6 +18,7 @@ import { jukeboxTrackUrl, hifiTrackUrl, jukeboxTitle } from '../data/jukebox';
 import { isSongDiscovered, isSongRestored } from '../data/restoration';
 import { useMusicStore } from '../state/musicStore';
 import { useProgressStore, type Progress } from '../state/progressStore';
+import { useSceneStore } from '../state/sceneStore';
 import { announce } from '../state/toastStore';
 
 export type BenchState =
@@ -27,9 +28,12 @@ export type BenchState =
   | { kind: 'ready'; slug: string } // discovered + lo-fi: the rite awaits
   | { kind: 'running'; slug: string }; // the ceremony is mid-sweep
 
-// The one-rite-at-a-time latch. Module-level (not component state) so a second
-// E/click during the sweep is a no-op and the deck theatre can read it per-frame.
-let running: string | null = null;
+// The one-rite-at-a-time latch lives in sceneStore.benchBusy (the slug mid-rite,
+// or null) so the verb, the deck theatre, AND WorldHud's prompt all read the SAME
+// source — no drift between "what E will do" and what the HUD says. ONLY the
+// verb below writes it: a mid-rite room change deliberately does NOT cancel the
+// ceremony (walking out can't cancel the completion write), so no sweep may
+// clear it — the `finally` is the single owner.
 
 /** The pure half: what the deck would do for a given playing slug + progress.
  *  WorldHud calls this with its REACTIVE slug/progress so the prompt updates as
@@ -45,6 +49,7 @@ export function benchStateFor(slug: string | null, p: Progress): BenchState {
  *  store's engine mirror (LOOP_OPTIONS[index]), so it's true whichever variant
  *  is looping — loopIndexForUrl folds hi-fi urls onto the same index. */
 export function benchState(): BenchState {
+  const running = useSceneStore.getState().benchBusy;
   if (running) return { kind: 'running', slug: running };
   const slug = LOOP_OPTIONS[useMusicStore.getState().index]?.slug ?? null;
   return benchStateFor(slug, useProgressStore.getState());
@@ -77,7 +82,7 @@ export async function restoreAtBench(): Promise<boolean> {
     return false;
   }
   const slug = st.slug;
-  running = slug;
+  useSceneStore.getState().setBenchBusy(slug);
   audio.unlock(); // the bench press is the gesture
   announce('⟲ threading the master… hold still');
   try {
@@ -93,11 +98,11 @@ export async function restoreAtBench(): Promise<boolean> {
     window.setTimeout(() => audio.playChime(noteToFreq('B', 6), 0, 0.12, 1.1), 180);
     return true;
   } finally {
-    running = null;
+    useSceneStore.getState().setBenchBusy(null);
   }
 }
 
 /** Whether the rite is mid-sweep (the deck theatre spins its reels off this). */
 export function benchRunning(): boolean {
-  return running !== null;
+  return useSceneStore.getState().benchBusy !== null;
 }

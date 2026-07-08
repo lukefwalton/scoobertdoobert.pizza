@@ -50,6 +50,7 @@ export function WorldHud() {
   const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearRestoreBench = useSceneStore((s) => s.nearRestoreBench);
+  const benchBusy = useSceneStore((s) => s.benchBusy);
   // The bench prompt tracks the PLAYING track (the radio is how you choose what's
   // threaded), so subscribe to the engine mirror — the line flips live as it turns.
   const playingSlug = useMusicStore((s) => LOOP_OPTIONS[s.index]?.slug ?? null);
@@ -129,9 +130,14 @@ export function WorldHud() {
   // The one durable field WorldHud itself still needs (the locked-door prompt);
   // every other readout moved into PauseMenu / SpellHotbar with its JSX.
   const itemsHeld = progress.itemsHeld;
-  // The restoration-bench prompt state (null away from the deck). Pure derive off
-  // the two reactive inputs above, so it can't drift from what E would do.
-  const benchSt = nearRestoreBench ? benchStateFor(playingSlug, progress) : null;
+  // The restoration-bench prompt state (null away from the deck). Derived from
+  // the SAME live inputs the verb reads — benchBusy (the running latch), the
+  // playing slug, the progress — so the line can't drift from what E would do.
+  const benchSt = nearRestoreBench
+    ? benchBusy
+      ? ({ kind: 'running', slug: benchBusy } as const)
+      : benchStateFor(playingSlug, progress)
+    : null;
   // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
   const toast = useToastStore((s) => s.toast);
   const clearToast = useToastStore((s) => s.clear);
