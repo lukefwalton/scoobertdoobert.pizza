@@ -43,7 +43,7 @@ export default function Booth() {
 
       <div className="booth-cabinet">
         <div className="booth-marquee">
-          <span className="booth-marquee__neon">PIZZA CAM&trade;</span>
+          <h1 className="booth-marquee__neon">PIZZA CAM&trade;</h1>
         </div>
 
         {mounted ? (
