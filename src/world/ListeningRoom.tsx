@@ -12,10 +12,10 @@ import {
 } from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { fogFor, ROOMS, type Room } from '../data/rooms';
-import { JUKEBOX_TRACKS, isRoomSong, jukeboxTitle } from '../data/jukebox';
+import { JUKEBOX_TRACKS, jukeboxTitle } from '../data/jukebox';
 import { songMeta, songAlbum } from '../data/songMeta';
 import { albumBySlug } from '../data/albums';
-import { MASTER_TAPES } from '../data/restoration';
+import { isSongDiscovered, isSongRestored } from '../data/restoration';
 import { playbackUrlFor } from '../lib/trackSource';
 import { loopIndexForUrl } from '../data/music';
 import { audio } from '../audio/engine';
@@ -58,15 +58,11 @@ function playExhibit(slug: string) {
 function Exhibit({ slug, index }: { slug: string; index: number }) {
   const { gl } = useThree();
   const { x, z, rotationY } = exhibitSlot(index);
-  // Reactive per-track state (primitive selectors, so re-renders are cheap and
-  // exact): discovered mirrors data/restoration.isSongDiscovered; restored
-  // mirrors isSongRestored — inlined against the live store fields.
-  const discovered = useProgressStore((s) => !isRoomSong(slug) || s.discoveredSongs.includes(slug));
-  const restored = useProgressStore(
-    (s) =>
-      s.restoredSongs.includes(slug) ||
-      MASTER_TAPES.some((m) => m.track === slug && s.itemsHeld.includes(m.id)),
-  );
+  // Reactive per-track state: the pure data/restoration derivations, run inside
+  // primitive selectors (booleans → cheap, exact re-renders; ONE derivation
+  // source, so an exhibit can never disagree with the bench or the terminal).
+  const discovered = useProgressStore((s) => isSongDiscovered(s, slug));
+  const restored = useProgressStore((s) => isSongRestored(s, slug));
 
   const meta = songMeta(slug);
   const album = discovered ? albumBySlug(songAlbum(slug) ?? '') : undefined;

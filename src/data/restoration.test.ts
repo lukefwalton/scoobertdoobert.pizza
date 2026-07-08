@@ -86,3 +86,13 @@ describe('isSongRestored — bench rites OR a held master', () => {
     expect(restoredCount(p)).toBe(1);
   });
 });
+
+describe('restored ⇒ discovered (the retroactive-master coherence rule)', () => {
+  it('a held master discovers its room-song even if discoverSong never ran', () => {
+    const roomSongMaster = MASTER_TAPES.find((m) => isRoomSong(m.track));
+    expect(roomSongMaster, 'expected at least one master carrying a room-song').toBeTruthy();
+    const p = { ...COLD, itemsHeld: [roomSongMaster!.id] };
+    expect(isSongRestored(p, roomSongMaster!.track)).toBe(true);
+    expect(isSongDiscovered(p, roomSongMaster!.track)).toBe(true); // never ??? under a HI-FI badge
+  });
+});
