@@ -7,6 +7,7 @@ import { destById } from '../data/links';
 import { lookableById } from '../data/lookables';
 import { roomById, ROOM_FADE_MS } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
+import { useAudioStore } from '../state/audioStore';
 import { lyricFor, songsWithLyrics } from '../data/lyrics';
 import { useProgressStore } from '../state/progressStore';
 import { SPELLS } from '../data/spells';
@@ -237,6 +238,15 @@ export function WorldHud() {
   useEffect(() => {
     exposeTestGlobal('__sdpCast', (id?: string) => (id ? castSpell(id) : castEquippedSpell()));
     return () => exposeTestGlobal('__sdpCast', undefined);
+  }, []);
+
+  // Test hook (?world / ?debug): drive the GLOBAL MUTE through the real store path
+  // (audioStore.setMuted → engine + every subscriber, incl. the TV facade's
+  // postMessage forwarding) so the tv smoke can assert a POST-LOAD mute toggle
+  // reaches the iframe. Same benign tier as __sdpCast (it's the pause-menu button).
+  useEffect(() => {
+    exposeTestGlobal('__sdpSetMuted', (m: boolean) => useAudioStore.getState().setMuted(!!m));
+    return () => exposeTestGlobal('__sdpSetMuted', undefined);
   }, []);
 
   // Test hook (?world / ?debug): open the lyrics reader on a known track so a smoke

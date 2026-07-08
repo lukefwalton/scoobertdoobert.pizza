@@ -343,8 +343,13 @@ if (linksManifest && !existsSync(manifestFile)) {
 // carries the skeleton a screen reader navigates by — one <h1>, no skipped heading
 // levels, a <main> landmark, and no alt-less <img>. Static checks on the RENDERED
 // HTML, so a component/shell regression fails the build, not an audit six months on.
-// dist/1101.html is exempt: it's Luke's hand-exported Twine story (a shipped asset,
-// not a site page — the SaveSanDiego shell that embeds it is checked like the rest).
+// Exemptions are POLICY (a named allowlist, not scattered ifs): hand-exported /
+// non-page HTML assets that intentionally don't carry the site skeleton. Each entry
+// needs a reason. Currently only Luke's Twine story export (the SaveSanDiego shell
+// that embeds it is checked like any other page).
+const A11Y_EXEMPT = new Set([
+  'dist/1101.html', // hand-exported Twine story — a shipped asset, not a site page
+]);
 function* distHtmlFiles(dir = 'dist') {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = `${dir}/${entry.name}`;
@@ -353,7 +358,7 @@ function* distHtmlFiles(dir = 'dist') {
   }
 }
 for (const file of distHtmlFiles()) {
-  if (file === 'dist/1101.html') continue;
+  if (A11Y_EXEMPT.has(file)) continue;
   const html = readFileSync(file, 'utf8');
   const problems = [];
 
