@@ -85,6 +85,10 @@ type SceneState = {
    *  play" prompt + the E action (launchRandomArcade). Boolean, not an id: at most
    *  one cabinet per room. Cleared when the cabinet unmounts (you leave the room). */
   nearArcade: boolean;
+  /** the camera is standing at the kitchen's Pizza Cam™ tripod — drives its
+   *  "Press E" prompt + the E action (openArcade('booth'), the consent-gated
+   *  camera instrument). Boolean like nearArcade: one prop, one room. */
+  nearBooth: boolean;
   /** A dancing Wanderer the camera is close to (its id + a friendly label), or
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
@@ -171,6 +175,7 @@ type SceneState = {
   openLyrics: (slug: string) => void;
   closeLyrics: () => void;
   setNearArcade: (near: boolean) => void;
+  setNearBooth: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -262,6 +267,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   arcadeGame: null,
   lyricsSong: null,
   nearArcade: false,
+  nearBooth: false,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -307,6 +313,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
+      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
     });
@@ -332,6 +339,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       nearNpc: null,
       openNpc: null,
       nearArcade: false,
+      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
       triggersFired: [],
@@ -365,6 +373,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   openLyrics: (slug) => set({ lyricsSong: slug }),
   closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near) => set({ nearArcade: near }),
+  setNearBooth: (near) => set({ nearBooth: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),

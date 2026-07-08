@@ -2,7 +2,9 @@ import { useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeBilingualSign } from './ps1';
 import { useDispose } from '../lib/useDispose';
+import { useTouchDevice } from '../lib/lowPower';
 import { PizzaPanChimes } from './PizzaPanChimes';
+import { PizzaCamProp } from './PizzaCamProp';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -20,6 +22,9 @@ export function KitchenRoom({ room }: { room: Room }) {
   const W = room.dims.halfW;
   const D = room.dims.halfD;
   const H = room.dims.height;
+  // The Pizza Cam tripod is desktop-only, like the machine-room CRT — the booth
+  // it opens is a parallel-port gag on touch anyway (Webcam policy).
+  const touch = useTouchDevice();
 
   const signTex = useMemo(
     () =>
@@ -147,6 +152,10 @@ export function KitchenRoom({ room }: { room: Room }) {
       {/* the playable tuned pizza-pan rack against the back (-X) wall — the thesis,
           made playable, at its source. Reuses the shipped instrument. */}
       <PizzaPanChimes position={[-W + 0.9, 0, 1]} rotationY={Math.PI / 2} />
+
+      {/* the Pizza Cam™ tripod in the back-right corner — the in-world door to
+          the consent-gated camera instrument (openArcade('booth')). */}
+      {!touch && <PizzaCamProp position={[W - 1.5, 0, -D + 1.5]} rotationY={-Math.PI / 4} />}
     </group>
   );
 }
