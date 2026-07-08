@@ -144,7 +144,8 @@ export function useCameraGrid(onFrame: (f: CamFrame) => void): {
       })
       .catch((err: unknown) => {
         setStatus(
-          err instanceof DOMException && (err.name === 'NotAllowedError' || err.name === 'SecurityError')
+          err instanceof DOMException &&
+            (err.name === 'NotAllowedError' || err.name === 'SecurityError')
             ? 'denied'
             : 'error',
         );

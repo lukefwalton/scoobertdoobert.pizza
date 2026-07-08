@@ -84,7 +84,11 @@ export function Descent() {
   const bootLines = useMemo(() => {
     if (!camOffer) return WORLD_BOOT_LINES;
     const i = WORLD_BOOT_LINES.indexOf('SUMMONING THE RAT ........... OK');
-    return [...WORLD_BOOT_LINES.slice(0, i + 1), CAM_LINES[camOffer], ...WORLD_BOOT_LINES.slice(i + 1)];
+    return [
+      ...WORLD_BOOT_LINES.slice(0, i + 1),
+      CAM_LINES[camOffer],
+      ...WORLD_BOOT_LINES.slice(i + 1),
+    ];
   }, [camOffer]);
 
   // OrderForm requests the descent via the store. It owns the mobile /

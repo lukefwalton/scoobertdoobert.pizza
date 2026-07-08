@@ -28,8 +28,7 @@ const field = () => new Float32Array(CELLS);
 
 /** Paint a w×h block of luminance into a grid at (x, y). */
 function blob(g: Uint8Array, x: number, y: number, w: number, h: number, v: number) {
-  for (let yy = y; yy < y + h; yy++)
-    for (let xx = x; xx < x + w; xx++) g[yy * CAM_W + xx] = v;
+  for (let yy = y; yy < y + h; yy++) for (let xx = x; xx < x + w; xx++) g[yy * CAM_W + xx] = v;
 }
 
 describe('lumaFrom — Rec.601 integer luma', () => {

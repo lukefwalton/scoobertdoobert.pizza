@@ -219,3 +219,11 @@
 .booth--reduced .booth-dot--blink {
   animation: none;
 }
+/* Honor the OS-level reduced-motion preference natively too — not only the
+   JS-toggled .booth--reduced class — per WCAG 2.3.1 (matches every other
+   animated file under src/styles/). */
+@media (prefers-reduced-motion: reduce) {
+  .booth-dot--blink {
+    animation: none;
+  }
+}

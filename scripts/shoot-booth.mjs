@@ -33,7 +33,12 @@ const LEFT = { x0: 2, x1: 8, y0: 8, y1: 16, v: 200 };
 const RIGHT = { x0: 24, x1: 30, y0: 8, y1: 16, v: 200 };
 const SPIKE = { x0: 12, x1: 20, y0: 16, y1: 23, v: 220 }; // bottom-middle zone (mushroom)
 
-const { browser, fail: bad, finish, failures } = await launchSmoke({
+const {
+  browser,
+  fail: bad,
+  finish,
+  failures,
+} = await launchSmoke({
   // Chromium's fake camera: auto-grant the permission prompt + a synthetic feed,
   // so the REAL getUserMedia path runs headless (CI has no webcam).
   args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'],
@@ -168,7 +173,8 @@ const { browser, fail: bad, finish, failures } = await launchSmoke({
   if (settled?.playing) bad('dough: sustained stillness did not fall silent (noise floor?)');
   // ...then a NEW blob on the right (left held, so only the right edge moves).
   const right = await inject(frame(LEFT, RIGHT));
-  if (!PENTATONIC.has(right?.freq)) bad(`dough: right freq ${right?.freq} not in the pentatonic set`);
+  if (!PENTATONIC.has(right?.freq))
+    bad(`dough: right freq ${right?.freq} not in the pentatonic set`);
   if (!(right?.freq > left?.freq))
     bad(`dough: right (${right?.freq}) should pitch above left (${left?.freq})`);
 
@@ -270,11 +276,17 @@ const { browser, fail: bad, finish, failures } = await launchSmoke({
   await page.goto(base + '/', { waitUntil: 'networkidle' });
   // Storefront → era floors → machine room → Install → the PIZZA-DOS boot.
   await page.click('#order-form button[type="submit"]');
-  await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).catch(() => bad('boot: no 1999 floor'));
+  await page
+    .waitForSelector('[data-floor="y1999"]', { timeout: 8000 })
+    .catch(() => bad('boot: no 1999 floor'));
   await page.click('.floor-door--down');
-  await page.waitForSelector('[data-floor="y2000"]', { timeout: 8000 }).catch(() => bad('boot: no 2000 floor'));
+  await page
+    .waitForSelector('[data-floor="y2000"]', { timeout: 8000 })
+    .catch(() => bad('boot: no 2000 floor'));
   await page.click('.floor-door--down');
-  await page.waitForSelector('[data-floor="machine"]', { timeout: 8000 }).catch(() => bad('boot: no machine room'));
+  await page
+    .waitForSelector('[data-floor="machine"]', { timeout: 8000 })
+    .catch(() => bad('boot: no machine room'));
   await page.click('.mr__install');
 
   // The boot log gains the NOT DETECTED line + the arming row (first un-answered
