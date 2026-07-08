@@ -5,7 +5,8 @@ import { RoomBox } from './RoomBox';
 import { flatMat, makeAffineTexturedMaterial, makeCheckerTexture, makeTextTexture } from './ps1';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 import { JUKEBOX_POS, fogFor, type Room } from '../data/rooms';
-import { visibleJukeboxTracks, jukeboxTrackUrl } from '../data/jukebox';
+import { visibleJukeboxTracks } from '../data/jukebox';
+import { playbackUrlFor } from '../lib/trackSource';
 import { loopIndexForUrl } from '../data/music';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
@@ -204,7 +205,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
     // the d20 roll specifically — pocketing a tape also unlocks the radio, but must
     // not tick this quest.
     useProgressStore.getState().findSecret('jukebox-roll');
-    const url = jukeboxTrackUrl(tracks[i].slug);
+    const url = playbackUrlFor(tracks[i].slug);
     useMusicStore.getState().setPreferred(loopIndexForUrl(url));
     // The crit is REAL AUDIO now, not just flavour (DESIGN's "per-track curdle
     // variant"): a nat 1 arms the CURSED pressing — the engine's live curdle
@@ -241,7 +242,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
   // __sdpDice is cleared on BOTH enter and exit so it always means "the roll
   // from THIS visit" (edge-triggered), never a sticky last-roll-since-page-load.
   useEffect(() => {
-    audio.preloadJukebox(tracks.map((t) => jukeboxTrackUrl(t.slug)));
+    audio.preloadJukebox(tracks.map((t) => playbackUrlFor(t.slug)));
     exposeTestGlobal('__sdpDice', undefined);
     exposeTestGlobal('__sdpDiceCrit', undefined);
     // The dial the player can actually see this visit (seed + discovered) — for the
@@ -270,7 +271,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
 
   // Play the selected track — runs on entry (index 0) and on every cycle.
   useEffect(() => {
-    void audio.playJukeboxTrack(jukeboxTrackUrl(track.slug));
+    void audio.playJukeboxTrack(playbackUrlFor(track.slug));
     // Expose the selection for the rooms smoke (auto-play + click-to-cycle),
     // gated to the test entrances so it isn't part of the normal global surface.
     exposeTestGlobal('__sdpJukebox', { index, slug: track.slug });

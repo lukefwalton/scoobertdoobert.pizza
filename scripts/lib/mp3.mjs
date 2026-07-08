@@ -22,6 +22,22 @@ export function encodeMp3(int16, sampleRate, kbps = 32) {
   return Buffer.concat(chunks);
 }
 
+/** Encode stereo Int16 PCM (separate channels) → MP3 Buffer. Higher default bitrate:
+ *  this is the HI-FI restoration variant (44.1 kHz, no crush), not the lo-fi crunch. */
+export function encodeMp3Stereo(left, right, sampleRate, kbps = 112) {
+  if (left.length !== right.length) throw new Error('encodeMp3Stereo: channel length mismatch');
+  const enc = new Lame.Mp3Encoder(2, sampleRate, kbps);
+  const BLOCK = 1152;
+  const chunks = [];
+  for (let i = 0; i < left.length; i += BLOCK) {
+    const buf = enc.encodeBuffer(left.subarray(i, i + BLOCK), right.subarray(i, i + BLOCK));
+    if (buf.length > 0) chunks.push(Buffer.from(buf));
+  }
+  const end = enc.flush();
+  if (end.length > 0) chunks.push(Buffer.from(end));
+  return Buffer.concat(chunks);
+}
+
 /** Decode base64 little-endian Int16 bytes (from the in-browser bridge) → Int16Array. */
 export function int16FromB64(b64) {
   const buf = Buffer.from(b64, 'base64');

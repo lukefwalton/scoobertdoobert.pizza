@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { audio } from '../audio/engine';
-import { LOOP_OPTIONS, loopIndexForUrl, jukeboxTrackUrl } from '../data/music';
+import { LOOP_OPTIONS, loopIndexForUrl } from '../data/music';
+import { playbackUrlFor } from '../lib/trackSource';
 
 // The user-facing music control. The ENGINE is the source of truth for what's
 // actually playing — this store MIRRORS it (via audio.onLoopChange) so the HUD
@@ -34,7 +35,7 @@ const wrap = (i: number) => ((i % LOOP_OPTIONS.length) + LOOP_OPTIONS.length) % 
 function playOption(i: number) {
   const opt = LOOP_OPTIONS[wrap(i)];
   audio.unlock(); // the click is the gesture
-  if (opt.slug) void audio.playJukeboxTrack(jukeboxTrackUrl(opt.slug));
+  if (opt.slug) void audio.playJukeboxTrack(playbackUrlFor(opt.slug));
   else audio.restoreBoot();
 }
 

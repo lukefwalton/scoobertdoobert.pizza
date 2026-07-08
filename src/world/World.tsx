@@ -5,7 +5,7 @@ import { PS1 } from './constants';
 import { roomById, ROOMS, type Room, type RoomKind } from '../data/rooms';
 import { lootDropsForRoom } from '../data/loot';
 import { useScoreStore } from '../state/scoreStore';
-import { jukeboxTrackUrl } from '../data/music';
+import { playbackUrlFor } from '../lib/trackSource';
 import { jukeboxTitle } from '../data/jukebox';
 import { useSceneStore } from '../state/sceneStore';
 import { useMusicStore } from '../state/musicStore';
@@ -112,7 +112,7 @@ function RoomMusic({ room }: { room: Room }) {
   useEffect(() => {
     if (!room.song) return;
     const song = room.song;
-    void audio.playJukeboxTrack(jukeboxTrackUrl(song));
+    void audio.playJukeboxTrack(playbackUrlFor(song));
     // Exploration's reward is sound: finding a song-room UNLOCKS its track in the
     // jukebox forever (it's hidden there until found). Chime + announce ONLY on the
     // first find (discoverSong returns true once), so revisits stay quiet.

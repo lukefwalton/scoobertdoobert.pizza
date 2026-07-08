@@ -41,3 +41,27 @@ describe('jukebox song discovery (visibleJukeboxTracks)', () => {
     expect(after).toEqual(before);
   });
 });
+
+// The hi-fi variant urls (the restoration reward) and their slug round-trip.
+describe('hi-fi track urls', () => {
+  it('builds distinct lo-fi / hi-fi urls that both round-trip to the slug', async () => {
+    const { jukeboxTrackUrl, hifiTrackUrl, isHifiUrl, slugForTrackUrl } = await import('./jukebox');
+    for (const t of JUKEBOX_TRACKS) {
+      const lofi = jukeboxTrackUrl(t.slug);
+      const hifi = hifiTrackUrl(t.slug);
+      expect(hifi).not.toBe(lofi);
+      expect(isHifiUrl(hifi)).toBe(true);
+      expect(isHifiUrl(lofi)).toBe(false);
+      expect(slugForTrackUrl(lofi)).toBe(t.slug);
+      expect(slugForTrackUrl(hifi)).toBe(t.slug);
+    }
+  });
+
+  it('slugForTrackUrl rejects non-jukebox urls (boot loop, junk)', async () => {
+    const { slugForTrackUrl } = await import('./jukebox');
+    expect(slugForTrackUrl(null)).toBe(null);
+    expect(slugForTrackUrl('/audio/boot.mp3')).toBe(null);
+    expect(slugForTrackUrl('/audio/jukebox/')).toBe(null);
+    expect(slugForTrackUrl('https://elsewhere.example/x.mp3')).toBe(null);
+  });
+});

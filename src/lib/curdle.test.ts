@@ -75,3 +75,28 @@ describe('curdleParamsFor — the pressings', () => {
     expect(deep.wet).toBe(WET_CAP);
   });
 });
+
+// The RESTORED hi-fi files have no baked 0.965 tape slow-down, so pristine has
+// nothing to rate-correct — everything else about the score is variant-blind
+// (the depths curdle even restored masters; a nat 1 curses the clean pressing).
+describe('curdleParamsFor — the hi-fi (restored) flag', () => {
+  it('pristine on a hi-fi voice plays at rate 1 (still fully clean)', () => {
+    const p = curdleParamsFor(1, 'pristine', { hifi: true });
+    expect(p.rate).toBe(1);
+    expect(p.wet).toBe(0);
+    expect(p.wow.depth).toBe(0);
+    expect(p.dropoutChance).toBe(0);
+  });
+
+  it('pristine on the lo-fi voice keeps the rate correction', () => {
+    expect(curdleParamsFor(0, 'pristine').rate).toBe(PRISTINE_RATE);
+    expect(curdleParamsFor(0, 'pristine', { hifi: false }).rate).toBe(PRISTINE_RATE);
+  });
+
+  it('dread and the cursed pressing are hi-fi-blind', () => {
+    for (const u of [0, 0.5, 1]) {
+      expect(curdleParamsFor(u, null, { hifi: true })).toEqual(curdleParamsFor(u, null));
+      expect(curdleParamsFor(u, 'cursed', { hifi: true })).toEqual(curdleParamsFor(u, 'cursed'));
+    }
+  });
+});

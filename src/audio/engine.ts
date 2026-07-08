@@ -17,6 +17,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 import { mapUnease } from '../data/dread';
+import { isHifiUrl } from '../data/jukebox';
 import { strikeBell } from '../lib/chimes';
 import { curdleParamsFor, type CurdleParams, type Pressing } from '../lib/curdle';
 import { exposeTestGlobal } from '../lib/testHooks';
@@ -1224,7 +1225,10 @@ class PizzaAudio {
   private applyCurdle(): void {
     this.curdleAppliedU = this.dreadLevel;
     const kind = this.activePressing();
-    const p = curdleParamsFor(this.dreadLevel, kind);
+    // A restored track's hi-fi file has no baked tape slow-down, so the pristine
+    // rate-correction must not apply (curdleParamsFor returns rate 1 for it).
+    const hifi = this.jukeboxActive && isHifiUrl(this.activeJukeboxUrl ?? '');
+    const p = curdleParamsFor(this.dreadLevel, kind, { hifi });
     this.curdleParams = p;
     exposeTestGlobal('__sdpCurdle', {
       pressing: kind,

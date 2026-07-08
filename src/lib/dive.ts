@@ -1,5 +1,5 @@
 import { albumBySlug } from '../data/albums';
-import { jukeboxTrackUrl } from '../data/jukebox';
+import { playbackUrlFor } from './trackSource';
 import { audio } from '../audio/engine';
 import { useSceneStore } from '../state/sceneStore';
 
@@ -18,7 +18,7 @@ export function diveInto(albumSlug: string | undefined, to: string, spawn: strin
   const album = albumSlug ? albumBySlug(albumSlug) : undefined;
   if (album?.track) {
     audio.unlock();
-    void audio.playJukeboxTrack(jukeboxTrackUrl(album.track));
+    void audio.playJukeboxTrack(playbackUrlFor(album.track));
   }
   s.enterPainting(to, spawn);
 }
