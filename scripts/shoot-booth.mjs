@@ -194,4 +194,136 @@ const { browser, fail: bad, finish, failures } = await launchSmoke({
   await ctx.close();
 }
 
+// --- 5. the in-world entrance: the kitchen's Pizza Cam tripod ---
+{
+  const phaseErr0 = failures();
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  watchPageErrors(page, bad);
+  await page.goto(base + '/?room=kitchen&debug=1', { waitUntil: 'commit' });
+  try {
+    await page.waitForSelector('canvas', { timeout: 15000 });
+    await page.waitForSelector('.hud-menu-btn', { timeout: 15000 });
+  } catch (e) {
+    bad(`world did not mount for the kitchen phase: ${e.message}`);
+  }
+  await page.waitForTimeout(1500); // WebGL warmup
+  await page.click('.hud-welcome__close', { timeout: 1500 }).catch(() => {});
+
+  // The tripod sits in the back-right corner (+X/−Z); the spawn faces −X, so
+  // back up + strafe right and poll for ITS prompt (the door prompt may flicker
+  // past on the way — keep holding until the Pizza Cam text shows).
+  for (const k of ['s', 'd']) await page.keyboard.down(k);
+  const prompted = await page
+    .waitForFunction(
+      () =>
+        [...document.querySelectorAll('.hud-prompt')].some((el) =>
+          (el.textContent ?? '').includes('Pizza Cam'),
+        ),
+      null,
+      { timeout: 8000 },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  for (const k of ['s', 'd']) await page.keyboard.up(k);
+  if (!prompted) bad('kitchen: the Pizza Cam prompt never appeared at the tripod');
+
+  // E opens the booth — ALWAYS the booth (never a rolled game): the modal is
+  // titled PIZZA CAM and shows the consent gate (camera still untouched).
+  await page.keyboard.press('e');
+  const modal = await page
+    .waitForSelector('.hud-dialog--arcade[aria-label="PIZZA CAM"]', { timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!modal) bad('kitchen: E at the tripod did not open the PIZZA CAM modal');
+  const gate = await page
+    .getByRole('button', { name: 'Enable the Pizza Cam' })
+    .waitFor({ state: 'visible', timeout: 4000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!gate) bad('kitchen: the consent gate is not the first thing the modal shows');
+  await page.screenshot({ path: '.shots/booth-kitchen.png' });
+
+  // Esc closes the modal and the world verbs resume (the prompt can re-show).
+  await page.keyboard.press('Escape');
+  const closed = await page
+    .waitForSelector('.hud-dialog--arcade', { state: 'detached', timeout: 4000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!closed) bad('kitchen: Esc did not close the booth modal');
+  console.log(
+    `kitchen  -> prompt=${prompted} modal=${modal} gate=${gate} esc=${closed} errors=${failures() - phaseErr0}`,
+  );
+  await ctx.close();
+}
+
+// --- 6. the boot-screen opt-in: PIZZA CAM line on the green load screen ---
+{
+  const phaseErr0 = failures();
+  const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 } });
+  const page = await ctx.newPage();
+  watchPageErrors(page, bad);
+  await page.goto(base + '/', { waitUntil: 'networkidle' });
+  // Storefront → era floors → machine room → Install → the PIZZA-DOS boot.
+  await page.click('#order-form button[type="submit"]');
+  await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).catch(() => bad('boot: no 1999 floor'));
+  await page.click('.floor-door--down');
+  await page.waitForSelector('[data-floor="y2000"]', { timeout: 8000 }).catch(() => bad('boot: no 2000 floor'));
+  await page.click('.floor-door--down');
+  await page.waitForSelector('[data-floor="machine"]', { timeout: 8000 }).catch(() => bad('boot: no machine room'));
+  await page.click('.mr__install');
+
+  // The boot log gains the NOT DETECTED line + the arming row (first un-answered
+  // desktop boot of the visit). ENABLE arms the session flag — and ONLY the flag.
+  const row = await page
+    .getByRole('button', { name: 'ENABLE HAND CONTROL' })
+    .waitFor({ state: 'visible', timeout: 20000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!row) bad('boot: the ENABLE HAND CONTROL row never appeared on the boot screen');
+  await page.screenshot({ path: '.shots/booth-boot.png' });
+  if (row) await page.getByRole('button', { name: 'ENABLE HAND CONTROL' }).click();
+  const armed = await page.evaluate(() => sessionStorage.getItem('sdp:camera-choice'));
+  if (armed !== 'armed') bad(`boot: expected the session flag armed, got ${JSON.stringify(armed)}`);
+  const world = await page
+    .waitForSelector('.hud-menu-btn', { timeout: 18000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!world) bad('boot: the world never mounted after arming');
+  console.log(
+    `boot     -> row=${row} armed=${armed === 'armed'} world=${world} errors=${failures() - phaseErr0}`,
+  );
+  await ctx.close();
+}
+
+// --- 7. touch: the parallel-port gag (no webcam UI on a phone, per policy) ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 412, height: 900 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await ctx.newPage();
+  await page.goto(base + '/booth', { waitUntil: 'networkidle' });
+  const gag = await page
+    .waitForFunction(() => document.body.textContent?.includes('parallel port'), null, {
+      timeout: 8000,
+    })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!gag) bad('touch: /booth did not show the parallel-port gag');
+  const video = await page.$('video');
+  if (video) bad('touch: a <video> element mounted on a touch device');
+  console.log(`touch    -> gag=${gag} video=${!!video}`);
+  await ctx.close();
+}
+
 await finish('\nbooth checks passed.', `\n${failures()} booth check(s) FAILED`);

@@ -53,6 +53,10 @@ export function interactNearby(): void {
     st.openTv(st.nearTv);
   } else if (st.nearArcade) {
     launchRandomArcade();
+  } else if (st.nearBooth) {
+    // The kitchen's Pizza Cam™ tripod — always the booth, never a roll (the
+    // camera instrument is entered on purpose; consent gate lives inside).
+    st.openArcade('booth');
   } else if (st.nearHotspot) {
     st.openHotspotDialog(st.nearHotspot);
   } else if (st.nearNpc) {

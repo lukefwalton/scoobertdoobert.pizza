@@ -62,6 +62,7 @@ export function WorldHud() {
   const tvVideo = useSceneStore((s) => s.tvVideo);
   const closeTv = useSceneStore((s) => s.closeTv);
   const nearArcade = useSceneStore((s) => s.nearArcade);
+  const nearBooth = useSceneStore((s) => s.nearBooth);
   const arcadeGame = useSceneStore((s) => s.arcadeGame);
   const closeArcade = useSceneStore((s) => s.closeArcade);
   // A full-screen LEVEL overlay a door opened into (the 1101 text adventure), or
@@ -401,11 +402,23 @@ export function WorldHud() {
         !paused &&
         !pendingRoom && <div className="hud-prompt hud-prompt--arcade">Press E to play</div>}
 
+      {nearBooth &&
+        !nearDoor &&
+        !nearInteractable &&
+        !nearTv &&
+        !nearArcade &&
+        !open &&
+        !paused &&
+        !pendingRoom && (
+          <div className="hud-prompt hud-prompt--arcade">Press E to try the Pizza Cam™</div>
+        )}
+
       {nearHs &&
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
         !nearArcade &&
+        !nearBooth &&
         !open &&
         !paused &&
         !pendingRoom && <div className="hud-prompt">{nearHs.prompt}</div>}
@@ -414,6 +427,7 @@ export function WorldHud() {
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
+        !nearBooth &&
         !nearHs &&
         !open &&
         !openNpc &&
@@ -426,6 +440,7 @@ export function WorldHud() {
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
+        !nearBooth &&
         !nearHs &&
         !nearNpc &&
         !open &&
@@ -447,6 +462,7 @@ export function WorldHud() {
         !nearInteractable &&
         !nearTv &&
         !nearArcade &&
+        !nearBooth &&
         !nearHs &&
         !nearNpc &&
         !nearEntity &&
@@ -465,6 +481,7 @@ export function WorldHud() {
         !nearInteractable &&
         !nearTv &&
         !nearArcade &&
+        !nearBooth &&
         !nearHs &&
         !nearNpc &&
         !nearEntity &&
