@@ -157,9 +157,13 @@ export function KitchenRoom({ room }: { room: Room }) {
       {/* ORDER UP against the back (-Z) wall on the right, clear of the oven + the
           back door — the kitchen's own memory game (call the order, ring it back) */}
       <ArcadeCabinet position={[3.5, 0, -D + 0.7]} rotationY={0} tint="#e0662e" game="order-up" />
-      {/* the Pizza Cam™ tripod in the back-right corner — the in-world door to
-          the consent-gated camera instrument (openArcade('booth')). */}
-      {!touch && <PizzaCamProp position={[W - 1.5, 0, -D + 1.5]} rotationY={-Math.PI / 4} />}
+      {/* the Pizza Cam™ tripod in the FRONT-LEFT corner — the in-world door to the
+          consent-gated camera instrument (openArcade('booth')). Deliberately across
+          the room from the back-right ORDER UP cabinet: the prompt radii (3.0 booth /
+          3.4 arcade) would otherwise overlap in this small kitchen, so a press near
+          one could fire the other. Here each prop owns its own corner, clear of all
+          three doors. */}
+      {!touch && <PizzaCamProp position={[-W + 3, 0, D - 3]} rotationY={Math.PI / 4} />}
     </group>
   );
 }
