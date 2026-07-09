@@ -102,6 +102,35 @@
   padding: 0;
   color: inherit;
 }
+/* The PIZZA CAM opt-in row under the boot log (Webcam policy: the offer lives
+   on the green load screen; answering only arms a session flag). Phosphor
+   buttons, not 98.css chrome — this is PIZZA-DOS, not the desktop. */
+.descent__camrow {
+  margin-top: 3vmin;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.descent__camrow button {
+  appearance: none;
+  font: inherit;
+  background: transparent;
+  color: #33ff66;
+  border: 1px solid #33ff66;
+  padding: 4px 12px;
+  cursor: pointer;
+  text-shadow: inherit;
+}
+.descent__camrow button:hover,
+.descent__camrow button:focus-visible {
+  background: #103a1c;
+  outline: none;
+}
+.descent__camfine {
+  font-size: 12px;
+  opacity: 0.75;
+}
 .descent__boot--out {
   animation: descent-black-out 0.8s ease forwards;
 }
