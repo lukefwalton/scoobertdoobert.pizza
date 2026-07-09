@@ -98,6 +98,10 @@ type SceneState = {
    *  null for the MYSTERY cabinet that rolls a random game. Drives the E action so it
    *  launches the right thing. One cabinet per room (see above), so this never collides. */
   nearArcadeGame: ArcadeGameId | null;
+  /** the camera is standing at the kitchen's Pizza Cam™ tripod — drives its
+   *  "Press E" prompt + the E action (openArcade('booth'), the consent-gated
+   *  camera instrument). Boolean like nearArcade: one prop, one room. */
+  nearBooth: boolean;
   /** A dancing Wanderer the camera is close to (its id + a friendly label), or
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
@@ -184,6 +188,7 @@ type SceneState = {
   openLyrics: (slug: string) => void;
   closeLyrics: () => void;
   setNearArcade: (near: boolean, game?: ArcadeGameId | null) => void;
+  setNearBooth: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -280,6 +285,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   lyricsSong: null,
   nearArcade: false,
   nearArcadeGame: null,
+  nearBooth: false,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -327,6 +333,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       nearArcadeGame: null,
+      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
     });
@@ -354,6 +361,7 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       nearArcadeGame: null,
+      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
       triggersFired: [],
@@ -388,6 +396,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near, game = null) =>
     set({ nearArcade: near, nearArcadeGame: near ? game : null }),
+  setNearBooth: (near) => set({ nearBooth: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),

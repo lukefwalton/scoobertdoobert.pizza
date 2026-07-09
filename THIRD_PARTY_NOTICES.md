@@ -7,9 +7,10 @@ the public repo carries proper attribution. Anything not yet filled in is marked
 **TODO(license)**.
 
 > Source `.glb` files live (unshipped) in `media/models/`; only the crunched
-> derivatives under `public/models/` actually ship. The `media/models/README.md`
-> manifest flags models that are clearly someone else's IP (e.g. Max & Ruby,
-> FNAF/Fazbear, Shrek) — those are **reference-only and must not ship**.
+> derivatives under `public/models/` actually ship. A few early source downloads
+> that depicted third-party characters (Max & Ruby, FNAF/Fazbear, Shrek) were
+> **removed and purged from git history on 2026-07-08**, before this repo went
+> public — nothing bundled or referenced here depicts someone else's IP.
 
 ## 3D models — `public/models/`
 

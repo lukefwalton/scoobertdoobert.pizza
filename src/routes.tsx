@@ -17,6 +17,7 @@ import SaveSanDiego from './pages/SaveSanDiego';
 import Poke from './pages/Poke';
 import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
+import Booth from './pages/Booth';
 import Leaderboard from './pages/Leaderboard';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
@@ -64,6 +65,9 @@ export const routes: RouteRecord[] = [
   // /cultures -> "Cultures," a stir-to-play living-colony drone (a fourth cabinet,
   // the DNA instrument from `fun`, re-homed and synthesised — nothing ships).
   { path: '/cultures', element: <Cultures /> },
+  // /booth -> the Pizza Cam™, the one consensual camera instrument (AIR DOUGH +
+  // TOPPING DRUMS). Consent-gated, fully local, desktop-only; rollable:false.
+  { path: '/booth', element: <Booth /> },
   // /leaderboard -> the PIZZA POINTS arcade high-score board (3 initials, Vercel
   // Blob backend). Crawlable shell; the live board mounts post-hydration.
   { path: '/leaderboard', element: <Leaderboard /> },

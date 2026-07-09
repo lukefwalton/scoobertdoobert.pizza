@@ -15,14 +15,15 @@ This file is the manifest: clean filename, the original filename it came from
 
 These are third-party downloads/scans. **Verify each model's individual license
 and attribution before any public build**, and log credits in a
-`THIRD_PARTY_NOTICES.md`. Several models depict **other people's intellectual
-property** and must **not** ship in a public build — they're kept only as
-private style reference / placeholders, to be replaced with original parody
-assets. Those are marked **⚠️ IP** below.
+`THIRD_PARTY_NOTICES.md`. Earlier, a few source downloads depicted **other
+people's intellectual property** (FNAF/Fazbear, Chuck E. Cheese, Shrek, Max &
+Ruby); those were **removed and purged from git history on 2026-07-08**, before
+this repo went public — see the tombstones below. Nothing here now depicts a
+third-party character.
 
 This squares with CLAUDE.md's #1 non-negotiable ("No copyrighted assets, copy,
-logos, or marks… original parody only"): keeping them as local reference is
-fine; shipping them is not.
+logos, or marks… original parody only"): keeping someone else's characters even
+as private reference stopped being tenable once the repo was public.
 
 ---
 
@@ -115,9 +116,12 @@ levels stay goofy; save these for depth.
 | file | ← original | notes |
 |---|---|---|
 | `roberta-animatronic.glb` | `roberta_animatronic_motion_ability.glb` | verify provenance |
-| `customizable-animatronics-fazbear.glb` | `customizable_animatronics__fazbear.glb` | **⚠️ IP** — "Fazbear" = *Five Nights at Freddy's*. Reference only; don't ship. |
-| `springbonnie-chuck-e-cheese-style.glb` | `springbonnie_shelf_chucke._cheese_style.glb` | **⚠️ IP** — "Spring Bonnie" (FNAF) + "Chuck E. Cheese". Reference only. |
-| `nightmare-shrek-animatronic.glb` | `nightmare_shrek_fan_made_animatronic.glb` | **⚠️ IP** — Shrek (DreamWorks), fan-made. ~37MB. Reference only. |
+
+`customizable-animatronics-fazbear.glb`, `springbonnie-chuck-e-cheese-style.glb`,
+and `nightmare-shrek-animatronic.glb` were **removed 2026-07-08** and purged from
+git history: they depict third-party IP (Five Nights at Freddy's, Chuck E. Cheese,
+Shrek) and were never shippable. The dread level they were scouted for uses
+original parody geometry instead — no replacements needed here.
 
 ## `levels/` — liminal / pool / backrooms environments
 Full environments staged for the levels below the shop (Phase 3+): the pool
@@ -135,7 +139,10 @@ level + backrooms direction.
 | `pool-6.glb` | `pool_6.glb` | ~46MB — optimize |
 | `poolrooms.glb` | `poolrooms.glb` | |
 | `poolrooms-alt.glb` | `poolrooms (1).glb` | distinct higher-detail variant (not a dup) |
-| `max-and-ruby-house.glb` | `max_and_ruby_house.glb` | **⚠️ IP** — *Max & Ruby* (Nickelodeon). Flagged in CLAUDE.md. Reference only; don't ship. |
+
+`max-and-ruby-house.glb` (← `max_and_ruby_house.glb`) was **removed 2026-07-08**
+and purged from git history — it's *Max & Ruby* (Nickelodeon) IP (flagged in
+CLAUDE.md), never shippable, and not something to expose in a public repo.
 
 `liminal-other-space.glb` (← `liminal_other_space.glb`) was **removed 2026-07-08**:
 it was the crunch source for the shipped `liminal-other-space.glb`, but its

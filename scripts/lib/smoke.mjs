@@ -120,8 +120,10 @@ export function watchPageErrors(page, onError) {
 // counts; `finish(ok, bad)` prints the matching summary (both args optional — pass
 // neither if the script already logged its own summary line), closes the browser,
 // and exits non-zero iff anything failed. `failures()` reads the live count.
-export async function launchSmoke() {
-  const browser = await chromium.launch();
+// `launchOpts` spreads into chromium.launch() — the booth smoke passes Chromium's
+// fake-camera flags so getUserMedia works headless; everything else omits it.
+export async function launchSmoke(launchOpts = {}) {
+  const browser = await chromium.launch(launchOpts);
   let failed = 0;
   const fail = (msg) => {
     failed++;
