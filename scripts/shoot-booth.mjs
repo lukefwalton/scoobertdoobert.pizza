@@ -216,10 +216,10 @@ const {
   await page.waitForTimeout(1500); // WebGL warmup
   await page.click('.hud-welcome__close', { timeout: 1500 }).catch(() => {});
 
-  // The tripod sits in the back-right corner (+X/−Z); the spawn faces −X, so
-  // back up + strafe right and poll for ITS prompt (the door prompt may flicker
-  // past on the way — keep holding until the Pizza Cam text shows).
-  for (const k of ['s', 'd']) await page.keyboard.down(k);
+  // The tripod sits in the FRONT-LEFT corner; the spawn faces −X, so walk forward
+  // (−X) + strafe left (+Z) toward it and poll for ITS prompt (a door prompt may
+  // flicker past on the way — keep holding until the Pizza Cam text shows).
+  for (const k of ['w', 'a']) await page.keyboard.down(k);
   const prompted = await page
     .waitForFunction(
       () =>
@@ -233,7 +233,7 @@ const {
       () => true,
       () => false,
     );
-  for (const k of ['s', 'd']) await page.keyboard.up(k);
+  for (const k of ['w', 'a']) await page.keyboard.up(k);
   if (!prompted) bad('kitchen: the Pizza Cam prompt never appeared at the tripod');
 
   // E opens the booth — ALWAYS the booth (never a rolled game): the modal is
