@@ -69,6 +69,26 @@ export const PERSON_ALTERNATE_NAMES: string[] = [
   'ルーク・F・ウォルトン',
 ];
 
+/**
+ * What the person DOES, for hire (ADDENDUM #8 — the CONVERT pass). Language-
+ * invariant like `identifier`/`sameAs`; the descriptions are the plain pitch a
+ * crawler/answer-engine can quote: he mixes and produces records for other
+ * artists, and mixes/produces/plays on all of his own.
+ */
+export const PERSON_OCCUPATIONS = [
+  { '@type': 'Occupation', name: 'Musician' },
+  {
+    '@type': 'Occupation',
+    name: 'Mixing engineer',
+    description: 'Mixes records for hire; mixes all of his own releases.',
+  },
+  {
+    '@type': 'Occupation',
+    name: 'Record producer',
+    description: 'Produces records for hire; produces and plays on all of his own releases.',
+  },
+] as const;
+
 /** Authority-file identifiers as schema.org PropertyValue entries. */
 export const PERSON_IDENTIFIER = [
   { '@type': 'PropertyValue', propertyID: 'IPI', name: 'BMI Songwriter IPI', value: '00579587572' },
@@ -95,6 +115,7 @@ export function personNode(lang: 'en' | 'ja' = 'en') {
     alternateName: PERSON_ALTERNATE_NAMES,
     disambiguatingDescription: DISAMBIGUATION[lang],
     url: 'https://lukefwalton.com/',
+    hasOccupation: PERSON_OCCUPATIONS,
     identifier: PERSON_IDENTIFIER,
     sameAs: CANONICAL_SAMEAS,
   };
