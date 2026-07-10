@@ -151,6 +151,21 @@ The unifying trick: most of these are *one mechanic that reads sweet near the
 surface and wrong in the depths*, driven by the same `unease` conductor — the
 rat, the music, recurrence, even the loaders all flip the same way.
 
+### The converting storefront — sell the work, keep the bit (Luke, 2026-07-10 — CLAUDE.md ADDENDUM #8)
+The front door now has a JOB beyond the joke: one skim must yield *artist ·
+mixing engineer & producer for hire · The Reel (productions & collabs; the MIXES
+at the bottom) · beformer@aol.com*. **Clear first, cheeky second** — the hire
+block wears period chrome (a NEW! blinky, table-border energy) but its words are
+unambiguous; the rest of the page stays dead plain (ADDENDUM #1 holds). The game
+entrance gets the same legibility: a plainly-worded "there is a whole world under
+this pizza shop — ENTER THE BUILDING »" door beside the gags, because the descent
+was previously findable only through jokes. Around the edges, a **link maze** —
+small interlinked crawlable back-of-house pages (real lore, retro furniture) —
+gives explorers and crawlers more surface: every dead-end sells (music/hire),
+every exit drops into the game via the now-public `/?world` / `/?room=ID` deep
+links. Register rule: never invent biography; the pitch quotes what's true (he
+mixes, produces, and plays on all his own records).
+
 ### The music ladder — hear → play → gamble → restore (the reward spine)
 - **Hear it.** Each descent layer has a track (Luke's map: "Jolly Roger Bay (64)"
   on top / current boot loop, "Information" a layer down, "1101" → the

@@ -24,10 +24,36 @@ describe('links — every destination is a real, crawlable anchor', () => {
   // contact, the news → podcast, the webring → listen). Asserting they resolve keeps
   // the fallback a true safety net, not a silent downgrade the render would hide.
   it('resolves the destinations the era floors depend on', () => {
-    for (const id of ['contact', 'podcast', 'listen']) {
+    for (const id of ['contact', 'podcast', 'listen', 'reel']) {
       const d = destById(id);
       expect(d, `floors depend on destById('${id}')`).toBeDefined();
       expect(d?.href, `${id} href`).toMatch(/^(https?:\/\/|\/|mailto:)/);
     }
+  });
+
+  // ADDENDUM #8 — the CONVERT pass. The `contact` dest IS the hire CTA (one inbox,
+  // one subject filter), and `reel` is the hire-reel playlist, a sanctioned
+  // non-duplicate of `listen` (the artist page). Pin both so a copy edit can't
+  // silently un-sell the site.
+  describe('the hire funnel (ADDENDUM #8)', () => {
+    it('contact is the hire mailto with the inquiry subject', () => {
+      const contact = destById('contact');
+      expect(contact?.href).toMatch(/^mailto:beformer@aol\.com\?subject=/);
+      expect(contact?.href).toContain('Mixing');
+    });
+
+    it('reel is the hire-reel playlist, distinct from the listen artist page', () => {
+      const reel = destById('reel');
+      const listen = destById('listen');
+      expect(reel?.href).toBe('https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q');
+      expect(reel?.href).not.toBe(listen?.href);
+      // the "mixes at the bottom" orientation is part of the pitch — keep it.
+      expect(reel?.blurb?.toLowerCase()).toContain('mixes');
+    });
+
+    it('the menu leads with the conversion trio: listen → reel → contact', () => {
+      const menuIds = DESTINATIONS.filter((d) => d.group !== 'social').map((d) => d.id);
+      expect(menuIds.slice(0, 3)).toEqual(['listen', 'reel', 'contact']);
+    });
   });
 });

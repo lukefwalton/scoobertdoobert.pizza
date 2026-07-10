@@ -1,6 +1,8 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { useMounted } from '../lib/useMounted';
-import { useTouchDevice } from '../lib/lowPower';
+import { useTouchDevice, prefersReducedMotion } from '../lib/lowPower';
+import { hasMotionConsent, grantMotionConsent } from '../lib/motionConsent';
+import { MotionConsent } from './MotionConsent';
 import { useSaveSanDiegoWin } from '../lib/useSaveSanDiegoWin';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
@@ -41,24 +43,50 @@ export function WorldMount() {
     typeof window !== 'undefined' &&
     new URLSearchParams(window.location.search).has('debug');
 
-  // Testing / debug entrance: ?world jumps straight into the first room; ?room=ID
-  // drops straight into any room (deterministic smoke entry for deep/hidden rooms
-  // like the shrine, which otherwise need the rat's secret to reach). The real
-  // entrance is the Calzone Player install gag (step 3). The SPECIFIC param wins:
-  // ?room=ID beats a generic ?world, so a smoke can combine them — e.g.
-  // ?room=jukebox&world=1 lands in the jukebox AND flips isTestEntrance on (to
-  // prove a debug-only action hook stays gated even under a test entrance).
+  // The public deep-link entrances (ADDENDUM #8 — promoted from test-only):
+  // ?world jumps straight into the first room; ?room=ID drops straight into any
+  // room (also the deterministic smoke entry for deep/hidden rooms like the
+  // shrine). The ceremonial entrance is still the Calzone Player install gag.
+  // The SPECIFIC param wins: ?room=ID beats a generic ?world, so a smoke can
+  // combine them — e.g. ?room=jukebox&world=1 lands in the jukebox AND flips
+  // isTestEntrance on (to prove a debug-only action hook stays gated even under
+  // a test entrance).
+  //
+  // Now that these are shareable public links (the maze pages point here), a
+  // reduced-motion visitor gets the same MotionConsent gate as the order form /
+  // machine room — never auto-dropped into a motion-heavy world from a URL.
+  const [gate, setGate] = useState<{ room?: string } | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    if (params.has('room')) enter(params.get('room') || undefined);
-    else if (params.has('world')) enter();
+    const target = params.has('room')
+      ? { room: params.get('room') || undefined }
+      : params.has('world')
+        ? {}
+        : null;
+    if (!target) return;
+    if (prefersReducedMotion() && !hasMotionConsent()) {
+      setGate(target);
+      return;
+    }
+    enter(target.room);
   }, [enter]);
 
   if (!mounted) return null;
 
   return (
     <>
+      {/* Reduced-motion consent for the public deep links (closing it stays on
+          the storefront — the flat /text list is offered inside the modal). */}
+      <MotionConsent
+        open={gate !== null}
+        onClose={() => setGate(null)}
+        onEnter={() => {
+          grantMotionConsent();
+          enter(gate?.room);
+          setGate(null);
+        }}
+      />
       {/* leva shader/scene tuning panel — mounted with the world (so its default
           auto-panel is suppressed), VISIBLE only under ?debug. */}
       {active && (

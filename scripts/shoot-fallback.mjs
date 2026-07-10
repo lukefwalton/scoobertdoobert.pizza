@@ -127,6 +127,89 @@ const { browser, fail, finish, failures } = await launchSmoke();
   await ctx.close();
 }
 
+// --- JS-OFF: the hire pitch + the maze are in the crawlable prerender (ADDENDUM
+//     #8). The storefront must carry the "mixing engineer" pitch, The Reel, the
+//     hire mailto, the ENTER THE BUILDING anchor (a real /text href), and the
+//     basement-stairs door; the maze pages must interlink with real anchors. ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    javaScriptEnabled: false,
+  });
+  const page = await ctx.newPage();
+  await page.goto(base + '/', { waitUntil: 'load' });
+  const html = await page.content();
+  for (const needle of [
+    'mixing engineer',
+    'beformer@aol.com',
+    'open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
+    'THERE IS A WHOLE WORLD UNDER THIS PIZZA SHOP',
+  ]) {
+    if (!html.includes(needle)) {
+      fail(`JS-OFF: storefront prerender is missing "${needle}"`);
+    }
+  }
+  const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
+  if (doorHref !== '/text') {
+    fail(`JS-OFF: ENTER THE BUILDING is not a real /text anchor -> ${doorHref}`);
+  }
+  const stairs = await page.$('a[href="/basement-stairs"]');
+  if (!stairs) {
+    fail('JS-OFF: the storefront has no /basement-stairs anchor');
+  }
+  // Walk the maze on real anchors, JS disabled: stairs -> freezer -> its exit.
+  await page.goto(base + '/basement-stairs', { waitUntil: 'load' });
+  const mazeH1 = (await page.textContent('main h1').catch(() => null))?.trim() ?? '';
+  if (mazeH1 !== 'The Basement Stairs') {
+    fail(`JS-OFF maze: /basement-stairs h1 -> ${JSON.stringify(mazeH1)}`);
+  }
+  await page.click('a[href="/walk-in-freezer"]');
+  await page.waitForURL('**/walk-in-freezer', { timeout: 6000 }).catch(() => {});
+  const freezerHtml = await page.content();
+  if (!freezerHtml.includes('href="/?room=kitchen"')) {
+    fail('JS-OFF maze: the freezer is missing its /?room=kitchen game exit');
+  }
+  if (!freezerHtml.includes('open.spotify.com/playlist/')) {
+    fail('JS-OFF maze: the freezer is missing its Reel pitch anchor');
+  }
+  await page.screenshot({ path: '.shots/fallback-maze.png', fullPage: true });
+  console.log(`js-off    -> door=${doorHref} mazeH1=${JSON.stringify(mazeH1)}`);
+  await ctx.close();
+}
+
+// --- Reduced motion × the public deep links: /?world must ASK (the MotionConsent
+//     gate), never auto-drop a reduced-motion visitor into the 3D world; opting
+//     in must actually enter. The maze exits point here, so this is a public
+//     entrance now, not just a smoke hook. ---
+{
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'reduce',
+  });
+  const page = await ctx.newPage();
+  await page.goto(base + '/?world', { waitUntil: 'networkidle' });
+  const gated = await page.waitForSelector('.mcons', { timeout: 4000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!gated) {
+    fail('REDUCED ?world: the motion-consent gate did not appear');
+  }
+  if (await page.$('canvas')) {
+    fail('REDUCED ?world: a 3D canvas mounted before consent');
+  }
+  await page.click('.mcons-go');
+  const entered = await page.waitForSelector('canvas', { timeout: 20000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!entered) {
+    fail('REDUCED ?world opt-in: the world did not mount after consent');
+  }
+  console.log(`deep-link -> gated=${gated} entered=${entered}`);
+  await ctx.close();
+}
+
 // --- /about: the crawlable "straight story" route renders (registration +
 //     prerender + metadata regression catch). Served from the prerendered
 //     dist/about.html, so this also proves the SSG route is wired. ---

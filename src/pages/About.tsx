@@ -58,6 +58,29 @@ export default function About() {
     grizzardGraphics: 'https://lukebrogoitti.myportfolio.com/scoobert-doobert',
   };
 
+  // The FAQ (ADDENDUM #8 — AEO): one array drives BOTH the visible section and
+  // the FAQPage JSON-LD, so the structured answers can never drift from the page
+  // (Google requires the marked-up Q&As to be visible content). Facts only —
+  // everything here is stated elsewhere on this page or in links.ts.
+  const faq: { q: string; a: string }[] = [
+    {
+      q: 'Who is Scoobert Doobert?',
+      a: 'Scoobert Doobert is the recording name of Luke Francis Walton, a musician from San Diego, California: self-produced indie pop, chill pop, funk, and lofi — close to 300 registered compositions, written, played, produced, and mixed by Scoobert himself.',
+    },
+    {
+      q: 'Does Scoobert Doobert mix or produce records for other artists?',
+      a: 'Yes — he is a mixing engineer & producer for hire. Credits include collaboration with CHAI across Sub Pop and Sony Music Japan and placements on NHK and Fuji TV, and he mixes, produces, and plays on all of his own records.',
+    },
+    {
+      q: 'How do I hire Scoobert Doobert for mixing or production?',
+      a: 'Email beformer@aol.com with the subject "Mixing / production inquiry". That address reaches him directly.',
+    },
+    {
+      q: 'What is The Reel?',
+      a: 'The Reel is his hire reel on Spotify: productions & collabs throughout the playlist, with the mixes at the bottom — proof of the work before you write.',
+    },
+  ];
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -178,6 +201,15 @@ export default function About() {
         performer: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
       personNode('en'),
+      {
+        '@type': 'FAQPage',
+        '@id': 'https://www.scoobertdoobert.pizza/about#faq',
+        mainEntity: faq.map(({ q, a }) => ({
+          '@type': 'Question',
+          name: q,
+          acceptedAnswer: { '@type': 'Answer', text: a },
+        })),
+      },
     ],
   };
 
@@ -193,7 +225,7 @@ export default function About() {
         <meta property="og:locale:alternate" content="ja_JP" />
         <meta
           name="description"
-          content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project: CHAI production across Sub Pop and Sony Music Japan, the four-part MÖBIUS cycle, the top-10% Love Music More podcast, and a Plato audiobook."
+          content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project — and a mixing engineer & producer for hire (beformer@aol.com). CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -312,6 +344,22 @@ export default function About() {
           </a>
           .
         </p>
+        <p>
+          And yes, the kitchen takes outside orders: Scoobert is a{' '}
+          <b>mixing engineer &amp; producer for hire</b>. He mixes, produces, and plays on all of
+          his own records, and he will do the same for yours. Hear the proof on{' '}
+          <a
+            href={
+              destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q'
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            The Reel
+          </a>{' '}
+          (productions &amp; collabs throughout; the mixes are at the bottom), then write to{' '}
+          <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>beformer@aol.com</a>.
+        </p>
 
         <h2>Love Music More</h2>
         <p>
@@ -371,6 +419,16 @@ export default function About() {
           the early web made and never quite kept. The retro costume is a joke. Underneath, this is
           a real musician’s home on the internet, and every link here goes somewhere real.
         </p>
+
+        <h2>Frequently asked questions</h2>
+        <section className="about__faq" aria-label="Frequently asked questions">
+          {faq.map(({ q, a }) => (
+            <div key={q}>
+              <h3>{q}</h3>
+              <p>{a}</p>
+            </div>
+          ))}
+        </section>
 
         <hr />
 

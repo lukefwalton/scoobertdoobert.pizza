@@ -213,6 +213,30 @@ dread.** (The one camera exception is a consensual, fully-local, never-transmitt
    - **Combat is NOT required (Luke: "maybe not combat").** Favor luck / chance /
      exploration over fights; any future fight stays optional + non-traumatic, and
      "lose" never means a hard game-over (cf. the dice-monster: losing unblocks you).
+8. **CONVERT — the storefront sells the work (Luke, 2026-07-10: "let's still make a
+   converting site").** The site's job list, in order: get people (1) listening to
+   the music, (2) HIRING him — he is an artist and **mixing engineer–producer for
+   hire** — (3) into the video game in a fun way, (4) exploring, (5) found via
+   SEO/AEO. What this changes:
+   - **The hire block is the second sanctioned loud exception** (beside #5's order
+     form): one plainly-worded services section near the top of the storefront —
+     artist; mixing engineer & producer for hire; The Reel; `beformer@aol.com` —
+     dressed in period chrome but **clear first, cheeky second**. The rest of the
+     page stays dead plain.
+   - **Hire-the-webmaster is a first-class destination.** This amends the starter
+     content's "Scoobert Doobert work only — never hire links" rule. The `contact`
+     dest IS the hire CTA (`beformer@aol.com`, subject "Mixing / production
+     inquiry"). ADDENDUM #6 is untouched — lukefwalton.com stays a subtle backlink.
+   - **`reel` vs `listen` is a sanctioned non-duplicate:** `listen` is the Spotify
+     ARTIST page (the catalog); `reel` is the hire reel PLAYLIST (productions &
+     collabs throughout; the MIXES at the bottom — he mixes/produces/plays on all
+     his own records too). Two jobs, two links.
+   - **Link-maze pages are sanctioned:** small interlinked crawlable retro pages
+     (prerendered, sitemapped, real lore content — never thin doorway spam) whose
+     dead-ends link to music/hire and whose exits drop into the game. They obey
+     every fallback/a11y rule like any page.
+   - **`/?world` and `/?room=ID` are sanctioned public deep links** into the 3D
+     world (promoted from test entrances) — shareable, and usable as maze exits.
 
 ## WORKING AGREEMENT
 
