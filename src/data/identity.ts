@@ -24,7 +24,8 @@ export const PERSON_ID = 'https://lukefwalton.com/#person';
  * bidirectional link that ties the storefront to the hub.
  *
  * Intentionally omitted to avoid fabrication (no verified URL / does not yet
- * exist): Wikidata, Google Scholar, AllMusic. Add them here once real.
+ * exist): Google Scholar, AllMusic. Add them here once real. (Wikidata became
+ * real — Q140387739, the hub carries it too — and is included below.)
  *
  * Also dropped as non-canonical per review (search/aggregator-style pages, not
  * stable identity-equivalent URLs): the Ajax Public Library author-search page
@@ -52,6 +53,9 @@ export const CANONICAL_SAMEAS: string[] = [
   'https://scoobertdoobert.threadless.com/',
   'https://lovemusicmore.substack.com/',
   // Cross-graph identifiers / authority files.
+  // Wikidata person item (Luke Francis Walton, "known as Scoobert Doobert") —
+  // the keystone anchor the hub's #person also carries.
+  'https://www.wikidata.org/wiki/Q140387739',
   'https://orcid.org/0009-0005-9263-1954',
   'https://isni.org/isni/0000000530400539',
   'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
@@ -115,6 +119,13 @@ export function personNode(lang: 'en' | 'ja' = 'en') {
     alternateName: PERSON_ALTERNATE_NAMES,
     disambiguatingDescription: DISAMBIGUATION[lang],
     url: 'https://lukefwalton.com/',
+    // Person→group back-pointer, the reciprocal of the MusicGroup's `member`
+    // edge (name inlined so the edge resolves on pages without the full node).
+    memberOf: {
+      '@type': 'MusicGroup',
+      '@id': 'https://lukefwalton.com/#scoobert',
+      name: 'Scoobert Doobert',
+    },
     hasOccupation: PERSON_OCCUPATIONS,
     identifier: PERSON_IDENTIFIER,
     sameAs: CANONICAL_SAMEAS,
