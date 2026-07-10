@@ -1,6 +1,6 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/textonly.css';
-import { DESTINATIONS } from '../data/links';
+import { DESTINATIONS, destById } from '../data/links';
 
 // The genuinely flat fallback. No images, no scripts, no plug-ins — just a
 // semantic list of every real destination, driven by the same links.ts source
@@ -29,6 +29,24 @@ export default function TextOnly() {
 
       <h1>Scoobert Doobert &mdash; Text-Only Menu</h1>
       <p>Everything on this site, flat. No images, no scripts, no plug-ins.</p>
+      <p>
+        Scoobert Doobert is an artist, and a <b>mixing engineer &amp; producer for hire</b> &mdash;
+        he mixes, produces, and plays on all of his own records.
+      </p>
+      <p>
+        Hear the work:{' '}
+        <a
+          href={
+            destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q'
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          The Reel
+        </a>{' '}
+        (productions &amp; collabs throughout; the mixes are at the bottom). Hire him:{' '}
+        <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>beformer@aol.com</a>.
+      </p>
       <p>
         New here? Read <a href="/about">the story (Our Secret Recipe)</a>.
       </p>
@@ -73,10 +91,8 @@ export default function TextOnly() {
         press, podcast, releases, and live shows.
       </p>
       <p>
-        Questions or comments?{' '}
-        <a href="mailto:beformer@aol.com?subject=Comment%20for%20the%20Webmaster">
-          Email the webmaster.
-        </a>
+        Questions, comments, or a record that needs mixing?{' '}
+        <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>Email the webmaster.</a>
       </p>
       <p>
         <small>&copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation</small>

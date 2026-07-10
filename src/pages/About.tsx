@@ -312,6 +312,22 @@ export default function About() {
           </a>
           .
         </p>
+        <p>
+          And yes, the kitchen takes outside orders: Scoobert is a{' '}
+          <b>mixing engineer &amp; producer for hire</b>. He mixes, produces, and plays on all of
+          his own records, and he will do the same for yours. Hear the proof on{' '}
+          <a
+            href={
+              destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q'
+            }
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            The Reel
+          </a>{' '}
+          (productions &amp; collabs throughout; the mixes are at the bottom), then write to{' '}
+          <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>beformer@aol.com</a>.
+        </p>
 
         <h2>Love Music More</h2>
         <p>

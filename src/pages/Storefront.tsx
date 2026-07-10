@@ -27,13 +27,13 @@ export default function Storefront() {
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/" />
         <meta
           name="description"
-          content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
+          content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
         />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/" />
         <meta property="og:title" content="Electronic Pizza Storefront — Scoobert Doobert" />
         <meta
           property="og:description"
-          content="A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)"
+          content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
         />
         {/* Discography: every album in the storefront grid as a MusicAlbum tied
             to the canonical #scoobert artist. Source of truth: albums.json. */}

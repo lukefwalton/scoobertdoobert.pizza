@@ -179,6 +179,86 @@ h2 {
   margin: 4px 0 0;
 }
 
+/* The hire block (ADDENDUM #8) — clear first, cheeky second. Period table-border
+   chrome, but plain readable words: artist · mixing engineer & producer for hire ·
+   The Reel · the mailto. Navy-on-parchment ≈ 12:1 contrast. */
+.hire {
+  border: 4px double #666666;
+  background: #fffdf2;
+  padding: 0 0 10px;
+  margin: 6px 0;
+  text-align: center;
+}
+.hire__head {
+  background: #002b66;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  margin: 0 0 8px;
+  padding: 6px 8px;
+}
+.hire__new img {
+  vertical-align: middle;
+}
+.hire__body {
+  margin: 0 14px 8px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+}
+.hire__cta {
+  margin: 0 14px 6px;
+  font-size: 0.95rem;
+}
+.hire__cta a {
+  font-weight: 700;
+}
+.hire__note {
+  font-size: 0.85rem;
+  color: #444444;
+}
+
+/* The legible game door (ADDENDUM #8) — the plainly-worded way downstairs. */
+.playdoor {
+  border: 3px ridge #2f7a2f;
+  background: #f0fff0;
+  padding: 8px 10px 6px;
+  margin: 6px 0;
+  text-align: center;
+}
+.playdoor__head {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+  color: #123f12;
+}
+.playdoor__body {
+  margin: 0 0 6px;
+  font-size: 0.92rem;
+  color: #1a1a1a;
+}
+.playdoor__cta {
+  margin: 0 0 6px;
+}
+.playdoor__cta a {
+  display: inline-block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 6px 20px;
+  background: #ffd23f;
+  border: 3px outset #c79a00;
+  color: #3a2a00;
+  text-decoration: none;
+}
+.playdoor__cta a:active {
+  border-style: inset;
+}
+.playdoor__fine {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #555555;
+}
+
 /* The Pizza Arcade callout — a period "PLAY OUR GAME!" badge linking to the
    real /arcade route. On desktop it's a goofy side-quest; on mobile (where the
    3D descent is gated off) the arcade is the headline, so this reads prominent.

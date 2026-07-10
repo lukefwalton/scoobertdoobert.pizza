@@ -70,8 +70,7 @@ export const DESTINATIONS: Dest[] = [
     id: 'contact',
     label: 'Hire the webmaster — mixing & production',
     href: 'mailto:beformer@aol.com?subject=Mixing%20%2F%20production%20inquiry',
-    blurb:
-      'The webmaster is a mixing engineer & producer for hire. He also reads every comment.',
+    blurb: 'The webmaster is a mixing engineer & producer for hire. He also reads every comment.',
     topping: 'onion',
     era: '1994',
   },
