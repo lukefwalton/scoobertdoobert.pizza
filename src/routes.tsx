@@ -19,6 +19,7 @@ import Chimes from './pages/Chimes';
 import Cultures from './pages/Cultures';
 import Booth from './pages/Booth';
 import Leaderboard from './pages/Leaderboard';
+import MazePage from './pages/MazePage';
 
 // Static documents, each prerendered to crawlable HTML by vite-react-ssg:
 //   /       -> the dead-plain Electronic Pizza Storefront (the fallback layer)
@@ -71,4 +72,14 @@ export const routes: RouteRecord[] = [
   // /leaderboard -> the PIZZA POINTS arcade high-score board (3 initials, Vercel
   // Blob backend). Crawlable shell; the live board mounts post-hydration.
   { path: '/leaderboard', element: <Leaderboard /> },
+  // The back-of-house link maze (ADDENDUM #8) — six interlinked crawlable
+  // basement pages; data in src/data/maze.ts. Literal path strings on purpose:
+  // sitemap.test.ts scrapes the path literals from this source file, so no
+  // .map() route generation.
+  { path: '/basement-stairs', element: <MazePage slug="basement-stairs" /> },
+  { path: '/walk-in-freezer', element: <MazePage slug="walk-in-freezer" /> },
+  { path: '/dry-storage', element: <MazePage slug="dry-storage" /> },
+  { path: '/break-room', element: <MazePage slug="break-room" /> },
+  { path: '/grease-trap', element: <MazePage slug="grease-trap" /> },
+  { path: '/service-tunnel', element: <MazePage slug="service-tunnel" /> },
 ];

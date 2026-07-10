@@ -104,6 +104,10 @@ export default function LinkArchive() {
       <hr />
 
       <p>
+        On-site oddities: <a href="/basement-stairs">the basement stairs are unlocked</a> &mdash; a
+        self-guided tour of the rooms under the shop.
+      </p>
+      <p>
         <a href="/">&laquo; Back to the storefront</a>
       </p>
       <p>

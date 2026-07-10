@@ -1,0 +1,91 @@
+/* maze.css — the back-of-house link maze (ADDENDUM #8). A dim basement take on
+   the textonly column: dark walls, one bare-bulb column of light, blue-on-dark
+   period links. No animation here (the GIFs animate; their -static twins serve
+   reduced motion via <picture>). */
+
+.maze {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 22px;
+  background: #1b1b18;
+  color: #e8e4d8;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.maze a {
+  color: #9ecbff;
+}
+.maze a:visited {
+  color: #c9a6ff;
+}
+
+.maze h1 {
+  font-size: 1.5rem;
+  margin: 0 0 10px;
+  color: #fff6d8;
+}
+
+.maze hr {
+  border: 0;
+  border-top: 1px dashed #55524a;
+  margin: 16px 0;
+}
+
+.maze__crumb {
+  font-size: 0.82rem;
+  color: #a8a494;
+  margin: 0 0 14px;
+}
+
+.maze__gif {
+  margin: 0 0 12px;
+}
+.maze__gif img {
+  image-rendering: pixelated;
+}
+
+.maze__intro {
+  line-height: 1.55;
+}
+
+.maze__lore {
+  line-height: 1.55;
+  padding-left: 20px;
+}
+.maze__lore li {
+  margin: 8px 0;
+  color: #d8d2be;
+}
+
+.maze__pitch {
+  line-height: 1.55;
+}
+.maze__pitch a {
+  font-weight: 700;
+}
+
+.maze__doors-head {
+  margin: 0 0 4px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff6d8;
+}
+.maze__doors ul {
+  line-height: 1.7;
+  padding-left: 20px;
+}
+.maze__exit a {
+  font-weight: 700;
+  color: #9dffb0;
+}
+.maze__exit a:visited {
+  color: #9dffb0;
+}
+
+.maze__foot {
+  font-size: 0.88rem;
+}
+.maze__copyright {
+  color: #8a8678;
+}
