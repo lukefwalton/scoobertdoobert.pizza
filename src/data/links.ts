@@ -54,6 +54,28 @@ export const DESTINATIONS: Dest[] = [
     external: true,
   },
   {
+    // The hire reel (ADDENDUM #8) — NOT a duplicate of `listen`: that's the
+    // artist page (the catalog); this is the for-hire proof. Productions &
+    // collabs throughout; the MIXES are at the bottom.
+    id: 'reel',
+    label: 'The Reel — hear the work',
+    href: 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
+    blurb:
+      'Productions & collabs top to bottom; the MIXES are at the bottom. He mixes, produces, and plays on all of his own records too.',
+    topping: 'chili',
+    era: '1999',
+    external: true,
+  },
+  {
+    id: 'contact',
+    label: 'Hire the webmaster — mixing & production',
+    href: 'mailto:beformer@aol.com?subject=Mixing%20%2F%20production%20inquiry',
+    blurb:
+      'The webmaster is a mixing engineer & producer for hire. He also reads every comment.',
+    topping: 'onion',
+    era: '1994',
+  },
+  {
     id: 'videos',
     label: 'Watch on YouTube',
     href: 'https://www.youtube.com/c/ScoobertDoobertBurrito',
@@ -79,14 +101,6 @@ export const DESTINATIONS: Dest[] = [
     topping: 'basil',
     era: '2000',
     external: true,
-  },
-  {
-    id: 'contact',
-    label: 'Email the webmaster',
-    href: 'mailto:beformer@aol.com',
-    blurb: 'Questions or comments? Email the webmaster.',
-    topping: 'onion',
-    era: '1994',
   },
   {
     id: 'beformer',

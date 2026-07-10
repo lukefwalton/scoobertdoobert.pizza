@@ -8,6 +8,7 @@ the *Love Music More* podcast, press, and live shows. Scoobert Doobert work only
 ### Streaming
 
 - [Spotify — Scoobert Doobert (artist)](https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn)
+- [Spotify — The Reel: productions & collabs, mixes at the bottom (playlist)](https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q)
 - [Apple Music — Scoobert Doobert (artist)](https://music.apple.com/us/artist/scoobert-doobert/1240946356)
 - [Apple Music — Songs 1–5 (EP)](https://music.apple.com/us/album/songs-1-5-ep/1269175934)
 - [Apple Music — Fear and Love (single)](https://music.apple.com/us/album/fear-and-love-single/1491050876)
