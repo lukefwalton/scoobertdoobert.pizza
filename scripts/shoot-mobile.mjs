@@ -28,6 +28,13 @@ const ROUTES = [
   '/poke',
   '/chimes',
   '/cultures',
+  // The back-of-house link maze (ADDENDUM #8).
+  '/basement-stairs',
+  '/walk-in-freezer',
+  '/dry-storage',
+  '/break-room',
+  '/grease-trap',
+  '/service-tunnel',
 ];
 
 const {

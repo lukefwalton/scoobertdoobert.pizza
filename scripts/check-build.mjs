@@ -29,6 +29,20 @@ const cases = [
     files: ['dist/catalog.html', 'dist/catalog/index.html'],
     needle: 'liner notes',
   },
+  {
+    // The link maze's entry node (ADDENDUM #8); the a11y walk below sweeps the
+    // other five maze pages like every dist page.
+    label: 'maze (/basement-stairs)',
+    files: ['dist/basement-stairs.html', 'dist/basement-stairs/index.html'],
+    needle: 'The Basement Stairs',
+  },
+  {
+    // The storefront hire block — the conversion pitch must be in the crawlable
+    // prerender, not just post-hydration.
+    label: 'hire block (/)',
+    files: ['dist/index.html'],
+    needle: 'mixing engineer',
+  },
 ];
 
 let failed = 0;

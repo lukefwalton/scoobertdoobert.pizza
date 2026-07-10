@@ -29,6 +29,25 @@ page.on('pageerror', (e) => fail(`desktop pageerror: ${e.message}`));
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 
+// The legible game door (ADDENDUM #8): ENTER THE BUILDING starts the descent,
+// same progressive-enhancement contract as the rat line (its href stays /text).
+{
+  const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
+  if (doorHref !== '/text') fail(`ENTER THE BUILDING href is not /text -> ${doorHref}`);
+  await page.click('.playdoor__cta a');
+  const doorDescended = await page
+    .waitForSelector('[data-floor="y1999"]', { timeout: 8000 })
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!doorDescended) fail('ENTER THE BUILDING did not start the descent');
+  if (page.url().includes('/text')) fail('ENTER THE BUILDING navigated instead of descending');
+  // Back to the top so the canonical order-form entry is exercised cold below.
+  await page.click('.floor-door--up');
+  await floor(page, 'storefront');
+}
+
 // Entry rewire: the Order Online "Continue" starts the descent (floor 0 -> 1).
 await page.click('#order-form button[type="submit"]');
 const on1999 = await floor(page, 'y1999');
@@ -291,7 +310,9 @@ const atmailRm = await rp
       return (
         !!img &&
         (img.currentSrc || '').endsWith('/gifs/atmail-static.gif') &&
-        a.getAttribute('href') === 'mailto:webmaster@scoobertdoobert.pizza' &&
+        // The envelope now routes through the links.ts `contact` dest (the hire
+        // CTA — ADDENDUM #8): one inbox, one subject filter, no second address.
+        (a.getAttribute('href') || '').startsWith('mailto:beformer@aol.com') &&
         a.getAttribute('aria-label') === 'Email the webmaster'
       );
     },

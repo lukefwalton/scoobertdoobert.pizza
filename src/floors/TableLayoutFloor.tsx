@@ -177,7 +177,7 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
             the accessible label is on the <a>, so the img is decorative (alt=""). */}
         <a
           className="tl__mail"
-          href="mailto:webmaster@scoobertdoobert.pizza"
+          href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}
           aria-label="Email the webmaster"
         >
           <picture>

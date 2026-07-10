@@ -4,7 +4,7 @@ import { OrderForm } from '../components/OrderForm';
 import { MuteToggle } from '../components/MuteToggle';
 import { Marquee } from '../components/Marquee';
 import { HitCounter } from '../components/HitCounter';
-import { resolveLinks, TEXT_ONLY_PATH } from '../data/links';
+import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { CASSETTE_IDS } from '../data/items';
 import type { Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
@@ -26,6 +26,11 @@ import { TrapDoor } from '../components/TrapDoor';
 export function PlainFloor({ floor }: { floor: Floor }) {
   const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
+  // The hire funnel (ADDENDUM #8) reads links.ts so the pitch can't drift from
+  // the single source of truth. Fallbacks keep the anchors real if a dest moves.
+  const reelHref =
+    destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q';
+  const hireHref = destById('contact')?.href ?? 'mailto:beformer@aol.com';
   // Surface-safe returning-visitor wink (the rat clocks you) — now HISTORY-AWARE:
   // the greeting reflects what you've actually done (gone deep / found the back
   // room / heard the music), so coming back feels remembered, not generic. Gated
@@ -87,6 +92,62 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         </span>
         <span className="chrome-strip__netscape">Best viewed in Netscape Navigator 3.0</span>
       </div>
+
+      <hr />
+
+      {/* The hire block (ADDENDUM #8) — the second sanctioned loud exception,
+          beside the order form. CLEAR FIRST, cheeky second: one skim yields
+          artist · mixing engineer & producer for hire · The Reel · the mailto.
+          Period chrome, but the words are unambiguous. Real anchors, JS-off safe. */}
+      <section className="hire" aria-label="Services — mixing and production for hire">
+        <p className="hire__head">
+          <picture className="hire__new">
+            <source srcSet="/gifs/new-badge-static.gif" media="(prefers-reduced-motion: reduce)" />
+            <img src="/gifs/new-badge.gif" width={56} height={22} alt="New!" />
+          </picture>{' '}
+          THE WEBMASTER WORKS FOR HIRE
+        </p>
+        <p className="hire__body">
+          <b>Scoobert Doobert</b> is an artist, and a <b>mixing engineer &amp; producer for hire</b>
+          . He mixes, produces, and plays on all of his own records &mdash; he can make yours sound
+          right, too.
+        </p>
+        <p className="hire__cta">
+          <a href={reelHref} target="_blank" rel="noopener noreferrer">
+            &#9654; Hear the work &mdash; The Reel
+          </a>{' '}
+          <span className="hire__note">
+            (productions &amp; collabs throughout; the <b>MIXES</b> are at the bottom)
+          </span>
+        </p>
+        <p className="hire__cta">
+          <a href={hireHref}>Hire him: beformer@aol.com</a>
+        </p>
+      </section>
+
+      {/* The legible game door (ADDENDUM #8): the descent was previously findable
+          only through jokes (the rat, the order form, a hidden seam). This says it
+          plainly. Same progressive-enhancement anchor as the rat line — a REAL
+          crawlable <a> to /text; with JS it ducks you downstairs instead. */}
+      <aside className="playdoor" aria-label="The video game downstairs">
+        <p className="playdoor__head">THERE IS A WHOLE WORLD UNDER THIS PIZZA SHOP.</p>
+        <p className="playdoor__body">
+          Free. No download<span aria-hidden="true">*</span>. About two minutes to the good part.
+        </p>
+        <p className="playdoor__cta">
+          <a
+            href={TEXT_ONLY_PATH}
+            onClick={(e) => {
+              e.preventDefault();
+              audio.unlock();
+              descend();
+            }}
+          >
+            ENTER THE BUILDING &raquo;
+          </a>
+        </p>
+        <p className="playdoor__fine">*one fake plug-in install, which is the joke.</p>
+      </aside>
 
       <hr />
 
@@ -228,14 +289,15 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
       <footer>
         <p>
-          Questions or comments?{' '}
-          <a href="mailto:beformer@aol.com?subject=Comment%20for%20the%20Webmaster">
-            Email the webmaster.
-          </a>
+          Questions, comments, or a record that needs mixing?{' '}
+          <a href={hireHref}>Email the webmaster.</a>
         </p>
         <SocialLinks />
         <p className="directory">
           Looking for something specific? <a href="/links">Complete link archive &raquo;</a>
+        </p>
+        <p className="directory">
+          The basement stairs are unlocked. <a href="/basement-stairs">Self-guided tour &raquo;</a>
         </p>
         <p className="directory">
           <a href="/about/jp" hrefLang="ja" lang="ja">
