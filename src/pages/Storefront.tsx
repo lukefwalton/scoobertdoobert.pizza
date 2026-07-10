@@ -1,6 +1,8 @@
 import { Head } from 'vite-react-ssg';
 import '../styles/storefront.css';
 import { discographyGraph } from '../data/discography';
+import { destById } from '../data/links';
+import { PERSON_ID } from '../data/identity';
 import { AudioBootstrap } from '../components/AudioBootstrap';
 import { ProgressTracker } from '../components/ProgressTracker';
 import { DreadConductor } from '../components/DreadConductor';
@@ -38,6 +40,23 @@ export default function Storefront() {
         {/* Discography: every album in the storefront grid as a MusicAlbum tied
             to the canonical #scoobert artist. Source of truth: albums.json. */}
         <script type="application/ld+json">{JSON.stringify(discographyGraph())}</script>
+        {/* The Reel (ADDENDUM #8): the hire-reel playlist as a MusicPlaylist tied
+            to the shared #person creator. Deliberately NOT in CANONICAL_SAMEAS —
+            a playlist is a work, not a person-representing URL. */}
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'MusicPlaylist',
+            '@id': 'https://www.scoobertdoobert.pizza/#reel',
+            name: 'The Reel — productions, collabs & mixes by Scoobert Doobert',
+            description:
+              'The hire reel of Scoobert Doobert (Luke F. Walton), mixing engineer & producer for hire: productions & collabs throughout; the mixes are at the bottom. He mixes, produces, and plays on all of his own records.',
+            url:
+              destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
+            creator: { '@id': PERSON_ID },
+            about: { '@id': 'https://lukefwalton.com/#scoobert' },
+          })}
+        </script>
       </Head>
       <AudioBootstrap />
       <ProgressTracker />
