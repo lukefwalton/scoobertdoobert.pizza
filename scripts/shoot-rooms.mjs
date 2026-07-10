@@ -277,6 +277,10 @@ let rmDoor = false;
   rm.on('pageerror', (e) => fail(`reduced-motion pageerror: ${e.message}`));
   await rm.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
   try {
+    // The deep links are public entrances now (ADDENDUM #8), so reduced motion
+    // hits the MotionConsent gate first — opt in like a real visitor would.
+    await rm.waitForSelector('.mcons-go', { timeout: 8000 });
+    await rm.click('.mcons-go');
     await rm.waitForSelector('.hud-menu-btn', { timeout: 12000 });
     await rm.waitForTimeout(1200);
     // Ring the bell to reveal the hall door (hidden until the escape-room trigger).
