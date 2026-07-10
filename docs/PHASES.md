@@ -27,7 +27,7 @@ unless the work is genuinely ambiguous.
 | 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
 | — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
 | — | The audio-museum pass — RESTORATION (hi-fi masters + the bench), the Listening Room, /catalog | ✅ shipped |
-| — | The CONVERT pass — hire block + The Reel, legible game door, the link maze, SEO/AEO | 🔨 in progress |
+| — | The CONVERT pass — hire block + The Reel, legible game door, the link maze, SEO/AEO | ✅ shipped |
 
 Cross-cutting: the **persistence spine** (`progressStore`, localStorage) underpins
 retention, the curdled copy, cleared-games, and dread's max-`unease` memory —
@@ -779,27 +779,27 @@ Full design in `docs/DESIGN.md` ("Restore it" rung + "The Listening Room +
   (★/✓/`???` per track — the terminal never spoils the museum — then navigates
   to /catalog).
 
-## 🔨 The CONVERT pass — "less cute, actually converts" (2026-07-10, Luke)
+## ✅ The CONVERT pass — "less cute, actually converts" (2026-07-10, Luke)
 The homepage repositioning (CLAUDE.md **ADDENDUM #8**): the storefront now plainly
 sells the work — Luke is an artist and **mixing engineer–producer for hire** —
 while keeping the cheeky pizza register. Goal order: listen → hire → play the game
 → explore → SEO/AEO. Chunks (one commit each):
-- ⬜ **Constitution + docs** — ADDENDUM #8, this entry, a DESIGN note.
-- ⬜ **`links.ts`** — new `reel` dest (the hire-reel playlist: productions & collabs
+- ✅ **Constitution + docs** — ADDENDUM #8, this entry, a DESIGN note.
+- ✅ **`links.ts`** — new `reel` dest (the hire-reel playlist: productions & collabs
   throughout, MIXES at the bottom), `contact` reframed to the hire CTA
   (`beformer@aol.com`, subject "Mixing / production inquiry"), menu reordered to
   lead listen → reel → contact. `links.test` + a `/links` archive row.
-- ⬜ **The storefront hire block + game door** — a plainly-worded services section
+- ✅ **The storefront hire block + game door** — a plainly-worded services section
   under the chrome strip (clear first, cheeky second) + an "ENTER THE BUILDING »"
   aside making the game entrance legible; meta updated; `/text` + `/about` mirrors.
-- ⬜ **SEO/AEO** — `Person.hasOccupation` (identity.ts + the index.html mirror), a
+- ✅ **SEO/AEO** — `Person.hasOccupation` (identity.ts + the index.html mirror), a
   `MusicPlaylist` node for The Reel on `/`, a visible FAQ + `FAQPage` on `/about`.
-- ⬜ **The link maze** — six crawlable back-of-house pages (`/basement-stairs` →
+- ✅ **The link maze** — six crawlable back-of-house pages (`/basement-stairs` →
   freezer / dry-storage / break-room / grease-trap / service-tunnel), data-driven
   (`src/data/maze.ts`), real lore per node, dead-ends → music/hire, exits →
   `/?world` / `/?room=ID` (now sanctioned public deep links). Routes + sitemap
   parity, check-build a11y guards.
-- ⬜ **Verification** — check-build maze case; `shoot:fallback`/`shoot:descent`/
+- ✅ **Verification** — check-build maze case; `shoot:fallback`/`shoot:descent`/
   `shoot:mobile` extended; full suite + build green.
 
 ## Open hygiene / notes
