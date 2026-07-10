@@ -65,6 +65,10 @@ export default function TextOnly() {
         whole discography.
       </p>
       <p>
+        Feeling brave? <a href="/basement-stairs">The basement stairs are unlocked</a> &mdash; a
+        self-guided tour of the rooms under the shop.
+      </p>
+      <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>
       </p>
 

@@ -297,6 +297,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           Looking for something specific? <a href="/links">Complete link archive &raquo;</a>
         </p>
         <p className="directory">
+          The basement stairs are unlocked. <a href="/basement-stairs">Self-guided tour &raquo;</a>
+        </p>
+        <p className="directory">
           <a href="/about/jp" hrefLang="ja" lang="ja">
             日本語版のご案内 (About, in Japanese) &raquo;
           </a>
