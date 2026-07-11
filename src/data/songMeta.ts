@@ -4,7 +4,7 @@
 // liftline), and its `year`. Baked verbatim from the songs' lukefwalton.com pages
 // (a one-time extract) so this repo stays STANDALONE.
 //
-// This is the CANONICAL per-song meaning source — the lyric reader (lyrics.ts), the
+// This is the CANONICAL per-song meaning source, the lyric reader (lyrics.ts), the
 // pause-menu "now playing" subtitle, and the terminal `song` command all read it,
 // so a track's blurb lives in exactly one place. Covers ALL catalog songs
 // (instrumentals + covers too), where lyrics.json only covers ones with words.

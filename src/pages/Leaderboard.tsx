@@ -45,23 +45,23 @@ export default function Leaderboard() {
   return (
     <main className="arcade-page lb-page">
       <Head>
-        <title>Pizza Points High Scores — Scoobert Doobert</title>
+        <title>Pizza Points High Scores · Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/leaderboard" />
         <meta
           name="description"
-          content="The Scoobert Doobert PIZZA POINTS leaderboard — collect pizza, surfboards and sushi in the 3D world, then sign the board with three letters."
+          content="The Scoobert Doobert PIZZA POINTS leaderboard, collect pizza, surfboards and sushi in the 3D world, then sign the board with three letters."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#bf3a2b" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/leaderboard" />
-        <meta property="og:title" content="Pizza Points High Scores — Scoobert Doobert" />
+        <meta property="og:title" content="Pizza Points High Scores · Scoobert Doobert" />
         <meta
           property="og:description"
           content="Collect loot in the 3D pizza world for PIZZA POINTS, then put your initials on the board."
         />
       </Head>
 
-      {/* coin-rain tiling down the two margins — peak GeoCities (decorative). A
+      {/* coin-rain tiling down the two margins, peak GeoCities (decorative). A
           tiling background (an <img> can't repeat); the CSS swaps to the *-static
           twin under prefers-reduced-motion, so it still respects WCAG 2.3.1. */}
       <div className="lb-coins lb-coins--l" aria-hidden="true" />

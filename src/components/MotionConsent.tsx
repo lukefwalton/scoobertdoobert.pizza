@@ -51,7 +51,7 @@ export function MotionConsent({
             Your device asked for reduced motion, so we stopped here first.
           </p>
           <p className="mcons-soft">
-            Motion is kept gentler for you inside — but if you&rsquo;d rather not, the flat text
+            Motion is kept gentler for you inside, but if you&rsquo;d rather not, the flat text
             menu has every link, no motion at all.
           </p>
           <div className="mcons-actions">

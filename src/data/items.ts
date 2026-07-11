@@ -6,7 +6,7 @@
 // durable progressStore (itemsHeld); this file is what each id MEANS.
 //
 // The lock→key mapping lives on the DOOR (rooms.ts RoomDoor.requiresKey), not on
-// the item, so the door stays the single source of what it needs — exactly like
+// the item, so the door stays the single source of what it needs, exactly like
 // it already owns `to`/`toSpawn`/`revealSecret`.
 //
 // FRICTION-BUDGET RULE (docs/DESIGN.md): keys may only ever gate SECRET / SIDE
@@ -17,7 +17,7 @@
 export type ItemKind = 'key' | 'trinket' | 'tome';
 
 export type Item = {
-  /** Stable id — persisted in progressStore.itemsHeld and referenced by a
+  /** Stable id, persisted in progressStore.itemsHeld and referenced by a
    *  RoomDoor.requiresKey / a Room.pickups entry. */
   id: string;
   kind: ItemKind;
@@ -102,7 +102,7 @@ export const ITEMS: Item[] = [
     id: 'tape-information',
     kind: 'trinket',
     label: 'Master: “Information”',
-    blurb: 'A reel-to-reel box, “INFORMATION — MASTER” in grease pencil. Heavy.',
+    blurb: 'A reel-to-reel box, “INFORMATION: MASTER” in grease pencil. Heavy.',
     glyph: '📼',
     track: 'information',
     master: true,
@@ -111,7 +111,7 @@ export const ITEMS: Item[] = [
     id: 'tape-1101',
     kind: 'trinket',
     label: 'Master: “1101”',
-    blurb: 'A cassette labeled only 1101. Seven-bit ASCII, sung — it decodes to a URL.',
+    blurb: 'A cassette labeled only 1101. Seven-bit ASCII, sung, it decodes to a URL.',
     glyph: '📼',
     track: '1101',
     master: true,

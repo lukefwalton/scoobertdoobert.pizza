@@ -6,10 +6,10 @@
 //
 // Every chance in the world rolls through here: a d20 where a natural 20 is a crit
 // success and a natural 1 is a crit fail, each a 3× swing. LUCK (earned by rituals
-// like the shrine clap, see progressStore) buys ADVANTAGE the D&D way — one point
+// like the shrine clap, see progressStore) buys ADVANTAGE the D&D way, one point
 // of luck upgrades a stakes roll to advantage: roll TWO d20 and keep the HIGHER.
 // The second die is rolled in the backend, never shown. The system spends the luck
-// for you (1 per advantaged roll), committed before the dice settle — you never
+// for you (1 per advantaged roll), committed before the dice settle, you never
 // spend by hand. So the luckier you are, the more of your rolls have advantage:
 // a likelier nat 20, a rarer crit fail, while your luck lasts.
 //

@@ -154,7 +154,7 @@ function Jukebox({ title, onSelect }: { title: string; onSelect: () => void }) {
 // way ("dice are juicy sound too"). Both one-shots are mute-aware + brickwall-limited.
 function playCritFlavor(crit: Crit) {
   if (crit === 'nat20') {
-    announce('🎲 NAT 20 — the pristine pressing!', 'crit-good');
+    announce('🎲 NAT 20: the pristine pressing!', 'crit-good');
     ['E', 'G', 'B', 'E'].forEach((n, k) =>
       window.setTimeout(
         () => audio.playChime(noteToFreq(n, k === 3 ? 6 : 5), 0.15, 0.1, 0.6),
@@ -162,7 +162,7 @@ function playCritFlavor(crit: Crit) {
       ),
     );
   } else if (crit === 'nat1') {
-    announce('🎲 CRIT FAIL — you got the cursed pressing…', 'crit-bad');
+    announce('🎲 CRIT FAIL: you got the cursed pressing…', 'crit-bad');
     audio.playTone(noteToFreq('C', 3), 240, 0.1);
     window.setTimeout(() => audio.playTone(noteToFreq('G', 2), 360, 0.1), 150);
   }
@@ -202,14 +202,14 @@ export function JukeboxRoom({ room }: { room: Room }) {
     setIndex(i);
     useProgressStore.getState().unlockRadio();
     // Bank the roll itself (durable) so the "Tune the radio" objective completes on
-    // the d20 roll specifically — pocketing a tape also unlocks the radio, but must
+    // the d20 roll specifically, pocketing a tape also unlocks the radio, but must
     // not tick this quest.
     useProgressStore.getState().findSecret('jukebox-roll');
     const url = playbackUrlFor(tracks[i].slug);
     useMusicStore.getState().setPreferred(loopIndexForUrl(url));
     // The crit is REAL AUDIO now, not just flavour (DESIGN's "per-track curdle
     // variant"): a nat 1 arms the CURSED pressing — the engine's live curdle
-    // warbles this exact track while it spins; a nat 20 arms PRISTINE — curdle
+    // warbles this exact track while it spins; a nat 20 arms PRISTINE: curdle
     // locked off + the baked tape slow-down rate-corrected ("cleaner than
     // possible"). A plain roll clears any leftover pressing. Room theatre only:
     // it drops on cycle / track change / leaving the room.
@@ -245,7 +245,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
     audio.preloadJukebox(tracks.map((t) => playbackUrlFor(t.slug)));
     exposeTestGlobal('__sdpDice', undefined);
     exposeTestGlobal('__sdpDiceCrit', undefined);
-    // The dial the player can actually see this visit (seed + discovered) — for the
+    // The dial the player can actually see this visit (seed + discovered), for the
     // discovery smoke to assert "hidden until found".
     exposeTestGlobal(
       '__sdpJukeboxVisible',
@@ -304,7 +304,7 @@ export function JukeboxRoom({ room }: { room: Room }) {
       <ArcadeCabinet position={[-3.6, 0, -4.4]} rotationY={0.7} tint="#b8348f" game="jazz-snake" />
       {/* The dice-music selector: roll for a random track. Off to the side of
           the cabinet, on the player's path in from the door. */}
-      {/* the music selector is a LOW-STAKES roll — a "high" face means nothing
+      {/* the music selector is a LOW-STAKES roll, a "high" face means nothing
           here, so it never spends luck (useLuck={false}); chaos stays the point */}
       <D20 position={[2.7, 1.0, -3.4]} onRoll={rollTo} lastRoll={roll} useLuck={false} />
       <JukeboxAudio />

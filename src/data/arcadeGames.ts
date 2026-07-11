@@ -2,7 +2,7 @@
 // src/data/arcadeGames.ts — the in-world cabinets are SLOT MACHINES of games.
 //
 // Firing up a cabinet rolls a random title, so it feels alive — you never know
-// what you'll get — and it rhymes with the site's d20/luck chaos. Each id maps to
+// what you'll get, and it rhymes with the site's d20/luck chaos. Each id maps to
 // a real, already-shipped minigame component (rendered by ArcadeModal); the 2D
 // /routes keep their own copies for mobile. Three-free so the cabinet + store can
 // import it.
@@ -50,7 +50,7 @@ export const ARCADE_GAMES: readonly ArcadeGame[] = [
 
 const ROLLABLE = ARCADE_GAMES.filter((g) => g.rollable !== false);
 
-/** Roll a random cabinet game — the "what'll it be this time" surprise.
+/** Roll a random cabinet game, the "what'll it be this time" surprise.
  *  Non-rollable cabinets (the Pizza Cam) never come up here. */
 export const rollArcadeGame = (): ArcadeGame =>
   ROLLABLE[Math.floor(Math.random() * ROLLABLE.length)];

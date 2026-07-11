@@ -8,8 +8,8 @@
 // screen-reader fallback. Luke's channel / his content.
 //
 // The data is just YouTube IDs (verified against lukefwalton.com). A CRT resolves
-// its clip through one chain — the song's OWN music video, else its record's
-// video, else the general TV-spots channel — so a room only declares what it has
+// its clip through one chain, the song's OWN music video, else its record's
+// video, else the general TV-spots channel, so a room only declares what it has
 // (a `songSlug` and/or an `albumSlug`) and always gets something real and on-topic.
 // "Exploration's reward is sound" — and, at the CRT, its picture too.
 // ───────────────────────────────────────────────────────────────────────────
@@ -45,7 +45,7 @@ export function ytWatch(id: string): string {
 // or its song/record has no clip of its own.
 const TV_SPOTS_LIST = 'PLyFhmc3NqYe5rwvctk4OOb7emnuGVDFc-';
 export const TV_SPOTS: TvVideo & { blurb: string } = {
-  title: 'SCOOBERT DOOBERT — TV SPOTS',
+  title: 'SCOOBERT DOOBERT: TV SPOTS',
   blurb: 'Music videos, two 360 films, and one virtual concert from the Void.',
   embed: ytEmbed(TV_SPOTS_LIST),
   watch: ytWatch(TV_SPOTS_LIST),
@@ -88,7 +88,7 @@ const SONG_ALBUM: Record<string, string> = {
 };
 
 /** The album slug whose COVER ART a CRT should show for a song (its own album if
- *  mapped) — so a song-only TV can still display a real record sleeve. */
+ *  mapped), so a song-only TV can still display a real record sleeve. */
 export function songAlbumSlug(songSlug: string): string | undefined {
   return SONG_ALBUM[songSlug];
 }
@@ -97,7 +97,7 @@ export function songAlbumSlug(songSlug: string): string | undefined {
  *  the TV-spots channel if the album has none. Used by an album-painting CRT. */
 export function albumVideo(slug: string): TvVideo {
   const a = albumBySlug(slug);
-  const title = a ? `${a.title.toUpperCase()} — VIDEO` : TV_SPOTS.title;
+  const title = a ? `${a.title.toUpperCase()}, VIDEO` : TV_SPOTS.title;
   if (a?.video)
     return {
       embed: ytEmbed(a.video),
@@ -118,11 +118,11 @@ export function songVideo(slug: string): TvVideo {
     return {
       embed: ytEmbed(own.id),
       watch: ytWatch(own.id),
-      title: `${jukeboxTitle(slug)} — ${label}`,
+      title: `${jukeboxTitle(slug)}, ${label}`,
       blurb:
         own.kind === 'official'
-          ? 'Scoobert Doobert — official music video.'
-          : 'Scoobert Doobert — straight off the record.',
+          ? 'Scoobert Doobert, official music video.'
+          : 'Scoobert Doobert, straight off the record.',
     };
   }
   const album = SONG_ALBUM[slug];

@@ -12,11 +12,11 @@ import { exposeTestGlobal } from '../lib/testHooks';
 //
 // PROVENANCE: the DNA instrument from Luke's own `fun` playground, re-homed as
 // our own standalone files (sim → src/lib/cultures.ts, synthesis here) so this
-// repo never depends on that one. SYNTHESISED from scratch — drones are sine
+// repo never depends on that one. SYNTHESISED from scratch, drones are sine
 // oscillators, children are a short additive voice through a synthetic plate
-// reverb — so nothing extra ships. Self-contained, three-free, mute-aware, and
+// reverb, so nothing extra ships. Self-contained, three-free, mute-aware, and
 // brickwall-limited + voice-capped so the colony can never spike (WCAG 2.3.1).
-// The cell glows + child blooms are soft and localised — no full-field flash.
+// The cell glows + child blooms are soft and localised, no full-field flash.
 // ───────────────────────────────────────────────────────────────────────────
 
 const W = 320; // logical canvas size
@@ -84,7 +84,7 @@ class CultureEngine {
 
   /** Mute the WHOLE colony by ramping master to ~0. The drone bed runs
    *  continuously through master, so gating only the collide()/swell() voices
-   *  isn't enough — the master gain IS the mute, so a started colony actually
+   *  isn't enough, the master gain IS the mute, so a started colony actually
    *  goes silent when the UI says ♪ OFF. */
   setMuted(m: boolean): void {
     const now = this.ctx.currentTime;
@@ -92,7 +92,7 @@ class CultureEngine {
     this.master.gain.setTargetAtTime(m ? 0.0001 : 0.9, now, 0.04);
   }
 
-  /** Current master gain — exposed so shoot:cultures can assert the mute path. */
+  /** Current master gain, exposed so shoot:cultures can assert the mute path. */
   get masterLevel(): number {
     return this.master.gain.value;
   }
@@ -359,8 +359,8 @@ export function CulturesCabinet() {
       <p className="cultures-hint">
         {started
           ? muted
-            ? 'sound is off — tap ♪ ON'
-            : 'drag to herd the cultures together — they breed notes when they touch'
+            ? 'sound is off, tap ♪ ON'
+            : 'drag to herd the cultures together, they breed notes when they touch'
           : 'drag across the glass to stir the cultures'}
       </p>
     </div>

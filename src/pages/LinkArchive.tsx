@@ -22,7 +22,7 @@ export default function LinkArchive() {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     '@id': 'https://www.scoobertdoobert.pizza/links#page',
-    name: 'Scoobert Doobert — Link Archive',
+    name: 'Scoobert Doobert: Link Archive',
     description:
       'A complete, crawlable index of every Scoobert Doobert link on the web: profiles, streaming, releases, the Love Music More podcast, press, and live shows.',
     url: 'https://www.scoobertdoobert.pizza/links',
@@ -42,7 +42,7 @@ export default function LinkArchive() {
   return (
     <main className="archive">
       <Head>
-        <title>Link Archive — Scoobert Doobert</title>
+        <title>Link Archive · Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/links" />
         <meta
           name="description"
@@ -50,7 +50,7 @@ export default function LinkArchive() {
         />
         <meta name="robots" content="index,follow" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/links" />
-        <meta property="og:title" content="Link Archive — Scoobert Doobert" />
+        <meta property="og:title" content="Link Archive · Scoobert Doobert" />
         <meta
           property="og:description"
           content="Every Scoobert Doobert link on the web, in one crawlable place."

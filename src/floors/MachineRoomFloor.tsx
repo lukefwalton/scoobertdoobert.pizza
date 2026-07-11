@@ -9,10 +9,10 @@ import { audio } from '../audio/engine';
 import { FloorDoor } from './FloorDoor';
 import type { Floor } from '../data/floors';
 
-// The CRT's live render is lazy — three.js only loads once you're this deep.
+// The CRT's live render is lazy, three.js only loads once you're this deep.
 const MiniWorldPreview = lazy(() => import('../world/MiniWorldPreview'));
 // The CRT preview renders Water.tsx, whose `useControls('water')` auto-mounts a
-// DEFAULT (visible) leva panel when no <Leva> exists — which leaked the water
+// DEFAULT (visible) leva panel when no <Leva> exists, which leaked the water
 // tuning GUI over production here (the full world hides it via WorldMount's
 // <Leva hidden>, but this preview path had none). Mount a hidden one so the stray
 // panel never shows. Lazy, so leva stays out of the initial bundle.
@@ -22,7 +22,7 @@ const Leva = lazy(() => import('leva').then((m) => ({ default: m.Leva })));
 // The bottom floor — the `machineRoom` template (the SGI thesis made literal).
 // Deferred from Phase 1, the faux-chrome / starfield / "see what's possible"
 // aesthetic finally lands HERE: the workstation that's been promising navigable
-// 3D since 1996. Parody only — "Silicon Slice", "Pizza Graphics Workstation";
+// 3D since 1996. Parody only, "Silicon Slice", "Pizza Graphics Workstation";
 // never the real marks. The Calzone Player install fires from here (it's the
 // terminus prompt); on complete the camera pushes through the CRT into the
 // beach shop. The corner CRT shows a mini live render of the world (added next).
@@ -30,13 +30,13 @@ const Leva = lazy(() => import('leva').then((m) => ({ default: m.Leva })));
 export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const ascend = useSceneStore((s) => s.ascend);
   const requestInstall = useSceneStore((s) => s.requestInstall);
-  // Don't render the mini-preview once the full world is up — it sits hidden
+  // Don't render the mini-preview once the full world is up, it sits hidden
   // behind it and we don't want two live WebGL contexts.
   const worldActive = useSceneStore((s) => s.worldActive);
   const dests = resolveLinks(floor.links);
 
   // The 3D world now runs on phones (touch controls), so the ONLY hard gate left
-  // is reduced motion — and even that is an opt-in, not a redirect. The CRT's
+  // is reduced motion, and even that is an opt-in, not a redirect. The CRT's
   // LIVE render stays desktop-motion-OK, though: a tiny second WebGL context on a
   // phone before you even enter is not worth it, and reduced-motion should stay
   // still. Reactive: crossing the breakpoint or toggling reduced-motion updates
@@ -46,8 +46,8 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   const crtLive = !worldActive && !reduced && !touch;
 
   // The cheeky phone payoff: the Calzone Player "install" still pops a period
-  // setup notice — the plug-in was built for a desktop, because pocket phones
-  // didn't exist in 1996 — but it now WAVES YOU THROUGH (the world runs on a
+  // setup notice, the plug-in was built for a desktop, because pocket phones
+  // didn't exist in 1996, but it now WAVES YOU THROUGH (the world runs on a
   // phone after all), and still offers the /text link as an alternative.
   const [gag, setGag] = useState(false);
   const gagRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,7 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
   useEffect(() => {
     if (!gag) return;
     const root = gagRef.current;
-    const installBtn = installRef.current; // stable node — capture for the cleanup
+    const installBtn = installRef.current; // stable node, capture for the cleanup
     const focusable = root ? Array.from(root.querySelectorAll<HTMLElement>('a[href],button')) : [];
     focusable[0]?.focus();
     const onKey = (e: KeyboardEvent) => {
@@ -138,14 +138,14 @@ export function MachineRoomFloor({ floor }: { floor: Floor }) {
               >
                 <MiniWorldPreview />
                 {/* Suppress leva's auto-mounted default panel (see note by the
-                    import). Hidden always here — this is a preview, not a debug
+                    import). Hidden always here, this is a preview, not a debug
                     session; the real ?debug panel lives on the full world. */}
                 <Leva hidden collapsed />
               </Suspense>
             )}
             <span className="mr__crt-scanlines" aria-hidden="true" />
             <span className="mr__crt-label">
-              {crtLive ? '● LIVE — /dev/world' : '● /dev/world (desktop)'}
+              {crtLive ? '● LIVE: /dev/world' : '● /dev/world (desktop)'}
             </span>
           </div>
           <p className="mr__crt-cap">Pizza Graphics Workstation, rendering the dream.</p>

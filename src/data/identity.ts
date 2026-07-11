@@ -101,7 +101,7 @@ export const PERSON_IDENTIFIER = [
 ] as const;
 
 const DISAMBIGUATION: Record<'en' | 'ja', string> = {
-  en: 'American musician and record producer; recording name Scoobert Doobert — not the Scooby-Doo character.',
+  en: 'American musician and record producer; recording name Scoobert Doobert, not the Scooby-Doo character.',
   ja: 'アメリカのミュージシャン／レコードプロデューサー。レコーディング名義はスクーバート・ドゥーバート。アニメ『スクービー・ドゥー』のキャラクターとは無関係。',
 };
 

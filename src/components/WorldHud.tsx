@@ -351,7 +351,7 @@ export function WorldHud() {
     audio.playChime(noteToFreq('G', 5), 0.1, 0.14, 1.8);
     audio.playChime(noteToFreq('C', 6), 0.2, 0.12, 2);
     window.setTimeout(
-      () => announce('★ You’ve seen it all — for now. The rat’s proud. · +5 luck', 'crit-good'),
+      () => announce('★ You’ve seen it all for now. The rat’s proud. · +5 luck', 'crit-good'),
       1800,
     );
   }, [progress]);
@@ -405,7 +405,7 @@ export function WorldHud() {
         !pendingRoom &&
         (nearDoor.requiresKey && !itemsHeld.includes(nearDoor.requiresKey) ? (
           <div className="hud-prompt hud-prompt--door hud-prompt--locked">
-            🔒 Locked — need the {itemById(nearDoor.requiresKey)?.label ?? 'right key'}
+            🔒 Locked: need the {itemById(nearDoor.requiresKey)?.label ?? 'right key'}
           </div>
         ) : (
           <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>

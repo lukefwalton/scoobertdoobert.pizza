@@ -7,11 +7,11 @@ import { SPELL_SLOTS_MAX } from '../data/spells';
 // Durable, cross-session progress, saved to localStorage as one versioned JSON
 // blob. Deliberately SEPARATE from sceneStore: scene state is ephemeral (resets
 // each session), while progress is the site *remembering you* across visits.
-// The reference is BrowserQuest's localStorage save — zero backend.
+// The reference is BrowserQuest's localStorage save, zero backend.
 //
 // SSR-safe: every localStorage touch is guarded so the store can be created
 // during the static prerender, where it just yields the cold defaults. Nothing
-// here ever changes the prerendered HTML — consumers gate on useMounted() so the
+// here ever changes the prerendered HTML: consumers gate on useMounted() so the
 // durable state is a post-hydration enhancement only, never in the crawlable /
 // JS-off page.
 //
@@ -50,14 +50,14 @@ export type Progress = {
    *  so each keeps its own high — `arcadeHigh` stays Pizza Run's. Monotonic per
    *  key (only ever rises), so the multi-tab max-merge holds. */
   arcadeHighs: Record<string, number>;
-  /** Best PIZZA POINTS run ever — the loot-collectathon high score. Monotonic; the
+  /** Best PIZZA POINTS run ever, the loot-collectathon high score. Monotonic; the
    *  leaderboard submits it and the storefront can wink at it. */
   pizzaPointsBest: number;
   /** Has the player rolled the jukebox d20 to UNLOCK the flip-through radio?
    *  Durable "upgrade": once unlocked, the pause-menu ◀/▶ tunes the catalog and
    *  the pick follows you across the site. Monotonic (only ever goes true). */
   radioUnlocked: boolean;
-  /** Total LUCK ever earned (rituals — the shrine clap). The game layer's stat. */
+  /** Total LUCK ever earned (rituals, the shrine clap). The game layer's stat. */
   luckEarned: number;
   /** Total luck ever SPENT by the system biasing d20 rolls. Current luck =
    *  luckEarned − luckSpent; both monotonic, so the multi-tab max-merge holds. */
@@ -75,19 +75,19 @@ export type Progress = {
    *  bench ceremonies; holding a master TAPE also counts as restored, but that's
    *  DERIVED from itemsHeld (data/restoration.ts), never written here. Monotonic. */
   restoredSongs: string[];
-  /** Spell ids the player has LEARNED (spells.ts) — earned by finding a scroll.
+  /** Spell ids the player has LEARNED (spells.ts), earned by finding a scroll.
    *  Durable so a spell stays yours across visits. Monotonic (array only grows). */
   knownSpells: string[];
   /** Total spell SLOTS ever charged (the initial grant on learning + every rest
    *  top-up) and total ever SPENT casting. Current slots = gained − spent, clamped
-   *  to SPELL_SLOTS_MAX — the same earned/spent monotonic trick as luck, so the
+   *  to SPELL_SLOTS_MAX, the same earned/spent monotonic trick as luck, so the
    *  multi-tab max-merge holds for a resource that otherwise rises AND falls. */
   spellSlotsGained: number;
   spellSlotsSpent: number;
   /** Best おみくじ fortune rank ever drawn at the shrine, 0 (none) → 5 (大吉). The
    *  trophy case hangs your best slip off this. Monotonic (only ever rises). */
   bestFortune: number;
-  /** Lifetime count of each LOOT type ever hoovered up (loot.ts id → count) — the
+  /** Lifetime count of each LOOT type ever hoovered up (loot.ts id → count), the
    *  "how many pizza slices have I collected, ever" tally the trophy case shows.
    *  Distinct from `pizzaPointsBest` (a single run's best score); this is the
    *  cumulative haul across every descent. Monotonic per key (the max-merge holds —
@@ -171,7 +171,7 @@ function read(): Progress {
 function write(p: Progress) {
   try {
     // Preserve any unknown keys already on disk (fields a NEWER build added) so
-    // an older build writing here doesn't strip them — genuinely forward-compat,
+    // an older build writing here doesn't strip them, genuinely forward-compat,
     // matching the "adding a key needs no migration" promise above.
     let existing: Record<string, unknown> = {};
     try {
@@ -181,7 +181,7 @@ function write(p: Progress) {
     }
     localStorage.setItem(KEY, JSON.stringify({ ...existing, ...p }));
   } catch {
-    /* private mode / SSR — progress just doesn't persist, UX unaffected */
+    /* private mode / SSR: progress just doesn't persist, UX unaffected */
   }
 }
 
@@ -244,7 +244,7 @@ type ProgressState = Progress & {
   /** Spend luck (the SYSTEM does this to bias a d20 roll — never the player).
    *  Capped at the luck actually available, so it can't go negative. */
   spendLuck: (n: number) => void;
-  /** Pick an item up (the pickup announces it). Idempotent — holding it twice is
+  /** Pick an item up (the pickup announces it). Idempotent, holding it twice is
    *  a no-op, so re-clicking a pickup or a multi-tab race can't dupe it. */
   collectItem: (id: string) => void;
   /** Discover a song by entering its room → it joins the jukebox forever. Returns
@@ -269,7 +269,7 @@ type ProgressState = Progress & {
    *  the trophy case shows your finest slip. Lower/equal ranks are a no-op. */
   recordFortune: (rank: number) => void;
   /** Tally one collected loot item by its type id (the trophy-case lifetime haul).
-   *  Increments off FRESH disk so sequential multi-tab grabs accumulate — same
+   *  Increments off FRESH disk so sequential multi-tab grabs accumulate, same
    *  additive-counter reasoning as gainLuck. */
   addLoot: (typeId: string) => void;
 };
@@ -366,7 +366,7 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     // to one value — the same accepted soft race as `visits`; a full additive log
     // would be overkill for a single-player luck stat.)
     gainLuck: (n) => {
-      const g = Math.floor(n); // integer luck only (spendLuck floors too) — no fractional dust
+      const g = Math.floor(n); // integer luck only (spendLuck floors too), no fractional dust
       if (g <= 0) return;
       apply({ luckEarned: read().luckEarned + g });
     },
@@ -410,7 +410,7 @@ export const useProgressStore = create<ProgressState>((set, get) => {
     restSpellSlots: () => {
       const fresh = read();
       const target = fresh.spellSlotsSpent + SPELL_SLOTS_MAX; // gained that yields a full pool
-      if (target <= fresh.spellSlotsGained) return; // already full — nothing to top up
+      if (target <= fresh.spellSlotsGained) return; // already full, nothing to top up
       apply({ spellSlotsGained: target });
     },
     recordFortune: (rank) => {
@@ -467,7 +467,7 @@ export const selectReturning = (s: Progress): boolean =>
 export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7;
 
 /**
- * The rat's storefront greeting — the "site remembers you" payoff made legible.
+ * The rat's storefront greeting, the "site remembers you" payoff made legible.
  * Returns null for a cold visitor (no wink at all), else the MOST specific line
  * for what they've actually done, so coming back having gone deeper / found the
  * back room / heard the music each gets its own callback. Surface-safe by design:
@@ -478,7 +478,7 @@ export const selectDeepDiver = (s: ProgressState): boolean => s.maxUnease >= 0.7
 export function selectRatGreeting(s: Progress): string | null {
   if (!selectReturning(s)) return null; // a cold/first-time visitor gets no wink
   if (s.secretsFound.includes('finale'))
-    return 'There you are — the one who saw ALL of it. Every floor, every wrong room, the works. …I kept you a slice. On the house.';
+    return 'There you are, the one who saw ALL of it. Every floor, every wrong room, the works. …I kept you a slice. On the house.';
   if (s.secretsFound.includes('dice-monster'))
     return 'You beat the thing at dice. Nobody beats the thing at dice. …The usual?';
   if (s.maxUnease >= 0.7)
@@ -487,6 +487,6 @@ export function selectRatGreeting(s: Progress): string | null {
     return 'Oh, you’re back. Found your way out of the back room okay? ’Course you did. The usual?';
   if (s.visitedRooms.includes('jukebox'))
     return 'Back for more of the music, huh. Kept your booth warm. The usual?';
-  if (s.everEnteredWorld) return 'Oh. You. Back again — and you’ve seen downstairs. The usual?';
+  if (s.everEnteredWorld) return 'Oh. You. Back again, and you’ve seen downstairs. The usual?';
   return 'Oh. You. Back again. The usual?';
 }

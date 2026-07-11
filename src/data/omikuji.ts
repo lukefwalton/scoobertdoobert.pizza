@@ -2,11 +2,11 @@
 // src/data/omikuji.ts — おみくじ, the shrine fortune draw (the game layer's most
 // legible BAD↔GREAT roll). Data-only + a pure mapper, like quests.ts: the roll
 // lives in the world (a luck-biased universal d20), this just turns a landed face
-// into a fortune tier on the traditional ladder — 大吉 (great blessing) down to 凶
+// into a fortune tier on the traditional ladder, 大吉 (great blessing) down to 凶
 // (a curse). Because the die is luck-biased (advantage), a luckier player literally
 // draws better fortunes: "turn luck into clear outcomes" made a ritual (Luke).
 //
-// Taste guardrail: the shrine is a SWEET room, so even 凶 is goofy theatre — the
+// Taste guardrail: the shrine is a SWEET room, so even 凶 is goofy theatre, the
 // real omusubi custom (tie the bad slip to a branch and leave the bad luck behind),
 // never a penalty. A GREAT draw pays out luck; a bad one costs you nothing.
 // ───────────────────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ import type { ToastKind } from '../state/toastStore';
 export type Fortune = {
   /** Stable rank id, worst→best: kyo · sue · chu · kichi · daikichi. */
   id: 'kyo' | 'sue' | 'chu' | 'kichi' | 'daikichi';
-  /** Numeric rank 1 (凶) … 5 (大吉) — persisted as `bestFortune` so the trophy case
+  /** Numeric rank 1 (凶) … 5 (大吉), persisted as `bestFortune` so the trophy case
    *  can keep your finest draw (monotonic max needs an ordered number, not the id). */
   rank: number;
   /** The kanji rank (shown big on the paper slip). */
@@ -49,7 +49,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
     rank: 2,
     jp: '末吉',
     en: 'Future Blessing',
-    line: "Fortune's still on its way. Patience — it's coming.",
+    line: "Fortune's still on its way. Patience, it's coming.",
     luck: 0,
     kind: 'info',
   },
@@ -67,7 +67,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
     rank: 4,
     jp: '吉',
     en: 'Blessing',
-    line: 'A good sign — the wind is at your back.',
+    line: 'A good sign, the wind is at your back.',
     luck: 1,
     kind: 'luck',
   },
@@ -86,7 +86,7 @@ export const FORTUNES: Record<Fortune['id'], Fortune> = {
 // (the trophy case reads this). Built from FORTUNES so it can't drift.
 const FORTUNE_BY_RANK = new Map(Object.values(FORTUNES).map((f) => [f.rank, f]));
 
-/** The fortune at a given rank (1..5), or null for 0/none — for the trophy case to
+/** The fortune at a given rank (1..5), or null for 0/none, for the trophy case to
  *  render your best-ever draw off the durable `bestFortune`. */
 export function fortuneByRank(rank: number): Fortune | null {
   return FORTUNE_BY_RANK.get(Math.floor(rank)) ?? null;

@@ -1,11 +1,12 @@
 // Phase 2 descent test (full loop + both escape hatches). Waits on explicit
 // floor markers (`[data-floor="..."]`) + the world HUD button rather than fixed
 // sleeps, so it stays stable if transition/boot timings drift. Verifies on
-// desktop: storefront → 1999 → 2000 → machine room via the era-floor doors, the
-// up-door round-trip, the relocated install (machine room → installer → 3D
-// world), and exiting the world rewinding to floor 0. Then a mobile pass: the
-// machine room skips the WebGL CRT, and Install pops the "pocket computer"
-// pre-roll gag that still offers /text (the world itself now runs on phones).
+// desktop: ENTER THE SHOP → machine room (express), order form → 1999 → 2000 →
+// machine room via the era-floor doors, the up-door round-trip, the relocated
+// install (machine room → installer → 3D world), and exiting the world rewinding
+// to floor 0. Then a mobile pass: the machine room skips the WebGL CRT, and
+// Install pops the "pocket computer" pre-roll gag that still offers /text (the
+// world itself now runs on phones).
 import { launchSmoke } from './lib/smoke.mjs';
 import { mkdirSync } from 'node:fs';
 
@@ -29,19 +30,23 @@ page.on('pageerror', (e) => fail(`desktop pageerror: ${e.message}`));
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 
-// The legible game door (ADDENDUM #8): ENTER THE SHOP starts the descent,
-// same progressive-enhancement contract as the rat line (its href stays /text).
+// The legible game door (ADDENDUM #8): ENTER THE SHOP jumps straight to the
+// Silicon Slice machine room (the Calzone install). Href stays /text for JS-off.
 {
   const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
   if (doorHref !== '/text') fail(`ENTER THE SHOP href is not /text -> ${doorHref}`);
   await page.click('.playdoor__cta a');
-  const doorDescended = await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).then(
+  const doorBasement = await page.waitForSelector('[data-floor="machine"]', { timeout: 8000 }).then(
     () => true,
     () => false,
   );
-  if (!doorDescended) fail('ENTER THE SHOP did not start the descent');
+  if (!doorBasement) fail('ENTER THE SHOP did not land on the machine-room basement');
   if (page.url().includes('/text')) fail('ENTER THE SHOP navigated instead of descending');
-  // Back to the top so the canonical order-form entry is exercised cold below.
+  // Rewind to the top so the scenic order-form entry is exercised cold below.
+  await page.click('.floor-door--up');
+  await floor(page, 'y2000');
+  await page.click('.floor-door--up');
+  await floor(page, 'y1999');
   await page.click('.floor-door--up');
   await floor(page, 'storefront');
 }

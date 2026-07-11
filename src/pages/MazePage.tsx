@@ -4,7 +4,7 @@ import { mazeNodeBySlug, type MazeGif } from '../data/maze';
 import { destById, TEXT_ONLY_PATH } from '../data/links';
 
 // One shell for every back-of-house maze node (ADDENDUM #8). Clones the
-// TextOnly shape — a single <main>, one <h1>, its own canonical/OG — so every
+// TextOnly shape — a single <main>, one <h1>, its own canonical/OG: so every
 // node satisfies the check-build a11y guards by construction. All anchors are
 // real hrefs (onward doors are real routes; exits are the sanctioned /?world
 // and /?room=ID deep links), fully usable JS-off, zero three.js imports.
@@ -36,12 +36,12 @@ export default function MazePage({ slug }: { slug: string }) {
   return (
     <main className="maze">
       <Head>
-        <title>{`${node.title} — Scoobert Doobert's Basement`}</title>
+        <title>{`${node.title} · Scoobert Doobert's Basement`}</title>
         <link rel="canonical" href={url} />
         <meta name="description" content={node.description} />
         <meta name="robots" content="index,follow" />
         <meta property="og:url" content={url} />
-        <meta property="og:title" content={`${node.title} — Scoobert Doobert's Basement`} />
+        <meta property="og:title" content={`${node.title} · Scoobert Doobert's Basement`} />
         <meta property="og:description" content={node.description} />
       </Head>
 
@@ -67,7 +67,7 @@ export default function MazePage({ slug }: { slug: string }) {
 
       <hr />
 
-      {/* The sell — a music or hire link on every node (dead-ends included). */}
+      {/* The sell, a music or hire link on every node (dead-ends included). */}
       {node.pitch.map(({ destId, lead }) => {
         const d = destById(destId);
         if (!d) return null;

@@ -9,7 +9,7 @@ import { getProgressSnapshot, useProgressStore } from '../state/progressStore';
 // Terminal — Phase 4. A hidden dead-web SGI/X-Files command line. Press the
 // backtick ( ` ) key anywhere to summon it; Esc or `exit` closes it. Commands
 // are data-driven (src/data/commands.ts); this component owns I/O, history, and
-// the side effects. FORBIDDEN commands nudge `unease` up — the Phase-4→5 bridge.
+// the side effects. FORBIDDEN commands nudge `unease` up, the Phase-4→5 bridge.
 //
 // Client-only (gated on useMounted), a pure JS overlay: it never touches the
 // prerendered / crawlable / JS-off storefront. Mounted on the storefront shell
@@ -21,7 +21,7 @@ const PROMPT = 'C:\\SCOOBERT> ';
 type Line = { text: string; kind: 'cmd' | 'out' | 'sys' };
 
 const BANNER: Line[] = [
-  { text: 'SILICON SLICE™ — Pizza Graphics Workstation', kind: 'sys' },
+  { text: 'SILICON SLICE™: Pizza Graphics Workstation', kind: 'sys' },
   { text: 'IRIX-ish 5.3  ·  (c) 1997 Scoobert Doobert, Inc.', kind: 'sys' },
   { text: 'type `help`.  press ` (backtick) or Esc to close.', kind: 'sys' },
   { text: ' ', kind: 'sys' },
@@ -37,7 +37,7 @@ export function Terminal() {
   const inputRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
 
-  // Summon / dismiss with backtick — unless you're typing in another field (so
+  // Summon / dismiss with backtick, unless you're typing in another field (so
   // a backtick in the order form doesn't pop the terminal). Esc closes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -58,7 +58,7 @@ export function Terminal() {
   useEffect(() => {
     if (!open) return;
     inputRef.current?.focus();
-    // Summoning the hidden terminal IS a discovery — record it durably so the
+    // Summoning the hidden terminal IS a discovery, record it durably so the
     // site "remembers" you poked the machine (idempotent; feeds the rat's wink).
     useProgressStore.getState().findSecret('terminal');
   }, [open]);

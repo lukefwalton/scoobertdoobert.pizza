@@ -14,7 +14,7 @@ import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 // Original code + art (the grammar of Simon, no assets). Self-contained <canvas>,
 // no three.js. Tap a pad / Q-W-A-S / 1-4. Notes ring through the SHARED bell engine
 // (audio.playChime) so they're mute-aware + brickwall-limited (WCAG/ear safe) for
-// free — the same voice the lyre, pans and shrine furin use. Per-cabinet high score
+// free, the same voice the lyre, pans and shrine furin use. Per-cabinet high score
 // (arcadeHighs['order-up']) = the longest order you reached.
 // ───────────────────────────────────────────────────────────────────────────
 

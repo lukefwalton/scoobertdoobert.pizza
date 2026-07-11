@@ -14,7 +14,7 @@ import { isTestEntrance } from '../lib/testHooks';
 // it). It hugs a wall and scurries. Management insists he pays rent.
 //
 // Once you've come far enough down the corridor he breaks off, darts to a blank
-// panel in the wall and KNOCKS it — and a hidden door clicks open (revealSecret).
+// panel in the wall and KNOCKS it, and a hidden door clicks open (revealSecret).
 // Then he bolts off into the dark. That's the one secret.
 const RAT_Y = 0.22;
 const LEAD = 5.0; // how far ahead of the player it leads
@@ -45,7 +45,7 @@ function RatBody() {
   // Local space: nose points +Z (so lookAt orients travel).
   return (
     <group>
-      {/* body — a stretched low-poly blob */}
+      {/* body, a stretched low-poly blob */}
       <mesh material={bodyMat} scale={[0.34, 0.3, 0.6]} position={[0, 0, 0]}>
         <icosahedronGeometry args={[1, 0]} />
       </mesh>
@@ -60,7 +60,7 @@ function RatBody() {
       <mesh material={earMat} position={[-0.16, 0.22, 0.16]} rotation-x={-0.3}>
         <circleGeometry args={[0.12, 6]} />
       </mesh>
-      {/* tail — a thin tapering whip trailing -Z */}
+      {/* tail, a thin tapering whip trailing -Z */}
       <mesh material={tailMat} position={[0, 0.02, -0.7]} rotation-x={Math.PI / 2}>
         <coneGeometry args={[0.05, 0.9, 5]} />
       </mesh>
@@ -77,7 +77,7 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
   const { camera } = useThree();
   // HallwayRoom unmounts when you step into classified/jukebox, so this whole
   // component remounts on re-entry. If the secret was ALREADY revealed, the rat
-  // has done his job — start him 'done' and already bolted to the dark far end,
+  // has done his job, start him 'done' and already bolted to the dark far end,
   // so the hallway narrative doesn't reset to "leading" every time you come back.
   const alreadyRevealed = useSceneStore.getState().secretRevealed;
   const pos = useRef(
@@ -131,7 +131,7 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
       if (knockT.current > 0.45) store.revealSecret();
       if (knockT.current > 1.7) phase.current = 'done';
     } else {
-      // Done: skitter to the dark end and settle — a stride clear of the jukebox
+      // Done: skitter to the dark end and settle, a stride clear of the jukebox
       // door (so "Press E to talk" wins over the door prompt when you come over).
       _target.set(-bounds.halfW + 0.7, RAT_Y, -bounds.halfD + 4 + Math.sin(t * 4) * 0.4);
       speed = 5.5;
@@ -139,7 +139,7 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
 
     // THE TURN (Phase 5, ckpt4): as dread rises the friendly guide inverts.
     // Past the menace threshold he stops fleeing, freezes in place, and faces
-    // you — the same agent, the wrongest version of itself. mapUnease holds
+    // you, the same agent, the wrongest version of itself. mapUnease holds
     // ratMenace at 0 until unease ~0.5, so this only happens deep / after the
     // classified room; the smoke (which doesn't linger) never trips it.
     const menace = mapUnease(useDreadStore.getState().unease).ratMenace;
@@ -182,7 +182,7 @@ export function Rat({ bounds }: { bounds: { halfW: number; halfD: number } }) {
 
     // Talkable once SETTLED ('done') and not menacing: register as the near NPC
     // when you come close, so "Press E to talk" shows. While leading/knocking it's
-    // busy; when dread has TURNED it, it only stares — no friendly chat.
+    // busy; when dread has TURNED it, it only stares, no friendly chat.
     const canTalk = phase.current === 'done' && !turned;
     const near = canTalk && Math.hypot(player.x - pos.current.x, player.z - pos.current.z) < 3.0;
     if (near && store.nearNpc?.id !== 'rat') store.setNearNpc({ id: 'rat', label: 'the rat' });

@@ -68,7 +68,7 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             <p>
               {/* The rat ducks you downstairs into the descent (toward the 3D
                   world), never off to a blog. A real, crawlable <a> to the flat
-                  index that JS enhances into descend() — same as the plain floor. */}
+                  index that JS enhances into descend(), same as the plain floor. */}
               <a
                 href={TEXT_ONLY_PATH}
                 className="sb__ratlink"
@@ -110,7 +110,7 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
 
           {/* The site's "dancing baby": a REAL animated GIF, printed from scratch by
               our own GIF89a encoder (scripts/make-gifs.mjs). <picture> swaps to a
-              still first frame under prefers-reduced-motion — a GIF can't be paused
+              still first frame under prefers-reduced-motion, a GIF can't be paused
               by CSS, so the static frame IS the WCAG accommodation. */}
           <picture className="sb__dancer">
             <source
@@ -126,14 +126,19 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             />
           </picture>
 
-          {/* "Sign My Guestbook!" — a REAL crawlable anchor. The marquee up top has
+          {/* "Sign My Guestbook!", a REAL crawlable anchor. The marquee up top has
               promised a guestbook for years; this finally delivers one. It points at
-              the contact destination — the webmaster who "reads every comment" — so
+              the contact destination, the webmaster who "reads every comment", so
               signing the book IS mailing him, the exact 1999 guestbook contract (no
               fake '#'; the constitution's hard rule). The NEW! blinky beside it is our
               OWN GIF (make-gifs.mjs); <picture> serves a still under reduced motion. */}
           <div className="sb__guestbook">
-            <a className="sb__gbook" href={destById('contact')?.href ?? TEXT_ONLY_PATH}>
+            <a
+              className="sb__gbook"
+              href={destById('contact')?.href ?? TEXT_ONLY_PATH}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <span aria-hidden="true">&#9997;</span> Sign My Guestbook!
             </a>
             <picture className="sb__newblink">
@@ -145,8 +150,8 @@ export function StarburstFloor({ floor }: { floor: Floor }) {
             </picture>
           </div>
 
-          {/* A spinning WORLD WIDE WEB globe — the most GeoCities artifact of all,
-              printed by our own GIF89a encoder (make-gifs.mjs) — wrapping a REAL
+          {/* A spinning WORLD WIDE WEB globe, the most GeoCities artifact of all,
+              printed by our own GIF89a encoder (make-gifs.mjs), wrapping a REAL
               crawlable anchor to the Link Archive (/links), never a dead '#'. The
               <picture> serves a still first frame under reduced motion. */}
           <div className="sb__webring">

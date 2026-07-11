@@ -17,10 +17,10 @@ import type { Floor } from '../data/floors';
 // A memory of 2000, not 2000.
 // ───────────────────────────────────────────────────────────────────────────
 
-// gag 1 — the section gate.
+// gag 1, the section gate.
 const SECTIONS = ['Kids Menu', 'Adult Section', "Manager's Office"];
 
-// gag 2 — the pizza image map. SVG pie slices, each a real anchor.
+// gag 2, the pizza image map. SVG pie slices, each a real anchor.
 function PizzaImageMap({ dests }: { dests: ReturnType<typeof resolveLinks> }) {
   const n = Math.max(dests.length, 1);
   const cx = 100;
@@ -32,7 +32,7 @@ function PizzaImageMap({ dests }: { dests: ReturnType<typeof resolveLinks> }) {
       className="tl-pizza"
       viewBox="0 0 200 200"
       role="group"
-      aria-label="Pizza menu — pick a slice"
+      aria-label="Pizza menu, pick a slice"
     >
       <circle cx={cx} cy={cy} r={r + 4} className="tl-pizza__crust" />
       {dests.map((d, i) => {
@@ -172,12 +172,14 @@ export function TableLayoutFloor({ floor }: { floor: Floor }) {
           </a>
         </nav>
 
-        {/* the GeoCities "@-mail" — a real printed envelope GIF (our own encoder),
+        {/* the GeoCities "@-mail", a real printed envelope GIF (our own encoder),
             still a real mailto anchor. <picture> serves a still under reduced motion;
             the accessible label is on the <a>, so the img is decorative (alt=""). */}
         <a
           className="tl__mail"
           href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label="Email the webmaster"
         >
           <picture>

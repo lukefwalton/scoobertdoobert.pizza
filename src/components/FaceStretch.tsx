@@ -7,11 +7,11 @@ import { isTestEntrance, exposeTestGlobal } from '../lib/testHooks';
 // FaceStretch — "Poke Scoobert." The Mario-64-face-stretch toy, but it's Luke's
 // face and it's an INSTRUMENT. Grab the photo and pull: a soft grid of control
 // points follows your finger and springs back like jelly (a 2D triangle-mesh
-// warp, no WebGL — stays light on a phone, fits the arcade's three-free ethos).
+// warp, no WebGL, stays light on a phone, fits the arcade's three-free ethos).
 //
 // "Exploration's reward is sound" (the pillar) → this is the "play it" rung made
-// literal: stretching modulates Scoobert's OWN sample live — pull up/down bends
-// the pitch (playbackRate), pull sideways closes a lowpass — so poking his face
+// literal: stretching modulates Scoobert's OWN sample live, pull up/down bends
+// the pitch (playbackRate), pull sideways closes a lowpass, so poking his face
 // plays the site. No synth (honors the audio rules); it's his real track, warped.
 // Touch-first, so it's another mobile arcade cabinet. Respects the global mute.
 // ───────────────────────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ const W = 270; // logical canvas size (portrait, to frame a face)
 const H = 320;
 const N = 9; // control points per axis (N-1 cells)
 const FACE_SRC = '/press/scoobert-poke.jpg';
-// Which Scoobert track the face warps — see data/music CUES. Resolved at fetch
+// Which Scoobert track the face warps, see data/music CUES. Resolved at fetch
 // time (not module load) so a restored track feeds the toy its hi-fi master.
 const sampleSrc = () => cuePlaybackUrl('pokeSample');
 
@@ -112,7 +112,7 @@ export function FaceStretch() {
       const filter = ctx.createBiquadFilter();
       filter.type = 'lowpass';
       filter.frequency.value = 8000;
-      // Brickwall limiter — every audio path on the site ends in one (WCAG
+      // Brickwall limiter, every audio path on the site ends in one (WCAG
       // 2.3.1 / ears), mirroring the engine + the other cabinets.
       const limiter = ctx.createDynamicsCompressor();
       limiter.threshold.value = -6;
@@ -124,7 +124,7 @@ export function FaceStretch() {
       src.loop = true;
       src.connect(filter).connect(gain).connect(limiter).connect(ctx.destination);
       audioRef.current = { ctx, src, filter, gain };
-      // decode Scoobert's own track (no synth — we warp his real sound)
+      // decode Scoobert's own track (no synth, we warp his real sound)
       fetch(sampleSrc())
         .then((r) => r.arrayBuffer())
         .then((buf) => ctx.decodeAudioData(buf))
@@ -134,10 +134,10 @@ export function FaceStretch() {
           setSoundOn(true);
         })
         .catch(() => {
-          /* asset missing / decode failed — the toy stays silent, visual still works */
+          /* asset missing / decode failed, the toy stays silent, visual still works */
         });
     } catch {
-      /* no WebAudio — silent toy */
+      /* no WebAudio, silent toy */
     }
   };
 
@@ -176,7 +176,7 @@ export function FaceStretch() {
       // grab: pull nearby nodes by the pointer delta (gaussian falloff) AND mark
       // how strongly each is held, so held nodes resist the spring and STAY where
       // you drag them (the Mario-64 pull-and-hold) instead of snapping straight
-      // back — the snap-back was the "tap and it just giggles" feel on touch,
+      // back, the snap-back was the "tap and it just giggles" feel on touch,
       // where you can't keep a mouse moving to outrun the spring.
       if (p.down) {
         const dx = p.x - p.lx;
@@ -200,7 +200,7 @@ export function FaceStretch() {
       // holds its stretch while you press and only lets go on release.
       let adx = 0;
       let ady = 0;
-      let maxDisp = 0; // most-stretched node — the visible "is it pulled" signal
+      let maxDisp = 0; // most-stretched node, the visible "is it pulled" signal
       for (const n of nodes) {
         const hold = 1 - n.grab;
         n.vx = (n.vx + (n.rx - n.x) * K * hold) * DAMP;
@@ -311,7 +311,7 @@ export function FaceStretch() {
           setGrabbed(false);
         }}
         onPointerCancel={() => {
-          // Touch can interrupt a drag (call, gesture) — end it cleanly so the
+          // Touch can interrupt a drag (call, gesture), end it cleanly so the
           // face springs home rather than freezing mid-stretch. (We deliberately
           // do NOT end the drag on pointerleave: a finger briefly grazing the
           // canvas edge mid-pull shouldn't drop the grab.)

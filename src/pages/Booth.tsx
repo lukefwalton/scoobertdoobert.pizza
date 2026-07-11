@@ -21,19 +21,19 @@ export default function Booth() {
   return (
     <main className="booth-page">
       <Head>
-        <title>Pizza Cam — The Pizza Arcade</title>
+        <title>Pizza Cam · The Pizza Arcade</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/booth" />
         <meta
           name="description"
-          content="The Pizza Cam™ — an optional camera instrument. Wave your hands to toss dough and drum the toppings. Fully local: stays on your device, never sent to us."
+          content="The Pizza Cam™, an optional camera instrument. Wave your hands to toss dough and drum the toppings. Fully local: stays on your device, never sent to us."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/booth" />
-        <meta property="og:title" content="Pizza Cam — The Pizza Arcade" />
+        <meta property="og:title" content="Pizza Cam · The Pizza Arcade" />
         <meta
           property="og:description"
-          content="Wave your hands to toss dough and drum the toppings — a fully local camera instrument."
+          content="Wave your hands to toss dough and drum the toppings, a fully local camera instrument."
         />
       </Head>
 

@@ -8,7 +8,7 @@ import { ROOMS, ROOM_MAP, roomById } from '../data/rooms';
 // rooms stay invisible until you actually reach them, so the map answers "where
 // am I / where can I go" without spoiling the discovery or the dread below.
 //
-// Pillar: Feedback & Clarity — the direct antidote to the "wrong side of the map"
+// Pillar: Feedback & Clarity, the direct antidote to the "wrong side of the map"
 // disorientation. Stable frame (viewBox from ALL coords) so it doesn't reflow as
 // you explore. No motion/flash (WCAG-safe).
 
@@ -32,7 +32,7 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
     const rendered = new Set<string>([...visitedSet, ...frontier.keys()]);
 
     // Edges between rendered rooms (dedup pairs). A hidden-door edge only shows
-    // once BOTH ends are visited (i.e. you've traversed it) — never as a frontier.
+    // once BOTH ends are visited (i.e. you've traversed it), never as a frontier.
     const seen = new Set<string>();
     const edges: { a: string; b: string; locked: boolean }[] = [];
     for (const r of ROOMS) {
@@ -80,7 +80,7 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
         viewBox={`${vb.minX} ${vb.minY} ${vb.w} ${vb.h}`}
         className="hud-pause__mapsvg"
         role="img"
-        aria-label={`Map — you are in ${roomById(current).title}`}
+        aria-label={`Map, you are in ${roomById(current).title}`}
       >
         {edges.map((e) => {
           const a = at(e.a);

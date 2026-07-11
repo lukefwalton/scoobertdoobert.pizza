@@ -64,7 +64,7 @@ export function PauseMenu() {
   const playingSlug = LOOP_OPTIONS[musicIndex]?.slug ?? null;
 
   // One shallow snapshot of the durable progress drives the whole readout (and the
-  // quest predicates, which take a whole Progress — which this is).
+  // quest predicates, which take a whole Progress, which this is).
   const progress = useProgressStore(
     useShallow((s) => ({
       visits: s.visits,
@@ -99,7 +99,7 @@ export function PauseMenu() {
   const itemsHeld = progress.itemsHeld;
   const visitedRooms = progress.visitedRooms;
   const tapesHeld = CASSETTE_IDS.filter((id) => itemsHeld.includes(id)).length;
-  // Tracks playing hi-fi (bench rites + held masters — the museum tally).
+  // Tracks playing hi-fi (bench rites + held masters, the museum tally).
   const restoredTracks = restoredCount(progress);
   const radioUnlocked = progress.radioUnlocked;
 
@@ -116,7 +116,7 @@ export function PauseMenu() {
           </p>
           <p
             className="hud-pause__luck"
-            title="Points from hoovering loot this descent — pizza, surfboards, sushi… Your best is saved for the leaderboard."
+            title="Points from hoovering loot this descent, pizza, surfboards, sushi… Your best is saved for the leaderboard."
           >
             <span aria-hidden="true">🍕</span> Pizza Points{' '}
             <strong>{runScore.toLocaleString()}</strong>{' '}
@@ -129,7 +129,7 @@ export function PauseMenu() {
             <p
               key={sp.id}
               className="hud-pause__luck"
-              title={`${sp.school} · ${sp.blurb} — press ${sp.key.toUpperCase()} to cast${
+              title={`${sp.school} · ${sp.blurb}, press ${sp.key.toUpperCase()} to cast${
                 isCantrip(sp) ? '' : '; rest to recharge'
               }`}
             >
@@ -153,7 +153,7 @@ export function PauseMenu() {
               </ul>
             </div>
           )}
-          {/* The TROPHY CASE — the lifetime haul (pizza slices etc.) + your best shrine
+          {/* The TROPHY CASE: the lifetime haul (pizza slices etc.) + your best shrine
               fortune, the pause-menu twin of the 3D case back in the shop lobby. Only
               shows once you've collected/drawn something. */}
           {(Object.values(progress.lootTotals).some((n) => n > 0) || progress.bestFortune > 0) && (
@@ -214,7 +214,7 @@ export function PauseMenu() {
               To-Do{' '}
               <span className="hud-pause__todocount">
                 {allQuestsDone(progress)
-                  ? `★ ${completionPct(progress)}% — seen it all`
+                  ? `★ ${completionPct(progress)}%, seen it all`
                   : `${completionPct(progress)}%`}
               </span>
             </p>
@@ -231,7 +231,7 @@ export function PauseMenu() {
             </ul>
           </div>
           <WorldMap visited={visitedRooms} current={currentRoom} />
-          {/* The arcade leaderboard — sign your best PIZZA POINTS with three letters.
+          {/* The arcade leaderboard, sign your best PIZZA POINTS with three letters.
               Submit-only here (loadBoard={false}): opening the menu never hits the
               backend; the full ranked board is one tap away on /leaderboard. */}
           <LeaderboardPanel score={progress.pizzaPointsBest} showFullLink loadBoard={false} />
@@ -270,12 +270,12 @@ export function PauseMenu() {
               </span>
             </div>
           )}
-          {/* The current track's one-line liner note (what it's about) — the
+          {/* The current track's one-line liner note (what it's about), the
               reward-is-sound spine, annotated. From songMeta (lfw). */}
           {playingSlug && songMeaning(playingSlug) && (
             <p className="hud-pause__songmeaning">{songMeaning(playingSlug)}</p>
           )}
-          {/* Read along with whatever's playing — the words are a reward too.
+          {/* Read along with whatever's playing, the words are a reward too.
               Shown whenever the current track has lyrics on file (not gated by
               the radio upgrade; reading is always allowed). */}
           {hasLyrics(playingSlug) && (
@@ -306,8 +306,8 @@ export function PauseMenu() {
                 const secrets = progress.secretsFound.length;
                 const best = progress.pizzaPointsBest.toLocaleString();
                 const text = allQuestsDone(progress)
-                  ? `🍕 I've seen it all on scoobertdoobert.pizza — 100%, ${secrets} secrets, best ${best} pizza points. Come get haunted:`
-                  : `🍕 I'm ${pct}% into scoobertdoobert.pizza — ${visitedRooms.length} rooms, ${secrets} secrets, best ${best} pizza points. Come explore:`;
+                  ? `🍕 I've seen it all on scoobertdoobert.pizza, 100%, ${secrets} secrets, best ${best} pizza points. Come get haunted:`
+                  : `🍕 I'm ${pct}% into scoobertdoobert.pizza, ${visitedRooms.length} rooms, ${secrets} secrets, best ${best} pizza points. Come explore:`;
                 void shareResult(text);
               }}
             >

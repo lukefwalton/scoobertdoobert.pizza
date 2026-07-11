@@ -28,7 +28,7 @@ export const useToastStore = create<ToastState>((set) => ({
   clear: () => set({ toast: null }),
 }));
 
-/** Non-React announce (for callers outside components — same single-toast slot). */
+/** Non-React announce (for callers outside components, same single-toast slot). */
 export const announce = (msg: string, kind: ToastKind = 'info'): void =>
   useToastStore.getState().announce(msg, kind);
 

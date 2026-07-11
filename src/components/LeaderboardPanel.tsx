@@ -20,7 +20,7 @@ const WINDOW_TABS: { key: LeaderWindow; label: string }[] = [
 // The arcade leaderboard, reused in the pause menu (compact, with a "full board"
 // link) and on the /leaderboard page. Sign your best with three letters; the board
 // loads from /api/score. Fully graceful: if the backend isn't there (local preview,
-// a self-host without a Blob store), it just says so — your best is kept locally.
+// a self-host without a Blob store), it just says so, your best is kept locally.
 //   entries: undefined = loading · null = offline · [] = empty · [...] = the board
 export function LeaderboardPanel({
   score,
@@ -33,7 +33,7 @@ export function LeaderboardPanel({
   showFullLink?: boolean;
   /** Auto-GET the board on mount + render the ranked list. The pause menu passes
    *  false (submit-only + a "full board" link), so just OPENING the menu never hits
-   *  /api/score — important offline (and so a 404 in local preview / CI isn't logged
+   *  /api/score, important offline (and so a 404 in local preview / CI isn't logged
    *  as a console error by every pause-opening smoke). The /leaderboard page keeps it
    *  true to show the full board. */
   loadBoard?: boolean;
@@ -94,7 +94,7 @@ export function LeaderboardPanel({
         setEntries(r.entries.slice(0, rows));
       }
     } else {
-      // Initials problem vs backend down — show the right thing, not "bad initials"
+      // Initials problem vs backend down, show the right thing, not "bad initials"
       // for an outage (the review's failure-semantics fix).
       const initialsProblem =
         r.reason === 'bad_initials' || r.reason === 'rejected' || r.reason === 'invalid';
@@ -145,11 +145,11 @@ export function LeaderboardPanel({
         </p>
       )}
       {status === 'offline' && (
-        <p className="hud-board__msg">Couldn&rsquo;t reach the board — your best is saved here.</p>
+        <p className="hud-board__msg">Couldn&rsquo;t reach the board, your best is saved here.</p>
       )}
       {status === 'badletters' && (
         <p className="hud-board__msg">
-          Those initials didn&rsquo;t take — try three (different) letters.
+          Those initials didn&rsquo;t take, try three (different) letters.
         </p>
       )}
 
@@ -205,7 +205,7 @@ export function LeaderboardPanel({
       {loadBoard &&
         Array.isArray(entries) &&
         (entries.length === 0 ? (
-          <p className="hud-board__msg">No scores yet — be the first.</p>
+          <p className="hud-board__msg">No scores yet, be the first.</p>
         ) : (
           <ol className="hud-board__list">
             {entries.map((e, i) => (

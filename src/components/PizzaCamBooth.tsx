@@ -30,7 +30,7 @@ import '../styles/booth.css';
 // (motion centroid → pitch, energy → volume, audio.startVoice under it — the
 // theremin's engine played with your arms instead of your feet). CH 2
 // "TOPPING DRUMS" is the EyeToy demake: six topping zones, a motion spike in
-// one strikes a bell (audio.playChime — mute-aware, brickwall-limited).
+// one strikes a bell (audio.playChime, mute-aware, brickwall-limited).
 //
 // The Webcam policy, embodied: the gate's copy is plain; getUserMedia fires
 // only from the enable/power buttons (point of use); a fixed ● CAMERA ON chip
@@ -101,7 +101,7 @@ export function PizzaCamBooth() {
   const rewarded = useRef(false);
 
   // First-ever sound out of the Pizza Cam (either channel) banks a durable
-  // secret + a little luck — the same sweet first-discovery beat as the other
+  // secret + a little luck, the same sweet first-discovery beat as the other
   // instruments (Lounge rat / shrine). Ref-guarded so the per-frame path only
   // ever reads the store once; the secret makes it once per SAVE, not per visit.
   const maybeReward = () => {
@@ -111,7 +111,7 @@ export function PizzaCamBooth() {
     if (prog.secretsFound.includes('pizza-cam-first-play')) return;
     prog.findSecret('pizza-cam-first-play');
     prog.gainLuck(1);
-    announce('📹 +1 LUCK — the Pizza Cam likes your moves', 'luck');
+    announce('📹 +1 LUCK: the Pizza Cam likes your moves', 'luck');
   };
 
   // One shared frame handler for the real camera AND the debug inject hook, so
@@ -165,7 +165,7 @@ export function PizzaCamBooth() {
   const { status, start, stop, videoRef } = useCameraGrid(handleFrame);
   statusRef.current = status;
 
-  // The kill switch — both the chip and the booth button land here. The stream
+  // The kill switch, both the chip and the booth button land here. The stream
   // dies (tracks truly end), the sustained voice fades, the indicator unmounts.
   const killCamera = useCallback(() => {
     stop();
@@ -187,7 +187,7 @@ export function PizzaCamBooth() {
   }, [powerOn]);
 
   const rejectGate = useCallback(() => {
-    declineCamera(); // remembered per visit — the boot line stops re-offering too
+    declineCamera(); // remembered per visit, the boot line stops re-offering too
     setDeclined(true);
   }, []);
 
@@ -243,7 +243,7 @@ export function PizzaCamBooth() {
     [],
   );
 
-  // ── the period gag for handhelds — no webcam UI on touch, per policy ──────
+  // ── the period gag for handhelds, no webcam UI on touch, per policy ──────
   if (touch) {
     return (
       <div className="booth-screen booth-screen--cold">
@@ -259,7 +259,7 @@ export function PizzaCamBooth() {
 
   return (
     <div className={`booth${reduced ? ' booth--reduced' : ''}`}>
-      {/* the consent gate — plain words, no dark patterns, camera untouched */}
+      {/* the consent gate, plain words, no dark patterns, camera untouched */}
       {gateOpen && (
         <div className="window booth-gate" role="group" aria-label="Pizza Cam Setup">
           <div className="title-bar">
@@ -267,19 +267,19 @@ export function PizzaCamBooth() {
           </div>
           <div className="window-body booth-gate__body">
             <p>
-              The Pizza Cam™ turns your camera into an instrument — wave your hands to toss dough
+              The Pizza Cam™ turns your camera into an instrument, wave your hands to toss dough
               and drum the toppings.
             </p>
             <ul className="booth-gate__terms">
               <li>
-                <strong>ENABLES HAND CONTROL</strong> — your motion plays the music.
+                <strong>ENABLES HAND CONTROL</strong>, your motion plays the music.
               </li>
               <li>
-                <strong>STAYS ON YOUR DEVICE</strong> — the picture becomes 768 big crunchy pixels,
+                <strong>STAYS ON YOUR DEVICE</strong>, the picture becomes 768 big crunchy pixels,
                 read for motion, drawn on this screen, and thrown away.
               </li>
               <li>
-                <strong>NEVER SENT TO US</strong> — nothing is recorded, nothing is uploaded. There
+                <strong>NEVER SENT TO US</strong>, nothing is recorded, nothing is uploaded. There
                 is no server for it to go to.
               </li>
             </ul>
@@ -288,7 +288,7 @@ export function PizzaCamBooth() {
               live. One press turns it off.
             </p>
             <p className="booth-gate__audit">
-              Don't take our word for it — the entire camera pipeline is one readable file:{' '}
+              Don't take our word for it, the entire camera pipeline is one readable file:{' '}
               <a
                 href="https://github.com/lukefwalton/scoobertdoobert.pizza/blob/main/src/lib/pizzacam.ts"
                 target="_blank"
@@ -308,7 +308,7 @@ export function PizzaCamBooth() {
 
       {declined && status === 'off' && (
         <div className="booth-screen booth-screen--cold">
-          <p className="booth-cold-title">NO CAMERA — AND THAT'S FINE</p>
+          <p className="booth-cold-title">NO CAMERA: AND THAT'S FINE</p>
           <p className="booth-cold-sub">
             The band plays on without you. Changed your mind?{' '}
             <button className="booth-link" onClick={() => setDeclined(false)}>
@@ -339,7 +339,7 @@ export function PizzaCamBooth() {
 
       {status === 'denied' && (
         <div className="booth-screen booth-screen--cold">
-          <p className="booth-cold-title">NO CAMERA — AND THAT'S FINE</p>
+          <p className="booth-cold-title">NO CAMERA: AND THAT'S FINE</p>
           <p className="booth-cold-sub">
             Your browser said no. That's the kill switch working. If you change your mind, allow the
             camera in your browser settings and press the button again.
@@ -361,13 +361,13 @@ export function PizzaCamBooth() {
 
       {status === 'live' && (
         <>
-          {/* the persistent indicator + kill switch — fixed above everything,
+          {/* the persistent indicator + kill switch, fixed above everything,
               present exactly as long as the stream lives */}
           <button className="booth-chip" onClick={killCamera}>
             <span className="booth-dot booth-dot--blink" aria-hidden="true">
               ●
             </span>{' '}
-            CAMERA ON — turn off
+            CAMERA ON: turn off
           </button>
 
           <div className="booth-stage">
@@ -378,8 +378,8 @@ export function PizzaCamBooth() {
               height={CAM_H * SCALE}
               aria-label={
                 channel === 'dough'
-                  ? 'Air Dough — wave to play; left is low, right is high'
-                  : 'Topping Drums — hit a zone to strike it'
+                  ? 'Air Dough, wave to play; left is low, right is high'
+                  : 'Topping Drums, hit a zone to strike it'
               }
             />
             {channel === 'dough' ? (
@@ -419,23 +419,23 @@ export function PizzaCamBooth() {
                 aria-pressed={channel === 'dough'}
                 onClick={() => switchChannel('dough')}
               >
-                CH 1 — AIR DOUGH
+                CH 1: AIR DOUGH
               </button>
               <button
                 className={channel === 'drums' ? 'booth-ch booth-ch--on' : 'booth-ch'}
                 aria-pressed={channel === 'drums'}
                 onClick={() => switchChannel('drums')}
               >
-                CH 2 — TOPPING DRUMS
+                CH 2: TOPPING DRUMS
               </button>
             </div>
             <p className="booth-readout">
               {channel === 'dough' ? (
                 <>
-                  toss the dough — left low, right high · <span ref={noteEl}>—</span>
+                  toss the dough, left low, right high · <span ref={noteEl}>—</span>
                 </>
               ) : (
-                <>hit a topping — bottom row low, top row bright</>
+                <>hit a topping, bottom row low, top row bright</>
               )}
             </p>
             <button className="booth-off" onClick={killCamera}>
@@ -445,7 +445,7 @@ export function PizzaCamBooth() {
         </>
       )}
 
-      {/* the one <video> the stream ever touches — never displayed */}
+      {/* the one <video> the stream ever touches, never displayed */}
       <video ref={videoRef} playsInline muted style={{ display: 'none' }} />
     </div>
   );

@@ -22,15 +22,15 @@ export type Quest = {
   label: string;
   /** One-line nudge toward it — never a spoiler walkthrough. */
   hint: string;
-  /** Room id where you'd accomplish it — the objective compass points here.
+  /** Room id where you'd accomplish it, the objective compass points here.
    *  Omitted for objectives with no single place (e.g. "step inside"). */
   room?: string;
   /** Done purely from durable progress (no quest-specific state). */
   done: (p: Progress) => boolean;
   /** A BONUS objective: it shows in the To-Do list (and gets its ✓ + toast), but it
-   *  does NOT count toward completionPct / allQuestsDone — so the ★100% finale bar
+   *  does NOT count toward completionPct / allQuestsDone, so the ★100% finale bar
    *  stays on the always-reachable objectives, and an optional side-thread (the 1101
-   *  ARG — pure share-fuel, off the main path) never gates the capstone. It's also
+   *  ARG: pure share-fuel, off the main path) never gates the capstone. It's also
    *  skipped by the objective compass / rat nudge (those track the main path). */
   bonus?: boolean;
 };
@@ -45,7 +45,7 @@ export const QUESTS: Quest[] = [
   {
     id: 'learn-jump',
     label: 'Learn to jump',
-    hint: 'A glowing skill orb floats in the shop — walk into it to learn the hop.',
+    hint: 'A glowing skill orb floats in the shop, walk into it to learn the hop.',
     room: 'shop',
     done: (p) => p.secretsFound.includes('jump-unlocked'),
   },
@@ -58,18 +58,18 @@ export const QUESTS: Quest[] = [
     // luck — so the ✓ can't tick from a tape/dance you found elsewhere. A legacy
     // save that clapped before this secret existed self-heals by re-clapping once
     // (trivially replayable); a luckEarned/radioUnlocked backfill is deliberately
-    // NOT done — it would re-introduce the very false-positive this fixes.
+    // NOT done, it would re-introduce the very false-positive this fixes.
     done: (p) => p.secretsFound.includes('shrine-clap'),
   },
   {
     id: 'draw-fortune',
     label: 'Draw your fortune',
-    hint: 'Beside the offering box at the shrine — shake the おみくじ box for a paper fortune.',
+    hint: 'Beside the offering box at the shrine, shake the おみくじ box for a paper fortune.',
     room: 'shrine',
     // A BONUS side-ritual (like the ARG): it shows in the To-Do list with its own ✓ +
     // toast, giving luck a legible OBJECTIVE, but it stays off the ★100% finale bar so
     // the always-reachable capstone set is unchanged. Keyed off the draw secret, so any
-    // single fortune completes it (always solvable — the friction budget holds).
+    // single fortune completes it (always solvable, the friction budget holds).
     bonus: true,
     done: (p) => p.secretsFound.includes('omikuji-drawn'),
   },
@@ -79,35 +79,35 @@ export const QUESTS: Quest[] = [
     hint: 'Roll the bone at the jukebox to unlock the flip-through radio.',
     room: 'jukebox',
     // Keys off the jukebox d20 roll specifically (set in JukeboxRoom.rollTo), NOT
-    // radioUnlocked — which a tape pickup also sets, so pocketing a cassette used
+    // radioUnlocked, which a tape pickup also sets, so pocketing a cassette used
     // to falsely complete this. (unlockRadio() stays the real upgrade flag.)
     done: (p) => p.secretsFound.includes('jukebox-roll'),
   },
   {
     id: 'ride-slide',
     label: 'Ride the tube slide',
-    hint: 'Through the hedges off the park path — walk right into the green mouth.',
+    hint: 'Through the hedges off the park path, walk right into the green mouth.',
     room: 'garden',
     done: (p) => p.secretsFound.includes('garden-slide'),
   },
   {
     id: 'play-turtle',
     label: 'Play the Turtle one more time',
-    hint: 'The old venue off North Park — step up to the mic where the stage was.',
+    hint: 'The old venue off North Park, step up to the mic where the stage was.',
     room: 'turtle',
     done: (p) => p.secretsFound.includes('turtle-stage'),
   },
   {
     id: 'find-locker-key',
     label: 'Pocket the rusted key',
-    hint: 'It rests on the poolrooms deck — then find the door it opens.',
+    hint: 'It rests on the poolrooms deck, then find the door it opens.',
     room: 'poolrooms',
     done: (p) => p.itemsHeld.includes('pool-locker-key'),
   },
   {
     id: 'find-closet-key',
     label: 'Pocket the brass key',
-    hint: 'It’s on the back-hall floor — it opens the SUPPLY closet nearby.',
+    hint: 'It’s on the back-hall floor, it opens the SUPPLY closet nearby.',
     room: 'hallway',
     done: (p) => p.itemsHeld.includes('hall-closet-key'),
   },
@@ -116,7 +116,7 @@ export const QUESTS: Quest[] = [
     label: 'Find the lost cassettes',
     // Count derived from CASSETTE_IDS so it never drifts when a `track` item is
     // added (the Basement Sessions master tapes grew this from 4 to 7).
-    hint: `${CASSETTE_IDS.length} tapes hide around the place — pocket each to hear it and tune the radio.`,
+    hint: `${CASSETTE_IDS.length} tapes hide around the place, pocket each to hear it and tune the radio.`,
     done: (p) => CASSETTE_IDS.every((id) => p.itemsHeld.includes(id)),
   },
   {
@@ -150,18 +150,18 @@ export const QUESTS: Quest[] = [
   {
     id: 'restore-master',
     label: 'Restore a master',
-    hint: 'Thread a song you’ve found onto the control room’s reel-to-reel — or pocket a master tape.',
+    hint: 'Thread a song you’ve found onto the control room’s reel-to-reel, or pocket a master tape.',
     room: 'controlroom',
     // A BONUS ritual (the おみくじ precedent): the hi-fi museum layer is optional
     // depth, so it never moves the ★100% finale bar. Bench rites AND held master
-    // tapes both count — restoredCount derives across the two.
+    // tapes both count, restoredCount derives across the two.
     bonus: true,
     done: (p) => restoredCount(p) > 0,
   },
   {
     id: 'saved-san-diego',
     label: 'Save San Diego',
-    hint: 'Play the 1101 cartridge’s little text adventure — all the way to the end.',
+    hint: 'Play the 1101 cartridge’s little text adventure, all the way to the end.',
     // A BONUS thread: the one piece of real branching narrative (the 1101 ARG). It's
     // optional share-fuel off the main path, so it never gates the ★100% finale.
     bonus: true,
@@ -169,7 +169,7 @@ export const QUESTS: Quest[] = [
   },
 ];
 
-// The SCORED objectives (everything that isn't a bonus) — completion % and the
+// The SCORED objectives (everything that isn't a bonus), completion % and the
 // finale gate count only these, so an optional side-thread can't move the ★100% bar.
 const SCORED_QUESTS = QUESTS.filter((q) => !q.bonus);
 
@@ -186,7 +186,7 @@ export function questsDone(p: Progress): number {
   return SCORED_QUESTS.reduce((n, q) => n + (q.done(p) ? 1 : 0), 0);
 }
 
-/** Completion percent across the SCORED objectives (0..100) — the pause-menu badge. */
+/** Completion percent across the SCORED objectives (0..100), the pause-menu badge. */
 export function completionPct(p: Progress): number {
   return Math.round((questsDone(p) / SCORED_QUESTS.length) * 100);
 }

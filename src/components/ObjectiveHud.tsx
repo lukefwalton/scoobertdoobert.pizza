@@ -8,7 +8,7 @@ import type { Progress } from '../state/progressStore';
 // a compass arrow toward the room it's in. The heading subscription lives HERE so
 // the ~15 Hz camera-pose updates only re-render this little chip, not all of
 // WorldHud. Hidden during pause/transition/dialog (passed as `hidden`) and via the
-// pause-menu toggle. WCAG-safe — a rotating arrow, no flash.
+// pause-menu toggle. WCAG-safe, a rotating arrow, no flash.
 export function ObjectiveHud({
   progress,
   currentRoom,
@@ -25,7 +25,7 @@ export function ObjectiveHud({
   // when to drop the toast below this chip), so the two can't drift.
   if (!objectiveChipVisible(progress, { on, hidden })) return null;
   // Guaranteed defined: objectiveChipVisible is true only when a non-bonus one is
-  // undone (bonus objectives don't drive the compass — same filter as the gate).
+  // undone (bonus objectives don't drive the compass, same filter as the gate).
   const undone = questStatus(progress).find((q) => !q.done && !q.quest.bonus)!.quest;
 
   const target = undone.room;
@@ -53,7 +53,7 @@ export function ObjectiveHud({
       <span className="hud-objective__text">
         <span className="hud-objective__label">{undone.label}</span>
         <span className="hud-objective__hint">
-          {here ? 'You’re here — look around.' : undone.hint}
+          {here ? 'You’re here, look around.' : undone.hint}
         </span>
       </span>
     </div>

@@ -40,9 +40,11 @@ export const FLOORS: Floor[] = [
     era: '1996',
     template: 'plain',
     title: 'Scoobert Doobert’s World Wide Web Pizza Storefront',
-    copy: 'A pizza shop off the coast of San Diego — also a chill lofi indie-pop artist / producer / mix engineer.',
+    copy: 'A pizza shop off the coast of San Diego. Also a chill lofi indie-pop artist / producer / mix engineer.',
     links: ALL_MENU,
     descendLabel: '▼ Down to the basement',
+    // Storefront's down-door + ENTER THE SHOP jump straight to BOTTOM_FLOOR
+    // (the Silicon Slice machine room). Order form / rat still walk floor-by-floor.
   },
   {
     id: 'y1999',

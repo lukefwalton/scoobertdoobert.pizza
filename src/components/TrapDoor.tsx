@@ -12,7 +12,7 @@ import { rollD20, critLabel, luckTag, type Crit } from '../lib/luck';
 // TrapDoor — the storefront's secret shortcut into the deep (design: docs/
 // DESIGN.md "Trap doors"). The dead-plain page has a soft spot in the floor; if
 // you find it and click, the floor gives way. An interstitial d20 ROLL decides
-// where — it drops you, at random, into the BOTTOM of the back rooms, skipping
+// where, it drops you, at random, into the BOTTOM of the back rooms, skipping
 // the whole descent.
 //
 //   discoverability = a VISIBLE-BUT-WRONG element: a hairline seam at the foot
@@ -23,7 +23,7 @@ import { rollD20, critLabel, luckTag, type Crit } from '../lib/luck';
 //     doubles as the lazy-load mask for the three.js World chunk (same trick as
 //     the Calzone installer), so the ceremony IS the loading screen.
 //
-// HARD constraints honored: pure progressive enhancement — useMounted-gated so
+// HARD constraints honored: pure progressive enhancement, useMounted-gated so
 // it's NEVER in the prerendered / JS-off HTML, and hidden under reduced motion
 // (the surprise drop IS motion — a phone gets it, a reduced-motion user must
 // not). Phones now enter the 3D world with touch controls, so the trap door is
@@ -72,7 +72,7 @@ export function TrapDoor() {
     if (phase !== 'idle') return;
     // Decide the landing up front (the die will reveal it), then roll. The trap
     // door is a STAKES d20 (lib/luck): if you've banked luck the system spends one
-    // to roll with advantage, so the floor tips you toward a kinder landing — and a
+    // to roll with advantage, so the floor tips you toward a kinder landing, and a
     // natural 20 is the "soft landing" jackpot. No luck → a plain d20, nothing spent.
     const r = rollD20(true);
     const d = trapDropForRoll(r.face, r.crit);
@@ -86,7 +86,7 @@ export function TrapDoor() {
     audio.unlock();
 
     // Warm the three.js World chunk behind the roll (the lazy-load mask). If it
-    // rejects (offline / 404), the floor "holds" — bail to a graceful dialog
+    // rejects (offline / 404), the floor "holds", bail to a graceful dialog
     // instead of stranding the player on a spinning die.
     void import('../world/World').then(
       () => {
@@ -130,7 +130,7 @@ export function TrapDoor() {
       {/* The visible-but-wrong element: a hairline seam in the "floor" at the
           very bottom of the page. Looks like a render glitch; takes a pointer
           cursor it shouldn't. A real button (with a quiet label) so it isn't an
-          a11y black hole — but you have to notice it. */}
+          a11y black hole, but you have to notice it. */}
       <button
         type="button"
         className="trapdoor-seam"

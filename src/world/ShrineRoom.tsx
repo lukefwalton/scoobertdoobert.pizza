@@ -30,13 +30,13 @@ const FURIN_FREQS = [
 ];
 
 // ───────────────────────────────────────────────────────────────────────────
-// ShrineRoom — the Japan level (scaffold). The one OUTDOOR, *sweet* deep room:
+// ShrineRoom, the Japan level (scaffold). The one OUTDOOR, *sweet* deep room:
 // a rural golden-hour dusk with a torii path, a little wayside shrine, a country
 // railway crossing, distant vaporwave mountains, and fireflies. A breather among
-// the bitter depths (taste guardrail — the contrast is the point).
+// the bitter depths (taste guardrail, the contrast is the point).
 //
 // Built procedurally from primitives in the PS1 register (flat-shaded, vertex-
-// snapped, fogged) — torii are two posts + two beams, the shrine is a platform +
+// snapped, fogged), torii are two posts + two beams, the shrine is a platform +
 // a gabled roof, the tracks are rails + sleepers. Original parody only (no real
 // marks). The tracks run off into the fog toward a future metro-tunnel GLB
 // hookup ("connect to the tunnel cuz of trains"). All easy to swap for sourced
@@ -66,19 +66,19 @@ function Torii({
       <mesh material={mat} position={[px, height / 2, 0]}>
         <boxGeometry args={[0.22, height, 0.22]} />
       </mesh>
-      {/* nuki — lower tie beam */}
+      {/* nuki, lower tie beam */}
       <mesh material={mat} position={[0, height * 0.72, 0]}>
         <boxGeometry args={[span + 0.5, 0.18, 0.26]} />
       </mesh>
-      {/* shimaki — beam under the lintel */}
+      {/* shimaki, beam under the lintel */}
       <mesh material={mat} position={[0, height - 0.16, 0]}>
         <boxGeometry args={[span + 1.0, 0.16, 0.28]} />
       </mesh>
-      {/* kasagi — the top lintel */}
+      {/* kasagi, the top lintel */}
       <mesh material={mat} position={[0, height + 0.04, 0]}>
         <boxGeometry args={[span + 1.4, 0.24, 0.34]} />
       </mesh>
-      {/* gakuzuka — centre strut */}
+      {/* gakuzuka, centre strut */}
       <mesh material={mat} position={[0, height * 0.86, 0]}>
         <boxGeometry args={[0.16, height * 0.28, 0.2]} />
       </mesh>
@@ -106,7 +106,7 @@ function Lantern({
       <mesh material={stone} position={[0, 0.62, 0]}>
         <boxGeometry args={[0.18, 0.5, 0.18]} />
       </mesh>
-      {/* firebox — the lit chamber */}
+      {/* firebox, the lit chamber */}
       <mesh material={glow} position={[0, 1.0, 0]}>
         <boxGeometry args={[0.4, 0.36, 0.4]} />
       </mesh>
@@ -119,7 +119,7 @@ function Lantern({
   );
 }
 
-// Fireflies — drifting glowing points in the dusk. THREE.Points so they read as
+// Fireflies, drifting glowing points in the dusk. THREE.Points so they read as
 // chunky glowing pixels under the low-res render; each bobs on its own phase.
 function Fireflies({ count = 44 }: { count?: number }) {
   const ref = useRef<THREE.Points>(null);
@@ -195,9 +195,9 @@ function Fireflies({ count = 44 }: { count?: number }) {
   return <points ref={ref} geometry={geom} material={mat} />;
 }
 
-// Furin (風鈴) — a glass wind-chime hung under the shrine eave. The bell DOME is a
+// Furin (風鈴), a glass wind-chime hung under the shrine eave. The bell DOME is a
 // little truncated cone; a paper strip (tanzaku) sways below in the "wind." It
-// rings itself at gentle random intervals by driving `audio.playChime` — the SAME
+// rings itself at gentle random intervals by driving `audio.playChime`, the SAME
 // synthesis engine as the /chimes cabinet (src/lib/chimes.strikeBell), reused to
 // power an in-room effect. Mute-aware + ambient-quiet by construction (the engine
 // no-ops when muted / pre-gesture), and it's a SWEET room, so this stays a relief
@@ -255,7 +255,7 @@ function Furin({ x, y, z, pan }: { x: number; y: number; z: number; pan: number 
 
 // The offering box (賽銭箱) — the shrine ritual + the game layer's luck faucet.
 // Click it to pay respects the proper way: 二拍手, two claps, and a coin tinkle.
-// The FIRST clap per visit grants luck (announced) — small, easy, repeatable by
+// The FIRST clap per visit grants luck (announced), small, easy, repeatable by
 // coming back. A SWEET interaction (no dread): the box gives a little bow-pulse.
 function OfferingBox({ mat }: { mat: THREE.Material }) {
   const { gl } = useThree();
@@ -263,7 +263,7 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
   const claimed = useRef(false); // one luck grant per visit (resets on re-entry)
   const cooldown = useRef(0);
   const pulse = useRef(0);
-  const timers = useRef<number[]>([]); // pending clap/coin timeouts — cleared on unmount
+  const timers = useRef<number[]>([]); // pending clap/coin timeouts, cleared on unmount
 
   useFrame((_, dt) => {
     if (cooldown.current > 0) cooldown.current -= dt;
@@ -285,7 +285,7 @@ function OfferingBox({ mat }: { mat: THREE.Material }) {
     audio.unlock(); // the click is the gesture
     audio.playClap();
     // Track the delayed clap + coin tinkle so leaving the shrine mid-ritual can
-    // cancel them — otherwise they'd fire into the next room's audio (shared engine).
+    // cancel them, otherwise they'd fire into the next room's audio (shared engine).
     timers.current.push(
       window.setTimeout(() => audio.playClap(), 190), // …clap clap (二拍手)
       window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0, 0.1), 360), // a coin tinkle
@@ -434,7 +434,7 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
       prog.findSecret('omikuji-drawn'); // completes the "Draw your fortune" objective
     }
     // sound the outcome: a bright ascending sparkle for 大吉, a low deflating womp for
-    // 凶 (still sweet — the shrine stays a relief beat). The 大吉 burst is spread over
+    // 凶 (still sweet, the shrine stays a relief beat). The 大吉 burst is spread over
     // time, so it's QUEUED onto the frame clock (below) rather than setTimeout — so it
     // pauses with the world and stops cleanly on unmount.
     if (f.id === 'daikichi')
@@ -445,7 +445,7 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
       );
     else if (f.id === 'kyo') audio.playChime(noteToFreq('C', 2), -0.1, 0.22, 1.0);
     const luckNote = f.luck > 0 ? ` · +${f.luck} luck` : '';
-    announce(`${f.jp} ${f.en} — ${f.line}${luckNote}${luckTag(roll)}`, f.kind);
+    announce(`${f.jp} ${f.en}, ${f.line}${luckNote}${luckTag(roll)}`, f.kind);
     exposeTestGlobal('__sdpFortune', { id: f.id, face: roll.face, crit: roll.crit });
   };
 
@@ -503,7 +503,7 @@ function OmikujiStand({ position }: { position: [number, number, number] }) {
       <mesh material={labelMat} position={[0, 0.62, 0.26]}>
         <planeGeometry args={[0.62, 0.32]} />
       </mesh>
-      {/* the mikuji box — the thing you shake; the whole tube is the control */}
+      {/* the mikuji box, the thing you shake; the whole tube is the control */}
       <group
         ref={tube}
         position={[0, 1.2, 0.02]}
@@ -607,14 +607,14 @@ export function ShrineRoom({ room }: { room: Room }) {
         <planeGeometry args={[2.4, D * 2]} />
       </mesh>
 
-      {/* the torii path — gates receding toward the shrine (one behind you, at
+      {/* the torii path, gates receding toward the shrine (one behind you, at
           the entrance, so you step out from under it) */}
       <Torii z={12} mat={toriiMat} />
       <Torii z={7.5} mat={toriiMat} />
       <Torii z={-1.5} span={2.8} height={3.9} mat={toriiMat} />
       <Torii z={-6.5} span={3.0} height={4.1} mat={toriiMat} />
 
-      {/* the grass-side gateway — a vermilion torii on the open -X edge, turned a
+      {/* the grass-side gateway, a vermilion torii on the open -X edge, turned a
           quarter-turn to frame a worn path off into the overgrown field. Mirrors
           the grass field's own entrance torii; the 'shrine-to-grass' door in
           rooms.ts sits right under it. */}
@@ -624,7 +624,7 @@ export function ShrineRoom({ room }: { room: Room }) {
       <group position={[-10.6, 0, 6]} rotation-y={Math.PI / 2}>
         <Torii z={0} mat={toriiMat} />
       </group>
-      {/* warm fill on the gateway's near (shrine-facing) side — the lone directional
+      {/* warm fill on the gateway's near (shrine-facing) side, the lone directional
           light leaves it backlit and gloomy otherwise, and this is a SWEET room, so
           it should glow vermilion like the path toriis, not read as a dark slab */}
       <pointLight position={[-9.2, 2.6, 6]} intensity={0.6} distance={10} color="#ffd9a0" />
@@ -668,7 +668,7 @@ export function ShrineRoom({ room }: { room: Room }) {
         <mesh material={woodMat} position={[1.65, 1.4, 0]}>
           <boxGeometry args={[0.12, 1.7, 2.4]} />
         </mesh>
-        {/* gabled roof — two slate planes meeting at a ridge, deep overhang */}
+        {/* gabled roof, two slate planes meeting at a ridge, deep overhang */}
         <mesh material={roofMat} position={[0, 2.9, -0.95]} rotation-x={-0.62}>
           <planeGeometry args={[4.8, 2.3]} />
         </mesh>
@@ -679,12 +679,12 @@ export function ShrineRoom({ room }: { room: Room }) {
         <mesh material={woodMat} position={[0, 3.45, 0]}>
           <boxGeometry args={[4.9, 0.18, 0.18]} />
         </mesh>
-        {/* the offering box — click to clap twice (二拍手) and earn luck */}
+        {/* the offering box, click to clap twice (二拍手) and earn luck */}
         <OfferingBox mat={woodMat} />
-        {/* the omikuji stand beside it — draw a paper fortune (大吉…凶); luck tips the
+        {/* the omikuji stand beside it, draw a paper fortune (大吉…凶); luck tips the
             draw, a blessing pays luck back, a curse is sweet theatre (no penalty) */}
         <OmikujiStand position={[2.1, 0, 1.5]} />
-        {/* furin under the front eaves — they ring themselves via the chimes
+        {/* furin under the front eaves, they ring themselves via the chimes
             engine (audio.playChime), the cabinet's synthesis reused in-world */}
         <Furin x={-1.45} y={2.5} z={1.25} pan={-0.4} />
         <Furin x={1.45} y={2.5} z={1.25} pan={0.4} />
@@ -707,7 +707,7 @@ export function ShrineRoom({ room }: { room: Room }) {
         <boxGeometry args={[W * 2 + 10, 0.12, 0.1]} />
       </mesh>
 
-      {/* a single rail car parked on the crossing — pulled clear to the -X side
+      {/* a single rail car parked on the crossing, pulled clear to the -X side
           (just left the tunnel), trailing off into the fog */}
       <group position={[-9, 0, TRACK_Z]}>
         <mesh material={trainBodyMat} position={[0, 1.4, 0]}>
@@ -725,7 +725,7 @@ export function ShrineRoom({ room }: { room: Room }) {
         </mesh>
       </group>
 
-      {/* the tunnel portal at the +X end — where the rails run underground. The
+      {/* the tunnel portal at the +X end, where the rails run underground. The
           way DEEPER (the metro-tunnel GLB level) is on the other side; the
           'shrine-to-tunnel' door in rooms.ts sits just in front of this mouth. */}
       <group position={[11.5, 0, TRACK_Z]}>

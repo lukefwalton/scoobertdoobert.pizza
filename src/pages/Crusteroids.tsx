@@ -7,9 +7,9 @@ export default function Crusteroids() {
   return (
     <ArcadeCabinetPage
       slug="crusteroids"
-      title="Crusteroids — Scoobert Doobert"
+      title="Crusteroids · Scoobert Doobert"
       neon="CRUSTEROIDS"
-      description="Crusteroids — pilot a pizza-slice ship and blast the floating crusts. A tiny late-90s arcade game for your phone."
+      description="Crusteroids, pilot a pizza-slice ship and blast the floating crusts. A tiny late-90s arcade game for your phone."
       coldTitle="CRUSTEROIDS"
       coldSub="Insert JavaScript to play. No quarters accepted."
       foot="Turn with ◀ ▶, THRUST to fly, tap the screen (or ◉) to fire. Your best is remembered on this device."

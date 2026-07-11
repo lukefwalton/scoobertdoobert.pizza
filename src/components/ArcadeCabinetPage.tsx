@@ -30,7 +30,7 @@ export function ArcadeCabinetPage({
 }: {
   /** Route slug (no leading slash), e.g. 'crusteroids'. Drives canonical/og url. */
   slug: string;
-  /** <title> (page) — e.g. 'Crusteroids — Scoobert Doobert'. */
+  /** <title> (page), e.g. 'Crusteroids · Scoobert Doobert'. */
   title: string;
   /** The marquee word-art. */
   neon: string;

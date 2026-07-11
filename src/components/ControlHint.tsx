@@ -10,7 +10,7 @@ import { inputFrozen } from '../world/inputFrozen';
 // a first-timer can land at spawn with no idea WASD/drag even do anything.
 //
 // A small, non-blocking legend that fades out on the player's first real MOVE/LOOK
-// — a movement key (walk), a drag-LOOK on the canvas, or a push of the on-screen
+//, a movement key (walk), a drag-LOOK on the canvas, or a push of the on-screen
 // stick (a real displacement, not a bare tap/click; see the listener below).
 // Watching input, not the camera pose, means the world's own entry settle/reveal
 // motion never trips it.
@@ -27,10 +27,10 @@ const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowlef
 // Teaching only counts when the player could ACTUALLY move/look THIS frame — otherwise a
 // first-timer could bury the one movement legend by mashing keys or dragging against a
 // modal without ever having moved. Built on inputFrozen(), the world's OWN shared freeze
-// rule (Controls gates BOTH keyboard move and pointer look on it — pause / hotspot / NPC /
+// rule (Controls gates BOTH keyboard move and pointer look on it, pause / hotspot / NPC /
 // room-wipe / ride / dive / loading level), so this can't drift from the real input gate.
-// We union the few HUD overlays inputFrozen() doesn't track — a lookable card, the arcade
-// cabinet, the lyrics sheet — matching the world-side interactable scan's conservatism.
+// We union the few HUD overlays inputFrozen() doesn't track, a lookable card, the arcade
+// cabinet, the lyrics sheet, matching the world-side interactable scan's conservatism.
 function teachBlocked(): boolean {
   const s = useSceneStore.getState();
   return inputFrozen() || s.openLookable !== null || s.arcadeGame !== null || s.lyricsSong !== null;
@@ -46,7 +46,7 @@ export function ControlHint() {
 
   // hide(persist): persist=true (the player actually MOVED or LOOKED) durably marks
   // the controls TAUGHT so the hint never shows again; persist=false (the × or the
-  // 10s backstop) just hides it THIS visit — idling it out or closing it without
+  // 10s backstop) just hides it THIS visit, idling it out or closing it without
   // ever using the controls still teaches you next time (the reviewer's distinction:
   // "already taught" vs merely "hidden once").
   //
@@ -57,14 +57,14 @@ export function ControlHint() {
   const hiding = useRef(false);
   const hideRef = useRef<(persist: boolean) => void>(() => {});
   hideRef.current = (persist: boolean) => {
-    if (hiding.current) return; // already hiding — the first trigger's durability stands
+    if (hiding.current) return; // already hiding, the first trigger's durability stands
     hiding.current = true;
     if (persist) markControlHintSeen();
     const reduce =
       typeof window !== 'undefined' &&
       !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduce) {
-      setGone(true); // no delayed fade under reduced motion — hide at once
+      setGone(true); // no delayed fade under reduced motion, hide at once
       return;
     }
     setLeaving(true);
@@ -72,7 +72,7 @@ export function ControlHint() {
   };
 
   useEffect(() => {
-    if (seenAtMount.current) return; // already taught — no listeners, nothing shows
+    if (seenAtMount.current) return; // already taught, no listeners, nothing shows
     const onKey = (e: KeyboardEvent) => {
       if (!MOVE_KEYS.has(e.key.toLowerCase())) return;
       if (teachBlocked()) return; // a key that can't move the world this frame doesn't teach

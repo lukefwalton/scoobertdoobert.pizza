@@ -17,7 +17,7 @@ import { FloorView } from '../floors/FloorView';
 // current floor via <FloorView>, which is driven by FLOORS[currentFloor].
 //
 // Floor 0 is the dead-plain storefront (template `plain`); it is no longer
-// special-cased — it's just the top of the descent. The page prerenders with
+// special-cased, it's just the top of the descent. The page prerenders with
 // currentFloor = 0, so crawlers and no-JS / reduced-motion visitors always get
 // the storefront. The <head> here describes floor 0 (the indexed page).
 // ───────────────────────────────────────────────────────────────────────────
@@ -25,14 +25,14 @@ export default function Storefront() {
   return (
     <>
       <Head>
-        <title>Electronic Pizza Storefront — Scoobert Doobert</title>
+        <title>Electronic Pizza Storefront · Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/" />
         <meta
           name="description"
           content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
         />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/" />
-        <meta property="og:title" content="Electronic Pizza Storefront — Scoobert Doobert" />
+        <meta property="og:title" content="Electronic Pizza Storefront · Scoobert Doobert" />
         <meta
           property="og:description"
           content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
@@ -48,7 +48,7 @@ export default function Storefront() {
             '@context': 'https://schema.org',
             '@type': 'MusicPlaylist',
             '@id': 'https://www.scoobertdoobert.pizza/#reel',
-            name: 'The Reel — productions, collabs & mixes by Scoobert Doobert',
+            name: 'The Reel, productions, collabs & mixes by Scoobert Doobert',
             description:
               'The hire reel of Scoobert Doobert (Luke F. Walton), mixing engineer & producer for hire: productions & collabs throughout; the mixes are at the bottom. He mixes, produces, and plays on all of his own records.',
             url:

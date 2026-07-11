@@ -19,19 +19,19 @@ export default function Chimes() {
   return (
     <main className="chimes-page">
       <Head>
-        <title>Pendulum Chimes — The Pizza Arcade</title>
+        <title>Pendulum Chimes · The Pizza Arcade</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/chimes" />
         <meta
           name="description"
-          content="Pendulum Chimes — a tap-to-play bell instrument. Pendulums swing at harmonic ratios and strike tuned bells; the cascade is never the same twice."
+          content="Pendulum Chimes, a tap-to-play bell instrument. Pendulums swing at harmonic ratios and strike tuned bells; the cascade is never the same twice."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/chimes" />
-        <meta property="og:title" content="Pendulum Chimes — The Pizza Arcade" />
+        <meta property="og:title" content="Pendulum Chimes · The Pizza Arcade" />
         <meta
           property="og:description"
-          content="Tap the glass and the bells swing — a generative chime instrument you play."
+          content="Tap the glass and the bells swing, a generative chime instrument you play."
         />
       </Head>
 

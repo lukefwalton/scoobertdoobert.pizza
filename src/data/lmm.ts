@@ -24,7 +24,7 @@ export type LmmEpisode = {
 };
 
 export const LMM_CONCEPT =
-  'Love Music More — a newsletter + podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert (Luke F. Walton), with guests from every corner of the business. Top 10% of music podcasts.';
+  'Love Music More, a newsletter + podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert (Luke F. Walton), with guests from every corner of the business. Top 10% of music podcasts.';
 
 /** The storefront's podcast destination (matches links.ts `podcast`). */
 export const LMM_HOME = 'https://lovemusicmore.substack.com/';
@@ -33,21 +33,21 @@ export const LMM_HOME = 'https://lovemusicmore.substack.com/';
 // inside), then notable guests. Verified episode links.
 export const LMM_EPISODES: LmmEpisode[] = [
   {
-    title: 'Boardwalk — track / production commentary',
+    title: 'Boardwalk, track / production commentary',
     guest: null,
     url: 'https://open.spotify.com/episode/2TYRKCalZ5cJX6mSgJ65Y4',
     blurb:
-      "Inside the stems of the surf-rock single 'Boardwalk' — Ventures DNA, granular synths, the birth and death of sounds.",
+      "Inside the stems of the surf-rock single 'Boardwalk': Ventures DNA, granular synths, the birth and death of sounds.",
   },
   {
-    title: 'KŌAN LP overview + Think About It — commentary',
+    title: 'KŌAN LP overview + Think About It, commentary',
     guest: null,
     url: 'https://open.spotify.com/episode/6pWrSaNWju6uVjhYEmT4cV',
     blurb:
-      'A kōan is true and false at once — the record holds its contradictions without resolving them.',
+      'A kōan is true and false at once, the record holds its contradictions without resolving them.',
   },
   {
-    title: 'a song to quit your job to — production commentary',
+    title: 'a song to quit your job to, production commentary',
     guest: null,
     url: 'https://open.spotify.com/episode/6neNia00GUFkrNWqBWwaZB',
     blurb: 'Stem by stem: mellotron texture, bendable pitch, and knowing WHY so you can defend it.',
@@ -64,7 +64,7 @@ export const LMM_EPISODES: LmmEpisode[] = [
     guest: 'Andrew Scheps',
     url: 'https://www.youtube.com/watch?v=cKtP4c-7lto',
     blurb:
-      'Adele, U2, Hozier — mix for a feel not a sound, why Adele had zero compression, and where AI helps.',
+      'Adele, U2, Hozier, mix for a feel not a sound, why Adele had zero compression, and where AI helps.',
   },
   {
     title: 'The Additive Nature with Craig Bauer',
@@ -78,7 +78,7 @@ export const LMM_EPISODES: LmmEpisode[] = [
     guest: 'Phillip Broussard Jr.',
     url: 'https://www.youtube.com/watch?v=ZtWt750Ifmc',
     blurb:
-      'RHCP, Adele, Eminem, Muse, Slipknot, Rick Rubin — session prep, phase, tape, and the mix.',
+      'RHCP, Adele, Eminem, Muse, Slipknot, Rick Rubin, session prep, phase, tape, and the mix.',
   },
   {
     title: '"Weird Al", Diamond Records & Snare Drums w/ Bermuda Schwartz',
@@ -91,13 +91,13 @@ export const LMM_EPISODES: LmmEpisode[] = [
     title: 'Tough Love from Twisted Sister’s Jay Jay French',
     guest: 'Jay Jay French',
     url: 'https://www.youtube.com/watch?v=f_5e1V34GDA',
-    blurb: 'Brutally honest on the industry — how 9,000+ live shows led to going multi-platinum.',
+    blurb: 'Brutally honest on the industry, how 9,000+ live shows led to going multi-platinum.',
   },
   {
     title: 'Harley Flanagan Is Wired for Chaos (Cro-Mags)',
     guest: 'Harley Flanagan',
     url: 'https://www.youtube.com/watch?v=Xlsq-j_VxSQ',
-    blurb: 'Probably played CBGB more than anyone alive — a brutal life music got him through.',
+    blurb: 'Probably played CBGB more than anyone alive, a brutal life music got him through.',
   },
   {
     title: 'A Pioneer of Punk with Andy Shernoff (The Dictators)',

@@ -8,10 +8,10 @@ import { whisperFor } from '../data/whispers';
 // PerceptionWhisper — a D&D PERCEPTION check on room entry. The first time you set
 // foot in a room this session, roll a d20: beat the DC and you NOTICE a room-themed
 // Scoobert detail (whispers.ts, mined from lfw), surfaced as a sweet ✦ toast. Miss
-// it and you simply didn't notice — one attempt per room per session, so it stays
+// it and you simply didn't notice, one attempt per room per session, so it stays
 // a discovery, not a billboard. Renders nothing; it's an effect on currentRoom.
 //
-// It's a PASSIVE roll — a plain d20 that never spends your luck (luck is for the
+// It's a PASSIVE roll, a plain d20 that never spends your luck (luck is for the
 // stakes rolls: the monster, the goblin, the trap door). With ?debug you always
 // notice (deterministic for the smoke). Sweet only, never dread (taste guardrail).
 // ───────────────────────────────────────────────────────────────────────────

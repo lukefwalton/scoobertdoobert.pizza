@@ -9,7 +9,7 @@ import { exposeTestGlobal } from '../lib/testHooks';
 // machine: in 'demo' it ticks the wanderer's move sequence (one lit beat at a
 // time, with a soft chime), then hands you the input; in 'input' it shows your
 // progress; on 'win' it pays out (rewardDance) and closes. Arrow-key input is
-// captured in WorldHud (where movement is frozen). Gentle + WCAG-safe — no flash,
+// captured in WorldHud (where movement is frozen). Gentle + WCAG-safe, no flash,
 // a miss just resets with no penalty.
 
 const ARROW: Record<Dir, string> = { up: '↑', down: '↓', left: '←', right: '→' };
@@ -76,7 +76,7 @@ export function RhythmGame() {
               ? 'Watch the moves…'
               : phase === 'win'
                 ? '✓ nice moves!'
-                : 'Your turn — copy it (arrow keys)'}
+                : 'Your turn, copy it (arrow keys)'}
           </p>
           <div className={`hud-rhythm__seq${miss ? ' is-miss' : ''}`} key={miss}>
             {seq.map((d, i) => {

@@ -4,7 +4,7 @@ import { announce } from '../state/toastStore';
 // share.ts — the site's one social lever ("share fuel", invoked all over DESIGN
 // but with zero code until now). Opens the native share sheet where it exists
 // (mobile + some desktops), else copies the text + url to the clipboard and toasts
-// a confirmation. JS-only progressive enhancement — never in the crawlable
+// a confirmation. JS-only progressive enhancement, never in the crawlable
 // fallback, only wired from in-world/leaderboard UI after hydration.
 //
 // Every async path is guarded: a denied/absent API or a user who cancels the sheet
@@ -45,13 +45,13 @@ export async function shareResult(text: string, url?: string): Promise<ShareOutc
   if (nav?.clipboard?.writeText) {
     try {
       await nav.clipboard.writeText(full);
-      announce('link copied — paste it anywhere 📋');
+      announce('link copied, paste it anywhere 📋');
       return 'copied';
     } catch {
       /* clipboard blocked (permissions / insecure context) — fall through */
     }
   }
 
-  announce('couldn’t open share — the URL is in your address bar');
+  announce('couldn’t open share, the URL is in your address bar');
   return 'unavailable';
 }

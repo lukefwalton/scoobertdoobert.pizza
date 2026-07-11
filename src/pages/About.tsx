@@ -34,7 +34,7 @@ export default function About() {
     'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22';
 
   // Verified collaborator / placement homes (harvested from the lukefwalton.com
-  // hub's collaborators data). External destinations only — never a hub nav link.
+  // hub's collaborators data). External destinations only, never a hub nav link.
   const ext = {
     chai: 'https://www.subpop.com/artists/chai',
     winkTogether: 'https://www.subpop.com/releases/chai/wink_together',
@@ -58,14 +58,14 @@ export default function About() {
     grizzardGraphics: 'https://lukebrogoitti.myportfolio.com/scoobert-doobert',
   };
 
-  // The FAQ (ADDENDUM #8 — AEO): one array drives BOTH the visible section and
+  // The FAQ (ADDENDUM #8: AEO): one array drives BOTH the visible section and
   // the FAQPage JSON-LD, so the structured answers can never drift from the page
   // (Google requires the marked-up Q&As to be visible content). Facts only —
   // everything here is stated elsewhere on this page or in links.ts.
   const faq: { q: string; a: string }[] = [
     {
       q: 'Who is Scoobert Doobert?',
-      a: 'Scoobert Doobert is the recording name of Luke Francis Walton, a musician from San Diego, California: self-produced indie pop, chill pop, funk, and lofi — close to 300 registered compositions, written, played, produced, and mixed by Scoobert himself.',
+      a: 'Scoobert Doobert is the recording name of Luke Francis Walton, a musician from San Diego, California: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Scoobert himself.',
     },
     {
       q: 'Does Scoobert Doobert mix or produce records for other artists?',
@@ -77,7 +77,7 @@ export default function About() {
     },
     {
       q: 'What is The Reel?',
-      a: 'The Reel is his hire reel on Spotify: productions & collabs throughout the playlist, with the mixes at the bottom — proof of the work before you write.',
+      a: 'The Reel is his hire reel on Spotify: productions & collabs throughout the playlist, with the mixes at the bottom, proof of the work before you write.',
     },
   ];
 
@@ -122,7 +122,7 @@ export default function About() {
           'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
           'https://www.discogs.com/artist/8593593-Scoobert-Doobert',
           'https://genius.com/artists/Scoobert-doobert',
-          // Tidal artist — confirmed on the Wikidata item (Q140387739).
+          // Tidal artist, confirmed on the Wikidata item (Q140387739).
           'https://tidal.com/browse/artist/8793940',
           'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22',
           'https://koookooorooo.com/scoobert-doobert',
@@ -227,7 +227,7 @@ export default function About() {
         <meta property="og:locale:alternate" content="ja_JP" />
         <meta
           name="description"
-          content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project — and a mixing engineer & producer for hire (beformer@aol.com). CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
+          content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project, and a mixing engineer & producer for hire (beformer@aol.com). CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -296,14 +296,14 @@ export default function About() {
           </Ext>
           , followed by more production and songwriting with CHAI, including <em>WHOLE</em>, the
           theme for the NHK drama 恋せぬふたり, and <em>MY DREAM</em>, from the film さかなの子. The
-          Japan thread runs all the way through: the collaborations kept going — CHAI, then{' '}
+          Japan thread runs all the way through: the collaborations kept going: CHAI, then{' '}
           <Ext href={ext.okame}>OKAME</Ext>, <Ext href={ext.komagome}>KOMAGOME</Ext>, and the Tokyo
-          band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced —
-          alongside the language-learning, a two-date run in October 2024 —{' '}
+          band <Ext href={ext.bed}>bed</Ext>, whose Fuji TV drama theme Scoobert co-produced,
+          alongside the language-learning and a two-date run in October 2024:{' '}
           <Ext href={ext.otomachi}>The Otomachi Festival</Ext> at a mountain temple in Zaō, Miyagi (
           <Ext href={ext.otomachiFlyer}>Oct 14</Ext>), then an all-night LOSS × beformer party at{' '}
           <Ext href={ext.three}>Shimokitazawa THREE</Ext> in Tokyo (
-          <Ext href={ext.threeFlyer}>Oct 18</Ext>) — and the general belief that a good melody can
+          <Ext href={ext.threeFlyer}>Oct 18</Ext>), and the general belief that a good melody can
           travel farther than your passport.
         </p>
         <figure className="about__portrait">
@@ -328,13 +328,13 @@ export default function About() {
           is large, strange, and still expanding: close to 300 registered compositions across
           singles, remixes, collaborations, demos, visual releases, alternate identities, and songs
           that may or may not exist because the burrito demanded it. The cover art across the
-          catalog — and the project’s visual identity — is the work of{' '}
+          catalog, and the project’s visual identity, is the work of{' '}
           <Ext href={ext.grizzardGraphics}>Grizzard Graphics</Ext>.
         </p>
         <p>
           The music has circulated through official playlists, indie and{' '}
           <Ext href={ext.germanRadio}>German radio</Ext>, Japanese film and television, and
-          international collaborations — and Scoobert has worked with a wide cast of artists and
+          international collaborations, and Scoobert has worked with a wide cast of artists and
           players including CHAI, OKAME, bed, <Ext href={ext.tamtam}>Tamtam</Ext>,{' '}
           <Ext href={ext.kerriMedders}>Kerri Medders</Ext>,{' '}
           <Ext href={ext.ninaFrancis}>Nina Francis</Ext>, <Ext href={ext.louRoy}>Lou Roy</Ext>,{' '}
@@ -360,7 +360,14 @@ export default function About() {
             The Reel
           </a>{' '}
           (productions &amp; collabs throughout; the mixes are at the bottom), then write to{' '}
-          <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>beformer@aol.com</a>.
+          <a
+            href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            beformer@aol.com
+          </a>
+          .
         </p>
 
         <h2>Love Music More</h2>
@@ -369,7 +376,7 @@ export default function About() {
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>
-          , a newsletter and podcast on the craft, philosophy, and history of music — a top-10%
+          , a newsletter and podcast on the craft, philosophy, and history of music, a top-10%
           music podcast with conversations across every genre and every role, backstage to the
           stage: Grammy-winning engineers and producers behind Adele, Beyoncé, Metallica, Janet
           Jackson, “Weird Al” Yankovic, Lana Del Rey, and St. Vincent, plus punk founders,
@@ -393,7 +400,7 @@ export default function About() {
           <a href={audiobookTuneIn} target="_blank" rel="noopener noreferrer">
             TuneIn
           </a>{' '}
-          — and, improbably,{' '}
+         , and, improbably,{' '}
           <a href={ajaxLibrary} target="_blank" rel="noopener noreferrer">
             cataloged by a Canadian public library
           </a>
@@ -417,7 +424,7 @@ export default function About() {
         <p>
           This website is the archive of all of it. It opens as a deliberately ugly 1996 “electronic
           pizza storefront” and, if you let it, falls backward through the web eras and drops you
-          into a low-poly world off the coast of San Diego — a long-overdue delivery on a promise
+          into a low-poly world off the coast of San Diego, a long-overdue delivery on a promise
           the early web made and never quite kept. The retro costume is a joke. Underneath, this is
           a real musician’s home on the internet, and every link here goes somewhere real.
         </p>

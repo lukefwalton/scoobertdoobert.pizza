@@ -4,17 +4,17 @@
 // Scoobert's own songs, rendered "kinda fucked up": each `source` master is
 // bounced to a tape-warbled, 8-bit / 11 kHz loop at /audio/jukebox/<slug>.mp3 by
 // scripts/make-jukebox-audio.mjs (wow + flutter + a dragged slow-down + hiss,
-// then the 8-bit crush, then a low-bitrate MP3 — small + lo-fi, no WAV). The
+// then the 8-bit crush, then a low-bitrate MP3: small + lo-fi, no WAV). The
 // jukebox room plays these in place of the ambient boot loop and cycles on a click.
 //
-// SINGLE SOURCE: the catalog lives in jukebox.catalog.json — both this module
+// SINGLE SOURCE: the catalog lives in jukebox.catalog.json, both this module
 // (slug + display title) and the render script (slug + source master) read it,
 // so a slug can't drift between "what gets rendered" and "what the app asks
 // for". `source` is a bare filename in media/masters/ OR a path under media/
 // (e.g. "music/2023/mob/07 Underwater.mp3"). Add a song: add a row to the JSON,
 // then re-run `node scripts/make-jukebox-audio.mjs`. Array order = cycle order.
 //
-// These are Luke's OWN tracks (his copyright) — fine to ship degraded. Three-free
+// These are Luke's OWN tracks (his copyright), fine to ship degraded. Three-free
 // so the HUD/store can import it.
 // ───────────────────────────────────────────────────────────────────────────
 import catalog from './jukebox.catalog.json';
@@ -38,7 +38,7 @@ export const JUKEBOX_TRACKS: JukeboxTrack[] = (catalog as { slug: string; title:
 /** The shipped lo-fi loop for a track slug. */
 export const jukeboxTrackUrl = (slug: string): string => `/audio/jukebox/${slug}.mp3`;
 
-/** The clean HI-FI variant (the restoration reward) — same 18 s of the same
+/** The clean HI-FI variant (the restoration reward), same 18 s of the same
  *  master, rendered without the tape pass / hiss / crush (44.1 kHz stereo). */
 export const hifiTrackUrl = (slug: string): string => `/audio/jukebox/hifi/${slug}.mp3`;
 

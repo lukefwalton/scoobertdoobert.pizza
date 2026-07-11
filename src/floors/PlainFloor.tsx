@@ -6,7 +6,7 @@ import { Marquee } from '../components/Marquee';
 import { HitCounter } from '../components/HitCounter';
 import { destById, resolveLinks, TEXT_ONLY_PATH } from '../data/links';
 import { CASSETTE_IDS } from '../data/items';
-import type { Floor } from '../data/floors';
+import { BOTTOM_FLOOR, type Floor } from '../data/floors';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore, selectRatGreeting, selectLuck } from '../state/progressStore';
 import { useMounted } from '../lib/useMounted';
@@ -26,8 +26,14 @@ import { TrapDoor } from '../components/TrapDoor';
 export function PlainFloor({ floor }: { floor: Floor }) {
   const dests = resolveLinks(floor.links);
   const descend = useSceneStore((s) => s.descend);
-  // The hire funnel (ADDENDUM #8) reads links.ts so the pitch can't drift from
-  // the single source of truth. Fallbacks keep the anchors real if a dest moves.
+  const setFloor = useSceneStore((s) => s.setFloor);
+  // Explicit "go to the basement" CTAs skip the era floors and land on the
+  // Silicon Slice machine room (Install ▶). The order form + rat stay scenic
+  // (one floor at a time). Fallbacks keep the anchors real if a dest moves.
+  const goToBasement = () => {
+    audio.unlock();
+    setFloor(BOTTOM_FLOOR);
+  };
   const reelHref =
     destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q';
   const hireHref = destById('contact')?.href ?? 'mailto:beformer@aol.com';
@@ -92,11 +98,11 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
       <hr />
 
-      {/* The hire block (ADDENDUM #8) — the second sanctioned loud exception,
+      {/* The hire block (ADDENDUM #8), the second sanctioned loud exception,
           beside the order form. CLEAR FIRST, cheeky second: one skim yields
           artist · mixing engineer & producer for hire · The Reel · the mailto.
           Period chrome, but the words are unambiguous. Real anchors, JS-off safe. */}
-      <section className="hire" aria-label="Services — mixing and production for hire">
+      <section className="hire" aria-label="Services, mixing and production for hire">
         <p className="hire__head">
           <picture className="hire__new">
             <source srcSet="/gifs/new-badge-static.gif" media="(prefers-reduced-motion: reduce)" />
@@ -118,14 +124,17 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           </span>
         </p>
         <p className="hire__cta">
-          <a href={hireHref}>Hire him: beformer@aol.com</a>
+          <a href={hireHref} target="_blank" rel="noopener noreferrer">
+            Hire him: beformer@aol.com
+          </a>
         </p>
       </section>
 
       {/* The legible game door (ADDENDUM #8): the descent was previously findable
           only through jokes (the rat, the order form, a hidden seam). This says it
-          plainly. Same progressive-enhancement anchor as the rat line — a REAL
-          crawlable <a> to /text; with JS it ducks you downstairs instead. */}
+          plainly, and skips straight to the Silicon Slice machine room (Install ▶).
+          Same progressive-enhancement anchor as the rat line, a REAL crawlable
+          <a> to /text; with JS it ducks you downstairs instead. */}
       <aside className="playdoor" aria-label="The video game downstairs">
         <p className="playdoor__head">IS THERE A WHOLE WORLD UNDER THIS PIZZA SHOP?</p>
         <p className="playdoor__body">
@@ -137,8 +146,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             href={TEXT_ONLY_PATH}
             onClick={(e) => {
               e.preventDefault();
-              audio.unlock();
-              descend();
+              goToBasement();
             }}
           >
             ENTER THE SHOP &raquo;
@@ -152,7 +160,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       <hr />
 
       {/* The news, as a short scrolling headline. The RAT gag stays (he pays
-          rent), but he no longer links off to a blog — clicking him ducks you
+          rent), but he no longer links off to a blog, clicking him ducks you
           downstairs into the building (the descent → the 3D world). */}
       <section className="news" aria-label="Announcements">
         <Marquee label="Storefront headline">
@@ -165,7 +173,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
               // Progressive enhancement: with JS, following the rat ducks you
               // into the descent (toward the 3D world). It stays a REAL,
               // crawlable <a> so JS-off / no-CSS visitors get the flat index
-              // (/text) instead of a dead control — never a link that only
+              // (/text) instead of a dead control, never a link that only
               // exists as behavior.
               e.preventDefault();
               audio.unlock();
@@ -267,10 +275,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           direction="down"
           label={floor.descendLabel}
           className="floor-door--plain"
-          onActivate={() => {
-            audio.unlock();
-            descend();
-          }}
+          onActivate={goToBasement}
         />
       </section>
 
@@ -279,7 +284,9 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       <footer>
         <p>
           Questions, comments, or a record that needs mixing?{' '}
-          <a href={hireHref}>Email the webmaster.</a>
+          <a href={hireHref} target="_blank" rel="noopener noreferrer">
+            Email the webmaster.
+          </a>
         </p>
         <SocialLinks />
         <p className="directory">
@@ -314,7 +321,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       </footer>
 
       {/* The soft spot in the floor. Renders nothing in the crawlable / JS-off
-          HTML and nothing on mobile/reduced-motion — a desktop-only secret. */}
+          HTML and nothing on mobile/reduced-motion, a desktop-only secret. */}
       <TrapDoor />
     </div>
   );

@@ -50,10 +50,10 @@ export function SpellHotbar() {
             type="button"
             className={`hud-hotbar__slot${usable ? '' : ' is-empty'}`}
             onClick={() => castSpell(sp.id)}
-            aria-label={`Cast ${sp.name} — ${
+            aria-label={`Cast ${sp.name}, ${
               cantrip ? 'cantrip (free)' : `${spellSlots} of ${SPELL_SLOTS_MAX} slots`
             } (${K})`}
-            title={`${sp.name} — press ${K}`}
+            title={`${sp.name}, press ${K}`}
           >
             <span className="hud-hotbar__glyph" aria-hidden="true">
               {sp.glyph}

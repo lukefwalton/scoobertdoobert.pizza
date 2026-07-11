@@ -19,19 +19,19 @@ export default function Poke() {
   return (
     <main className="poke-page">
       <Head>
-        <title>Poke Scoobert — The Pizza Arcade</title>
+        <title>Poke Scoobert · The Pizza Arcade</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/poke" />
         <meta
           name="description"
-          content="Poke Scoobert — grab his face and pull. A '96-console face-stretch toy that plays his music as you stretch. Best on a touchscreen."
+          content="Poke Scoobert, grab his face and pull. A '96-console face-stretch toy that plays his music as you stretch. Best on a touchscreen."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/poke" />
-        <meta property="og:title" content="Poke Scoobert — The Pizza Arcade" />
+        <meta property="og:title" content="Poke Scoobert · The Pizza Arcade" />
         <meta
           property="og:description"
-          content="Grab his face and pull — it plays his music as you stretch."
+          content="Grab his face and pull, it plays his music as you stretch."
         />
       </Head>
 
@@ -58,7 +58,7 @@ export default function Poke() {
       </div>
 
       <p className="poke-foot">
-        Grab and pull — it bends his music as you stretch. Stays on this device; nothing is sent
+        Grab and pull, it bends his music as you stretch. Stays on this device; nothing is sent
         anywhere.
       </p>
       <p className="poke-foot">

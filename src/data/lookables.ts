@@ -147,7 +147,7 @@ export const LOOKABLES: Lookable[] = [
     label: 'an unlabeled reel',
     glyph: '📼',
     story:
-      'The box says MASTER — DO NOT ERASE. It plays back as pure silence. Or you just can’t hear it yet.',
+      'The box says MASTER: DO NOT ERASE. It plays back as pure silence. Or you just can’t hear it yet.',
   },
   {
     id: 'listening-look',
@@ -270,7 +270,7 @@ export const LOOKABLES: Lookable[] = [
     label: 'a planet close enough to touch',
     glyph: '🪐',
     story:
-      "It drifts off the instant you reach. The old machines promised worlds like this in the browser in '96 — navigable, 3D. You're late; it waited for you.",
+      "It drifts off the instant you reach. The old machines promised worlds like this in the browser in '96, navigable, 3D. You're late; it waited for you.",
   },
   // ── the shrine / grass thread ─────────────────────────────────────────────
   {
@@ -315,7 +315,7 @@ export const LOOKABLES: Lookable[] = [
     label: 'a foam sword',
     glyph: '🗡️',
     story:
-      'Dropped by the last challenger, still warm. They lost — which here just means they got unstuck.',
+      'Dropped by the last challenger, still warm. They lost, which here just means they got unstuck.',
   },
   {
     id: 'grove-look',
@@ -436,7 +436,7 @@ export const LOOKABLES: Lookable[] = [
     label: 'a book left on the bar',
     glyph: '📖',
     story:
-      'RAY TRACING, hardcover, spine uncracked. A mirror that reflects nothing, bottles that never quite line up — someone here is aspirational. Buy them a drink.',
+      'RAY TRACING, hardcover, spine uncracked. A mirror that reflects nothing, bottles that never quite line up, someone here is aspirational. Buy them a drink.',
   },
   {
     id: 'mainstreetday-look',

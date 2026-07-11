@@ -16,11 +16,11 @@ export function PlaceholderFloor({ floor, index }: { floor: Floor; index: number
 
   return (
     <div className="floor-placeholder" data-floor={floor.id} data-template={floor.template}>
-      <p className="floor-era">— {floor.era} —</p>
+      <p className="floor-era">· {floor.era} ·</p>
       <h1>{floor.title}</h1>
       {floor.copy && <p className="floor-copy">{floor.copy}</p>}
       <p className="floor-note">
-        (placeholder — the <code>{floor.template}</code> era styling lands in a later checkpoint)
+        (placeholder, the <code>{floor.template}</code> era styling lands in a later checkpoint)
       </p>
 
       <ul className="floor-links">

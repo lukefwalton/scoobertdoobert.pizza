@@ -10,10 +10,10 @@ import { useAudioStore } from '../state/audioStore';
 // as the JS-off / screen-reader fallback. The CRT bezel + scanlines are the joke: a
 // modern embed behind 1996 chrome. (Scanlines are a static gradient — no flashing,
 // WCAG 2.3.1 safe.) Defaults to the channel's TV spots; an album-room CRT passes its
-// own `video` (the far side of that painting — the record's music videos).
+// own `video` (the far side of that painting, the record's music videos).
 //
 // The iframe honors the site's GLOBAL MUTE: it starts muted when the site is muted
-// at click time (URL param — no postMessage race with player init), and later mute
+// at click time (URL param, no postMessage race with player init), and later mute
 // toggles are forwarded via the YT iframe API (enablejsapi=1 + postMessage). A
 // toggle can land while the player is still initializing and be dropped, so the
 // iframe's load event re-asserts the CURRENT desired state on two delayed retries
@@ -34,7 +34,7 @@ export function YoutubeFacade({
   const [playing, setPlaying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   // Captured once at click time so the src (and its mute=1) never changes under
-  // a mounted player — later toggles go over postMessage instead.
+  // a mounted player, later toggles go over postMessage instead.
   const mutedAtClick = useRef(false);
   const muted = useAudioStore((s) => s.muted);
   const prevMuted = useRef(muted);
@@ -70,7 +70,7 @@ export function YoutubeFacade({
 
   // If a toggle raced the player's init, the fire-and-forget command above was
   // dropped. Once the iframe has LOADED, re-assert the current desired state on a
-  // couple of delayed retries — only when it differs from what the URL encoded
+  // couple of delayed retries, only when it differs from what the URL encoded
   // (otherwise the param already did the job and there's nothing to fix).
   const onIframeLoad = () => {
     retryTimers.current.forEach((t) => window.clearTimeout(t));
@@ -107,7 +107,7 @@ export function YoutubeFacade({
                 mutedAtClick.current = useAudioStore.getState().muted;
                 setPlaying(true);
               }}
-              aria-label={`Play — ${video.title}`}
+              aria-label={`Play, ${video.title}`}
             >
               <span className="tv__scan" aria-hidden="true" />
               <span className="tv__tri" aria-hidden="true">
@@ -125,7 +125,7 @@ export function YoutubeFacade({
         </a>
       </p>
       {!playing && (
-        <p className="tv__note">Loads nothing until you press play — no cookies until then.</p>
+        <p className="tv__note">Loads nothing until you press play, no cookies until then.</p>
       )}
     </div>
   );

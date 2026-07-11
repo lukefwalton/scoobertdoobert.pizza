@@ -37,15 +37,15 @@ export default function Catalog() {
   return (
     <main className="catalog-page">
       <Head>
-        <title>The Song Catalog — Scoobert Doobert</title>
+        <title>The Song Catalog · Scoobert Doobert</title>
         <link rel="canonical" href={`${ORIGIN}/catalog`} />
         <meta
           name="description"
-          content="Every Scoobert Doobert song on file — liner notes for the whole catalog: year, record, and what each one is about."
+          content="Every Scoobert Doobert song on file, liner notes for the whole catalog: year, record, and what each one is about."
         />
         <meta name="robots" content="index,follow" />
         <meta property="og:url" content={`${ORIGIN}/catalog`} />
-        <meta property="og:title" content="The Song Catalog — Scoobert Doobert" />
+        <meta property="og:title" content="The Song Catalog · Scoobert Doobert" />
         <meta
           property="og:description"
           content="Liner notes for every Scoobert Doobert song: year, record, and what each one is about."
@@ -55,10 +55,10 @@ export default function Catalog() {
 
       <h1>The Song Catalog</h1>
       <p>
-        Every Scoobert Doobert song on file — all {JUKEBOX_TRACKS.length} of them, with their liner
+        Every Scoobert Doobert song on file, all {JUKEBOX_TRACKS.length} of them, with their liner
         notes. These are the same records the jukebox downstairs spins (lo-fi, on purpose) and the
         Listening Room hangs on its walls. Streaming-quality versions live at the real record stores
-        — see <a href="/text">the text-only menu</a> for every destination.
+       , see <a href="/text">the text-only menu</a> for every destination.
       </p>
       <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>

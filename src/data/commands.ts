@@ -30,7 +30,7 @@ export type CommandCtx = {
   history: string[];
   /** The durable cross-session progress (localStorage), passed in by the Terminal
    *  so the dead-web `status`/`whoami` can read what the machine remembers about
-   *  you — without commands.ts importing a store (kept pure: type-only). */
+   *  you, without commands.ts importing a store (kept pure: type-only). */
   progress: Progress;
 };
 
@@ -50,7 +50,7 @@ export type Command = {
   name: string;
   /** One-line summary in `help`. Omit to keep the command out of the listing. */
   help?: string;
-  /** Running it nudges `unease` up — the machine doesn't like it. */
+  /** Running it nudges `unease` up, the machine doesn't like it. */
   forbidden?: boolean;
   run: (ctx: CommandCtx) => CommandResult;
 };
@@ -58,7 +58,7 @@ export type Command = {
 // A tiny fake filesystem the dead-web `ls`/`cat` rummage through. Original copy.
 const FILES: Record<string, string[]> = {
   'README.TXT': [
-    'SCOOBERT DOOBERT INC. — ELECTRONIC PIZZA STOREFRONT',
+    'SCOOBERT DOOBERT INC., ELECTRONIC PIZZA STOREFRONT',
     'workstation: SILICON SLICE™  (Pizza Graphics Workstation)',
     'if you can read this, the plug-in installed correctly.',
     'if you can read this and did NOT install the plug-in, please log off.',
@@ -81,7 +81,7 @@ const FILES: Record<string, string[]> = {
   ],
   'EMPLOYEES.TXT': ['on duty: 1', 'on duty: 1', 'on duty: 1 (you keep counting the same one)'],
   'LMM.TXT': [
-    'LOVE MUSIC MORE — staff listening, mandatory.',
+    'LOVE MUSIC MORE: staff listening, mandatory.',
     'a podcast about the craft of music. the manager hosts it.',
     '(the manager is the rat. the manager is also the philosopher. type `lmm`.)',
   ],
@@ -115,10 +115,10 @@ export const COMMANDS: Command[] = [
   },
   {
     name: 'cat',
-    help: 'print a file — try `cat README.TXT`',
+    help: 'print a file, try `cat README.TXT`',
     run: ({ args }) => {
       const name = (args[0] ?? '').toUpperCase();
-      if (!name) return { output: ['usage: cat <FILE> — try `ls`'] };
+      if (!name) return { output: ['usage: cat <FILE>, try `ls`'] };
       const f = FILES[name] ?? FILES[name + '.TXT'];
       if (f) return { output: f };
       if (name.startsWith('CLASSIFIED'))
@@ -148,7 +148,7 @@ export const COMMANDS: Command[] = [
       const secrets = progress.secretsFound.length;
       return {
         output: [
-          'SCOOBERT DOOBERT INC. — VISITOR RECORD',
+          'SCOOBERT DOOBERT INC., VISITOR RECORD',
           `  visits logged ....... ${progress.visits}`,
           `  plug-in installed ... ${yn(progress.everEnteredWorld)}`,
           `  floors descended .... ${progress.maxFloor}`,
@@ -170,7 +170,7 @@ export const COMMANDS: Command[] = [
       const luck = Math.max(0, progress.luckEarned - progress.luckSpent);
       return {
         output: [
-          'LUCK — the house edge, pointed your way',
+          'LUCK: the house edge, pointed your way',
           `  banked .............. ${luck}`,
           `  earned, all-time .... ${progress.luckEarned}`,
           `  spent for you ....... ${progress.luckSpent}`,
@@ -178,7 +178,7 @@ export const COMMANDS: Command[] = [
           ...(luck > 0
             ? [
                 'with luck banked, the machine rolls a SECOND die behind every stakes',
-                'roll and keeps the higher face — quietly, while it lasts. you never',
+                'roll and keeps the higher face, quietly, while it lasts. you never',
                 'spend it by hand. be lucky.',
               ]
             : [
@@ -199,7 +199,7 @@ export const COMMANDS: Command[] = [
       if (known.length === 0) {
         return {
           output: [
-            'SPELLBOOK — empty.',
+            'SPELLBOOK: empty.',
             'you have learned nothing yet. a scroll is shelved in the dark somewhere',
             'downstairs; read it and the words are yours.',
           ],
@@ -213,7 +213,7 @@ export const COMMANDS: Command[] = [
       const width = Math.max(...known.map((s) => s.name.length));
       return {
         output: [
-          'SPELLBOOK — what you can cast (the key casts it out in the world):',
+          'SPELLBOOK: what you can cast (the key casts it out in the world):',
           ...known.map(
             (s) =>
               `  ${s.glyph}  ${s.name.padEnd(width + 2)}[${s.key}]  ${
@@ -228,7 +228,7 @@ export const COMMANDS: Command[] = [
   },
   {
     name: 'roll',
-    help: 'roll the bones — a d20, your luck nudges it',
+    help: 'roll the bones, a d20, your luck nudges it',
     run: ({ progress }) => {
       const luck = Math.max(0, progress.luckEarned - progress.luckSpent);
       // A free "feeling lucky?" peek: it uses your luck for D&D advantage but NEVER
@@ -238,10 +238,10 @@ export const COMMANDS: Command[] = [
       const banner = critBanner(r.crit); // ★ NAT 20 ★ / ☠ CRIT FAIL ☠ / none
       const out = [`🎲 d20 → ${r.face}${banner ? `   ${banner}` : ''}`];
       // Key the advantage note off what the roll ACTUALLY did (luckSpent), not just
-      // whether you have luck — so the copy can't claim advantage the helper didn't take.
+      // whether you have luck, so the copy can't claim advantage the helper didn't take.
       if (r.luckSpent > 0)
         out.push(
-          `(your ${luck} luck rolled a second die behind it, kept the higher — a peek; nothing spent.)`,
+          `(your ${luck} luck rolled a second die behind it, kept the higher, a peek; nothing spent.)`,
         );
       out.push(
         r.crit === 'nat20'
@@ -255,7 +255,7 @@ export const COMMANDS: Command[] = [
   },
   {
     name: 'lyrics',
-    help: 'read the words — `lyrics` to list, `lyrics boardwalk` to read one',
+    help: 'read the words, `lyrics` to list, `lyrics boardwalk` to read one',
     run: ({ args }) => {
       const q = args.join(' ').trim();
       if (!q) {
@@ -263,7 +263,7 @@ export const COMMANDS: Command[] = [
         const width = Math.max(...slugs.map((s) => s.length));
         return {
           output: [
-            'WORDS ON FILE — read one with `lyrics <name>`:',
+            'WORDS ON FILE: read one with `lyrics <name>`:',
             ...slugs.map((s) => `  ${s.padEnd(width + 2)}${LYRICS[s].title}`),
             '',
             '(instrumentals + covers have no words to print.)',
@@ -280,21 +280,21 @@ export const COMMANDS: Command[] = [
           '',
           ...L.lyrics.split('\n'),
           '',
-          '— Scoobert Doobert. © Luke F. Walton. all rights reserved.',
+          '~ Scoobert Doobert. © Luke F. Walton. all rights reserved.',
         ],
       };
     },
   },
   {
     name: 'song',
-    help: 'the liner notes — `song boardwalk` for what a track is about',
+    help: 'the liner notes, `song boardwalk` for what a track is about',
     run: ({ args }) => {
       const q = args.join(' ').trim().toLowerCase();
       const slugs = Object.keys(SONG_META);
       if (!q) {
         return {
           output: [
-            'THE CATALOG (liner notes — `song <name>`):',
+            'THE CATALOG (liner notes, `song <name>`):',
             ...slugs.map((s) => `  ${SONG_META[s].title}`),
           ],
         };
@@ -305,14 +305,14 @@ export const COMMANDS: Command[] = [
         return { output: [`song: nothing matching "${q}". try \`song\` or \`discography\`.`] };
       const out = [`♪ ${m.title.toUpperCase()}${m.year ? `  (${m.year})` : ''}`];
       if (m.meaning) out.push('  ' + m.meaning);
-      if (hasLyrics(slug)) out.push('', `  the words are on file — try \`lyrics ${slug}\`.`);
-      else out.push('', '  (instrumental / cover — no words.)');
+      if (hasLyrics(slug)) out.push('', `  the words are on file, try \`lyrics ${slug}\`.`);
+      else out.push('', '  (instrumental / cover, no words.)');
       return { output: out };
     },
   },
   {
     name: 'lmm',
-    help: 'Love Music More — the podcast. `lmm` to list, `lmm 1` to listen',
+    help: 'Love Music More, the podcast. `lmm` to list, `lmm 1` to listen',
     run: ({ args }) => {
       const n = parseInt(args[0] ?? '', 10);
       if (Number.isInteger(n) && n >= 1 && n <= LMM_EPISODES.length) {
@@ -351,7 +351,7 @@ export const COMMANDS: Command[] = [
       const width = Math.max(...ALBUMS.map((a) => a.title.length));
       return {
         output: [
-          'SCOOBERT DOOBERT — THE RECORDS:',
+          'SCOOBERT DOOBERT: THE RECORDS:',
           ...ALBUMS.map((a) => `  ${a.title.padEnd(width + 2)}${a.video ? '▶ has a video' : ''}`),
           '',
           '(switch a CRT on in the world to watch one. or `catalog` for the shop.)',
@@ -392,7 +392,7 @@ export const COMMANDS: Command[] = [
     help: 'what is this place',
     run: () => ({
       output: [
-        'scoobertdoobert.pizza — a pizza shop off the coast of San Diego.',
+        'scoobertdoobert.pizza, a pizza shop off the coast of San Diego.',
         'it is actually a solo music project by a philosopher.',
         'silicon graphics promised navigable 3D worlds in the browser in 1996.',
         'this is that promise, ~30 years late, as a haunted pizza CD-ROM.',
@@ -408,7 +408,7 @@ export const COMMANDS: Command[] = [
     name: 'date',
     help: 'what time is it (here)',
     run: () => ({
-      output: ['Fri Jun 20 1997 — 25:61:99 PST', '(the clock down here is unreliable.)'],
+      output: ['Fri Jun 20 1997, 25:61:99 PST', '(the clock down here is unreliable.)'],
     }),
   },
   {

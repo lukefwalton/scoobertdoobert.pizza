@@ -23,8 +23,8 @@
 A deliberately terrible 1996 **Electronic Pizza Storefront** that falls backward
 through web history and drops you into a low-poly PS1/N64 world. With JavaScript
 **off**, it's an honest, crawlable HTML pizza page. With JS **on**, trying to
-order makes it "install" a fake VRML plug-in and descend — through a 1999
-GeoCities floor, a 2000 table-layout floor, an SGI parody machine room — into a
+order makes it "install" a fake VRML plug-in and descend, through a 1999
+GeoCities floor, a 2000 table-layout floor, an SGI parody machine room, into a
 real-time 3D shop on the seafloor, which turns out to be the archive of
 **Scoobert Doobert**, a philosopher's solo music project.
 
@@ -41,22 +41,22 @@ and installing it descends you through the eras into the world below.
 |     |     |
 | --- | --- |
 | <img src=".github/media/01-storefront.png" alt="1996 storefront" /> | <img src=".github/media/02-1999.png" alt="1999 starburst floor" /> |
-| **1996** — the dead-plain front door (works with JS off) | **1999** — GeoCities energy: guestbook, hit counter, eternal construction |
+| **1996**, the dead-plain front door (works with JS off) | **1999**, GeoCities energy: guestbook, hit counter, eternal construction |
 | <img src=".github/media/03-2000.png" alt="2000 table-layout floor" /> | <img src=".github/media/04-machine-room.png" alt="SGI machine room" /> |
-| **2000** — table-layout web + a pizza image-map | **the machine room** — SGI parody, live CRT render, the Calzone install |
+| **2000**, table-layout web + a pizza image-map | **the machine room**, SGI parody, live CRT render, the Calzone install |
 | <img src=".github/media/05-world-shop.png" alt="PS1 beach shop" /> | <img src=".github/media/06-jukebox.png" alt="the jukebox room" /> |
-| **the world** — a PS1 shop on the seafloor | **the jukebox** — the music payoff (+ a d20 to gamble for a track) |
+| **the world**, a PS1 shop on the seafloor | **the jukebox**, the music payoff (+ a d20 to gamble for a track) |
 | <img src=".github/media/07-boardwalk.png" alt="the boardwalk" /> | <img src=".github/media/08-grassrooms.png" alt="the grassrooms" /> |
-| **the boardwalk** — a golden-hour surface wing | **the grassrooms** — liminal grass + a first-person ghost race |
+| **the boardwalk**, a golden-hour surface wing | **the grassrooms**, liminal grass + a first-person ghost race |
 | <img src=".github/media/09-gallery.png" alt="the sunken gallery" /> | <img src=".github/media/10-arcade.png" alt="the arcade" /> |
-| **the sunken gallery** — vaporwave-Greek ruins, knee-deep | **the arcade** — a shelf of touch-first cabinets (this one's Asteroids) |
+| **the sunken gallery**, vaporwave-Greek ruins, knee-deep | **the arcade**, a shelf of touch-first cabinets (this one's Asteroids) |
 
-> Every frame above is the real site — captured by `scripts/make-readme-shots.mjs`,
+> Every frame above is the real site, captured by `scripts/make-readme-shots.mjs`,
 > and the GIF is stitched + crunched by the repo's own
 > [`gif89a` encoder](./scripts/lib/gif89a.mjs) (no image libraries). See
 > [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how the whole thing is wired.
 
-## Architecture — fallback first
+## Architecture, fallback first
 
 The plain HTML storefront **is** the fallback layer, and everything else is
 progressive enhancement layered on top:
@@ -64,7 +64,7 @@ progressive enhancement layered on top:
 - **Works with JavaScript disabled.** `/` and `/text` are real, prerendered,
   crawlable HTML documents (via `vite-react-ssg`). The initial bundle contains
   **zero three.js**.
-- **Every destination is a real `<a href>`, always** — on the storefront, on
+- **Every destination is a real `<a href>`, always**, on the storefront, on
   `/text`, and in the in-world pause menu. A link that exists only as 3D
   geometry doesn't count.
 - **All WebGL lazy-loads** behind the Calzone Player install gag (a dynamic
@@ -74,10 +74,10 @@ progressive enhancement layered on top:
   per-route canonicals, and a `sitemap.xml` + `robots.txt` underneath are
   pristine. (The OG card is a real 1.91:1 image; the sitemap is kept in sync with
   the routes by a test.)
-- **Mobile** runs the whole thing now — the descent AND the 3D world, with
+- **Mobile** runs the whole thing now, the descent AND the 3D world, with
   on-screen touch controls (a virtual stick + context/jump buttons; drag-to-look).
   **`prefers-reduced-motion`** is the one hard gate, and it's an opt-in: an entry
-  point asks ("this has motion — enter anyway?") with the flat `/text` list as the
+  point asks ("this has motion, enter anyway?") with the flat `/text` list as the
   safe default. JS-off always gets the storefront + `/text`.
 
 See [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how it's wired,
@@ -102,7 +102,7 @@ npm run typecheck  # tsc --noEmit
   truth for the storefront menu, `/text`, the pause menu, and the hotspots.
   Every `href` must be real; never `#`.
 - **Add or move an in-world hotspot** → `src/data/hotspots.ts`. Each hotspot
-  points at a `links.ts` id, so links stay single-source — adding one is a data
+  points at a `links.ts` id, so links stay single-source, adding one is a data
   edit, never scene code.
 - **Add or change an era floor** → `src/data/floors.ts` (the `FLOORS` array) +
   a template in `src/floors/`. The descent through web history is data-driven;
@@ -110,7 +110,7 @@ npm run typecheck  # tsc --noEmit
 - **Add or change a 3D room** → a wing file under `src/data/rooms/` (the data,
   split by region; assembled by `src/data/rooms.ts` into the `ROOMS` graph) + a
   geometry component in `src/world/`. Rooms connect through 3D **doors**; the
-  beach shop is just `ROOMS[0]`. See "The 3D world — rooms" below.
+  beach shop is just `ROOMS[0]`. See "The 3D world, rooms" below.
 - **Storefront copy / layout** → `src/floors/PlainFloor.tsx` (floor 0); the `/`
   route (`src/pages/Storefront.tsx`) is a thin host around `<FloorView>`.
 - **The Calzone install / transition** → `src/components/Descent.tsx` (fires from
@@ -168,12 +168,12 @@ A full map lives in [`docs/STRUCTURE.md`](./docs/STRUCTURE.md); the short versio
 ```
 
 **Source media** (full-res photo archive, song masters, raw `.glb` models) lives
-under **`media/`** and is intentionally kept **out of the build** — only the
+under **`media/`** and is intentionally kept **out of the build**, only the
 degraded/web-sized/optimized derivatives under `public/` ship. See
 [`media/README.md`](./media/README.md), [`media/models/README.md`](./media/models/README.md)
 (model manifest + licensing flags), and [`media/music/README.md`](./media/music/README.md).
 
-## The descent — era floors
+## The descent, era floors
 
 Going down is going forward in web time. The `/` route is a thin host around
 `<FloorView>`, which renders `FLOORS[currentFloor]` by template; each floor is a
@@ -187,7 +187,7 @@ room (machineRoom) → [Calzone install] → the 3D beach shop.
 The descent is data-driven, mirroring `links.ts` / `hotspots.ts`.
 
 **To add a floor:** add a `Floor` entry to `src/data/floors.ts` (its `links` are
-`links.ts` ids, resolved via `resolveLinks`), and — if its look is new — add a
+`links.ts` ids, resolved via `resolveLinks`), and, if its look is new, add a
 template component in `src/floors/` plus a `case` in `FloorView`. That's it; no
 scene code. The rot transition (`FloorTransition`) and progressive audio decay
 (`audio.bendToDepth`) come for free, deepening with `currentFloor`.
@@ -201,20 +201,20 @@ scene code. The rot transition (`FloorTransition`) and progressive audio decay
   is instant under reduced-motion). The 3D world now runs on phones too, with
   on-screen touch controls (`TouchControls` + `touchInput.ts`); only the machine
   room's CRT **live** render stays desktop-only. `prefers-reduced-motion` is the
-  one hard gate, and it's an opt-in — Install/Continue raise the `MotionConsent`
+  one hard gate, and it's an opt-in: Install/Continue raise the `MotionConsent`
   gate with `/text` (`TEXT_ONLY_PATH`) as the safe default rather than dropping
   the user straight into the motion.
 
-## The 3D world — rooms
+## The 3D world, rooms
 
-Past the install, the world is a **graph of rooms joined by 3D doors** — the same
+Past the install, the world is a **graph of rooms joined by 3D doors**, the same
 "doors all the way down" metaphor as the era floors. The beach shop is just
 `ROOMS[0]`:
 
 ```
 beach shop ⇄ back hall ⇄ jukebox room
                   ⇕
-            classified room   (hidden — the rat knocks it open)
+            classified room   (hidden, the rat knocks it open)
 ```
 
 `src/data/rooms.ts` assembles the graph from per-wing files under
@@ -236,7 +236,7 @@ door at each end (and the matching arrival spawn). No other scene code.
   var). A `hidden` door doesn't render until revealed.
 - **The rat** (`src/world/Rat.tsx`) is one steering agent: it leads you down the
   hall (seeks a point ahead) and flees if you crowd it. Come far enough and it
-  knocks a blank panel — `revealSecret()` opens the hidden **classified** door.
+  knocks a blank panel, `revealSecret()` opens the hidden **classified** door.
 - **The jukebox** is the music payoff: the loop (the site's own song) ducks by
   camera distance (`audio.setProximityGain`) so it swells as you approach. The
   drei `<PositionalAudio>` + real-catalog swap drops in at `JUKEBOX_POS` later.
@@ -257,11 +257,11 @@ npm run shoot:fallback  # mobile + reduced-motion skip 3D, Continue -> /text + /
 ```
 
 **`shoot:all` is the CI gate** (`.github/workflows/ci.yml`): it starts one `vite
-preview` and runs every `shoot:*` script — **auto-discovered from `package.json`**,
+preview` and runs every `shoot:*` script, **auto-discovered from `package.json`**,
 so the rule is simply: *a `shoot` or `shoot:*` script is a smoke suite and runs in
 CI; anything else under `scripts/` (e.g. `make-*`, `lib/`) is a helper and isn't.*
 Add a new `shoot:<name>` script and it's covered automatically. A failed suite is
-**retried once** (these are full-browser, frame-timed smokes — a real regression
+**retried once** (these are full-browser, frame-timed smokes, a real regression
 still fails the retry; a one-off slow-runner blip self-heals, and the retry is
 logged). The repeated GLB-loader entry + hold-and-poll door-walk flows live once in
 `scripts/lib/smoke.mjs`.
@@ -269,8 +269,8 @@ logged). The repeated GLB-loader entry + hold-and-poll door-walk flows live once
 In CI the suite is **sharded across runners** for speed: `build` compiles once and
 uploads `dist/`; the static checks run as a parallel job; then a `smoke` matrix of
 four runners each downloads `dist/` and runs its slice via `shoot:all --shard=i/4`
-(round-robin, so the heavy WebGL walk-smokes spread out — each shard gets a full CPU,
-which frame-timed smokes need). A final `verify` job is green iff every job passed —
+(round-robin, so the heavy WebGL walk-smokes spread out, each shard gets a full CPU,
+which frame-timed smokes need). A final `verify` job is green iff every job passed:
 that's the one required status check. Locally, plain `npm run shoot:all` still runs
 the whole suite against one preview.
 
@@ -282,37 +282,37 @@ content.
 
 **Production target: Vercel** (static). `npm run build` emits `dist/`; Vercel
 auto-detects the Vite preset and manages the domain from its dashboard. The
-repo's root `CNAME` is a vestigial GitHub Pages artifact — safe to delete once
+repo's root `CNAME` is a vestigial GitHub Pages artifact, safe to delete once
 DNS points at Vercel. (The build output no longer carries a `CNAME`.)
 
 ## Contributing
 
-It's a solo art project, not an open-source one — but bug reports are welcome.
+It's a solo art project, not an open-source one, but bug reports are welcome.
 Found a dead link, audio that won't play, or a floor that renders wrong? Open an
 [issue](https://github.com/lukefwalton/scoobertdoobert.pizza/issues/new/choose).
 See [CONTRIBUTING.md](.github/CONTRIBUTING.md), the
-[Code of Conduct](.github/CODE_OF_CONDUCT.md), and — for anything touching the
-`api/` functions or stored emails — [SECURITY.md](.github/SECURITY.md).
+[Code of Conduct](.github/CODE_OF_CONDUCT.md), and, for anything touching the
+`api/` functions or stored emails, [SECURITY.md](.github/SECURITY.md).
 
 ## Copyright & licensing
 
-**Scoobert Doobert's creative content — the music, lyrics, words, copy,
-biography, likeness, photographs, and artwork — is © Luke F. Walton dba Scoobert
+**Scoobert Doobert's creative content, the music, lyrics, words, copy,
+biography, likeness, photographs, and artwork, is © Luke F. Walton dba Scoobert
 Doobert, all rights reserved.** It is only *licensed to* this repository so the
 site can display and play it; being in this repo never changes its copyright.
 There is currently **no open-source license** on the repo (all rights reserved by
 default), and any future code license would cover the **source code only**, never
 the creative content. See [`LICENSE`](./LICENSE) for the full statement.
 
-Most code and visuals are **original or procedurally generated** — the boids
+Most code and visuals are **original or procedurally generated**, the boids
 sim, the water and PS1 shaders, the room geometry, and the canvas-drawn
 textures. The one category of third-party content is the **bought 3D
 environment/prop models** (the liminal/pool/backrooms levels, the Greek
 statuary, the arcade cabinet, etc.): they're crunched to PS1 fidelity and
 shipped under `public/models/`, each with an attribution row in
-[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) — a postbuild guard
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md), a postbuild guard
 (`scripts/check-build.mjs`) **fails the build if any shipped `.glb` lacks one**.
-No proprietary marks (Nintendo, SGI, Pizza Hut, Doom, Cosmo Player) are used —
+No proprietary marks (Nintendo, SGI, Pizza Hut, Doom, Cosmo Player) are used:
 original parody only. The **boot loop and jukebox tracks** are deliberately
 degraded bounces of Scoobert Doobert's **own** music (Luke's copyright), so
 shipping the lo-fi audio is fine. (The previous hand-built site was removed from
@@ -330,7 +330,7 @@ standalone route), **PIZZA POINTS** + the leaderboard;
 and a growing set of surface and album-themed wings (the Boardwalk, the Kitchen,
 the Basement Sessions studio, the Sunken Gallery, the Grassrooms ghost race, …).
 
-**`docs/PHASES.md` is the live, agent-maintained status** — read it for exactly
+**`docs/PHASES.md` is the live, agent-maintained status**, read it for exactly
 what's built and what's next, and `docs/DESIGN.md` for the vision each piece
 serves. This README documents the stable architecture above; it deliberately
 doesn't re-list every feature (that's PHASES.md's job, kept current as things

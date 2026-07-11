@@ -3,7 +3,7 @@
 // Built data-driven from albums.json (the storefront's album grid) so adding an
 // album never means hand-editing JSON-LD. Every album is `byArtist` the shared
 // canonical #scoobert id (homed on lukefwalton.com), so these reconcile to the
-// same artist the rest of the network describes — including the hub's own dated,
+// same artist the rest of the network describes, including the hub's own dated,
 // tracklisted MusicAlbum pages at lukefwalton.com/albums/.
 //
 // Release dates and streaming links are intentionally NOT asserted here: the hub

@@ -2,14 +2,14 @@
 // src/data/abilities.ts — earned VERBS (three-free, like items/quests).
 //
 // The RPG layer isn't only luck + loot: movement abilities are LEARNED by
-// finding a skill orb and grabbing it — an "ooo, a skill" moment, not a silent
+// finding a skill orb and grabbing it, an "ooo, a skill" moment, not a silent
 // grant. Each ability is a durable progressStore.secretsFound id + how it reads
 // (name/hint/glyph/colour for the orb + the learn toast). Keeping the ids here
 // (not string literals scattered across files) means the orb that grants it, the
 // Controls gate that reads it, and any quest all agree on one constant.
 //
 // The ladder, on purpose:
-//  · JUMP is learned in the FIRST room (the beach shop) — the starter verb, so
+//  · JUMP is learned in the FIRST room (the beach shop), the starter verb, so
 //    exploration is springier from the very start.
 //  · DOUBLE JUMP is the upgrade, earned deep out at the Jumping Turtle (the pun:
 //    the Jumping Turtle teaches you to jump *again*, in mid-air).

@@ -36,21 +36,21 @@ export function RaceHud({ hidden }: { hidden?: boolean }) {
           <p className="hud-race__sub">
             {won
               ? 'the ghost twirls a victory lap for you · +3 luck'
-              : 'the ghost giggles — no harm done. rematch? もういっかい？'}
+              : 'the ghost giggles. no harm done. rematch? もういっかい？'}
           </p>
         </div>
       </div>
     );
   }
 
-  // racing — `playerAhead` is the truthful CONTINUOUS standing (set by GhostRace).
+  // racing, `playerAhead` is the truthful CONTINUOUS standing (set by GhostRace).
   return (
     <div className="hud-race hud-race--live" aria-hidden="true">
       <div className="hud-race__lap">
         LAP {lapOf(playerProgress)}/{RACE_LAPS}
       </div>
       <div className={`hud-race__place hud-race__place--${playerAhead ? 'lead' : 'behind'}`}>
-        {playerAhead ? '🏁 1st — hold SHIFT!' : '👻 2nd — hold SHIFT!'}
+        {playerAhead ? '🏁 1st: hold SHIFT!' : '👻 2nd: hold SHIFT!'}
       </div>
     </div>
   );

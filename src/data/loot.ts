@@ -34,7 +34,7 @@ export type LootType = {
   accent: string;
 };
 
-// The five the brief named — pizza, surfboards, skateboards, burritos, sushi.
+// The five the brief named, pizza, surfboards, skateboards, burritos, sushi.
 // Points + grow scale loosely with how absurd it is to be holding one.
 export const LOOT: LootType[] = [
   {
@@ -88,7 +88,7 @@ const LOOT_BY_ID = new Map(LOOT.map((l) => [l.id, l]));
 export const lootById = (id: string): LootType | undefined => LOOT_BY_ID.get(id);
 
 export type LootDrop = {
-  /** `${roomId}::${index}` — stable per (room, scatter slot). */
+  /** `${roomId}::${index}`, stable per (room, scatter slot). */
   id: string;
   /** A LOOT id. */
   type: string;
@@ -167,7 +167,7 @@ export function lootDropsForRoom(room: Room): LootDrop[] {
   return drops;
 }
 
-/** Resolve a drop id (`roomId::index`) back to its drop — the click / P paths only
+/** Resolve a drop id (`roomId::index`) back to its drop, the click / P paths only
  *  carry the id. Deterministic placement makes this a regeneration + lookup. */
 export function lootDropById(id: string): LootDrop | undefined {
   const sep = id.lastIndexOf('::');

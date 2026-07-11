@@ -12,7 +12,7 @@ export function MuteToggle() {
 
   if (!mounted) return null;
 
-  // Disabled until the track is decoded — you can't enable music that isn't
+  // Disabled until the track is decoded, you can't enable music that isn't
   // loaded, and if it never loads the control never lights up.
   return (
     <button

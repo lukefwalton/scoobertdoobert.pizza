@@ -22,7 +22,7 @@ import { exposeTestGlobal } from '../lib/testHooks';
 // brickwall-limited + voice-capped so no pile-up of bells can ever spike.
 // ───────────────────────────────────────────────────────────────────────────
 
-const W = 320; // logical canvas size (portrait — the pendulums hang)
+const W = 320; // logical canvas size (portrait, the pendulums hang)
 const H = 360;
 const MAX_VOICES = 24; // polyphony cap (bounds CPU + keeps the mix from piling up)
 
@@ -54,7 +54,7 @@ class BellEngine {
     this.ctx = new Ctor();
     this.master = this.ctx.createGain();
     this.master.gain.value = 0.9;
-    // Brickwall limiter across everything — the cabinet stays self-safe no matter
+    // Brickwall limiter across everything, the cabinet stays self-safe no matter
     // how many bells converge at once (WCAG 2.3.1 / ears), mirroring the engine.
     const limiter = this.ctx.createDynamicsCompressor();
     limiter.threshold.value = -6;
@@ -73,7 +73,7 @@ class BellEngine {
     void this.ctx.close();
   }
 
-  /** Mute immediately by ramping master to ~0 — so hitting ♪ OFF silences bells
+  /** Mute immediately by ramping master to ~0, so hitting ♪ OFF silences bells
    *  that are already RINGING too, not just future strikes (matches Cultures). */
   setMuted(m: boolean): void {
     const now = this.ctx.currentTime;
@@ -81,7 +81,7 @@ class BellEngine {
     this.master.gain.setTargetAtTime(m ? 0.0001 : 0.9, now, 0.04);
   }
 
-  /** Current master gain — exposed so shoot:chimes can assert the mute path. */
+  /** Current master gain, exposed so shoot:chimes can assert the mute path. */
   get masterLevel(): number {
     return this.master.gain.value;
   }
@@ -185,7 +185,7 @@ export function ChimesCabinet() {
     // so the gate is exact. The sim/engine/colors live in refs across re-runs.
   }, [muted]);
 
-  // Mute the live engine when the global mute flips — ramp master to silence so
+  // Mute the live engine when the global mute flips, ramp master to silence so
   // already-ringing bells stop too (not just future strikes), like Cultures.
   useEffect(() => {
     engine.current?.setMuted(muted);
@@ -266,7 +266,7 @@ export function ChimesCabinet() {
             className="chimes-btn chimes-btn--wide"
             aria-pressed={!muted}
             onClick={() => {
-              ensureEngine(); // a gesture — allowed to start audio
+              ensureEngine(); // a gesture, allowed to start audio
               toggleMute();
             }}
           >
@@ -278,7 +278,7 @@ export function ChimesCabinet() {
       <p className="chimes-hint">
         {started
           ? muted
-            ? 'sound is off — tap ♪ ON'
+            ? 'sound is off, tap ♪ ON'
             : 'tap the glass to re-swing · drag SPEED, add BELLS'
           : 'tap the glass to start the chimes'}
       </p>

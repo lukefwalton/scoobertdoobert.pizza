@@ -28,7 +28,7 @@ export function LevelLoader() {
   const errBtn = useRef<HTMLButtonElement>(null);
 
   // New room → clear the overlay state. Does NOT touch `ready` (GlbRoom owns that via
-  // mount/unmount — see levelStore — which is what makes cached re-entry safe).
+  // mount/unmount, see levelStore, which is what makes cached re-entry safe).
   useEffect(() => {
     aborting.current = false;
     if (abortTimer.current !== undefined) window.clearTimeout(abortTimer.current);
@@ -44,7 +44,7 @@ export function LevelLoader() {
 
   // Move focus to the recovery button the moment the error overlay shows, so a broken
   // load is escapable with the keyboard alone (Enter/Space) and screen readers land
-  // on the action — not just clickable with a mouse.
+  // on the action, not just clickable with a mouse.
   useEffect(() => {
     if (error) errBtn.current?.focus();
   }, [error]);

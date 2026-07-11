@@ -12,7 +12,7 @@ export default function TextOnly() {
   return (
     <main className="textonly">
       <Head>
-        <title>Text-Only Menu — Scoobert Doobert</title>
+        <title>Text-Only Menu · Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/text" />
         <meta
           name="description"
@@ -20,7 +20,7 @@ export default function TextOnly() {
         />
         <meta name="robots" content="index,follow" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/text" />
-        <meta property="og:title" content="Text-Only Menu — Scoobert Doobert" />
+        <meta property="og:title" content="Text-Only Menu · Scoobert Doobert" />
         <meta
           property="og:description"
           content="Every destination on scoobertdoobert.pizza as a flat, text-only list."
@@ -45,7 +45,14 @@ export default function TextOnly() {
           The Reel
         </a>{' '}
         (productions &amp; collabs throughout; the mixes are at the bottom). Hire him:{' '}
-        <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>beformer@aol.com</a>.
+        <a
+          href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          beformer@aol.com
+        </a>
+        .
       </p>
       <p>
         New here? Read <a href="/about">the story (Our Secret Recipe)</a>.
@@ -83,7 +90,7 @@ export default function TextOnly() {
             >
               {d.label}
             </a>
-            {d.blurb ? ` — ${d.blurb}` : null}
+            {d.blurb ? `, ${d.blurb}` : null}
           </li>
         ))}
       </ul>
@@ -96,7 +103,13 @@ export default function TextOnly() {
       </p>
       <p>
         Questions, comments, or a record that needs mixing?{' '}
-        <a href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}>Email the webmaster.</a>
+        <a
+          href={destById('contact')?.href ?? 'mailto:beformer@aol.com'}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Email the webmaster.
+        </a>
       </p>
       <p>
         <small>&copy;1997 Scoobert Doobert, Inc. / The San Diego-ish Operation</small>

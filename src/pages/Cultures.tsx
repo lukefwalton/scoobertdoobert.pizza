@@ -19,19 +19,19 @@ export default function Cultures() {
   return (
     <main className="cultures-page">
       <Head>
-        <title>Cultures — The Pizza Arcade</title>
+        <title>Cultures · The Pizza Arcade</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/cultures" />
         <meta
           name="description"
-          content="Cultures — a living-colony drone you stir. Cells drift, attract by musical interval, and breed notes when they touch. A generative instrument you play with a fingertip."
+          content="Cultures, a living-colony drone you stir. Cells drift, attract by musical interval, and breed notes when they touch. A generative instrument you play with a fingertip."
         />
         <meta name="robots" content="index,follow" />
         <meta name="theme-color" content="#04040a" />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/cultures" />
-        <meta property="og:title" content="Cultures — The Pizza Arcade" />
+        <meta property="og:title" content="Cultures · The Pizza Arcade" />
         <meta
           property="og:description"
-          content="Stir the colony and it sings — a generative drone instrument made of living cultures."
+          content="Stir the colony and it sings, a generative drone instrument made of living cultures."
         />
       </Head>
 

@@ -10,7 +10,7 @@ import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 // the pie, and start again a notch faster. Get clipped by a car → the pizza's on
 // the asphalt (game over). The grammar of the cross-the-road genre, never its
 // assets: own vehicles + scooter + name, own synth audio through the shared
-// limiter (mute-aware, WCAG-safe — no strobe). Self-contained <canvas>, no
+// limiter (mute-aware, WCAG-safe, no strobe). Self-contained <canvas>, no
 // three.js. Arrows / a ◀▲▼▶ pad to hop; per-cabinet high score
 // (arcadeHighs['delivery-dash']) = pizzas delivered × 100 + forward hops.
 // ───────────────────────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ export function DeliveryDash() {
   const hop = (dRow: number, dx: number) => {
     const g = game.current;
     // Idle / game-over: the first hop input (arrow OR the ◀▲▼▶ pad) starts a fresh
-    // run, consumed as the start — so the standalone mobile cabinet is fully
+    // run, consumed as the start, so the standalone mobile cabinet is fully
     // operable from the controls it advertises, not just a canvas tap.
     if (g.phase !== 'playing') {
       start();
@@ -289,7 +289,7 @@ export function DeliveryDash() {
 
   // Test hook (READ-ONLY): report the run state so the smoke can assert the
   // delivery branch (score +100, row reset to the curb, lane speed bumped). `speed`
-  // is lane 0's current speed (34 + delivered*8 by construction) — a deterministic
+  // is lane 0's current speed (34 + delivered*8 by construction), a deterministic
   // witness for the speed-up. Read-only → the wider ?world/?debug entrance.
   useEffect(() => {
     exposeTestGlobal('__sdpDashState', () => {
@@ -339,7 +339,7 @@ export function DeliveryDash() {
           </div>
         )}
       </div>
-      {/* ◀ ▲ ▼ ▶ — discrete hops (left / forward / back / right), mirror the arrows. */}
+      {/* ◀ ▲ ▼ ▶, discrete hops (left / forward / back / right), mirror the arrows. */}
       <div className="arcade-pad">
         <button
           type="button"

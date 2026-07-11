@@ -73,6 +73,9 @@ export const DESTINATIONS: Dest[] = [
     blurb: 'The webmaster is a mixing engineer & producer for hire. He also reads every comment.',
     topping: 'onion',
     era: '1994',
+    // mailto still gets _blank so the site stays put while the mail client opens
+    // (same-tab mailto can feel like you left the storefront).
+    external: true,
   },
   {
     id: 'videos',
@@ -87,7 +90,7 @@ export const DESTINATIONS: Dest[] = [
     id: 'catalog',
     label: 'Full catalog on Bandcamp',
     href: 'https://scoobertdoobert.bandcamp.com/',
-    blurb: 'The whole discography on Bandcamp — Big Hug, KŌAN, Moonlight Beach, MÖB, I.',
+    blurb: 'The whole discography on Bandcamp: Big Hug, KŌAN, Moonlight Beach, MÖB, I.',
     topping: 'olive',
     era: '2000',
     external: true,
@@ -170,7 +173,7 @@ export const MENU_DESTINATIONS = DESTINATIONS.filter((d) => d.group !== 'social'
 /** Secondary platform links for the compact social row. */
 export const SOCIAL_DESTINATIONS = DESTINATIONS.filter((d) => d.group === 'social');
 
-/** The flat text-only fallback route — the canonical "no JS / mobile / reduced
+/** The flat text-only fallback route, the canonical "no JS / mobile / reduced
  *  motion / install-unavailable" destination. Use this constant rather than
  *  hardcoding the path so the branches can't drift. */
 export const TEXT_ONLY_PATH = '/text';

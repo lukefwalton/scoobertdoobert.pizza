@@ -126,7 +126,7 @@ export default function AboutJp() {
     <main className="about" lang="ja">
       <Head>
         <html lang="ja" />
-        <title>スクーバート・ドゥーバートについて — Scoobert Doobert</title>
+        <title>スクーバート・ドゥーバートについて · Scoobert Doobert</title>
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/about/jp" />
         <link rel="alternate" hrefLang="en" href="https://www.scoobertdoobert.pizza/about" />
         <link rel="alternate" hrefLang="ja" href="https://www.scoobertdoobert.pizza/about/jp" />
@@ -174,7 +174,7 @@ export default function AboutJp() {
         <p className="about__lede">
           <strong>Scoobert Doobert（スクーバート・ドゥーバート）</strong>は、カリフォルニア州
           <strong>サンディエゴ</strong>
-          発のローファイ・ハイファイ・ワイファイな音楽プロジェクトです。自主制作のインディーポップ、チルポップ、ファンク、ローファイ——フック、ジョーク、感情、テープのヒスノイズ、ビーチの陽気、インターネット脳、そしてブリトーが好きな人のための宅録ミュージック。
+          発のローファイ・ハイファイ・ワイファイな音楽プロジェクトです。自主制作のインディーポップ、チルポップ、ファンク、ローファイ。フック、ジョーク、感情、テープのヒスノイズ、ビーチの陽気、インターネット脳、そしてブリトーが好きな人のための宅録ミュージック。
         </p>
 
         <p>
@@ -228,7 +228,7 @@ export default function AboutJp() {
           <figcaption>東京、2024年10月</figcaption>
         </figure>
         <p>
-          日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念——日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
+          日本語学習、こうした来日ライブ、そして「良いメロディはパスポートより遠くまで旅できる」という信念。日本との縁は、このプロジェクトの背骨を一本貫いて流れています。
         </p>
 
         <h2>音楽</h2>
@@ -247,7 +247,7 @@ export default function AboutJp() {
           <a href={catalog} target="_blank" rel="noopener noreferrer">
             カタログ
           </a>
-          は大きく、奇妙で、いまも拡張を続けています——シングル、リミックス、コラボ、デモ、映像作品などを含め、登録楽曲は300曲近くにのぼります。いちばんの入り口は、ともかく
+          は大きく、奇妙で、いまも拡張を続けています。シングル、リミックス、コラボ、デモ、映像作品などを含め、登録楽曲は300曲近くにのぼります。いちばんの入り口は、ともかく
           <a href={listen} target="_blank" rel="noopener noreferrer">
             聴いてみること
           </a>
