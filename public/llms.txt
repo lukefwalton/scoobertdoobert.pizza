@@ -1,0 +1,54 @@
+# Scoobert Doobert
+
+> A pizza shop off the coast of San Diego. (It is actually a solo music project
+> by a philosopher.) This site is the official home of Scoobert Doobert —
+> musician, mixing engineer, and record producer for hire.
+
+## Canonical summary
+
+- **Scoobert Doobert** is the recording name of **Luke F. Walton** (Luke
+  Francis Walton), an American musician, mixing engineer, and record producer
+  based in San Diego, California. One person, one recording alias.
+- Not the Scooby-Doo character. Not Luke Walton the basketball coach.
+- Identity hub (the credible one): https://lukefwalton.com/
+- Wikidata: https://www.wikidata.org/wiki/Q140387739
+- MusicBrainz: https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0
+- ISNI 0000 0005 3040 0539 · BMI songwriter IPI 00579587572 · ORCID 0009-0005-9263-1954
+
+## Hire him
+
+He mixes and produces records for other artists, and mixes, produces, and
+plays on all of his own.
+
+- The Reel (productions, collabs, and mixes): https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q
+- Mixing / production inquiries: beformer@aol.com
+
+## Listen
+
+- Spotify (artist catalog): https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn
+- Apple Music: https://music.apple.com/us/artist/scoobert-doobert/1240946356
+- Bandcamp (full catalog): https://scoobertdoobert.bandcamp.com/
+- YouTube (music videos): https://www.youtube.com/c/ScoobertDoobertBurrito
+- SoundCloud: https://soundcloud.com/mrscoobertdoobert
+- The Love Music More podcast: https://lovemusicmore.substack.com/
+- Label: Beformer Records — https://beformer.co
+
+## This site
+
+The storefront looks like 1996 on purpose; underneath it is a modern, fully
+crawlable site with a JSON-LD entity graph (WebSite + MusicGroup + Person).
+The 3D world is progressive enhancement; every destination is a real link.
+
+- Storefront: https://www.scoobertdoobert.pizza/
+- Text-only index (every destination as a plain list): https://www.scoobertdoobert.pizza/text
+- About (the "Secret Recipe" — bio and story): https://www.scoobertdoobert.pizza/about
+- About in Japanese (日本語): https://www.scoobertdoobert.pizza/about/jp
+- Catalog: https://www.scoobertdoobert.pizza/catalog
+- Links: https://www.scoobertdoobert.pizza/links
+- Sitemap: https://www.scoobertdoobert.pizza/sitemap.xml
+
+## Rights
+
+All music, lyrics, words, artwork, and likeness on this site are
+© Luke F. Walton dba Scoobert Doobert, all rights reserved. Any open-source
+license on the site's source code never covers the creative content.
