@@ -129,7 +129,7 @@ const { browser, fail, finish, failures } = await launchSmoke();
 
 // --- JS-OFF: the hire pitch + the maze are in the crawlable prerender (ADDENDUM
 //     #8). The storefront must carry the "mixing engineer" pitch, The Reel, the
-//     hire mailto, the ENTER THE BUILDING anchor (a real /text href), and the
+//     hire mailto, the ENTER THE SHOP anchor (a real /text href), and the
 //     basement-stairs door; the maze pages must interlink with real anchors. ---
 {
   const ctx = await browser.newContext({
@@ -143,7 +143,7 @@ const { browser, fail, finish, failures } = await launchSmoke();
     'mixing engineer',
     'beformer@aol.com',
     'open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
-    'THERE IS A WHOLE WORLD UNDER THIS PIZZA SHOP',
+    'IS THERE A WHOLE WORLD UNDER THIS PIZZA SHOP',
   ]) {
     if (!html.includes(needle)) {
       fail(`JS-OFF: storefront prerender is missing "${needle}"`);
@@ -151,7 +151,7 @@ const { browser, fail, finish, failures } = await launchSmoke();
   }
   const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
   if (doorHref !== '/text') {
-    fail(`JS-OFF: ENTER THE BUILDING is not a real /text anchor -> ${doorHref}`);
+    fail(`JS-OFF: ENTER THE SHOP is not a real /text anchor -> ${doorHref}`);
   }
   const stairs = await page.$('a[href="/basement-stairs"]');
   if (!stairs) {

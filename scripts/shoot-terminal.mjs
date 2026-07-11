@@ -66,7 +66,7 @@ const ctx2 = await browser.newContext({ javaScriptEnabled: false });
 const page2 = await ctx2.newPage();
 await page2.goto(base + '/', { waitUntil: 'domcontentloaded' });
 const body = (await page2.textContent('body')) || '';
-if (!/Electronic Pizza Storefront/i.test(body)) bad('JS-off storefront did not render its heading');
+if (!/World Wide Web Pizza Storefront/i.test(body)) bad('JS-off storefront did not render its heading');
 if (await page2.$('[aria-label="Terminal"]'))
   bad('terminal present in the JS-off / prerendered DOM');
 await ctx2.close();

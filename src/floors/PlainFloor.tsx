@@ -74,10 +74,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           />
           <div className="store-titlebar__text">
             <h1>{floor.title}</h1>
-            <p className="logline">
-              A pizza shop off the coast of San Diego &mdash; secretly a philosopher&rsquo;s solo
-              music project.
-            </p>
+            {floor.copy && <p className="logline">{floor.copy}</p>}
           </div>
         </div>
       </header>
@@ -109,15 +106,15 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         </p>
         <p className="hire__body">
           <b>Scoobert Doobert</b> is an artist, and a <b>mixing engineer &amp; producer for hire</b>
-          . He mixes, produces, and plays on all of his own records &mdash; he can make yours sound
-          right, too.
+          . He mixes, produces, and plays on all of his own records. I bet he can make yours sound
+          saucy, too. Affordable rates. Hot honey costs extra.
         </p>
         <p className="hire__cta">
           <a href={reelHref} target="_blank" rel="noopener noreferrer">
-            &#9654; Hear the work &mdash; The Reel
+            &#9654; Hear the work: The Reel
           </a>{' '}
           <span className="hire__note">
-            (productions &amp; collabs throughout; the <b>MIXES</b> are at the bottom)
+            (productions &amp; collabs throughout; <b>MIXES</b> are at the bottom)
           </span>
         </p>
         <p className="hire__cta">
@@ -130,9 +127,10 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           plainly. Same progressive-enhancement anchor as the rat line — a REAL
           crawlable <a> to /text; with JS it ducks you downstairs instead. */}
       <aside className="playdoor" aria-label="The video game downstairs">
-        <p className="playdoor__head">THERE IS A WHOLE WORLD UNDER THIS PIZZA SHOP.</p>
+        <p className="playdoor__head">IS THERE A WHOLE WORLD UNDER THIS PIZZA SHOP?</p>
         <p className="playdoor__body">
-          Free. No download<span aria-hidden="true">*</span>. About two minutes to the good part.
+          Free. No download<span aria-hidden="true">*</span>. Explore the basement &mdash; it&rsquo;s a
+          video game.
         </p>
         <p className="playdoor__cta">
           <a
@@ -143,10 +141,12 @@ export function PlainFloor({ floor }: { floor: Floor }) {
               descend();
             }}
           >
-            ENTER THE BUILDING &raquo;
+            ENTER THE SHOP &raquo;
           </a>
         </p>
-        <p className="playdoor__fine">*one fake plug-in install, which is the joke.</p>
+        <p className="playdoor__fine">
+          *requires a simulated (fake) download &mdash; that&rsquo;s the load screen
+        </p>
       </aside>
 
       <hr />
@@ -172,12 +172,12 @@ export function PlainFloor({ floor }: { floor: Floor }) {
               descend();
             }}
           >
-            Follow him downstairs &raquo;
+            Dare you follow him downstairs?! &raquo;
           </a>
           {'  ·  '}
           Six unreleased demos under one roof.
           {'  ·  '}
-          Lo-Fi &bull; Hi-Fi &bull; Stuffed Crust.
+          Lo-Fi &bull; Hi-Fi &bull; Wi-Fi &bull; Stuffed Crust with Ranch.
           {'  ·  '}
         </Marquee>
         {remembersYou && (
@@ -186,26 +186,24 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           </p>
         )}
         {lucky && (
-          <p className="news-lucky" title="Fortune favors you lately">
+          <p className="news-lucky" title="Fortune favors the bold and tangy">
             <span aria-hidden="true">🍀</span>{' '}
-            <i>Someone has taped a four-leaf clover to the door. Fortune favors you lately.</i>
+            <i>Someone has taped a four-leaf clover to the door. Fortune favors the bold and tangy.</i>
           </p>
         )}
         {beatGoblin && (
-          <p className="news-lucky" title="You won the roll-off downstairs">
+          <p className="news-lucky" title="You got lucky downstairs">
             <span aria-hidden="true">🏆</span>{' '}
             <i>
-              A little goblin-shaped trophy has appeared by the register. You won it fair and square
-              (you rolled well).
+              A little goblin-shaped trophy has appeared by the register. You got lucky&hellip;
             </i>
           </p>
         )}
         {tapes > 0 && (
-          <p className="news-lucky" title="Cassettes you turned up downstairs">
+          <p className="news-lucky" title="Cassettes in the lost-and-found">
             <span aria-hidden="true">📼</span>{' '}
             <i>
-              The lost-and-found shoebox holds {tapes} cassette{tapes === 1 ? '' : 's'} you turned
-              up in the back.
+              The lost-and-found shoebox holds {tapes} cassette{tapes === 1 ? '' : 's'}.
             </i>
           </p>
         )}
@@ -233,24 +231,15 @@ export function PlainFloor({ floor }: { floor: Floor }) {
 
         <hr />
 
-        <section className="desc" aria-label="About the pizza">
-          <figure className="snapshot snapshot--right">
-            <img
-              src="/press/scoobert-host.jpg"
-              alt="Scoobert Doobert outdoors with googly eyes stuck across his face, one hand raised toward the camera."
-              width="150"
-              height="150"
-            />
-            <figcaption>Your host.</figcaption>
-          </figure>
-          <p>
-            One thin crust piled with six unreleased demos, sealed with another thin crust, reverb,
-            choice of toppings, and even more reverb.
-          </p>
-          <p className="recipe">
-            <a href="/about">Our Secret Recipe &raquo;</a>
-          </p>
-        </section>
+        <figure className="snapshot snapshot--right">
+          <img
+            src="/press/scoobert-host.jpg"
+            alt="Scoobert Doobert outdoors with googly eyes stuck across his face, one hand raised toward the camera."
+            width="150"
+            height="150"
+          />
+          <figcaption>Your host.</figcaption>
+        </figure>
       </main>
 
       <hr />

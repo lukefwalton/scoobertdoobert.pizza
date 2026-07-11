@@ -58,7 +58,7 @@ export const DESTINATIONS: Dest[] = [
     // artist page (the catalog); this is the for-hire proof. Productions &
     // collabs throughout; the MIXES are at the bottom.
     id: 'reel',
-    label: 'The Reel — hear the work',
+    label: 'The Reel (hear the work)',
     href: 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
     blurb:
       'Productions & collabs top to bottom; the MIXES are at the bottom. He mixes, produces, and plays on all of his own records too.',
@@ -68,7 +68,7 @@ export const DESTINATIONS: Dest[] = [
   },
   {
     id: 'contact',
-    label: 'Hire the webmaster — mixing & production',
+    label: 'Hire the webmaster (mixing & production for hire, worldwide)',
     href: 'mailto:beformer@aol.com?subject=Mixing%20%2F%20production%20inquiry',
     blurb: 'The webmaster is a mixing engineer & producer for hire. He also reads every comment.',
     topping: 'onion',

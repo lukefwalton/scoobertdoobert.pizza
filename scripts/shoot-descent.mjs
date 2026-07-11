@@ -29,18 +29,18 @@ page.on('pageerror', (e) => fail(`desktop pageerror: ${e.message}`));
 
 await page.goto(base + '/', { waitUntil: 'networkidle' });
 
-// The legible game door (ADDENDUM #8): ENTER THE BUILDING starts the descent,
+// The legible game door (ADDENDUM #8): ENTER THE SHOP starts the descent,
 // same progressive-enhancement contract as the rat line (its href stays /text).
 {
   const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
-  if (doorHref !== '/text') fail(`ENTER THE BUILDING href is not /text -> ${doorHref}`);
+  if (doorHref !== '/text') fail(`ENTER THE SHOP href is not /text -> ${doorHref}`);
   await page.click('.playdoor__cta a');
   const doorDescended = await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).then(
     () => true,
     () => false,
   );
-  if (!doorDescended) fail('ENTER THE BUILDING did not start the descent');
-  if (page.url().includes('/text')) fail('ENTER THE BUILDING navigated instead of descending');
+  if (!doorDescended) fail('ENTER THE SHOP did not start the descent');
+  if (page.url().includes('/text')) fail('ENTER THE SHOP navigated instead of descending');
   // Back to the top so the canonical order-form entry is exercised cold below.
   await page.click('.floor-door--up');
   await floor(page, 'storefront');

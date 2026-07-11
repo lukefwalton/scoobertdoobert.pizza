@@ -13,7 +13,7 @@ function hasContent(file, needle) {
 }
 
 const cases = [
-  { label: 'storefront (/)', files: ['dist/index.html'], needle: 'Electronic Pizza Storefront' },
+  { label: 'storefront (/)', files: ['dist/index.html'], needle: 'World Wide Web Pizza Storefront' },
   {
     label: 'text-only (/text)',
     files: ['dist/text.html', 'dist/text/index.html'],

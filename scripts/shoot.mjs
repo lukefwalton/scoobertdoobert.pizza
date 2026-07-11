@@ -26,7 +26,7 @@ const shots = [
     viewport: DESKTOP,
     js: true,
     skipBoot: true,
-    assert: ['Electronic Pizza Storefront', 'Sample Menu', 'open.spotify.com', 'Order Online'],
+    assert: ['World Wide Web Pizza Storefront', 'Sample Menu', 'open.spotify.com', 'Order Online'],
   },
   {
     name: 'storefront-desktop-nojs',
@@ -35,7 +35,7 @@ const shots = [
     js: false,
     skipBoot: true,
     // The whole point: real content + real anchors with JavaScript OFF.
-    assert: ['Electronic Pizza Storefront', 'Sample Menu', 'open.spotify.com', 'beformer.co'],
+    assert: ['World Wide Web Pizza Storefront', 'Sample Menu', 'open.spotify.com', 'beformer.co'],
   },
   {
     name: 'storefront-mobile',
@@ -43,7 +43,7 @@ const shots = [
     viewport: MOBILE,
     js: true,
     skipBoot: true,
-    assert: ['Electronic Pizza Storefront'],
+    assert: ['World Wide Web Pizza Storefront'],
   },
   {
     name: 'textonly-desktop',

@@ -39,10 +39,10 @@ export const FLOORS: Floor[] = [
     id: 'storefront',
     era: '1996',
     template: 'plain',
-    title: 'Scoobert Doobert’s Electronic Pizza Storefront',
-    copy: 'A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)',
+    title: 'Scoobert Doobert’s World Wide Web Pizza Storefront',
+    copy: 'A pizza shop off the coast of San Diego — also a chill lofi indie-pop artist / producer / mix engineer.',
     links: ALL_MENU,
-    descendLabel: 'Down to the basement',
+    descendLabel: '▼ Down to the basement',
   },
   {
     id: 'y1999',

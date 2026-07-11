@@ -425,12 +425,6 @@ footer {
   margin: 4px 0;
 }
 
-/* "Our Secret Recipe →" — quiet pointer from the desc to the plain /about page. */
-.recipe {
-  margin: 8px 0 0;
-  font-size: 0.9rem;
-}
-
 /* Logline now lives inside the titlebar, beside the logo + name. */
 .store-titlebar__text {
   min-width: 0;
