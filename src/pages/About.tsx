@@ -122,6 +122,8 @@ export default function About() {
           'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
           'https://www.discogs.com/artist/8593593-Scoobert-Doobert',
           'https://genius.com/artists/Scoobert-doobert',
+          // Tidal artist — confirmed on the Wikidata item (Q140387739).
+          'https://tidal.com/browse/artist/8793940',
           'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22',
           'https://koookooorooo.com/scoobert-doobert',
         ],
