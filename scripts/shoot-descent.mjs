@@ -35,12 +35,10 @@ await page.goto(base + '/', { waitUntil: 'networkidle' });
   const doorHref = await page.getAttribute('.playdoor__cta a', 'href').catch(() => null);
   if (doorHref !== '/text') fail(`ENTER THE BUILDING href is not /text -> ${doorHref}`);
   await page.click('.playdoor__cta a');
-  const doorDescended = await page
-    .waitForSelector('[data-floor="y1999"]', { timeout: 8000 })
-    .then(
-      () => true,
-      () => false,
-    );
+  const doorDescended = await page.waitForSelector('[data-floor="y1999"]', { timeout: 8000 }).then(
+    () => true,
+    () => false,
+  );
   if (!doorDescended) fail('ENTER THE BUILDING did not start the descent');
   if (page.url().includes('/text')) fail('ENTER THE BUILDING navigated instead of descending');
   // Back to the top so the canonical order-form entry is exercised cold below.
