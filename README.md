@@ -22,9 +22,10 @@
 
 A deliberately terrible 1996 **Electronic Pizza Storefront** that falls backward
 through web history and drops you into a low-poly PS1/N64 world. With JavaScript
-**off**, it's an honest, crawlable HTML pizza page. With JS **on**, trying to
-order makes it "install" a fake VRML plug-in and descend, through a 1999
-GeoCities floor, a 2000 table-layout floor, an SGI parody machine room, into a
+**off**, it's an honest, crawlable HTML pizza page. With JS **on**, **ENTER THE
+SHOP** jumps straight to the SGI parody machine room (Install the fake Calzone
+Player™ plug-in); the order form and the rat take the scenic route through a
+1999 GeoCities floor and a 2000 table-layout floor first. Past the install: a
 real-time 3D shop on the seafloor, which turns out to be the archive of
 **Scoobert Doobert**, a philosopher's solo music project.
 
@@ -33,8 +34,9 @@ real-time 3D shop on the seafloor, which turns out to be the archive of
 Silicon Graphics built the Nintendo 64's graphics chip and, on its "Silicon
 Surf" site, advertised navigable 3D worlds in the browser via VRML in 1996. That
 promise never really arrived. This site ships it ~30 years late, as a haunted
-pizza CD-ROM: the storefront "requires" the **Calzone Player™** plug-in to order,
-and installing it descends you through the eras into the world below.
+pizza CD-ROM: **ENTER THE SHOP** (or the scenic order-form / rat paths) lands you
+in the machine room, which "requires" the **Calzone Player™** plug-in; installing
+it drops you into the world below.
 
 ## The descent
 
@@ -51,8 +53,9 @@ and installing it descends you through the eras into the world below.
 | <img src=".github/media/09-gallery.png" alt="the sunken gallery" /> | <img src=".github/media/10-arcade.png" alt="the arcade" /> |
 | **the sunken gallery**, vaporwave-Greek ruins, knee-deep | **the arcade**, a shelf of touch-first cabinets (this one's Asteroids) |
 
-> Every frame above is the real site, captured by `scripts/make-readme-shots.mjs`,
-> and the GIF is stitched + crunched by the repo's own
+> Every frame above is the real site, captured by `npm run shots:readme`
+> (`scripts/make-readme-shots.mjs` + `scripts/make-descent-gif.mjs`, against a
+> local `npm run preview`). The GIF is stitched + crunched by the repo's own
 > [`gif89a` encoder](./scripts/lib/gif89a.mjs) (no image libraries). See
 > [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) for how the whole thing is wired.
 

@@ -88,7 +88,8 @@
     "shoot:score": "node scripts/shoot-score.mjs",
     "shoot:leaderboard": "node scripts/shoot-leaderboard.mjs",
     "shoot:share": "node scripts/shoot-share.mjs",
-    "shoot:booth": "node scripts/shoot-booth.mjs"
+    "shoot:booth": "node scripts/shoot-booth.mjs",
+    "shots:readme": "node scripts/make-readme-shots.mjs && node scripts/make-descent-gif.mjs"
   },
   "engines": {
     "node": ">=20.19"
