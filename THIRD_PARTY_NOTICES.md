@@ -13,9 +13,10 @@ like `TODO(license)` are not allowed.
 > history on 2026-07-08**, before this repo went public — nothing on current
 > `main` depicts someone else's characters. **Diligence note (2026-07-11):** a
 > fresh unauthenticated clone confirms those four GLBs are absent from `main`
-> tip and unreachable via `HEAD` ancestry, but **~116 closed GitHub PR tip refs
-> still retain the binaries**. Until those PR refs are deleted / GC'd by GitHub,
-> the purge is complete for `main` only, not repository-wide.
+> tip and unreachable via `HEAD` ancestry, but **116 closed GitHub PR tip refs
+> still retain the binaries**. A [GitHub Support purge request and ref inventory](docs/diligence/github-support-purge-request.md)
+> documents the remaining step: Support must remove the read-only PR refs and
+> garbage-collect the objects, because repository admins cannot modify those refs.
 
 ## 3D models — `public/models/`
 
