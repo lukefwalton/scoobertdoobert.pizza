@@ -1,45 +1,51 @@
 # Third-party notices
 
 Third-party assets/code bundled into the **shipped** site (`public/` → `dist/`).
-Luke has indicated these were obtained under wide/permissive terms; this file is
-the checklist to **drop in the exact source URL + license + author** for each, so
-the public repo carries proper attribution. Anything not yet filled in is marked
-**TODO(license)**.
+Every shipped `.glb` under `public/models/` must have an exact **source URL**,
+**author**, and **license** in the table below. CI (`scripts/check-build.mjs`)
+fails the build if any shipped model is missing a complete row — placeholders
+like `TODO(license)` are not allowed.
 
 > Source `.glb` files live (unshipped) in `media/models/`; only the crunched
-> derivatives under `public/models/` actually ship. A few early source downloads
-> that depicted third-party characters (Max & Ruby, FNAF/Fazbear, Shrek) were
-> **removed and purged from git history on 2026-07-08**, before this repo went
-> public — nothing bundled or referenced here depicts someone else's IP.
+> derivatives under `public/models/` actually ship. Early source downloads that
+> depicted third-party characters (Max & Ruby, FNAF/Fazbear, Shrek, Chuck E.
+> Cheese style) were **removed from the tree and rewritten out of `main`
+> history on 2026-07-08**, before this repo went public — nothing on current
+> `main` depicts someone else's characters. **Diligence note (2026-07-11):** a
+> fresh unauthenticated clone confirms those four GLBs are absent from `main`
+> tip and unreachable via `HEAD` ancestry, but **~116 closed GitHub PR tip refs
+> still retain the binaries**. Until those PR refs are deleted / GC'd by GitHub,
+> the purge is complete for `main` only, not repository-wide.
 
 ## 3D models — `public/models/`
 
 | shipped file | source `.glb` (in `media/models/`) | crunched | source URL | author | license |
 |---|---|---|---|---|---|
-| `liminal-other-space.glb` | `levels/liminal-space-new.glb` | 1.06 MB → 54.1 KB (optimize: meshopt, 128px) — replaces the old unprovenanced `liminal-other-space.glb` source (removed 2026-07-08) | [liminal-space-1](https://sketchfab.com/3d-models/liminal-space-1-687e0c65c4654d89b1cd6d17eb428aee) | Sketchfab (uploader per source page) | CC Attribution |
-| `abandoned-pool.glb` | `levels/liminal-spaces-poolroom.glb` | 1.44 MB → 51.88 KB (optimize: meshopt, 128px) — replaces the old unprovenanced 49MB `abandoned-pool.glb` source (superseded 2026-07-08) | [liminal-spaces-poolroom](https://sketchfab.com/3d-models/liminal-spaces-poolroom-7ae04483183a46aea8bd43583788a6be) | Sketchfab (uploader per source page) | CC Attribution |
-| `palm-tree.glb` | `props/palm-tree.glb` | 391 KB → 77 KB (optimize: meshopt, 128px) | [palm-tree](https://sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca) | Sketchfab (uploader per source page) | CC Attribution |
-| `arcade-cabinet.glb` | `props/arcade-cabinet.glb` | 4.01 MB → 110.08 KB (optimize: meshopt, 128px) | **TODO(license)** | **TODO(license)** | **TODO(license)** |
-| `mobius-strip.glb` | `mobius/mobius-strip-pendant.glb` | 1.56 MB → 124.52 KB (optimize: meshopt, 128px) — replaces `mobius/triple-twist-mobius-strip.glb` (removed 2026-07-08: ShareAlike, can't ship — see CLAUDE.md licensing rule) | [mobius-strip-pendant](https://sketchfab.com/3d-models/mobius-strip-pendant-16637a26cc65482385e1975e5f69797c) | Sketchfab (uploader per source page) | CC Attribution |
-| `greek-statue.glb` | `greek-vaporwave/greek-underwater-broken-statue.glb` | 9.98 MB → 361 KB (optimize: meshopt, 128px) | [greek-underwater-broken-statue-3](https://sketchfab.com/3d-models/greek-underwater-broken-statue-3-a48e8b1fc7bf4858a1cb6054eada7e7b) | Sketchfab (uploader per source page) | Sketchfab Standard (Free) |
-| `metro-tunnel.glb` | `levels/metro-tunnel.glb` | 46.4 MB → 1.42 MB (optimize: meshopt, 128px) — the tunnel deep below the wayside shrine | [metro-tunnel](https://sketchfab.com/3d-models/metro-tunnel-78d64477fc144b5292985f9661c1f64c) | Sketchfab (uploader per source page) | Sketchfab Standard (Free) |
-| `backrooms-vr.glb` | `levels/backrooms-vr.glb` | 19.8 MB → 0.83 MB (optimize: meshopt, 128px) — "End of the Line", the backrooms terminus of the metro tunnel | [backrooms-vr](https://sketchfab.com/3d-models/backrooms-vr-d9b98eca8d064d0eafcd7f5484bb61ed) | Sketchfab (uploader per source page) | CC Attribution |
-| `crt-tv.glb` | `crt-tvs/crt-tv-lowpoly.glb` | 101 KB → 25 KB (optimize: meshopt, 128px) | [crt-tv](https://sketchfab.com/3d-models/crt-tv-5f827ab96d184431a0179ceb7c463157) | Sketchfab (uploader per source page) | Sketchfab Standard (Free) |
-| `greek-doric-column.glb` | `greek-vaporwave/greek-doric-column.glb` | 1.6 MB → 154 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | [greek-doric-column](https://sketchfab.com/3d-models/greek-doric-column-d294f4a24b834f418c7d01daeb49c727) | Sketchfab (uploader per source page) | CC Attribution |
-| `ionic-column.glb` | `greek-vaporwave/ionic-column.glb` | 2.24 MB → 260 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | **TODO(license)** | **TODO(license)** | **TODO(license)** |
-| `classical-greek-sculpture.glb` | `greek-vaporwave/classical-greek-sculpture.glb` | 2.77 MB → 514 KB (optimize: meshopt, 256px) — the Sunken Gallery centrepiece | **TODO(license)** | **TODO(license)** | **TODO(license)** |
-| `greek-jar.glb` | `greek-vaporwave/greek-jar.glb` | 1.22 MB → 146 KB (optimize: meshopt, 256px) — Sunken Gallery dressing | [greek-jar](https://sketchfab.com/3d-models/greek-jar-f8d95e9ae0324e69b257a5e50adeca0e) | Sketchfab (uploader per source page) | CC Attribution |
+| `liminal-other-space.glb` | `levels/liminal-space-new.glb` | 1.06 MB → 54.1 KB (optimize: meshopt, 128px) — replaces the old unprovenanced `liminal-other-space.glb` source (removed 2026-07-08) | [liminal-space-1](https://sketchfab.com/3d-models/liminal-space-1-687e0c65c4654d89b1cd6d17eb428aee) | loghawk360 | CC Attribution |
+| `abandoned-pool.glb` | `levels/liminal-spaces-poolroom.glb` | 1.44 MB → 51.88 KB (optimize: meshopt, 128px) — replaces the old unprovenanced 49MB `abandoned-pool.glb` source (superseded 2026-07-08) | [liminal-spaces-poolroom](https://sketchfab.com/3d-models/liminal-spaces-poolroom-7ae04483183a46aea8bd43583788a6be) | alex.andain.777 | CC Attribution |
+| `palm-tree.glb` | `props/palm-tree.glb` | 391 KB → 77 KB (optimize: meshopt, 128px) | [palm-tree](https://sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca) | Arvid Klint | CC Attribution |
+| `mobius-strip.glb` | `mobius/mobius-strip-pendant.glb` | 1.56 MB → 124.52 KB (optimize: meshopt, 128px) — replaces `mobius/triple-twist-mobius-strip.glb` (removed 2026-07-08: ShareAlike, can't ship — see CLAUDE.md licensing rule) | [mobius-strip-pendant](https://sketchfab.com/3d-models/mobius-strip-pendant-16637a26cc65482385e1975e5f69797c) | sc8di | CC Attribution |
+| `greek-statue.glb` | `greek-vaporwave/greek-underwater-broken-statue.glb` | 9.98 MB → 361 KB (optimize: meshopt, 128px) | [greek-underwater-broken-statue-3](https://sketchfab.com/3d-models/greek-underwater-broken-statue-3-a48e8b1fc7bf4858a1cb6054eada7e7b) | assetfactory | Sketchfab Standard (Free) |
+| `metro-tunnel.glb` | `levels/metro-tunnel.glb` | 46.4 MB → 1.42 MB (optimize: meshopt, 128px) — the tunnel deep below the wayside shrine | [metro-tunnel](https://sketchfab.com/3d-models/metro-tunnel-78d64477fc144b5292985f9661c1f64c) | Mahmoud-11223344 | Sketchfab Standard (Free) |
+| `backrooms-vr.glb` | `levels/backrooms-vr.glb` | 19.8 MB → 0.83 MB (optimize: meshopt, 128px) — "End of the Line", the backrooms terminus of the metro tunnel | [backrooms-vr](https://sketchfab.com/3d-models/backrooms-vr-d9b98eca8d064d0eafcd7f5484bb61ed) | carlcapu9 | CC Attribution |
+| `crt-tv.glb` | `crt-tvs/crt-tv-lowpoly.glb` | 101 KB → 25 KB (optimize: meshopt, 128px) | [crt-tv](https://sketchfab.com/3d-models/crt-tv-5f827ab96d184431a0179ceb7c463157) | SketchyBot | Sketchfab Standard (Free) |
+| `greek-doric-column.glb` | `greek-vaporwave/greek-doric-column.glb` | 1.6 MB → 154 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | [greek-doric-column](https://sketchfab.com/3d-models/greek-doric-column-d294f4a24b834f418c7d01daeb49c727) | ChrisCLP | CC Attribution |
+| `ionic-column.glb` | `greek-vaporwave/ionic-column.glb` | 2.24 MB → 260 KB (optimize: meshopt, 256px) — the Sunken Gallery colonnade | [ionic-column](https://sketchfab.com/3d-models/ionic-column-2f01075ec52e4901a59d008f9256645b) | FOXYSCA | Sketchfab Standard (Free) |
+| `classical-greek-sculpture.glb` | `greek-vaporwave/classical-greek-sculpture.glb` | 2.77 MB → 514 KB (optimize: meshopt, 256px) — the Sunken Gallery centrepiece | [classical-greek-sculpture](https://sketchfab.com/3d-models/classical-greek-sculpture-27110bb1a6b741789d30c565cf36e4c8) | Moltaz | CC Attribution |
+| `greek-jar.glb` | `greek-vaporwave/greek-jar.glb` | 1.22 MB → 146 KB (optimize: meshopt, 256px) — Sunken Gallery dressing | [greek-jar](https://sketchfab.com/3d-models/greek-jar-f8d95e9ae0324e69b257a5e50adeca0e) | Davide Specchi | CC Attribution |
 
-**Rejected candidate (2026-07-08):** a CC Attribution ["arcade-game-space-invaders"](https://sketchfab.com/3d-models/arcade-game-space-invaders-d3959de1a78747f58fb46915e111a265)
-model was tried as the `arcade-cabinet.glb` source, but its emissive/marquee
-texture turned out to be literal *Space Invaders* screen art, scoring chart, and
-wordmark — the CC license covers the scan, not Taito/Midway's IP baked into the
-texture. Reverted to the original `props/arcade-cabinet.glb` source (still
-unverified license, but a generic synthwave-robot design with no depicted
-third-party IP). Unlike the animatronic reference models (kept in-tree as
-active style reference for the Phase 5 dread level), this one has no future
-use, so the rejected binary was deleted outright rather than retained — see
-`media/models/README.md`.
+**Arcade cabinets are procedural** (`src/world/ArcadeCabinet.tsx`) — no third-party
+cabinet GLB ships. Two candidates were tried and deleted:
+
+- **2026-07-08:** a CC Attribution
+  ["arcade-game-space-invaders"](https://sketchfab.com/3d-models/arcade-game-space-invaders-d3959de1a78747f58fb46915e111a265)
+  model — its emissive/marquee texture was literal *Space Invaders* screen art,
+  scoring chart, and wordmark (the CC license covers the scan, not Taito/Midway's
+  IP baked into the texture).
+- **2026-07-11:** Lluc Guardiolaa's
+  ["arcade-cabinet"](https://sketchfab.com/3d-models/arcade-cabinet-122e641e25ee4fe9904fc79399d822b0)
+  (synthwave-robot side art) — **CC-BY-NC**, which this site cannot ship
+  (`docs/DESIGN.md`). Source + crunched binaries removed.
 
 ## Minigames (arcade cabinets)
 

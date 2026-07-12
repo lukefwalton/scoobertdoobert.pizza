@@ -17,8 +17,10 @@ These are third-party downloads/scans. **Verify each model's individual license
 and attribution before any public build**, and log credits in a
 `THIRD_PARTY_NOTICES.md`. Earlier, a few source downloads depicted **other
 people's intellectual property** (FNAF/Fazbear, Chuck E. Cheese, Shrek, Max &
-Ruby); those were **removed and purged from git history on 2026-07-08**, before
-this repo went public — see the tombstones below. Nothing here now depicts a
+Ruby); those were **removed from the tree and rewritten out of `main` history
+on 2026-07-08**, before this repo went public — see the tombstones below and
+the diligence note in `THIRD_PARTY_NOTICES.md` (old PR tip refs may still
+retain the binaries until GC'd). Nothing on current `main` depicts a
 third-party character.
 
 This squares with CLAUDE.md's #1 non-negotiable ("No copyrighted assets, copy,
@@ -51,10 +53,10 @@ is preserved in git history, not the working tree. See `README.md`.)
 
 | file | ← original | notes |
 |---|---|---|
-| `classical-greek-sculpture.glb` | `classical_greek_sculpture.glb` | shipped as `public/models/classical-greek-sculpture.glb` |
+| `classical-greek-sculpture.glb` | `classical_greek_sculpture.glb` | shipped as `public/models/classical-greek-sculpture.glb`. CC Attribution, author **Moltaz** — [sketchfab.com/3d-models/classical-greek-sculpture-27110bb1a6b741789d30c565cf36e4c8](https://sketchfab.com/3d-models/classical-greek-sculpture-27110bb1a6b741789d30c565cf36e4c8) |
 | `greek-column.glb` | `greek_column.glb` | unshipped. CC Attribution 4.0, author **Théo Lerbeil** — [sketchfab.com/3d-models/greek-column-45283d9f94e242ff89599e12b0500401](https://sketchfab.com/3d-models/greek-column-45283d9f94e242ff89599e12b0500401) |
 | `greek-doric-column.glb` | `greek_doric_column.glb` | shipped as `public/models/greek-doric-column.glb`. CC Attribution — [sketchfab.com/3d-models/greek-doric-column-d294f4a24b834f418c7d01daeb49c727](https://sketchfab.com/3d-models/greek-doric-column-d294f4a24b834f418c7d01daeb49c727) |
-| `ionic-column.glb` | `ionic_column.glb` | shipped as `public/models/ionic-column.glb` |
+| `ionic-column.glb` | `ionic_column.glb` | shipped as `public/models/ionic-column.glb`. Sketchfab Standard (Free), author **FOXYSCA** — [sketchfab.com/3d-models/ionic-column-2f01075ec52e4901a59d008f9256645b](https://sketchfab.com/3d-models/ionic-column-2f01075ec52e4901a59d008f9256645b) |
 | `greek-jar.glb` | `greek_jar.glb` | shipped as `public/models/greek-jar.glb`. CC Attribution — [sketchfab.com/3d-models/greek-jar-f8d95e9ae0324e69b257a5e50adeca0e](https://sketchfab.com/3d-models/greek-jar-f8d95e9ae0324e69b257a5e50adeca0e) |
 | `greek-lyre.glb` | `greek_lyre.glb` | ~8MB — optimize |
 | `greek-sculpture-sofokles-vaporwave.glb` | `greek_sculpture_scan_-_sofokles_vaporwave.glb` | ~18MB scan — optimize. Unshipped. CC Attribution — [sketchfab.com/3d-models/greek-sculpture-scan-sofokles-vaporwave-32fd03fc110342598ae1da23e31afda4](https://sketchfab.com/3d-models/greek-sculpture-scan-sofokles-vaporwave-32fd03fc110342598ae1da23e31afda4) |
@@ -75,8 +77,12 @@ Sea / pool surfaces. NB: the beach-shop water is currently **procedural**
 ## `props/` — set dressing
 | file | ← original | notes |
 |---|---|---|
-| `arcade-cabinet.glb` | `arcade_cabinet.glb` | shipped as `public/models/arcade-cabinet.glb` (original synthwave-robot art, generic "ARCADE" wordmark — no confirmed IP issue). License still unverified. |
 | `palm-tree.glb` | `palm_tree.glb` | shipped as `public/models/palm-tree.glb`. CC Attribution — [sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca](https://sketchfab.com/3d-models/palm-tree-58cd53de211e4a97b6172c43b82aafca) |
+
+`arcade-cabinet.glb` (← `arcade_cabinet.glb`, Lluc Guardiolaa, CC-BY-NC) was
+**removed 2026-07-11**: NonCommercial can't ship on a public site, and in-world
+cabinets are procedural now (`src/world/ArcadeCabinet.tsx`). See
+`THIRD_PARTY_NOTICES.md`.
 | `low-poly-fried-chicken-bucket.glb` | `low_poly_bucket_of_fried_chicken_psx_n64_style.glb` | |
 
 ## `doors/` — doors & exit signage
@@ -109,19 +115,15 @@ For the SGI machine room (the live-render CRT; cf. `src/world/MiniWorldPreview.t
 | `retro-crt-tv.glb` | `retro_crt_tv.glb` | |
 | `magnavox-crt-tv.glb` | `magnavox_19_crt_tv_-_rr1938_w122.glb` | ~14MB — optimize |
 
-## `animatronics/` — animatronic horror (Phase 5 dread)
-For the lower / dread levels (the rat turns, the machine sees you). Surface
-levels stay goofy; save these for depth.
+## `animatronics/` — unshipped geometry scouts only
+Third-party **character** scouts (FNAF/Fazbear, Chuck E. Cheese style, Shrek)
+were **removed 2026-07-08** and purged from git history — never shippable, and
+not something to expose in a public repo. Phase 5 dread uses original parody
+geometry instead.
 
 | file | ← original | notes |
 |---|---|---|
-| `roberta-animatronic.glb` | `roberta_animatronic_motion_ability.glb` | verify provenance |
-
-`customizable-animatronics-fazbear.glb`, `springbonnie-chuck-e-cheese-style.glb`,
-and `nightmare-shrek-animatronic.glb` were **removed 2026-07-08** and purged from
-git history: they depict third-party IP (Five Nights at Freddy's, Chuck E. Cheese,
-Shrek) and were never shippable. The dread level they were scouted for uses
-original parody geometry instead — no replacements needed here.
+| `roberta-animatronic.glb` | `roberta_animatronic_motion_ability.glb` | unshipped. CC Attribution, author **Nobilis the Palaeovespa** — [sketchfab.com/3d-models/roberta-animatronic-motion-ability-a18ff63416024f28bb8e307fc59b9c45](https://sketchfab.com/3d-models/roberta-animatronic-motion-ability-a18ff63416024f28bb8e307fc59b9c45). Original character (not someone else's IP); kept only as private mesh reference, never ships. |
 
 ## `levels/` — liminal / pool / backrooms environments
 Full environments staged for the levels below the shop (Phase 3+): the pool

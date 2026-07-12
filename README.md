@@ -311,10 +311,11 @@ Most code and visuals are **original or procedurally generated**, the boids
 sim, the water and PS1 shaders, the room geometry, and the canvas-drawn
 textures. The one category of third-party content is the **bought 3D
 environment/prop models** (the liminal/pool/backrooms levels, the Greek
-statuary, the arcade cabinet, etc.): they're crunched to PS1 fidelity and
-shipped under `public/models/`, each with an attribution row in
-[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md), a postbuild guard
-(`scripts/check-build.mjs`) **fails the build if any shipped `.glb` lacks one**.
+statuary, etc.): they're crunched to PS1 fidelity and shipped under
+`public/models/`, each with an exact source URL + author + license in
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md). A postbuild guard
+(`scripts/check-build.mjs`) **fails the build if any shipped `.glb` lacks a
+complete attribution row** (placeholders like `TODO(license)` are rejected).
 No proprietary marks (Nintendo, SGI, Pizza Hut, Doom, Cosmo Player) are used:
 original parody only. The **boot loop and jukebox tracks** are deliberately
 degraded bounces of Scoobert Doobert's **own** music (Luke's copyright), so

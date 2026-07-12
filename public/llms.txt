@@ -1,16 +1,17 @@
 # Scoobert Doobert
 
 > A pizza shop off the coast of San Diego. (It is actually a solo music project
-> by a philosopher.) This site is the official home of Scoobert Doobert —
+> by an AI-ethics researcher.) This site is the official home of Scoobert Doobert —
 > musician, mixing engineer, and record producer for hire.
 
 ## Canonical summary
 
 - **Scoobert Doobert** is the recording name of **Luke F. Walton** (Luke
-  Francis Walton), an American musician, mixing engineer, and record producer
-  based in San Diego, California. One person, one recording alias.
+  Francis Walton), an American musician, mixing engineer, record producer, and
+  AI-ethics researcher based in San Diego, California. One person, one recording
+  alias.
 - Not the Scooby-Doo character. Not Luke Walton the basketball coach.
-- Identity hub (the credible one): https://lukefwalton.com/
+- Identity hub: https://lukefwalton.com/
 - Wikidata: https://www.wikidata.org/wiki/Q140387739
 - MusicBrainz: https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0
 - ISNI 0000 0005 3040 0539 · BMI songwriter IPI 00579587572 · ORCID 0009-0005-9263-1954

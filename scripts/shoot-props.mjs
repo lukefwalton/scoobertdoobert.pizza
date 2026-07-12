@@ -73,11 +73,12 @@ const inCorr = await roomIs('The Long Corridor');
 const mobius = await loaded('mobius-strip.glb');
 if (!mobius) fail('mobius-strip.glb did not load in the corridor');
 
-// The other two prop'd rooms (jukebox, classified) need the flaky rat/hall route,
-// so cover their shipped GLBs by fetching them directly — proves they ship + 200.
+// crt-tv ships in the machine-room / memory-lane path (not the shop→pool→corridor
+// walk above), so cover it with a direct HEAD — proves it ships + 200. Arcade
+// cabinets are procedural now (no arcade-cabinet.glb).
 const others = await page.evaluate(async () => {
   const out = {};
-  for (const f of ['arcade-cabinet.glb', 'crt-tv.glb']) {
+  for (const f of ['crt-tv.glb']) {
     try {
       out[f] = (await fetch('/models/' + f, { method: 'HEAD' })).status;
     } catch {
@@ -86,13 +87,11 @@ const others = await page.evaluate(async () => {
   }
   return out;
 });
-const arcade = others['arcade-cabinet.glb'] === 200;
 const crt = others['crt-tv.glb'] === 200;
-if (!arcade) fail('arcade-cabinet.glb is not served (200)');
 if (!crt) fail('crt-tv.glb is not served (200)');
 
 console.log(
   `props: shop=${startShop} palm=${palm} pool=${inPool} statue=${statue} corridor=${inCorr} ` +
-    `mobius=${mobius} arcade=${arcade} crt=${crt} models=${JSON.stringify(modelStatus)} | errors=${failures()}`,
+    `mobius=${mobius} crt=${crt} models=${JSON.stringify(modelStatus)} | errors=${failures()}`,
 );
 await finish();

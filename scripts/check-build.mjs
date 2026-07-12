@@ -13,7 +13,11 @@ function hasContent(file, needle) {
 }
 
 const cases = [
-  { label: 'storefront (/)', files: ['dist/index.html'], needle: 'World Wide Web Pizza Storefront' },
+  {
+    label: 'storefront (/)',
+    files: ['dist/index.html'],
+    needle: 'World Wide Web Pizza Storefront',
+  },
   {
     label: 'text-only (/text)',
     files: ['dist/text.html', 'dist/text/index.html'],
@@ -56,22 +60,97 @@ for (const c of cases) {
   }
 }
 
-// Provenance guard: every shipped 3D model (dist/models/*.glb) must have an entry
-// in THIRD_PARTY_NOTICES.md, so a bundled third-party asset can't drift into the
-// release without an attribution row. We only require the filename be PRESENT —
-// the exact license text is Luke's to fill in (TODO(license) is allowed); a model
-// with no row at all fails the build.
+// Provenance guard: every shipped 3D model must have an exact source URL, author,
+// and license in THIRD_PARTY_NOTICES.md. Placeholders (TODO(license), empty cells,
+// NonCommercial) fail the build — a bundled asset cannot ship without filled-in
+// attribution. We assert both public/models (source of truth) and dist/models
+// (what the build actually emitted) so a copy/rename regression can't slip past.
 const NOTICES = 'THIRD_PARTY_NOTICES.md';
-const modelsDir = 'dist/models';
-if (existsSync(modelsDir)) {
-  const notices = existsSync(NOTICES) ? readFileSync(NOTICES, 'utf8') : '';
-  for (const glb of readdirSync(modelsDir).filter((f) => f.toLowerCase().endsWith('.glb'))) {
-    if (notices.includes(glb)) {
-      console.log(`  ok shipped model ${glb} -> has a ${NOTICES} entry`);
+
+/** Parse the shipped-models markdown table into { file → {source, author, license} }. */
+function parseModelNotices(md) {
+  const rows = new Map();
+  for (const line of md.split('\n')) {
+    // | `name.glb` | source path | crunched notes | source URL | author | license |
+    if (!/^\|\s*`[^`]+\.glb`\s*\|/.test(line)) continue;
+    const cells = line
+      .split('|')
+      .slice(1, -1)
+      .map((c) => c.trim());
+    if (cells.length < 6) continue;
+    const file = cells[0].replace(/^`|`$/g, '');
+    if (!file.toLowerCase().endsWith('.glb')) continue;
+    rows.set(file, {
+      source: cells[3],
+      author: cells[4],
+      license: cells[5],
+    });
+  }
+  return rows;
+}
+
+function cellOk(value) {
+  const v = (value ?? '').replace(/\*\*/g, '').trim();
+  if (!v) return false;
+  if (/TODO\s*\(/i.test(v)) return false;
+  if (/^TBD$/i.test(v)) return false;
+  if (/uploader per source page/i.test(v)) return false;
+  return true;
+}
+
+function licenseShipable(value) {
+  const v = (value ?? '').replace(/\*\*/g, '').trim();
+  // CC-BY-NC / NonCommercial cannot ship on a public site (docs/DESIGN.md).
+  if (/\bNC\b|Non[\s-]?Commercial/i.test(v)) return false;
+  if (/ShareAlike|\bSA\b/i.test(v) && /CC/i.test(v)) return false;
+  return true;
+}
+
+function checkModelLicenses(modelsDir, label, noticeRows) {
+  if (!existsSync(modelsDir)) return 0;
+  let bad = 0;
+  const glbs = readdirSync(modelsDir).filter((f) => f.toLowerCase().endsWith('.glb'));
+  for (const glb of glbs) {
+    const row = noticeRows.get(glb);
+    if (!row) {
+      console.error(`  x ${label} model ${glb}: no row in ${NOTICES}`);
+      bad++;
+      continue;
+    }
+    const problems = [];
+    if (!cellOk(row.source) || !/https?:\/\//i.test(row.source)) {
+      problems.push('source URL missing or not a URL');
+    }
+    if (!cellOk(row.author)) problems.push('author missing/placeholder');
+    if (!cellOk(row.license)) problems.push('license missing/placeholder');
+    else if (!licenseShipable(row.license)) {
+      problems.push(`license not shippable (${row.license})`);
+    }
+    if (problems.length) {
+      console.error(`  x ${label} model ${glb}: ${problems.join('; ')}`);
+      bad++;
     } else {
-      console.error(`  x shipped model ${glb}: no entry in ${NOTICES} (add an attribution row)`);
+      console.log(
+        `  ok ${label} model ${glb} -> ${row.author} / ${row.license.replace(/\*\*/g, '').trim()}`,
+      );
+    }
+  }
+  return bad;
+}
+
+{
+  const notices = existsSync(NOTICES) ? readFileSync(NOTICES, 'utf8') : '';
+  if (!notices) {
+    console.error(`  x ${NOTICES} is missing — cannot attribute shipped models`);
+    failed++;
+  } else {
+    const noticeRows = parseModelNotices(notices);
+    if (noticeRows.size === 0) {
+      console.error(`  x ${NOTICES} has no parseable model rows`);
       failed++;
     }
+    failed += checkModelLicenses('public/models', 'public', noticeRows);
+    failed += checkModelLicenses('dist/models', 'dist', noticeRows);
   }
 }
 

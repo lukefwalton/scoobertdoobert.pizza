@@ -275,7 +275,7 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   a room owns the loop voice while you're in it (a `jukebox.catalog` slug) and
   hands it back on exit (`musicStore.restorePreferred`) — "exploration's reward is
   sound," no new collectible. Reuses the shipped `Water` (now tint/placement-
-  configurable), `palm-tree`/`arcade-cabinet` props. `shoot:boardwalk`,
+  configurable), `palm-tree` props + procedural arcade cabinets. `shoot:boardwalk`,
   `music.test` Room.song guard. Surface stays sweet (taste guardrail).
 - ✅ **The Sunken Gallery wing (world-content):** a submerged vaporwave-classical
   hall off the poolrooms — **The Sunken Gallery** (a colonnade of **crunched greek
