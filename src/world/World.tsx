@@ -119,7 +119,7 @@ function RoomMusic({ room }: { room: Room }) {
     // jukebox forever (it's hidden there until found). Chime + announce ONLY on the
     // first find (discoverSong returns true once), so revisits stay quiet.
     if (useProgressStore.getState().discoverSong(song)) {
-      announce(`♪ new song unlocked — ${jukeboxTitle(song)}`, 'luck');
+      announce(`♪ new song unlocked — ${jukeboxTitle(song)}`, 'luck', { queue: true });
       audio.playChime(noteToFreq('E', 5), 0.18, 0.08, 0.5);
       window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0.22, 0.08, 0.5), 150);
     }

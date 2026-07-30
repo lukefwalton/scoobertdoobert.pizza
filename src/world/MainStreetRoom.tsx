@@ -75,7 +75,10 @@ export function MainStreetRoom({ room }: { room: Room }) {
     () => makeTextTexture('GALLERIA', { fg: '#ffd9a0', bg: '#241a2a', w: 256, h: 64 }),
     [],
   );
-  const galleriaMat = useMemo(() => new THREE.MeshBasicMaterial({ map: galleriaTex }), [galleriaTex]);
+  const galleriaMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ map: galleriaTex }),
+    [galleriaTex],
+  );
   useDispose(roadTex, roadMat, walkMat, bldgMat, bldgMat2, trimMat);
   useDispose(darkWin, litWin, poleMat, glowMat, amberMat, lampMat, capMat);
   useDispose(galleriaTex, galleriaMat);

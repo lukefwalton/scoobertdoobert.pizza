@@ -19,7 +19,8 @@ import { ControlHint } from './ControlHint';
 import { FinaleCard } from './FinaleCard';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
-import { useToastStore, announce, toastDurationMs } from '../state/toastStore';
+import { useToastStore, announce, toastDismissMs } from '../state/toastStore';
+import { useRaceStore } from '../state/raceStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { interactNearby, grabNearby } from '../lib/worldActions';
@@ -57,6 +58,9 @@ export function WorldHud() {
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const nearInteractable = useSceneStore((s) => s.nearInteractable);
   const rhythmActive = useRhythmStore((s) => s.active);
+  // The ghost race is on (countdown / racing / the result card): its top-centre
+  // band replaces the objective chip for the duration (they collided before).
+  const raceLive = useRaceStore((s) => s.phase !== 'idle');
   const nearNpc = useSceneStore((s) => s.nearNpc);
   const openNpc = useSceneStore((s) => s.openNpc);
   const closeNpc = useSceneStore((s) => s.closeNpcDialog);
@@ -139,8 +143,10 @@ export function WorldHud() {
       ? ({ kind: 'running', slug: benchBusy } as const)
       : benchStateFor(playingSlug, progress)
     : null;
-  // Transient announce toast (luck earned, a crit landed). Auto-dismissed below.
+  // Transient announce toast (luck earned, a crit landed). Auto-dismissed below;
+  // later announcements queue behind it (toastStore) instead of clobbering it.
   const toast = useToastStore((s) => s.toast);
+  const toastQueued = useToastStore((s) => s.queue.length > 0);
   const clearToast = useToastStore((s) => s.clear);
 
   // A door was activated: the screen is fading to black — commit the room swap at
@@ -281,14 +287,15 @@ export function WorldHud() {
 
   // Auto-dismiss the announce toast after a READING-TIME-aware beat: long messages
   // (the spell-learn line, the finale) linger so they can actually be read, while a
-  // short "NAT 20!" keeps the snappy ~2.8s. ~55ms/char over a base, floored so short
-  // ones don't regress and capped so nothing hangs. (Gentle fade via CSS; WCAG-safe,
-  // no strobe — and longer-on-screen is strictly friendlier for slow readers.)
+  // short "NAT 20!" keeps the snappy ~2.8s — and when more announcements are
+  // WAITING, the current one steps aside a little sooner (toastDismissMs) so
+  // feedback never lags far behind play. clear() promotes the next in line, which
+  // re-runs this effect. (Gentle fade via CSS; WCAG-safe, no strobe.)
   useEffect(() => {
     if (!toast) return;
-    const t = window.setTimeout(() => clearToast(), toastDurationMs(toast.msg));
+    const t = window.setTimeout(() => clearToast(), toastDismissMs(toast.msg, toastQueued));
     return () => window.clearTimeout(t);
-  }, [toast, clearToast]);
+  }, [toast, toastQueued, clearToast]);
 
   // Duck the RADIO (the user's music) while a SOUND-MAKER overlay is up — an arcade
   // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
@@ -304,8 +311,9 @@ export function WorldHud() {
 
   // Announce an objective the moment it ticks done (the Feedback pillar). Seed the
   // "already done" set on first run so re-entering the world doesn't replay old
-  // completions, and fire on a short delay so the action's own toast (e.g. the
-  // pickup/luck one that COMPLETED the quest) shows first, then the ✓ confirmation.
+  // completions. The action's own toast (e.g. the pickup/luck one that COMPLETED
+  // the quest) shows first and the ✓ follows — the toast queue orders them, so
+  // the old hand-tuned stagger delay is gone.
   const prevDone = useRef<Set<string> | null>(null);
   useEffect(() => {
     const doneNow = new Set(QUESTS.filter((q) => q.done(progress)).map((q) => q.id));
@@ -317,8 +325,24 @@ export function WorldHud() {
     prevDone.current = doneNow;
     if (!fresh.length) return;
     const label = QUESTS.find((q) => q.id === fresh[0])?.label ?? 'an objective';
-    const t = window.setTimeout(() => announce(`✓ ${label}`, 'luck'), 1500);
-    return () => window.clearTimeout(t);
+    announce(`✓ ${label}`, 'luck', { queue: true });
+  }, [progress]);
+
+  // The one-time LUCK explainer: the first time any luck lands, say what the stat
+  // actually IS — every earn site announces "+n LUCK" but nothing ever explained
+  // that you never spend it yourself. Durable secret so it fires once, ever; the
+  // queue slots it right after the earning toast.
+  useEffect(() => {
+    if (progress.luckEarned <= 0) return;
+    if (progress.secretsFound.includes('luck-explained')) return;
+    useProgressStore.getState().findSecret('luck-explained');
+    announce(
+      '🍀 LUCK works on its own — you never spend it; the dice quietly tip your way.',
+      'info',
+      {
+        queue: true,
+      },
+    );
   }, [progress]);
 
   // THE FINALE (the win arc): the moment EVERY objective is done, fire it once —
@@ -350,10 +374,9 @@ export function WorldHud() {
     audio.playChime(noteToFreq('E', 5), 0, 0.14, 1.6);
     audio.playChime(noteToFreq('G', 5), 0.1, 0.14, 1.8);
     audio.playChime(noteToFreq('C', 6), 0.2, 0.12, 2);
-    window.setTimeout(
-      () => announce('★ You’ve seen it all for now. The rat’s proud. · +5 luck', 'crit-good'),
-      1800,
-    );
+    // The climax takes the DIRECT lane: the ★ lands the instant the last
+    // objective ticks (with the fanfare), and the queued ✓ details follow it.
+    announce('★ You’ve seen it all for now. The rat’s proud. · +5 luck', 'crit-good');
   }, [progress]);
 
   const nearHs = near ? HOTSPOTS.find((h) => h.id === near) : undefined;
@@ -366,14 +389,20 @@ export function WorldHud() {
   // visibility test so the toast only moves when the chip is really there.
   const objectiveHidden =
     paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame || !!levelOverlay;
+  // The RaceHud's live band and the objective chip share the top-centre slot —
+  // while a race is running the race owns it (the chip was rendering underneath).
   const objectiveShowing = objectiveChipVisible(progress, {
     on: objectiveHudOn,
-    hidden: objectiveHidden,
+    hidden: objectiveHidden || raceLive,
   });
 
   return (
     <>
-      <ObjectiveHud progress={progress} currentRoom={currentRoom} hidden={objectiveHidden} />
+      <ObjectiveHud
+        progress={progress}
+        currentRoom={currentRoom}
+        hidden={objectiveHidden || raceLive}
+      />
       <ScoreHud hidden={objectiveHidden} />
       <RaceHud hidden={objectiveHidden} />
       <RhythmGame />

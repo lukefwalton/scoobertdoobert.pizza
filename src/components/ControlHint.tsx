@@ -141,8 +141,9 @@ export function ControlHint() {
         </p>
       ) : (
         <p className="hud-controlhint__keys">
-          <strong>WASD</strong> to move · <strong>drag</strong> to look · <strong>Space</strong> to
-          jump <span className="hud-controlhint__dim">(once you learn it)</span>
+          <strong>WASD</strong> to move · <strong>drag</strong> to look · <strong>E</strong> to go
+          through doors · <strong>Space</strong> to jump{' '}
+          <span className="hud-controlhint__dim">(once you learn it)</span>
         </p>
       )}
     </div>

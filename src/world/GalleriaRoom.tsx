@@ -108,7 +108,10 @@ export function GalleriaRoom({ room }: { room: Room }) {
   const skyTex = useMemo(() => makeSkyTexture(), []);
   // Self-lit: the sky is a painting with its own light in it, fog can't have it.
   const skyMat = useMemo(() => new THREE.MeshBasicMaterial({ map: skyTex }), [skyTex]);
-  const horizonMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#dda184', side: THREE.DoubleSide }), []);
+  const horizonMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ color: '#dda184', side: THREE.DoubleSide }),
+    [],
+  );
   // Stucco storefront tones, warmed by the permanent golden hour.
   const stuccoMats = useMemo(
     () => ['#c99b78', '#b78a70', '#d0ab88', '#ad8b95'].map((c) => flatMat(c)),
@@ -118,10 +121,7 @@ export function GalleriaRoom({ room }: { room: Room }) {
   const darkWin = useMemo(() => new THREE.MeshBasicMaterial({ color: '#3a2f3e' }), []);
   const litWin = useMemo(() => new THREE.MeshBasicMaterial({ color: '#e8c67e' }), []);
   const glassMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#2c2436' }), []);
-  const awningMats = useMemo(
-    () => ['#a63d3d', '#3d6b5e', '#b08340'].map((c) => flatMat(c)),
-    [],
-  );
+  const awningMats = useMemo(() => ['#a63d3d', '#3d6b5e', '#b08340'].map((c) => flatMat(c)), []);
   const poleMat = useMemo(() => flatMat('#4a3a44'), []);
   const globeMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffd9a0' }), []);
   const bulbMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#ffe2ae' }), []);
@@ -169,7 +169,16 @@ export function GalleriaRoom({ room }: { room: Room }) {
   // nothing (the doors are on the ±Z ends, so the runs are unbroken).
   const shops = useMemo(() => {
     const rnd = seededRandom(2026);
-    const out: { x: number; z: number; w: number; h: number; d: number; mat: number; awning: number; lit: number[] }[] = [];
+    const out: {
+      x: number;
+      z: number;
+      w: number;
+      h: number;
+      d: number;
+      mat: number;
+      awning: number;
+      lit: number[];
+    }[] = [];
     for (const side of [-1, 1]) {
       let z = -D + 1.2;
       while (z < D - 1.2) {
@@ -220,7 +229,12 @@ export function GalleriaRoom({ room }: { room: Room }) {
     plink.current -= dt;
     if (plink.current <= 0) {
       // the fountain: small bright drops, just off-center
-      const notes: [string, number][] = [['E', 6], ['G', 6], ['A', 6], ['C', 7]];
+      const notes: [string, number][] = [
+        ['E', 6],
+        ['G', 6],
+        ['A', 6],
+        ['C', 7],
+      ];
       const [n, o] = notes[Math.floor(Math.random() * notes.length)];
       audio.playChime(noteToFreq(n, o), (Math.random() - 0.5) * 0.5, 0.022, 0.35);
       plink.current = 0.35 + Math.random() * 0.55;
@@ -265,22 +279,40 @@ export function GalleriaRoom({ room }: { room: Room }) {
       <mesh material={horizonMat} position={[0, (FACADE_H + H) / 2, D - 0.02]} rotation-y={Math.PI}>
         <planeGeometry args={[W * 2, H - FACADE_H]} />
       </mesh>
-      <mesh material={horizonMat} rotation-y={Math.PI / 2} position={[-W + 0.02, (FACADE_H + H) / 2, 0]}>
+      <mesh
+        material={horizonMat}
+        rotation-y={Math.PI / 2}
+        position={[-W + 0.02, (FACADE_H + H) / 2, 0]}
+      >
         <planeGeometry args={[D * 2, H - FACADE_H]} />
       </mesh>
-      <mesh material={horizonMat} rotation-y={-Math.PI / 2} position={[W - 0.02, (FACADE_H + H) / 2, 0]}>
+      <mesh
+        material={horizonMat}
+        rotation-y={-Math.PI / 2}
+        position={[W - 0.02, (FACADE_H + H) / 2, 0]}
+      >
         <planeGeometry args={[D * 2, H - FACADE_H]} />
       </mesh>
 
       {/* end walls below the horizon (the doors punch through these) */}
       {[-1, 1].map((s) => (
-        <mesh key={s} material={stuccoMats[3]} position={[0, FACADE_H / 2, s * (D - 0.05)]} rotation-y={s > 0 ? Math.PI : 0}>
+        <mesh
+          key={s}
+          material={stuccoMats[3]}
+          position={[0, FACADE_H / 2, s * (D - 0.05)]}
+          rotation-y={s > 0 ? Math.PI : 0}
+        >
           <planeGeometry args={[W * 2, FACADE_H]} />
         </mesh>
       ))}
       {/* GALLERIA over each end door */}
       {[-1, 1].map((s) => (
-        <mesh key={s} material={lintelMat} position={[0, 4.1, s * (D - 0.12)]} rotation-y={s > 0 ? Math.PI : 0}>
+        <mesh
+          key={s}
+          material={lintelMat}
+          position={[0, 4.1, s * (D - 0.12)]}
+          rotation-y={s > 0 ? Math.PI : 0}
+        >
           <planeGeometry args={[3.6, 1.35]} />
         </mesh>
       ))}
@@ -295,7 +327,11 @@ export function GalleriaRoom({ room }: { room: Room }) {
               <boxGeometry args={[b.d, b.h, b.w]} />
             </mesh>
             {/* ground-floor glass */}
-            <mesh material={glassMat} position={[face, 1.15, b.z]} rotation-y={inward > 0 ? Math.PI / 2 : -Math.PI / 2}>
+            <mesh
+              material={glassMat}
+              position={[face, 1.15, b.z]}
+              rotation-y={inward > 0 ? Math.PI / 2 : -Math.PI / 2}
+            >
               <planeGeometry args={[b.w * 0.72, 2.0]} />
             </mesh>
             {/* the awning over it */}
@@ -330,7 +366,13 @@ export function GalleriaRoom({ room }: { room: Room }) {
       })}
 
       {/* three tenant signboards (fixed spots along the runs) */}
-      {([[-1, -6], [1, -2], [-1, 6]] as const).map(([side, z], i) => (
+      {(
+        [
+          [-1, -6],
+          [1, -2],
+          [-1, 6],
+        ] as const
+      ).map(([side, z], i) => (
         <mesh
           key={i}
           material={signMats[i]}
@@ -361,7 +403,14 @@ export function GalleriaRoom({ room }: { room: Room }) {
       </group>
 
       {/* lamp posts with warm globes, flanking the walk */}
-      {([[-2.8, -5], [2.8, -5], [-2.8, 5], [2.8, 5]] as const).map(([x, z], i) => (
+      {(
+        [
+          [-2.8, -5],
+          [2.8, -5],
+          [-2.8, 5],
+          [2.8, 5],
+        ] as const
+      ).map(([x, z], i) => (
         <group key={i} position={[x, 0, z]}>
           <mesh material={poleMat} position={[0, 1.7, 0]}>
             <cylinderGeometry args={[0.07, 0.1, 3.4, 6]} />
@@ -380,7 +429,12 @@ export function GalleriaRoom({ room }: { room: Room }) {
       ))}
 
       {/* benches + planters around the fountain */}
-      {([[-1, -3.4], [1, 3.4]] as const).map(([s, z], i) => (
+      {(
+        [
+          [-1, -3.4],
+          [1, 3.4],
+        ] as const
+      ).map(([s, z], i) => (
         <group key={i} position={[s * 1.6, 0, z]} rotation-y={s > 0 ? Math.PI : 0}>
           <mesh material={benchMat} position={[0, 0.45, 0]}>
             <boxGeometry args={[2.0, 0.12, 0.55]} />
@@ -395,7 +449,14 @@ export function GalleriaRoom({ room }: { room: Room }) {
           ))}
         </group>
       ))}
-      {([[-4.2, -9], [4.2, -9], [-4.2, 9], [4.2, 9]] as const).map(([x, z], i) => (
+      {(
+        [
+          [-4.2, -9],
+          [4.2, -9],
+          [-4.2, 9],
+          [4.2, 9],
+        ] as const
+      ).map(([x, z], i) => (
         <group key={i} position={[x, 0, z]}>
           <mesh material={potMat} position={[0, 0.35, 0]}>
             <cylinderGeometry args={[0.5, 0.4, 0.7, 7]} />

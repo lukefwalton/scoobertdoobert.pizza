@@ -112,7 +112,8 @@ export function PauseMenu() {
         <div className="window-body">
           <p className="hud-pause__hint">Return to the storefront for the full menu.</p>
           <p className="hud-pause__luck" title="Earned by rituals; the dice spend it for you">
-            <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>
+            <span aria-hidden="true">🍀</span> Luck <strong>{luck}</strong>{' '}
+            <span className="hud-pause__best">(the dice spend it for you)</span>
           </p>
           <p
             className="hud-pause__luck"
@@ -153,12 +154,47 @@ export function PauseMenu() {
               </ul>
             </div>
           )}
-          {/* The TROPHY CASE: the lifetime haul (pizza slices etc.) + your best shrine
-              fortune, the pause-menu twin of the 3D case back in the shop lobby. Only
-              shows once you've collected/drawn something. */}
-          {(Object.values(progress.lootTotals).some((n) => n > 0) || progress.bestFortune > 0) && (
-            <div className="hud-pause__inventory">
-              <p className="hud-pause__invtitle">Trophy case</p>
+          {/* The TROPHY CASE: everything you've turned up, in ONE place — the tally
+              row (rooms/secrets/games/…), the lifetime loot haul, and your best
+              shrine fortune (the pause-menu twin of the 3D case in the shop lobby).
+              These used to be three separate readouts scattered down the panel;
+              one section is the legible version (the game-design cleanup). */}
+          <div className="hud-pause__inventory">
+            <p className="hud-pause__invtitle">Trophy case</p>
+            <div className="hud-pause__progress" title="What you've turned up so far">
+              <span>
+                Rooms <strong>{visitedRooms.length}</strong>/{ROOMS.length}
+              </span>
+              <span>
+                Secrets <strong>{progress.secretsFound.length}</strong>
+              </span>
+              <span>
+                Games <strong>{progress.clearedGames.length}</strong>
+              </span>
+              {dancedCount(progress.secretsFound) > 0 && (
+                <span>
+                  Danced <strong>{dancedCount(progress.secretsFound)}</strong>
+                </span>
+              )}
+              {tapesHeld > 0 && (
+                <span>
+                  Tapes{' '}
+                  <strong>
+                    {tapesHeld}/{CASSETTE_IDS.length}
+                  </strong>
+                </span>
+              )}
+              {restoredTracks > 0 && (
+                <span>
+                  HI-FI{' '}
+                  <strong>
+                    {restoredTracks}/{JUKEBOX_TRACKS.length}
+                  </strong>
+                </span>
+              )}
+            </div>
+            {(Object.values(progress.lootTotals).some((n) => n > 0) ||
+              progress.bestFortune > 0) && (
               <ul className="hud-pause__invlist">
                 {LOOT.filter((l) => (progress.lootTotals[l.id] ?? 0) > 0).map((l) => (
                   <li key={l.id} title={`${progress.lootTotals[l.id]} collected, all-time`}>
@@ -175,38 +211,6 @@ export function PauseMenu() {
                     ) : null;
                   })()}
               </ul>
-            </div>
-          )}
-          <div className="hud-pause__progress" title="What you've turned up so far">
-            <span>
-              Rooms <strong>{visitedRooms.length}</strong>/{ROOMS.length}
-            </span>
-            <span>
-              Secrets <strong>{progress.secretsFound.length}</strong>
-            </span>
-            <span>
-              Games <strong>{progress.clearedGames.length}</strong>
-            </span>
-            {dancedCount(progress.secretsFound) > 0 && (
-              <span>
-                Danced <strong>{dancedCount(progress.secretsFound)}</strong>
-              </span>
-            )}
-            {tapesHeld > 0 && (
-              <span>
-                Tapes{' '}
-                <strong>
-                  {tapesHeld}/{CASSETTE_IDS.length}
-                </strong>
-              </span>
-            )}
-            {restoredTracks > 0 && (
-              <span>
-                HI-FI{' '}
-                <strong>
-                  {restoredTracks}/{JUKEBOX_TRACKS.length}
-                </strong>
-              </span>
             )}
           </div>
           <div className="hud-pause__todo">
