@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { flatMat, makeCheckerTexture, makeAffineTexturedMaterial, seededRandom } from './ps1';
+import {
+  flatMat,
+  makeCheckerTexture,
+  makeAffineTexturedMaterial,
+  makeTextTexture,
+  seededRandom,
+} from './ps1';
 import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
@@ -63,8 +69,19 @@ export function MainStreetRoom({ room }: { room: Room }) {
     () => new THREE.MeshBasicMaterial({ color: day ? '#cdd7db' : '#0e1018' }),
     [day],
   );
+  // The galleria's entrance sign on the +X wall — the mall is the one thing on
+  // the block that never closes (lit warm at night, plain lettering by day).
+  const galleriaTex = useMemo(
+    () => makeTextTexture('GALLERIA', { fg: '#ffd9a0', bg: '#241a2a', w: 256, h: 64 }),
+    [],
+  );
+  const galleriaMat = useMemo(
+    () => new THREE.MeshBasicMaterial({ map: galleriaTex }),
+    [galleriaTex],
+  );
   useDispose(roadTex, roadMat, walkMat, bldgMat, bldgMat2, trimMat);
   useDispose(darkWin, litWin, poleMat, glowMat, amberMat, lampMat, capMat);
+  useDispose(galleriaTex, galleriaMat);
 
   // Storefronts down both sidewalks — a seeded run of dark blocks with window
   // grids, one lit window here and there (someone's still up, or the light's
@@ -255,6 +272,17 @@ export function MainStreetRoom({ room }: { room: Room }) {
           NIGHT tell only; by day the doorway is just a dark opening */}
       {!day && (
         <mesh material={glowMat} position={[-W + 0.15, 1.4, -2]} rotation={[0, Math.PI / 2, 0]}>
+          <planeGeometry args={[2.0, 2.8]} />
+        </mesh>
+      )}
+
+      {/* the galleria entrance on the +X wall — sign above the mall doors (both
+          times of day; it's the same building), plus a warm spill at night */}
+      <mesh material={galleriaMat} position={[W - 0.15, 3.2, 5]} rotation={[0, -Math.PI / 2, 0]}>
+        <planeGeometry args={[2.6, 0.66]} />
+      </mesh>
+      {!day && (
+        <mesh material={glowMat} position={[W - 0.18, 1.4, 5]} rotation={[0, -Math.PI / 2, 0]}>
           <planeGeometry args={[2.0, 2.8]} />
         </mesh>
       )}

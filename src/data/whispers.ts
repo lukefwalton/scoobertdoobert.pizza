@@ -86,6 +86,8 @@ export const ROOM_WHISPERS: Record<string, string> = {
   bar: 'a flyer curling behind the bar: BEFORMER RECORDS: LABEL NIGHT. His own imprint; he’d sooner press the record himself than wait on a yes that isn’t coming. Most nights, that’s exactly what he does.',
   mainstreetday:
     'in the back at night, out the front at noon, same street, same nobody. A kitchen is a place you pass through between two worlds; this one takes the joke literally.',
+  galleria:
+    'the clouds overhead have not moved since you came in. Somebody painted golden hour onto a ceiling so nobody would ever have to go home; the fountain believes it, and keeps playing to the empty hall.',
   moonlight:
     'a string of bulbs swaying over the floor. “Dancing in the Moonlight” was cut the way he cuts everything, every part himself, after dark.',
   bestday:

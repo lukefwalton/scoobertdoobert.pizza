@@ -802,6 +802,48 @@ while keeping the cheeky pizza register. Goal order: listen → hire → play th
 - ✅ **Verification** — check-build maze case; `shoot:fallback`/`shoot:descent`/
   `shoot:mobile` extended; full suite + build green.
 
+## ✅ The game-design cleanup + The Galleria (2026-07-30, Luke: "a little too chaotic — more understandable and fun in the not overengineered way")
+Two chunks on one branch — a new room from Luke's r/LiminalSpace reference batch,
+and a legibility pass on the reward layer (the fix was DELETING redundancy, not
+adding systems):
+- ✅ **The Galleria (ガレリア)** — the fake skies of Las Vegas: an indoor two-story
+  mall promenade that pretends to be OUTDOORS (stucco shopfronts, awnings, string
+  lights, a fountain playing to nobody, parody tenant signs) under a **painted
+  dusk-sky ceiling** (seeded cloud banks + two faint panel seams — the tell — on a
+  512 FX canvas) where it is always golden hour. It **bridges Main Street's
+  day/night flip**: in off the overexposed noon (`mainstreetday` +X), out the far
+  end into the dead of night (`mainstreet` +X — the same building at both hours,
+  marked by a GALLERIA sign + a warm night spill). Warm-uncanny (0.09), a
+  `musicRoom` (fountain plinks, a PA bing-bong no announcement ever follows, the
+  hush); two lookables (the YOU ARE HERE directory, the seam in the sky) + a
+  whisper. `shoot:galleria` walks the real edges (day entry → night exit,
+  asserting the night VARIANT — → night re-entry).
+- ✅ **Toast lanes** (see DESIGN → "Feedback lanes"): `toastStore` grew a
+  direct-vs-queued contract — action results show NOW, passive chatter (quest ✓s,
+  whispers, song unlocks, first-entry rewards, the new-best nudge) queues instead
+  of clobbering, deduped + capped at 4, stepping aside sooner when others wait
+  (`toastDismissMs`). Deleted every hand-tuned anti-clobber setTimeout (quest ✓
+  1500ms, finale 1800ms, whisper 1200ms, new-best 900ms). The finale ★ rides the
+  direct lane (the climax lands with its fanfare). Unit-pinned in
+  `toastStore.test.ts`.
+- ✅ **Loot stopped shouting:** the per-grab toast is gone — the ScoreHud's live
+  points/COMBO chip + the collect-burst + the climbing scale are the score
+  feedback, so the toast channel stays readable in a combo run.
+- ✅ **Fixed the race/objective HUD collision:** the ghost race's top-centre band
+  and the objective chip rendered on top of each other (`.hud-race--live` vs
+  `.hud-objective`, both top:12 centre); the chip now yields while a race is on
+  (any non-idle `raceStore` phase).
+- ✅ **The pause menu consolidated to ONE progress section:** the floating tally
+  row + the Trophy case merged (tallies + lifetime loot haul + best fortune under
+  one TROPHY CASE heading); LUCK gained an inline caption ("the dice spend it for
+  you") and a **one-time first-luck explainer toast** (durable
+  `luck-explained` secret) — the stat finally says what it is.
+- ✅ **ControlHint teaches E** ("E to go through doors") alongside WASD/drag/Space.
+- Verified: full unit suite + `shoot:` luck / hud / whisper / score / spell /
+  dice / garden / grassrooms / trophy / finale / tapes / keys / entities /
+  restore / listening / rooms / world / escaperoom / boardwalk / discovery /
+  objective / galleria all green.
+
 ## Open hygiene / notes
 - **Constitution audit (2026-07-07):** an adversarial re-check of every CLAUDE.md
   hard line against the whole codebase (they'd only ever been verified per-feature

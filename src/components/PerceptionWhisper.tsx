@@ -36,12 +36,10 @@ export function PerceptionWhisper() {
     const roll = 1 + Math.floor(Math.random() * 20);
     if (!debug && roll < PERCEPTION_DC) return; // you just didn't notice
 
-    // A short beat so the whisper doesn't collide with the room's own arrival toast.
-    const t = window.setTimeout(() => {
-      announce(`✦ You notice ${whisper}`, 'info');
-      exposeTestGlobal('__sdpWhisper', { room: currentRoom, text: whisper });
-    }, 1200);
-    return () => window.clearTimeout(t);
+    // Passive chatter: queued behind the room's own arrival toast (a song unlock,
+    // a first-entry reward) — no hand-tuned stagger needed anymore.
+    announce(`✦ You notice ${whisper}`, 'info', { queue: true });
+    exposeTestGlobal('__sdpWhisper', { room: currentRoom, text: whisper });
   }, [currentRoom, transitioning, debug]);
 
   return null;

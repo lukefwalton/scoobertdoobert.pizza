@@ -53,6 +53,7 @@ import { BambooRoom } from './BambooRoom';
 import { TurtleRoom } from './TurtleRoom';
 import { TubesRoom } from './TubesRoom';
 import { MainStreetRoom } from './MainStreetRoom';
+import { GalleriaRoom } from './GalleriaRoom';
 import { DinerRoom } from './DinerRoom';
 import { BarRoom } from './BarRoom';
 import { LiveRoom } from './LiveRoom';
@@ -118,7 +119,7 @@ function RoomMusic({ room }: { room: Room }) {
     // jukebox forever (it's hidden there until found). Chime + announce ONLY on the
     // first find (discoverSong returns true once), so revisits stay quiet.
     if (useProgressStore.getState().discoverSong(song)) {
-      announce(`♪ new song unlocked — ${jukeboxTitle(song)}`, 'luck');
+      announce(`♪ new song unlocked — ${jukeboxTitle(song)}`, 'luck', { queue: true });
       audio.playChime(noteToFreq('E', 5), 0.18, 0.08, 0.5);
       window.setTimeout(() => audio.playChime(noteToFreq('B', 5), 0.22, 0.08, 0.5), 150);
     }
@@ -177,6 +178,7 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   turtle: (room) => <TurtleRoom room={room} />,
   tubes: (room) => <TubesRoom room={room} />,
   mainstreet: (room) => <MainStreetRoom room={room} />,
+  galleria: (room) => <GalleriaRoom room={room} />,
   diner: (room) => <DinerRoom room={room} />,
   bar: (room) => <BarRoom room={room} />,
   // The Basement Sessions — the recording-studio wing (off the practice room).

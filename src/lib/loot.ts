@@ -3,10 +3,15 @@
 //
 // Every way of grabbing loot — clicking it, walking onto it, pressing P, the smoke
 // hook — funnels through collectLootById so they can't double-collect and all get
-// the same reward: points (scoreStore), a TOAST, and a musical note. The note is
-// the interactive-music hook: each grab plays the next step of a climbing
-// pentatonic scale, so a collection COMBO literally plays an ascending melody and a
-// broken combo drops back to the root. (No wrong notes — it's a pentatonic.)
+// the same reward: points (scoreStore) and a musical note. The note is the
+// interactive-music hook: each grab plays the next step of a climbing pentatonic
+// scale, so a collection COMBO literally plays an ascending melody and a broken
+// combo drops back to the root. (No wrong notes — it's a pentatonic.)
+//
+// Deliberately NO toast per grab (the game-design cleanup): the ScoreHud's live
+// points + COMBO chip and the collect-burst are the score feedback, so the shared
+// announce channel stays free for the things worth reading (luck, quest ✓s,
+// whispers). The one toast left here is the once-per-run new-best nudge.
 // ───────────────────────────────────────────────────────────────────────────
 import { audio } from '../audio/engine';
 import { noteToFreq } from './chimes';
@@ -33,8 +38,8 @@ const SCALE: Array<[string, number]> = [
 
 /**
  * Grab a loot drop by id. IDEMPOTENT within a run (no-op if already taken).
- * Returns true the one time it actually collects. Plays the combo note + a milestone
- * sparkle, and toasts the points.
+ * Returns true the one time it actually collects. Plays the combo note + a
+ * milestone sparkle; the ScoreHud shows the points.
  */
 export function collectLootById(id: string): boolean {
   const drop = lootDropById(id);
@@ -55,14 +60,10 @@ export function collectLootById(id: string): boolean {
   // Every 5th in a streak gets a bright octave sparkle — the share-fuel flourish.
   if (res.combo > 1 && res.combo % 5 === 0) audio.playChime(noteToFreq('C', 7), 0.25, 0.12, 1.1);
 
-  const comboTag = res.combo > 1 ? ` ·  combo ×${res.combo}` : '';
-  announce(`${type.glyph} +${res.awarded}${comboTag}`, res.combo >= 5 ? 'crit-good' : 'luck');
   // One-time-per-run nudge the moment you beat your record: go put your initials up.
-  if (res.newBest) {
-    window.setTimeout(
-      () => announce('🏆 New best! Open the menu (Esc) to sign the leaderboard.', 'crit-good'),
-      900,
-    );
-  }
+  if (res.newBest)
+    announce('🏆 New best! Open the menu (Esc) to sign the leaderboard.', 'crit-good', {
+      queue: true,
+    });
   return true;
 }

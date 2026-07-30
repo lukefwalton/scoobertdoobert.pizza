@@ -324,6 +324,26 @@ The "make a damn game" pivot (pillar #6 above), built on the gamble rung.
   garden frog's per-ribbit d20 now lands both crits) is the cheap version of the same
   idea — every roll should READ.
 
+### Feedback lanes — every reward reads, none of them shout over each other (2026-07, "better game design")
+The cleanup rule for the reward layer (from Luke's "a little too chaotic — more
+understandable"): all the systems above talk to the player through ONE toast
+channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
+- **Direct feedback** ("you just did a thing — here's the result": a fortune
+  draw, a dice crit, a spell, a clap) **shows immediately**, replacing whatever
+  is up. An action's result never waits in line.
+- **Passive chatter** (quest ✓s, perception whispers, song unlocks, first-entry
+  rewards) **queues** behind the current toast — deduped, capped — instead of
+  clobbering it. This replaced every hand-tuned per-call-site setTimeout stagger.
+- **Right channel for the right info:** the loot collectathon no longer toasts
+  every grab — the ScoreHud's live points/combo + the collect-burst + the rising
+  scale ARE the score feedback, so the toast channel stays free for things worth
+  reading. (One exception: the once-per-run new-best leaderboard nudge.)
+- **The stats explain themselves once:** the first time luck ever lands, a
+  one-time queued line says what LUCK is (you never spend it; the dice tip your
+  way), and the pause menu captions it inline. The pause menu keeps ONE progress
+  section (the Trophy case: tallies + lifetime haul + best fortune), not three
+  scattered readouts.
+
 ### PIZZA POINTS — the collectathon + the leaderboard (SHIPPED, Luke 2026-06-28)
 The arcade-score layer that makes a run *replayable* and *shareable*. Goofy loot —
 🍕 pizza, 🌯 burritos, 🍣 sushi, 🛹 skateboards, 🏄 surfboards — is scattered across

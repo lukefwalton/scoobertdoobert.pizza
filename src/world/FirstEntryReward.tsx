@@ -29,7 +29,8 @@ export function FirstEntryReward({
     if (useProgressStore.getState().secretsFound.includes(secret)) return; // already claimed, ever
     useProgressStore.getState().findSecret(secret);
     if (luck > 0) useProgressStore.getState().gainLuck(luck);
-    announce(message, 'luck');
+    // Passive (you merely walked in) — waits behind any direct-action toast.
+    announce(message, 'luck', { queue: true });
     const tid = window.setTimeout(() => {
       // a quiet major-ish triad
       audio.playChime(noteToFreq('C', 5), -0.2, 0.1, 1.2);

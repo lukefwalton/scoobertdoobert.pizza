@@ -616,6 +616,9 @@ export const SURFACE_ROOMS: Room[] = [
       // Back out of the bar at the far end: a step up-street of the -Z door,
       // facing +Z back up the street, clear of every door radius.
       fromBar: { position: [0, EYE, -6.5], yaw: 0 },
+      // Out the galleria's night door: on the +X sidewalk at the mall entrance,
+      // facing -X into the dark street (it was noon when you went in).
+      fromGalleria: { position: [3.2, EYE, 5], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -643,6 +646,15 @@ export const SURFACE_ROOMS: Room[] = [
         position: [0, 0, -9.95], // -Z — the last lit place at the dark far end
         rotationY: Math.PI,
         label: 'into the bar at the end of the street',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreet-to-galleria',
+        to: 'galleria',
+        toSpawn: 'fromNight',
+        position: [6.95, 0, 5], // +X — the mall entrance, still lit at this hour
+        rotationY: -Math.PI / 2,
+        label: 'into the galleria',
         radius: 3.2,
       },
     ],
@@ -731,6 +743,9 @@ export const SURFACE_ROOMS: Room[] = [
       // the sunstruck empty street.
       default: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
       fromKitchen: { position: [-2.5, EYE, -2], yaw: Math.PI / 2 },
+      // Out the galleria's day door: the same mall entrance as at night (it's the
+      // same building), facing -X back into the noon glare.
+      fromGalleria: { position: [3.2, EYE, 5], yaw: -Math.PI / 2 },
     },
     doors: [
       {
@@ -749,6 +764,60 @@ export const SURFACE_ROOMS: Room[] = [
         position: [0, 0, 9.95], // +Z — up the daylit block, back toward North Park
         rotationY: 0,
         label: 'up the block, into the day',
+        radius: 3.2,
+      },
+      {
+        id: 'mainstreetday-to-galleria',
+        to: 'galleria',
+        toSpawn: 'fromDay',
+        position: [6.95, 0, 5], // +X — the mall entrance (the same building as at night)
+        rotationY: -Math.PI / 2,
+        label: 'into the galleria',
+        radius: 3.2,
+      },
+    ],
+  },
+  {
+    id: 'galleria',
+    kind: 'galleria',
+    title: 'The Galleria',
+    // The indoor mall that pretends to be OUTDOORS (the fake skies of Las Vegas):
+    // a long two-story promenade under a painted dusk-sky ceiling where the clouds
+    // never move. It joins Main Street's two times of day — the +Z door opens onto
+    // the overexposed noon, the -Z door onto the dead of night; inside it is
+    // always golden hour. The hall runs along Z.
+    dims: { halfW: 6, halfD: 12, height: 9, eye: EYE },
+    // Perpetual painted dusk: violet-peach sky, soft warm haze, fog far enough
+    // that the whole promenade reads (the sky is the point — don't swallow it).
+    palette: { background: '#8f7799', fog: '#a98a94', fogNear: 11, fogFar: 62 },
+    // A musicRoom: the fountain's plinks, a rare PA bing-bong, the hush of a mall
+    // with nobody in it own the space (see GalleriaRoom). Warm-uncanny, no scare.
+    musicRoom: true,
+    spawns: {
+      // In off the noon street at the +Z end, facing -Z down the promenade at the
+      // fountain (and, far past it, the night door). Clear of the +Z door radius.
+      default: { position: [0, EYE, 8.5], yaw: Math.PI },
+      fromDay: { position: [0, EYE, 8.5], yaw: Math.PI },
+      // In off the night street at the -Z end, facing +Z up the promenade.
+      fromNight: { position: [0, EYE, -8.5], yaw: 0 },
+    },
+    doors: [
+      {
+        id: 'galleria-to-mainstreetday',
+        to: 'mainstreetday',
+        toSpawn: 'fromGalleria',
+        position: [0, 0, 11.95], // +Z — back out into the noon you came in from
+        rotationY: 0,
+        label: 'out into the noon',
+        radius: 3.2,
+      },
+      {
+        id: 'galleria-to-mainstreet',
+        to: 'mainstreet',
+        toSpawn: 'fromGalleria',
+        position: [0, 0, -11.95], // -Z — the far doors open onto the dead of night
+        rotationY: Math.PI,
+        label: 'out into the night',
         radius: 3.2,
       },
     ],

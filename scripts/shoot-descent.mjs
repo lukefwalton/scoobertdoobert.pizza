@@ -159,7 +159,10 @@ const mctx = await browser.newContext({
 const mp = await mctx.newPage();
 mp.on('pageerror', (e) => fail(`mobile pageerror: ${e.message}`));
 await mp.goto(base + '/', { waitUntil: 'networkidle' });
-await mp.click('.floor-door--plain'); // descend via the era-floor door (universal on mobile)
+// The scenic one-floor-at-a-time entry is the ORDER FORM ("homepage improvements":
+// the STAFF ONLY door now expresses straight to the basement — this pass wants the
+// era floors, which are universal on mobile, so it takes the scenic route).
+await mp.click('#order-form button[type="submit"]');
 await floor(mp, 'y1999');
 await mp.click('.floor-door--down');
 await floor(mp, 'y2000');
@@ -247,7 +250,8 @@ const nctx = await browser.newContext({ viewport: { width: 500, height: 820 } })
 const np = await nctx.newPage();
 np.on('pageerror', (e) => fail(`narrow-window pageerror: ${e.message}`));
 await np.goto(base + '/', { waitUntil: 'networkidle' });
-await np.click('.floor-door--plain');
+// Scenic entry via the order form (the STAFF ONLY door expresses to the basement).
+await np.click('#order-form button[type="submit"]');
 await floor(np, 'y1999');
 await np.click('.floor-door--down');
 await floor(np, 'y2000');
@@ -271,14 +275,15 @@ await nctx.close();
 // The <picture> swap IS the accessibility accommodation for our animated GIFs (a
 // GIF can't be CSS-paused), so prove the media query actually selects the still —
 // not just that both files exist (shoot:gifs covers existence). Reach the 1999
-// floor via the plain door (works regardless of low-power), confirm the animated
-// frame loads under normal motion, then emulate reduced motion and assert the
-// badge's currentSrc flips to the *-static twin.
+// floor via the scenic order-form entry (the STAFF ONLY door now expresses to
+// the basement), confirm the animated frame loads under normal motion, then
+// emulate reduced motion and assert the badge's currentSrc flips to the
+// *-static twin.
 const rctx = await browser.newContext({ viewport: { width: 1100, height: 850 } });
 const rp = await rctx.newPage();
 rp.on('pageerror', (e) => fail(`reduced-motion pageerror: ${e.message}`));
 await rp.goto(base + '/', { waitUntil: 'networkidle' });
-await rp.click('.floor-door--plain');
+await rp.click('#order-form button[type="submit"]');
 await floor(rp, 'y1999');
 const blinkySrc = () =>
   rp.evaluate(() => document.querySelector('.sb__newblink img')?.currentSrc || '').catch(() => '');

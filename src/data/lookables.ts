@@ -449,6 +449,26 @@ export const LOOKABLES: Lookable[] = [
       'OPEN, it says, in the hard noon. The door’s been locked since the night side. Same street, wrong light.',
   },
   {
+    id: 'galleria-directory',
+    room: 'galleria',
+    anchor: 'front-right',
+    height: 1.6,
+    label: 'the mall directory',
+    glyph: '🗺️',
+    story:
+      'YOU ARE HERE, says the arrow, pointing at the fountain. You are not in the fountain. Every store on the board is OPEN and none of its doors exist.',
+  },
+  {
+    id: 'galleria-sky',
+    room: 'galleria',
+    anchor: 'back-left',
+    height: 2.6,
+    label: 'the sky',
+    glyph: '☁️',
+    story:
+      'Golden hour, going on thirty years now. Look hard and there’s a seam in it, up past the second-floor windows, where one evening was bolted to the next.',
+  },
+  {
     id: 'oceanview-look',
     room: 'oceanview',
     anchor: 'back',
