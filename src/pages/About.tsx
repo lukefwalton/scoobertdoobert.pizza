@@ -376,12 +376,12 @@ export default function About() {
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>
-          , a newsletter and podcast on the craft, philosophy, and history of music, a top-10%
-          music podcast with conversations across every genre and every role, backstage to the
-          stage: Grammy-winning engineers and producers behind Adele, Beyoncé, Metallica, Janet
-          Jackson, “Weird Al” Yankovic, Lana Del Rey, and St. Vincent, plus punk founders,
-          scene-builders, and the people who actually decide how a record sounds. New episodes
-          Tuesdays; deeper dives on Substack.
+          , a newsletter and podcast on the craft, philosophy, and history of music, a top-10% music
+          podcast with conversations across every genre and every role, backstage to the stage:
+          Grammy-winning engineers and producers behind Adele, Beyoncé, Metallica, Janet Jackson,
+          “Weird Al” Yankovic, Lana Del Rey, and St. Vincent, plus punk founders, scene-builders,
+          and the people who actually decide how a record sounds. New episodes Tuesdays; deeper
+          dives on Substack.
         </p>
 
         <h2>Plato, out loud</h2>
@@ -400,7 +400,7 @@ export default function About() {
           <a href={audiobookTuneIn} target="_blank" rel="noopener noreferrer">
             TuneIn
           </a>{' '}
-         , and, improbably,{' '}
+          , and, improbably,{' '}
           <a href={ajaxLibrary} target="_blank" rel="noopener noreferrer">
             cataloged by a Canadian public library
           </a>
@@ -424,9 +424,9 @@ export default function About() {
         <p>
           This website is the archive of all of it. It opens as a deliberately ugly 1996 “electronic
           pizza storefront” and, if you let it, falls backward through the web eras and drops you
-          into a low-poly world off the coast of San Diego, a long-overdue delivery on a promise
-          the early web made and never quite kept. The retro costume is a joke. Underneath, this is
-          a real musician’s home on the internet, and every link here goes somewhere real.
+          into a low-poly world off the coast of San Diego, a long-overdue delivery on a promise the
+          early web made and never quite kept. The retro costume is a joke. Underneath, this is a
+          real musician’s home on the internet, and every link here goes somewhere real.
         </p>
 
         <h2>Frequently asked questions</h2>

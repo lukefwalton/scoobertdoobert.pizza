@@ -138,8 +138,8 @@ export function PlainFloor({ floor }: { floor: Floor }) {
       <aside className="playdoor" aria-label="The video game downstairs">
         <p className="playdoor__head">IS THERE A WHOLE WORLD UNDER THIS PIZZA SHOP?</p>
         <p className="playdoor__body">
-          Free. No download<span aria-hidden="true">*</span>. Explore the basement &mdash; it&rsquo;s a
-          video game.
+          Free. No download<span aria-hidden="true">*</span>. Explore the basement &mdash;
+          it&rsquo;s a video game.
         </p>
         <p className="playdoor__cta">
           <a
@@ -196,15 +196,15 @@ export function PlainFloor({ floor }: { floor: Floor }) {
         {lucky && (
           <p className="news-lucky" title="Fortune favors the bold and tangy">
             <span aria-hidden="true">🍀</span>{' '}
-            <i>Someone has taped a four-leaf clover to the door. Fortune favors the bold and tangy.</i>
+            <i>
+              Someone has taped a four-leaf clover to the door. Fortune favors the bold and tangy.
+            </i>
           </p>
         )}
         {beatGoblin && (
           <p className="news-lucky" title="You got lucky downstairs">
             <span aria-hidden="true">🏆</span>{' '}
-            <i>
-              A little goblin-shaped trophy has appeared by the register. You got lucky&hellip;
-            </i>
+            <i>A little goblin-shaped trophy has appeared by the register. You got lucky&hellip;</i>
           </p>
         )}
         {tapes > 0 && (

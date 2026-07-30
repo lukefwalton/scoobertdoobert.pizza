@@ -267,8 +267,8 @@ export function PizzaCamBooth() {
           </div>
           <div className="window-body booth-gate__body">
             <p>
-              The Pizza Cam™ turns your camera into an instrument, wave your hands to toss dough
-              and drum the toppings.
+              The Pizza Cam™ turns your camera into an instrument, wave your hands to toss dough and
+              drum the toppings.
             </p>
             <ul className="booth-gate__terms">
               <li>

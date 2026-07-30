@@ -58,7 +58,7 @@ export default function Catalog() {
         Every Scoobert Doobert song on file, all {JUKEBOX_TRACKS.length} of them, with their liner
         notes. These are the same records the jukebox downstairs spins (lo-fi, on purpose) and the
         Listening Room hangs on its walls. Streaming-quality versions live at the real record stores
-       , see <a href="/text">the text-only menu</a> for every destination.
+        , see <a href="/text">the text-only menu</a> for every destination.
       </p>
       <p>
         <a href="/">&laquo; Back to the Electronic Pizza Storefront</a>
