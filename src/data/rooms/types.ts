@@ -122,6 +122,13 @@ export type RoomKind =
   // flickering lamp. Eerie-WARM (the uncanny of an empty hometown, never a
   // scare). A door leads into the diner.
   | 'mainstreet'
+  // The Galleria (ガレリア) — the indoor mall on Main Street that pretends to be
+  // OUTDOORS: two-story stucco facades, string lights, a fountain, and a painted
+  // dusk sky ceiling where the clouds never move (the fake skies of Las Vegas,
+  // r/LiminalSpace). It joins the street's two times of day — walk in off the
+  // overexposed noon, walk out the far end into the dead of night; inside it is
+  // always golden hour. Warm-uncanny (the sky is the joke), never a scare.
+  | 'galleria'
   // The Diner — an all-night small-town diner off Main Street: counter + stools,
   // booths, a pie case, checker floor, buzzing sign — and a row of low-poly
   // TAXIDERMY animal heads that watch the room. Warm-uncanny (funny, not grim).

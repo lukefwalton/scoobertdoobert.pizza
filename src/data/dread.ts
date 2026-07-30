@@ -93,6 +93,9 @@ export const DREAD: DreadConfig = {
     mainstreetday: 0.1, // the SAME street flipped to an overexposed empty noon — the
     //                     daylight makes the emptiness worse, but it's still warm
     //                     (a touch below the night version; you can see your way out)
+    galleria: 0.09, // the fake-sky mall between the street's two times of day — the
+    //                 painted clouds never move and nobody's shopping, but it's
+    //                 golden hour forever (warm-uncanny, a notch under the noon)
     diner: 0.07, // the all-night diner — cozy-wrong, back down near the turtle's
     //              warmth (the animal heads watch, but it's funny-uncanny, not grim)
     bar: 0.06, // Doobert's — the warm dive at the far end of the street; a relief

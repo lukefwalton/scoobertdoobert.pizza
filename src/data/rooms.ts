@@ -191,6 +191,8 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   bar: { x: 2.6, y: -4.0 },
   // The day-flipped Main Street — reached via the diner's kitchen back door.
   mainstreetday: { x: 4.6, y: -2.8 },
+  // The Galleria — the fake-sky mall bridging the street's two times of day.
+  galleria: { x: 3.7, y: -2.4 },
   oceanview: { x: 2.4, y: 1.1 },
   // moonlight wing — a night→day pair off the +X (east) end of the boardwalk,
   // trailing up and away from the descent (still pure surface).
