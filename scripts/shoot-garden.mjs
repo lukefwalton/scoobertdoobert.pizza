@@ -73,7 +73,14 @@ const hoppedFromUi = await page.evaluate((y0) => (window.__sdpCam?.y ?? 0) > y0 
 if (hoppedFromUi) bad('Space on a focused HUD control armed a world jump (UI Space leaked)');
 await page.keyboard.press('Escape').catch(() => {}); // close the pause menu if Space opened it
 await page.waitForTimeout(200);
-await page.evaluate(() => document.querySelector('canvas')?.focus());
+// Hand focus back to the world. The canvas isn't focusable (no tabindex), so a bare
+// canvas.focus() left the ☰ button focused — every later Space would re-open pause
+// (the welcome card's × click used to move focus off it by accident; the entry
+// cadence no longer replays that card here). Blur the control explicitly.
+await page.evaluate(() => {
+  document.activeElement?.blur?.();
+  document.querySelector('canvas')?.focus();
+});
 
 // 2) The REAL balboa→garden edge: strafe straight left into the -X hedge gate
 //    (it sits level with the spawn row, like the boardwalk's side gates).

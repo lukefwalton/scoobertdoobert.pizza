@@ -6,7 +6,7 @@ import { HOTSPOTS } from '../data/hotspots';
 import { destById } from '../data/links';
 import { lookableById } from '../data/lookables';
 import { roomById, ROOM_FADE_MS } from '../data/rooms';
-import { useSceneStore } from '../state/sceneStore';
+import { useSceneStore, introRevealed } from '../state/sceneStore';
 import { useAudioStore } from '../state/audioStore';
 import { lyricFor, songsWithLyrics } from '../data/lyrics';
 import { useProgressStore } from '../state/progressStore';
@@ -47,6 +47,12 @@ export function WorldHud() {
   const open = useSceneStore((s) => s.openHotspot);
   const paused = useSceneStore((s) => s.paused);
   const objectiveHudOn = useSceneStore((s) => s.objectiveHudOn);
+  // The entry cadence (see sceneStore.introStage): level 1 (orientation) shows at
+  // once; the game layer — chip, score, hotbar, toasts — waits its turn.
+  const introStage = useSceneStore((s) => s.introStage);
+  const advanceIntro = useSceneStore((s) => s.advanceIntro);
+  const revealed = introRevealed(introStage);
+  const settled = introStage === 'settled';
   const nearDoor = useSceneStore((s) => s.nearDoor);
   const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
@@ -291,11 +297,28 @@ export function WorldHud() {
   // WAITING, the current one steps aside a little sooner (toastDismissMs) so
   // feedback never lags far behind play. clear() promotes the next in line, which
   // re-runs this effect. (Gentle fade via CSS; WCAG-safe, no strobe.)
+  //
+  // Gated on the cadence being SETTLED: while the intro plays a toast isn't rendered,
+  // so its clock must not run either — nothing you earned during the greeting times
+  // out unseen; it simply shows once the HUD has landed.
   useEffect(() => {
-    if (!toast) return;
+    if (!toast || !settled) return;
     const t = window.setTimeout(() => clearToast(), toastDismissMs(toast.msg, toastQueued));
     return () => window.clearTimeout(t);
-  }, [toast, toastQueued, clearToast]);
+  }, [toast, toastQueued, clearToast, settled]);
+
+  // The cadence's last beat: once the game-layer widgets have faded in ('reveal'),
+  // hold a short breath before the toast channel opens ('settled'), so the chip
+  // lands, THEN the first line of chatter (a whisper, a queued ✓) appears under it
+  // — never both on one frame. Reduced motion: no breath.
+  useEffect(() => {
+    if (introStage !== 'reveal') return;
+    const reduce =
+      typeof window !== 'undefined' &&
+      !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const t = window.setTimeout(() => advanceIntro('reveal'), reduce ? 0 : 1200);
+    return () => window.clearTimeout(t);
+  }, [introStage, advanceIntro]);
 
   // Duck the RADIO (the user's music) while a SOUND-MAKER overlay is up — an arcade
   // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
@@ -332,8 +355,17 @@ export function WorldHud() {
   // actually IS — every earn site announces "+n LUCK" but nothing ever explained
   // that you never spend it yourself. Durable secret so it fires once, ever; the
   // queue slots it right after the earning toast.
+  //
+  // Fires only on a luck gain THIS SESSION (prevLuck seeds on mount, like prevDone):
+  // it used to fire on mount for any save whose luck predated the secret, which put
+  // a stats lecture on the first frame of a returning player's entry (Luke: "the
+  // luck notification is way too much on entry"). Now it can only ever be the line
+  // AFTER a "+n LUCK" you just earned.
+  const prevLuck = useRef<number | null>(null);
   useEffect(() => {
-    if (progress.luckEarned <= 0) return;
+    const before = prevLuck.current;
+    prevLuck.current = progress.luckEarned;
+    if (before === null || progress.luckEarned <= before) return;
     if (progress.secretsFound.includes('luck-explained')) return;
     useProgressStore.getState().findSecret('luck-explained');
     announce(
@@ -387,8 +419,13 @@ export function WorldHud() {
   // is actually on screen it can stand two rows tall, so drop the toast below it
   // (a modifier class) instead of letting them overlap. Mirror ObjectiveHud's own
   // visibility test so the toast only moves when the chip is really there.
-  const objectiveHidden =
+  const modalHidden =
     paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame || !!levelOverlay;
+  // `!revealed` (the entry cadence) is folded in here so the chip AND the score
+  // badge wait for their beat through the same gate the toast-below-chip test reads.
+  // (The race band takes modalHidden alone — a live race is direct feedback on
+  // something you started, never intro chatter.)
+  const objectiveHidden = modalHidden || !revealed;
   // The RaceHud's live band and the objective chip share the top-centre slot —
   // while a race is running the race owns it (the chip was rendering underneath).
   const objectiveShowing = objectiveChipVisible(progress, {
@@ -404,9 +441,9 @@ export function WorldHud() {
         hidden={objectiveHidden || raceLive}
       />
       <ScoreHud hidden={objectiveHidden} />
-      <RaceHud hidden={objectiveHidden} />
+      <RaceHud hidden={modalHidden} />
       <RhythmGame />
-      {toast && (
+      {toast && settled && (
         <div
           className={`hud-toast hud-toast--${toast.kind}${objectiveShowing ? ' hud-toast--below-objective' : ''}`}
           role="status"

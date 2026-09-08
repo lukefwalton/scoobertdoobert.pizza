@@ -267,7 +267,12 @@ const {
   await ctx.close();
 }
 
-// --- 6. the boot-screen opt-in: PIZZA CAM line on the green load screen ---
+// --- 6. NO camera ask before the world: the boot screen carries no opt-in ---
+// The PIZZA-DOS boot log used to stop on an ENABLE HAND CONTROL / NO THANKS row
+// (a camera question in front of the world, +2.9s of dwell). Gone (Luke, 2026-09):
+// consent lives ONLY at point of use, the booth's own gate (sections 1–5). Prove
+// the real install path boots straight into the world with no camera row, and
+// that the session flag is still unanswered when the world mounts.
 {
   const phaseErr0 = failures();
   const ctx = await browser.newContext({ viewport: { width: 1100, height: 850 } });
@@ -289,27 +294,35 @@ const {
     .catch(() => bad('boot: no machine room'));
   await page.click('.mr__install');
 
-  // The boot log gains the NOT DETECTED line + the arming row (first un-answered
-  // desktop boot of the visit). ENABLE arms the session flag — and ONLY the flag.
-  const row = await page
-    .getByRole('button', { name: 'ENABLE HAND CONTROL' })
-    .waitFor({ state: 'visible', timeout: 20000 })
-    .then(
-      () => true,
-      () => false,
-    );
-  if (!row) bad('boot: the ENABLE HAND CONTROL row never appeared on the boot screen');
-  await page.screenshot({ path: '.shots/booth-boot.png' });
-  if (row) await page.getByRole('button', { name: 'ENABLE HAND CONTROL' }).click();
-  const armed = await page.evaluate(() => sessionStorage.getItem('sdp:camera-choice'));
-  if (armed !== 'armed') bad(`boot: expected the session flag armed, got ${JSON.stringify(armed)}`);
+  // Watch the whole boot for any camera row / copy — none may ever render.
+  let camRowSeen = false;
+  const watch = setInterval(() => {
+    void page
+      .evaluate(
+        () =>
+          !!document.querySelector('.descent__camrow') ||
+          /ENABLE HAND CONTROL|PIZZA CAM/.test(
+            document.querySelector('.descent__boot')?.textContent || '',
+          ),
+      )
+      .then((seen) => {
+        if (seen) camRowSeen = true;
+      })
+      .catch(() => {});
+  }, 150);
   const world = await page
-    .waitForSelector('.hud-menu-btn', { timeout: 18000 })
+    .waitForSelector('.hud-menu-btn', { timeout: 30000 })
     .then(() => true)
     .catch(() => false);
-  if (!world) bad('boot: the world never mounted after arming');
+  clearInterval(watch);
+  if (!world) bad('boot: the world never mounted from the install path');
+  if (camRowSeen) bad('boot: a camera opt-in row / PIZZA CAM line rendered on the boot screen');
+  const choice = await page.evaluate(() => sessionStorage.getItem('sdp:camera-choice'));
+  if (choice !== null)
+    bad(`boot: the camera flag was set before any point of use (got ${JSON.stringify(choice)})`);
+  await page.screenshot({ path: '.shots/booth-boot.png' });
   console.log(
-    `boot     -> row=${row} armed=${armed === 'armed'} world=${world} errors=${failures() - phaseErr0}`,
+    `boot     -> world=${world} camRow=${camRowSeen} flag=${JSON.stringify(choice)} errors=${failures() - phaseErr0}`,
   );
   await ctx.close();
 }

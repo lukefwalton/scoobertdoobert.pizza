@@ -1,5 +1,5 @@
 import { useShallow } from 'zustand/react/shallow';
-import { useSceneStore } from '../state/sceneStore';
+import { useSceneStore, introRevealed } from '../state/sceneStore';
 import { useProgressStore, selectSpellSlots } from '../state/progressStore';
 import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
 import { castSpell } from '../lib/spellcast';
@@ -9,7 +9,9 @@ import { castSpell } from '../lib/spellcast';
 // spell (you found its scroll). A click, or the slot's mnemonic key (F / L,
 // handled in WorldHud), casts. Slotted spells show pips; a cantrip shows ∞ (free
 // + unlimited). Self-sufficient: reads its own progress + scene-gate slices, so
-// it lifts out of WorldHud cleanly. Hidden in any modal/pause.
+// it lifts out of WorldHud cleanly. Hidden in any modal/pause — and until the
+// entry cadence reaches 'reveal' (sceneStore.introStage): the game layer fades in
+// after you've been shown how to move, never on the first frame.
 // ───────────────────────────────────────────────────────────────────────────
 
 export function SpellHotbar() {
@@ -23,6 +25,7 @@ export function SpellHotbar() {
       tvVideo: s.tvVideo,
       arcadeGame: s.arcadeGame,
       openNpc: s.openNpc,
+      revealed: introRevealed(s.introStage),
     })),
   );
 
@@ -34,7 +37,8 @@ export function SpellHotbar() {
     gates.pendingRoom ||
     gates.tvVideo ||
     gates.arcadeGame ||
-    gates.openNpc
+    gates.openNpc ||
+    !gates.revealed
   )
     return null;
 

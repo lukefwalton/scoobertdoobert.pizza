@@ -20,6 +20,14 @@ import { inputFrozen } from '../world/inputFrozen';
 // this session doesn't yank the fade-out mid-animation. A backstop timer + an ×
 // also dismiss it. Kept separate from WelcomeOverlay (tone vs teaching).
 // Reduced-motion: hide immediately, no fade. WCAG-safe (no flash).
+//
+// THE 'teach' BEAT of the entry cadence (sceneStore.introStage): the legend only
+// RENDERS once the welcome card has gone, so a first-timer sees the world, then
+// the greeting, then — alone on screen — how to move. The teach LISTENERS arm at
+// mount regardless: a player who already moved while the card was typing has
+// plainly been taught, so the legend never shows and the beat passes at once.
+// Either way, when the legend is gone (or was never due) this hands the cadence
+// on to 'reveal' — the objective chip + score + hotbar fade in AFTER you can move.
 // ───────────────────────────────────────────────────────────────────────────
 
 const MOVE_KEYS = new Set(['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']);
@@ -38,6 +46,9 @@ function teachBlocked(): boolean {
 
 export function ControlHint() {
   const touch = useTouchDevice();
+  const stage = useSceneStore((s) => s.introStage);
+  const advanceIntro = useSceneStore((s) => s.advanceIntro);
+  const teaching = stage === 'teach';
   // Already taught on a prior visit → never render (and skip the listeners). Read at
   // mount so a mid-session mark can't flip the render gate before the fade finishes.
   const seenAtMount = useRef(controlHintSeen());
@@ -110,10 +121,7 @@ export function ControlHint() {
     window.addEventListener('pointermove', onPointerMove, true);
     window.addEventListener('pointerup', disarm, true);
     window.addEventListener('pointercancel', disarm, true);
-    // Backstop: never linger more than ~10s — but idling it out is NOT "taught".
-    const tBackstop = window.setTimeout(() => hideRef.current(false), 10000);
     return () => {
-      window.clearTimeout(tBackstop);
       window.removeEventListener('keydown', onKey);
       window.removeEventListener('pointerdown', onPointerDown, true);
       window.removeEventListener('pointermove', onPointerMove, true);
@@ -122,7 +130,22 @@ export function ControlHint() {
     };
   }, []);
 
-  if (seenAtMount.current || gone) return null;
+  // Backstop: never linger more than ~10s ON SCREEN — but idling it out is NOT
+  // "taught". Armed when the legend actually shows (the teach beat), not at mount,
+  // or the welcome card would eat most of it.
+  useEffect(() => {
+    if (!teaching || seenAtMount.current || gone) return;
+    const tBackstop = window.setTimeout(() => hideRef.current(false), 10000);
+    return () => window.clearTimeout(tBackstop);
+  }, [teaching, gone]);
+
+  // Hand the cadence on: the beat is over once the legend is gone — or the instant
+  // it's our turn if there was nothing to teach (already taught on a prior visit).
+  useEffect(() => {
+    if (teaching && (seenAtMount.current || gone)) advanceIntro('teach');
+  }, [teaching, gone, advanceIntro]);
+
+  if (!teaching || seenAtMount.current || gone) return null;
 
   return (
     <div className={`hud-controlhint${leaving ? ' hud-controlhint--leaving' : ''}`} role="status">

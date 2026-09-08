@@ -342,7 +342,24 @@ channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
   one-time queued line says what LUCK is (you never spend it; the dice tip your
   way), and the pause menu captions it inline. The pause menu keeps ONE progress
   section (the Trophy case: tallies + lifetime haul + best fortune), not three
-  scattered readouts.
+  scattered readouts. (2026-09: it fires only on a luck gain *this session* —
+  never at spawn for a save whose luck predates it.)
+- **Entry cadence — level 1, then level 2 (Luke, 2026-09-08: "a shit ton to see
+  all at once on load … slow our roll … pace them through").** World entry is
+  ONE declared sequence (`sceneStore.introStage`: `welcome → teach → reveal →
+  settled`), never per-site delays (the same rule as the lanes above):
+  *level 1* is orientation — the world, the ☰ button, the room label, the
+  controls (touch stick / the move-look legend), proximity prompts — and shows
+  at once; *level 2* is the game layer — the objective chip, the score badge,
+  the hotbar, the toast channel — and arrives only once the intro has played:
+  the Scoobertverse card plays **alone** (once per visit, `sdp:welcome-seen`),
+  then the legend teaches **alone** (first run only), then the widgets fade in a
+  beat apart (opacity only, WCAG-safe), then — one breath later — the toast
+  channel opens, so the first line of chatter lands *under* the chip, never with
+  it. Chatter earned meanwhile simply waits in the queue (its clock doesn't run
+  while unseen). And a widget with nothing to say stays off: the score badge
+  renders only once the run has points (a "🍕 0" at spawn is zero information).
+  Never gated: controls, prompts, dialogs, the pause menu.
 
 ### PIZZA POINTS — the collectathon + the leaderboard (SHIPPED, Luke 2026-06-28)
 The arcade-score layer that makes a run *replayable* and *shareable*. Goofy loot —
@@ -738,7 +755,11 @@ now means: never for the dread beat, never transmitted, never without explicit
 opt-in. A real camera is allowed **only** as a consensual, fully-local *surface*
 instrument:
 - **Fully optional and explicitly told.** It enables manipulating instruments
-  with your hands. The opt-in lives on the **green load screen**, up front.
+  with your hands. The opt-in lives **at point of use** — the booth's own gate,
+  the moment you step up to the Pizza Cam — and *nowhere earlier*. (Amended
+  2026-09-08, Luke: the boot-screen arming row was a road block in front of the
+  world — "let them get into the world before we throw up road blocks." Nothing
+  camera-related is asked, shown, or armed before you are standing at the booth.)
 - **Fully local. The webcam data never leaves the device / is never sent to
   Scoobert Doobert.** Consent copy is plain: *enables hand control · stays on
   your device · never sent to us.*
@@ -770,11 +791,13 @@ instrument:
   screen shows only the Bayer-dithered grid (green phosphor / oven amber), so
   what the player sees IS everything the machine sees. The kitchen tripod prop's
   monitor shows frozen procedural static, never video.
-- **Consent shape:** the green-load-screen line (`PIZZA CAM ... NOT DETECTED` +
-  ENABLE/NO THANKS) only ARMS a session flag (`sdp:camera-choice`, sessionStorage
-  like motionConsent); `getUserMedia` fires only inside the booth at point of
-  use; the fixed ● CAMERA ON chip is itself the kill switch (tracks truly end);
-  the stream dies with tab-hide and unmount; video-only, never audio.
+- **Consent shape:** the booth's own plain-words gate is the ONLY asker
+  (2026-09-08: the green-load-screen `PIZZA CAM ... NOT DETECTED` + ENABLE/NO
+  THANKS row is gone); accepting it ARMS a session flag (`sdp:camera-choice`,
+  sessionStorage like motionConsent) so re-opening the booth skips to the power
+  button; `getUserMedia` fires only inside the booth at point of use; the fixed
+  ● CAMERA ON chip is itself the kill switch (tracks truly end); the stream dies
+  with tab-hide and unmount; video-only, never audio.
 - **Placement + gating:** surface-sweet — the kitchen prop and `/booth`
   (`rollable:false`; a camera instrument is entered deliberately, never dealt by
   the cabinet slot machine). Desktop-only; touch gets a "ships on a parallel
