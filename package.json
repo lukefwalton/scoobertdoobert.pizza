@@ -104,7 +104,7 @@
     "leva": "^0.9.36",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.30.4",
+    "react-router-dom": "^6.30.6",
     "three": "^0.169.0",
     "zustand": "^4.5.7"
   },
