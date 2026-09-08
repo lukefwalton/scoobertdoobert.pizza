@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import '98.css';
 import '../styles/descent.css';
 import { audio } from '../audio/engine';
 import { useSceneStore } from '../state/sceneStore';
 import { TEXT_ONLY_PATH } from '../data/links';
-import { getCameraChoice, armCamera, declineCamera } from '../lib/cameraConsent';
-import { isTouchDevice } from '../lib/lowPower';
 import { BootLog } from './BootLog';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -52,24 +50,16 @@ const WORLD_BOOT_LINES = [
 
 const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing', 'error'];
 
-// The boot log's PIZZA CAM peripheral line, per the Webcam policy: the opt-in
-// lives on the green load screen, up front. Answering only sets the session
-// flag (cameraConsent) — no sensor is touched here; getUserMedia stays inside
-// the booth, at point of use.
-const CAM_LINES: Record<'ask' | 'armed' | 'declined', string> = {
-  ask: 'PIZZA CAM .................. NOT DETECTED',
-  armed: "PIZZA CAM .................. ARMED  (it's in the kitchen)",
-  declined: 'PIZZA CAM .................. SKIPPED',
-};
+// (The boot log used to carry a PIZZA CAM opt-in row here — ENABLE HAND CONTROL /
+// NO THANKS — that stretched the boot and put a camera question in front of the
+// world. Gone, per Luke (2026-09): "let them get into the world before we throw up
+// road blocks." Camera consent now lives ONLY at point of use, the kitchen booth's
+// own gate (PizzaCamBooth) — see DESIGN.md "Webcam policy".)
 
 export function Descent() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState(STATUS_LINES[0]);
-  // The boot screen's camera offer: null = no line (touch device / already
-  // answered this visit), 'ask' = the button row is up, 'armed'/'declined' =
-  // answered just now (line flips, boot rolls on).
-  const [camOffer, setCamOffer] = useState<'ask' | 'armed' | 'declined' | null>(null);
   const bootTimer = useRef(0);
   const enterWorld = useSceneStore((s) => s.enterWorld);
   const descentRequested = useSceneStore((s) => s.descentRequested);
@@ -77,19 +67,6 @@ export function Descent() {
   const installRequested = useSceneStore((s) => s.installRequested);
   const clearInstallRequest = useSceneStore((s) => s.clearInstallRequest);
   const worldReady = useRef(false);
-
-  // The boot log with the PIZZA CAM peripheral line slotted into the POST list
-  // (after the rat, before the blank + ENTERING). BootLog renders statically,
-  // so flipping the line on answer is a clean in-place update.
-  const bootLines = useMemo(() => {
-    if (!camOffer) return WORLD_BOOT_LINES;
-    const i = WORLD_BOOT_LINES.indexOf('SUMMONING THE RAT ........... OK');
-    return [
-      ...WORLD_BOOT_LINES.slice(0, i + 1),
-      CAM_LINES[camOffer],
-      ...WORLD_BOOT_LINES.slice(i + 1),
-    ];
-  }, [camOffer]);
 
   // OrderForm requests the descent via the store. It owns the mobile /
   // reduced-motion gating and the email capture, so by the time we're asked we
@@ -166,12 +143,7 @@ export function Descent() {
     }
     if (phase === 'booting') {
       // Deliberate, unhurried boot into the level; bend the loop down across it.
-      // First un-answered desktop boot of the visit also carries the PIZZA CAM
-      // opt-in row, so that dwell stretches long enough to read (answering or
-      // ignoring it makes every later boot the normal beat again).
-      const offer = !isTouchDevice() && getCameraChoice() === null;
-      setCamOffer(offer ? 'ask' : null);
-      const dwell = offer ? 5200 : 2300;
+      const dwell = 2300;
       audio.pitchBendDown(dwell, 0.4);
       bootTimer.current = window.setTimeout(() => {
         enterWorld();
@@ -188,21 +160,6 @@ export function Descent() {
     }
     return undefined;
   }, [phase, enterWorld]);
-
-  // Answering the boot-screen camera offer: set the session flag, flip the boot
-  // line, and finish the boot on a short readable beat instead of the long dwell
-  // (re-aim the pitch bend to match the new landing time).
-  const answerCam = (arm: boolean) => {
-    if (arm) armCamera();
-    else declineCamera();
-    setCamOffer(arm ? 'armed' : 'declined');
-    window.clearTimeout(bootTimer.current);
-    audio.pitchBendDown(1200, 0.4);
-    bootTimer.current = window.setTimeout(() => {
-      enterWorld();
-      setPhase('reveal');
-    }, 1200);
-  };
 
   if (phase === 'idle') return null;
 
@@ -293,18 +250,7 @@ export function Descent() {
           role="status"
           aria-label="Loading the world"
         >
-          <BootLog lines={bootLines} />
-          {camOffer === 'ask' && phase === 'booting' && (
-            <div className="descent__camrow">
-              <button autoFocus onClick={() => answerCam(true)}>
-                ENABLE HAND CONTROL
-              </button>
-              <span className="descent__camfine">
-                camera instrument · stays on your device · never sent to us
-              </span>
-              <button onClick={() => answerCam(false)}>NO THANKS</button>
-            </div>
-          )}
+          <BootLog lines={WORLD_BOOT_LINES} />
         </div>
       )}
     </div>

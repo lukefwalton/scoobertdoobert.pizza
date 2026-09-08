@@ -1,12 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useSceneStore } from '../state/sceneStore';
+import { welcomeSeen, markWelcomeSeen } from '../lib/welcomeSeen';
 
 // ───────────────────────────────────────────────────────────────────────────
 // WelcomeOverlay — the Scoobertverse intro that streams in char-by-char
 // (terminal style) on world entry, holds a beat, then fades out + unmounts.
-// Self-contained: it owns its own typing state + timers and reads no stores, so
-// it lifts cleanly out of WorldHud (which just mounts it once with the world).
+// Self-contained: it owns its own typing state + timers; the one store touch is
+// the entry cadence (sceneStore.introStage) — this card OWNS the 'welcome' beat,
+// so nothing from the game layer (chip / score / toasts) shows until it's gone.
 // Non-blocking — you can start exploring while it types. prefers-reduced-motion
 // shows the full text instantly (no typing animation).
+//
+// ONCE PER VISIT (Luke, 2026-09: "slow our roll"): a sessionStorage flag
+// (welcomeSeen) means a bounce out to the storefront and back in doesn't replay
+// the greeting — it just hands the cadence straight to the next beat.
 // ───────────────────────────────────────────────────────────────────────────
 
 const WELCOME_LINES = [
@@ -24,12 +31,26 @@ const WELCOME_OFFSETS = WELCOME_LINES.reduce<number[]>((acc, _, i) => {
 }, []);
 
 export function WelcomeOverlay() {
-  const [welcome, setWelcome] = useState(true);
+  const advanceIntro = useSceneStore((s) => s.advanceIntro);
+  // Captured at mount (like ControlHint's seenAtMount) so marking it seen for this
+  // visit doesn't flip the render gate under the card while it's still typing.
+  const skip = useRef(welcomeSeen());
+  const [welcome, setWelcome] = useState(!skip.current);
   const [welcomeLeaving, setWelcomeLeaving] = useState(false);
   const [typed, setTyped] = useState(0);
 
+  // The cadence handoff: the moment the card is gone (auto-fade, the ×, or it was
+  // never due this visit) the 'welcome' beat is over. advanceIntro only steps
+  // forward FROM 'welcome', so a repeat call can't double-step. (Leaving the world
+  // mid-card needs no cleanup: enterWorld resets the stage on the next entry.)
+  useEffect(() => {
+    if (!welcome) advanceIntro('welcome');
+  }, [welcome, advanceIntro]);
+
   // Stream the text in like a terminal.
   useEffect(() => {
+    if (skip.current) return; // already greeted this visit — nothing to type
+    markWelcomeSeen();
     const reduce =
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;

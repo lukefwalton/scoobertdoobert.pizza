@@ -4,10 +4,12 @@
 // own permission persistence layers underneath; this flag is the SITE's
 // question, not the browser's.)
 //
-// Tri-state, and "armed" is NOT "camera on": arming just pre-answers the
-// booth's consent gate (from the boot screen's PIZZA CAM line or the gate
-// itself). getUserMedia only ever fires inside the booth, at the moment of
-// use, with the CAMERA ON indicator on screen — see DESIGN.md "Webcam policy".
+// Tri-state, and "armed" is NOT "camera on": arming just records that the
+// booth's consent gate was accepted this visit (so re-opening the booth skips
+// straight to the power button). The ONLY asker is the booth itself, at point of
+// use — the boot screen's PIZZA CAM row is gone (Luke, 2026-09: no road blocks
+// before the world). getUserMedia only ever fires inside the booth, at the moment
+// of use, with the CAMERA ON indicator on screen — see DESIGN.md "Webcam policy".
 // All access try/guarded (Safari private mode / disabled storage throws).
 
 const KEY = 'sdp:camera-choice';

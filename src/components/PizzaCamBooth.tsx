@@ -187,7 +187,7 @@ export function PizzaCamBooth() {
   }, [powerOn]);
 
   const rejectGate = useCallback(() => {
-    declineCamera(); // remembered per visit, the boot line stops re-offering too
+    declineCamera(); // remembered per visit (the booth's gate is the only asker)
     setDeclined(true);
   }, []);
 

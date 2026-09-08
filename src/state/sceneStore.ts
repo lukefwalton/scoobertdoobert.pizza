@@ -12,6 +12,18 @@ import { type ArcadeGameId } from '../data/arcadeGames';
  *  begins — the SM64 dive window (the FramedCover shader reads divingTo). */
 export const DIVE_MS = 520;
 
+/** The entry cadence's stages, in order (see SceneState.introStage). */
+export type IntroStage = 'welcome' | 'teach' | 'reveal' | 'settled';
+const INTRO_ORDER: IntroStage[] = ['welcome', 'teach', 'reveal', 'settled'];
+/** The stage after `from` ('settled' is terminal). Pure, so the advance rule is
+ *  one line and the ordering lives in exactly one place. */
+export function nextIntroStage(from: IntroStage): IntroStage {
+  return INTRO_ORDER[Math.min(INTRO_ORDER.indexOf(from) + 1, INTRO_ORDER.length - 1)];
+}
+/** Has the intro reached the game-layer reveal (chip / score / hotbar may show)? */
+export const introRevealed = (stage: IntroStage): boolean =>
+  stage === 'reveal' || stage === 'settled';
+
 // The pending dive's timer handle, kept at module scope so exitWorld/enterWorld can
 // CANCEL it — a bare uncancellable setTimeout could fire goToRoom after you'd already
 // left the world. One dive is ever in flight (enterPainting guards re-entry).
@@ -114,6 +126,20 @@ type SceneState = {
   /** Whether the on-screen objective chip + compass is shown (pause-menu toggle).
    *  Ephemeral UI pref; defaults on. */
   objectiveHudOn: boolean;
+  /** The ENTRY CADENCE — the one declared sequence that paces what the HUD shows
+   *  after you step into the world (Luke: "slow our roll … level 1 and then level
+   *  2"). Level 1 is orientation: the world, the menu button, the room label, the
+   *  controls, proximity prompts. Level 2 is the game layer — the objective chip,
+   *  the score badge, the hotbar, the toast channel — which only arrives once the
+   *  intro has played out:
+   *    'welcome' → the Scoobertverse card (WelcomeOverlay; skipped if seen this visit)
+   *    'teach'   → the move/look legend (ControlHint; skipped if already taught)
+   *    'reveal'  → the game-layer widgets fade in
+   *    'settled' → toasts start rendering (chatter waited in toastStore meanwhile)
+   *  Reset to 'welcome' by enterWorld(); each stage owner calls advanceIntro(from)
+   *  when its beat is done. Defaults 'settled' so nothing outside the world is
+   *  ever gated. Never gates controls, prompts, dialogs or the pause menu. */
+  introStage: IntroStage;
   /** An NPC the camera is near + can talk to (the rat once settled), or null —
    *  drives the "Press E to talk" prompt. */
   nearNpc: { id: string; label: string } | null;
@@ -231,6 +257,10 @@ type SceneState = {
   /** Fire the finale: every wanderer breaks into a group dance for a few seconds. */
   triggerFinale: () => void;
   toggleObjectiveHud: () => void;
+  /** Step the entry cadence forward — ONLY from the named stage, so a late or
+   *  doubled call (an unmount cleanup after the auto-fade already advanced) can
+   *  never skip a beat or run the sequence backwards. */
+  advanceIntro: (from: IntroStage) => void;
   setNearNpc: (npc: { id: string; label: string } | null) => void;
   openNpcDialog: (id: string) => void;
   closeNpcDialog: () => void;
@@ -274,6 +304,7 @@ export const useSceneStore = create<SceneState>((set) => ({
   nearEntity: null,
   nearInteractable: null,
   objectiveHudOn: true,
+  introStage: 'settled',
   nearNpc: null,
   openNpc: null,
   cheerId: null,
@@ -307,6 +338,7 @@ export const useSceneStore = create<SceneState>((set) => ({
     clearDiveTimer();
     set({
       worldActive: true,
+      introStage: 'welcome',
       currentRoom: room,
       currentSpawn: spawn,
       pendingRoom: null,
@@ -487,6 +519,8 @@ export const useSceneStore = create<SceneState>((set) => ({
   cheerEntity: (id) => set((s) => ({ cheerId: id, cheerNonce: s.cheerNonce + 1 })),
   triggerFinale: () => set((s) => ({ finaleNonce: s.finaleNonce + 1 })),
   toggleObjectiveHud: () => set((s) => ({ objectiveHudOn: !s.objectiveHudOn })),
+  advanceIntro: (from) =>
+    set((s) => (s.introStage === from ? { introStage: nextIntroStage(from) } : {})),
   setNearNpc: (npc) => set({ nearNpc: npc }),
   openNpcDialog: (id) => set({ openNpc: id }),
   closeNpcDialog: () => set({ openNpc: null }),

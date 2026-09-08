@@ -224,8 +224,9 @@ descent, each covered by a `shoot:*` smoke:
   self-calibrating noise floor. Hosts: the **`/booth`** cabinet page and the
   kitchen's tripod prop (`PizzaCamProp` → the same `PizzaCamBooth` in the
   ArcadeModal; `rollable:false`, never dealt by the slot machine). Consent:
-  boot-screen arming row (PIZZA-DOS `PIZZA CAM ... NOT DETECTED`) + the booth's
-  full gate; getUserMedia fires ONLY at point of use; a fixed ● CAMERA ON chip
+  the booth's full gate, at point of use, and nothing earlier (2026-09-08: the
+  boot-screen arming row was removed — see the entry-cadence chunk below);
+  getUserMedia fires ONLY at point of use; a fixed ● CAMERA ON chip
   is the kill switch; the raw feed renders nowhere (Bayer-dithered grid only);
   a source-text unit test (`pizzacam.firewall.test.ts`) pins the dread firewall.
   Desktop-only (touch gets a parallel-port gag). First-play banks a secret
@@ -801,6 +802,42 @@ while keeping the cheeky pizza register. Goal order: listen → hire → play th
   parity, check-build a11y guards.
 - ✅ **Verification** — check-build maze case; `shoot:fallback`/`shoot:descent`/
   `shoot:mobile` extended; full suite + build green.
+
+## ✅ The entry cadence — level 1, then level 2 (2026-09-08, Luke: "slow our roll … a shit ton to see all at once on load … let them get into the world before we throw up road blocks")
+A pacing pass on world ENTRY (DESIGN → "Feedback lanes → Entry cadence"), plus
+the camera ask moved out of the boot screen. No new systems — one declared
+sequence, and less on the first frame:
+- ✅ **`sceneStore.introStage`** (`welcome → teach → reveal → settled`), reset by
+  `enterWorld()`, each beat's owner calling `advanceIntro(from)` (idempotent, only
+  steps forward). `WelcomeOverlay` owns `welcome` (now **once per visit**,
+  `src/lib/welcomeSeen.ts`, sessionStorage like motionConsent); `ControlHint`
+  owns `teach` (renders only after the card; its listeners still arm at mount, so
+  moving during the card skips the legend; its 10s backstop starts when it SHOWS);
+  `WorldHud` turns `reveal → settled` after a 1200ms breath (0 under reduced
+  motion). The objective chip, `ScoreHud` and `SpellHotbar` render only from
+  `reveal` (one `hud-reveal-in` opacity fade, staggered 0/200/400ms, off under
+  reduced motion); the toast renders only in `settled` and its dismiss clock is
+  paused until then (nothing earned during the intro times out unseen).
+- ✅ **Less on the first frame:** `ScoreHud` stays off at 0 points (pops in with
+  the first loot); the **🍀 LUCK explainer fires only on a luck gain THIS session**
+  (`prevLuck` seeded on mount, like `prevDone`) — it used to fire at spawn for any
+  save whose luck predated the secret, which was the toast in Luke's screenshot.
+- ✅ **No camera ask before the world.** `Descent.tsx` lost the PIZZA-DOS
+  `ENABLE HAND CONTROL / NO THANKS` row (and the 5.2s dwell it needed; boot is
+  2.3s for everyone). The kitchen booth's own gate is the only asker
+  (`cameraConsent` unchanged; DESIGN's Webcam policy amended).
+- ✅ **Smokes:** `startSmoke()` now seeds the two "already seen" flags by default
+  (`seedIntroSeen`) so the ~20 smokes asserting on `.hud-objective` / `.hud-toast`
+  / `.hud-score` at entry keep a settled HUD; `{ intro: true }` keeps the cadence
+  live (`shoot:world`, `shoot:touch`, the new **`shoot:intro`** — first-timer beats
+  + the returning-player "no lecture on entry" regression). `bankOnePoint()` puts a
+  run on the scoreboard for layout probes now that the badge hides at 0.
+  `shoot:booth` §6 inverted: the boot screen must show NO camera row and leave
+  `sdp:camera-choice` unanswered. One latent smoke bug surfaced by the seeding:
+  `shoot:garden`'s "focus the canvas" never worked (a canvas isn't focusable), so
+  focus sat on the ☰ button and only the welcome card's × click had been moving
+  it off — its mid-hop Space then opened pause and froze the ride. It now blurs
+  the control explicitly.
 
 ## ✅ The game-design cleanup + The Galleria (2026-07-30, Luke: "a little too chaotic — more understandable and fun in the not overengineered way")
 Two chunks on one branch — a new room from Luke's r/LiminalSpace reference batch,

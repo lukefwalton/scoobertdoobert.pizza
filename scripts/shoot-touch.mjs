@@ -18,16 +18,23 @@
 //   7. REAL PATH: a fresh mobile context walks order form → descent → install gag →
 //      "Enter the world" and confirms the touch HUD mounts (the mobile handoff).
 import { mkdirSync } from 'node:fs';
-import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
+import { startSmoke, watchPageErrors, seedIntroSeen, bankOnePoint } from './lib/smoke.mjs';
 
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
+// `intro: true` — this smoke TESTS the touch half of the entry cadence (the legend
+// clears on stick use), so the harness must not pre-seed the "already seen" flags.
+// This interaction context stays OFF &debug: debug un-hides the leva tuning panel,
+// which sits over a phone's top-right and swallows the ☰ tap. The top-HUD LAYOUT
+// probes, which need the debug pickup hooks (the score badge only renders once the
+// run has points), run in their own seeded contexts — measureTouchTopHud below.
 const { ctx, page, fail, finish, failures } = await startSmoke({
   viewport: { width: 390, height: 844 },
   isMobile: true,
   hasTouch: true,
   deviceScaleFactor: 1,
+  intro: true,
 });
 await ctx.addInitScript(() => {
   try {
@@ -185,8 +192,47 @@ const assertTopHud = (h, where) => {
   else if (h.labelDisplay !== 'none')
     fail(`TOP-HUD: the menu label didn't collapse (${where}, display:${h.labelDisplay})`);
 };
-const hud = await topHudProbe(page);
-assertTopHud(hud, 'portrait');
+// Measure the top HUD in a FRESH touch context per orientation: entry cadence
+// pre-seeded (a settled HUD at mount — layout, not the cadence, is what's measured),
+// &debug=1 for the pickup hooks so one banked loot puts the score badge on screen
+// (it stays off at 0 points), the leva panel hidden (debug un-hides it; it's not
+// part of the HUD), then a concrete wait for both chips before reading boxes.
+const measureTouchTopHud = async (viewport, where) => {
+  const mctx = await ctx
+    .browser()
+    .newContext({ viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1 });
+  await seedIntroSeen(mctx);
+  await mctx.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp_booted', '1');
+    } catch {
+      /* ignore */
+    }
+  });
+  const mp = await mctx.newPage();
+  mp.on('pageerror', (e) => fail(`top-hud(${where}) pageerror: ${e.message}`));
+  await mp.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
+  await mp.addStyleTag({ content: '#leva__root,[class*="leva-c-"]{display:none !important}' });
+  const up = await mp.waitForSelector('.hud-menu-btn', { timeout: 12000 }).then(
+    () => true,
+    () => false,
+  );
+  if (!up) fail(`TOP-HUD: the world did not mount for the ${where} layout probe`);
+  await mp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+  if ((await bankOnePoint(mp)) === null) fail(`TOP-HUD: could not bank a point (${where})`);
+  await mp
+    .waitForFunction(
+      () => !!document.querySelector('.hud-objective') && !!document.querySelector('.hud-score'),
+      null,
+      { timeout: 8000 },
+    )
+    .catch(() => {});
+  const h = await topHudProbe(mp);
+  assertTopHud(h, where);
+  await mctx.close();
+  return h;
+};
+const hud = await measureTouchTopHud({ width: 390, height: 844 }, 'portrait');
 
 // CURSOR: the other half of this fix — a coarse-pointer device must NOT paint the custom
 // /cursor.cur (it surfaced as a stuck "pizza slice" over the HUD, since a touch device has
@@ -375,8 +421,7 @@ if (landscapeOverflow > 1) {
 // alone) is what keeps this clean. Re-run the SAME structured probe and full assert set —
 // the objective must still be present, nothing may overlap, and the menu must still be
 // collapsed (a landscape phone is keyboard-less too).
-const hudLandscape = await topHudProbe(page);
-assertTopHud(hudLandscape, 'landscape');
+const hudLandscape = await measureTouchTopHud({ width: 844, height: 390 }, 'landscape');
 const stickInLandscape = (await page.$('.touch-stick')) !== null;
 if (!stickInLandscape) fail('VIEWPORT: the touch stick vanished in landscape');
 await page.screenshot({ path: '.shots/touch-landscape.png' });
@@ -459,13 +504,16 @@ let hudNarrow;
       /* ignore */
     }
   });
-  await dp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await seedIntroSeen(dctx); // a settled HUD at mount — this path measures layout, not the cadence
+  await dp.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
+  await dp.addStyleTag({ content: '#leva__root,[class*="leva-c-"]{display:none !important}' });
   const mounted = await dp.waitForSelector('.hud-menu-btn', { timeout: 12000 }).then(
     () => true,
     () => false,
   );
   if (!mounted) fail('NARROW-DESKTOP: the world/menu button did not mount at 480px (non-touch)');
   await dp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+  if ((await bankOnePoint(dp)) === null) fail('NARROW-DESKTOP: could not bank a point');
   // Concrete state wait (repo standard: no fixed sleeps in smokes) — block until the exact
   // elements this path asserts on exist AND the label has actually collapsed to display:none
   // under the width breakpoint, instead of sleeping a fixed 200ms and hoping layout settled.
@@ -513,13 +561,16 @@ let wideCursor;
       /* ignore */
     }
   });
-  await wp.goto(base + '/?world=1', { waitUntil: 'commit' });
+  await seedIntroSeen(wctx); // settled HUD at mount — layout, not the cadence
+  await wp.goto(base + '/?world=1&debug=1', { waitUntil: 'commit' });
+  await wp.addStyleTag({ content: '#leva__root,[class*="leva-c-"]{display:none !important}' });
   const wmounted = await wp.waitForSelector('.hud-menu-btn', { timeout: 12000 }).then(
     () => true,
     () => false,
   );
   if (!wmounted) fail('WIDE-DESKTOP: the world/menu button did not mount at 1280px');
   await wp.waitForFunction(() => !!window.__sdpCam, null, { timeout: 8000 }).catch(() => {});
+  if ((await bankOnePoint(wp)) === null) fail('WIDE-DESKTOP: could not bank a point');
   // Concrete state wait: block until the HUD is present AND the label is actually VISIBLE
   // (display !== none) — the wide-desktop, no-collapse state this path asserts.
   await wp

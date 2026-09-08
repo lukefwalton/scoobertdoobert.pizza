@@ -151,11 +151,67 @@ export async function launchSmoke(launchOpts = {}) {
 // flag, then goto" pattern is fine. If a smoke needs per-context setup BEFORE any
 // page exists — or creates a fresh context per call — use launchSmoke() and build
 // the context/page yourself.
-export async function startSmoke(opts = {}) {
+//
+// THE ENTRY CADENCE (sceneStore.introStage): on a real first entry the world shows
+// the welcome card, then the move/look legend, and only THEN fades in the game layer
+// (objective chip, score, hotbar) and opens the toast channel. Every smoke runs in a
+// fresh context, i.e. as a first-timer — so by default the harness seeds the two
+// "already seen" flags (seedIntroSeen) and the HUD is settled at mount, which is
+// what ~20 smokes that assert on `.hud-objective` / `.hud-toast` / `.hud-score`
+// within seconds of entry expect. Pass `{ intro: true }` to keep the cadence live —
+// only the smokes that TEST it (shoot-world, shoot-touch, shoot-intro) want that.
+//
+// This is the POLICY for every future caller too, not a shim for the old ones: a
+// smoke's baseline is a SETTLED HUD (level 2 on screen), and the entry cadence is
+// covered by the three opted-out smokes above. A new smoke that asserts on the
+// cold-entry beats opts out with `intro: true`; everything else inherits the seed.
+export async function startSmoke({ intro = false, ...opts } = {}) {
   const h = await launchSmoke();
   const ctx = await h.browser.newContext({ viewport: { width: 1280, height: 800 }, ...opts });
+  if (!intro) await seedIntroSeen(ctx);
   const page = await ctx.newPage();
   return { ...h, ctx, page };
+}
+
+// Mark the entry cadence's two skippable beats as already done — the welcome card
+// (once per visit, sessionStorage) and the move/look legend (durable, localStorage)
+// — so the world's game layer is on screen at mount. An init script, so it re-runs
+// on every navigation: a smoke's `localStorage.clear()` → `goto` still lands seeded.
+// For smokes that build their own contexts (launchSmoke / browser.newContext).
+export function seedIntroSeen(ctx) {
+  return ctx.addInitScript(() => {
+    try {
+      sessionStorage.setItem('sdp:welcome-seen', '1');
+      localStorage.setItem('sdp:controls-seen', '1');
+    } catch {
+      /* storage unavailable — the cadence just plays; the smoke's waits are the guard */
+    }
+  });
+}
+
+// Put the run on the SCOREBOARD: the score badge (`.hud-score`) only renders once
+// the run has points, so a layout smoke that measures it must bank one loot first.
+// Uses the &debug=1 pickup hooks (PickupController): waits for them, grabs the first
+// un-taken drop in the current room. Resolves the grabbed id, or null (no hooks /
+// no loot) — callers decide whether that's a failure.
+export async function bankOnePoint(page, { timeout = 8000 } = {}) {
+  const ready = await page
+    .waitForFunction(
+      () => typeof window.__sdpLootIds === 'function' && typeof window.__sdpGrabLoot === 'function',
+      null,
+      { timeout },
+    )
+    .then(
+      () => true,
+      () => false,
+    );
+  if (!ready) return null;
+  return page.evaluate(() => {
+    const id = window.__sdpLootIds()[0];
+    if (!id) return null;
+    window.__sdpGrabLoot(id);
+    return id;
+  });
 }
 
 export function makeLoaderHelpers(page, fail) {

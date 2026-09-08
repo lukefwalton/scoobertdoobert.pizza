@@ -90,6 +90,7 @@
     "shoot:leaderboard": "node scripts/shoot-leaderboard.mjs",
     "shoot:share": "node scripts/shoot-share.mjs",
     "shoot:booth": "node scripts/shoot-booth.mjs",
+    "shoot:intro": "node scripts/shoot-intro.mjs",
     "shots:readme": "node scripts/make-readme-shots.mjs && node scripts/make-descent-gif.mjs"
   },
   "engines": {

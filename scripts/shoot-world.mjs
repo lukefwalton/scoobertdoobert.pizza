@@ -6,7 +6,12 @@ import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 const base = process.argv[2] || 'http://localhost:4173';
 mkdirSync('.shots', { recursive: true });
 
-const { browser, ctx, page, fail, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
+// `intro: true` — this smoke TESTS the entry cadence (welcome → legend → game layer),
+// so the harness must not pre-seed the "already seen" flags it seeds for everyone else.
+const { browser, ctx, page, fail, finish, failures } = await startSmoke({
+  deviceScaleFactor: 1,
+  intro: true,
+});
 await ctx.addInitScript(() => {
   try {
     sessionStorage.setItem('sdp_booted', '1');
@@ -32,6 +37,22 @@ const welcomeUp = await page.waitForSelector('.hud-welcome', { timeout: 4000 }).
   () => true,
   () => false,
 );
+// ENTRY CADENCE, level 1: while the greeting is up, NONE of the game layer is — no
+// objective chip, no score badge, no toast (Luke: "a shit ton to see all at once on
+// load"). The chip arrives only after you've been shown how to move (asserted below).
+const gameLayerUp = () =>
+  page.evaluate(() => ({
+    chip: !!document.querySelector('.hud-objective'),
+    score: !!document.querySelector('.hud-score'),
+    toast: !!document.querySelector('.hud-toast'),
+    hotbar: !!document.querySelector('.hud-hotbar'),
+  }));
+if (welcomeUp) {
+  const early = await gameLayerUp();
+  if (early.chip || early.score || early.toast || early.hotbar)
+    fail(`CADENCE: game layer showed during the welcome card (${JSON.stringify(early)})`);
+  else console.log('cadence: welcome card plays alone (no chip / score / toast / hotbar)');
+}
 if (welcomeUp) {
   await page.getByRole('button', { name: /dismiss intro/i }).click({ timeout: 3000 });
   const dismissed = await page
@@ -54,6 +75,15 @@ const hintUp = await page.waitForSelector('.hud-controlhint', { timeout: 4000 })
   () => false,
 );
 if (!hintUp) fail('CONTROL HINT MISSING: no move/look legend on world entry');
+// Level 1 still: the legend teaches ALONE — the chip waits until you've actually moved.
+if (hintUp) {
+  const during = await gameLayerUp();
+  if (during.chip || during.score)
+    fail(
+      `CADENCE: chip/score showed while the legend was still teaching (${JSON.stringify(during)})`,
+    );
+  else console.log('cadence: the legend teaches alone (chip waits for the first move)');
+}
 
 await page.waitForTimeout(3000); // WebGL warmup + frames
 await page.screenshot({ path: '.shots/world.png' });
@@ -74,6 +104,13 @@ const hintGone = await page
   );
 if (hintUp && !hintGone) fail('CONTROL HINT STUCK: legend did not clear after moving');
 else if (hintUp) console.log('control hint shows on entry, clears on move');
+// Level 2: having moved, the objective chip fades in (the reveal beat).
+const chipAfterMove = await page.waitForSelector('.hud-objective', { timeout: 4000 }).then(
+  () => true,
+  () => false,
+);
+if (!chipAfterMove) fail('CADENCE: the objective chip never arrived after the first move');
+else console.log('cadence: objective chip arrives after the first move');
 await page.screenshot({ path: '.shots/world-hotspot.png' });
 await page.keyboard.press('e');
 await page.waitForTimeout(500);
