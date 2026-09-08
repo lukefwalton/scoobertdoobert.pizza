@@ -39,7 +39,15 @@ const noGameLayer = (l) => !l.chip && !l.score && !l.hotbar && !l.toast;
 // --- 1. first-timer: level 1, then level 2 ---
 {
   const err0 = failures();
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  // Pin the motion preference: the cadence's 1200ms breath before the toast channel
+  // opens is deliberately 0 under prefers-reduced-motion (WorldHud), so the timing
+  // assertion below only holds on the no-preference path. Playwright defaults to it,
+  // but say so, so a CI/context default can never turn the product's reduced-motion
+  // behavior into a false red here.
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'no-preference',
+  });
   const page = await ctx.newPage();
   watchPageErrors(page, bad);
   await page.goto(base + '/?room=kitchen&debug=1', { waitUntil: 'commit' });
@@ -116,7 +124,10 @@ const noGameLayer = (l) => !l.chip && !l.score && !l.hotbar && !l.toast;
 // --- 2. returning: no greeting, quick HUD, and NO luck lecture on entry ---
 {
   const err0 = failures();
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    reducedMotion: 'no-preference',
+  });
   await seedIntroSeen(ctx);
   await ctx.addInitScript(() => {
     // A save with luck from before the 'luck-explained' secret existed, plus two known

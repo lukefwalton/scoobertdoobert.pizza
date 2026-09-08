@@ -160,6 +160,11 @@ export async function launchSmoke(launchOpts = {}) {
 // what ~20 smokes that assert on `.hud-objective` / `.hud-toast` / `.hud-score`
 // within seconds of entry expect. Pass `{ intro: true }` to keep the cadence live —
 // only the smokes that TEST it (shoot-world, shoot-touch, shoot-intro) want that.
+//
+// This is the POLICY for every future caller too, not a shim for the old ones: a
+// smoke's baseline is a SETTLED HUD (level 2 on screen), and the entry cadence is
+// covered by the three opted-out smokes above. A new smoke that asserts on the
+// cold-entry beats opts out with `intro: true`; everything else inherits the seed.
 export async function startSmoke({ intro = false, ...opts } = {}) {
   const h = await launchSmoke();
   const ctx = await h.browser.newContext({ viewport: { width: 1280, height: 800 }, ...opts });
