@@ -22,7 +22,7 @@ export default function About() {
   const listen =
     destById('listen')?.href ?? 'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn';
   const catalog = destById('catalog')?.href ?? 'https://scoobertdoobert.bandcamp.com/';
-  const lmm = destById('podcast')?.href ?? 'https://lovemusicmore.substack.com/';
+  const lmm = destById('podcast')?.href ?? 'https://lovemusicmorepodcast.com/';
 
   // Plato audiobook + library catalog — real destinations, inlined here (one-off
   // mentions, not part of the storefront menu / hotspots in links.ts).
@@ -135,10 +135,11 @@ export default function About() {
         alternateName: 'Love Music More with Scoobert Doobert',
         description:
           'A newsletter and podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert, with guests from every genre and every role backstage to the stage. Ranked in the top 10% of music podcasts. New episodes Tuesdays.',
-        url: 'https://lukefwalton.com/love-music-more/',
+        url: 'https://lovemusicmorepodcast.com/',
         webFeed: 'https://anchor.fm/s/58fb6244/podcast/rss',
         author: { '@id': 'https://lukefwalton.com/#scoobert' },
         sameAs: [
+          'https://lukefwalton.com/love-music-more/',
           'https://open.spotify.com/show/60DA9vSxpalAojp3Zp2T8h',
           'https://podcasts.apple.com/us/podcast/love-music-more-with-scoobert-doobert/id1567355195',
           'https://www.youtube.com/playlist?list=PLyFhmc3NqYe5rwvctk4OOb7emnuGVDFc-',
@@ -380,8 +381,15 @@ export default function About() {
           podcast with conversations across every genre and every role, backstage to the stage:
           Grammy-winning engineers and producers behind Adele, Beyoncé, Metallica, Janet Jackson,
           “Weird Al” Yankovic, Lana Del Rey, and St. Vincent, plus punk founders, scene-builders,
-          and the people who actually decide how a record sounds. New episodes Tuesdays; deeper
-          dives on Substack.
+          and the people who actually decide how a record sounds. New episodes Tuesdays at{' '}
+          <a href={lmm} target="_blank" rel="noopener noreferrer">
+            lovemusicmorepodcast.com
+          </a>
+          ; the newsletter stays on{' '}
+          <a href="https://lovemusicmore.substack.com/" target="_blank" rel="noopener noreferrer">
+            Substack
+          </a>
+          .
         </p>
 
         <h2>Plato, out loud</h2>

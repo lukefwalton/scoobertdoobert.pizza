@@ -96,10 +96,12 @@ export const DESTINATIONS: Dest[] = [
     external: true,
   },
   {
+    // The show's own site. The newsletter stays on Substack (the link archive
+    // and the about page); this menu item is the one front door.
     id: 'podcast',
     label: 'The Love Music More podcast',
-    href: 'https://lovemusicmore.substack.com/',
-    blurb: 'Scoobert’s music podcast and newsletter. New episodes Tuesdays.',
+    href: 'https://lovemusicmorepodcast.com/',
+    blurb: 'Scoobert’s weekly music podcast. New episodes Tuesdays.',
     topping: 'basil',
     era: '2000',
     external: true,

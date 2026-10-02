@@ -82,7 +82,8 @@ the *Love Music More* podcast, press, and live shows. Scoobert Doobert work only
 
 The music podcast and newsletter hosted by Scoobert Doobert.
 
-- [Substack — Love Music More](https://lovemusicmore.substack.com/)
+- [Love Music More — the show](https://lovemusicmorepodcast.com/)
+- [Substack — Love Music More (newsletter)](https://lovemusicmore.substack.com/)
 - [Anchor — Love Music More](https://anchor.fm/lovemusicmore)
 - [Spotify — Love Music More](https://open.spotify.com/show/60DA9vSxpalAojp3Zp2T8h)
 - [Apple Podcasts — Love Music More](https://podcasts.apple.com/us/podcast/love-music-more-with-scoobert-doobert/id1567355195)

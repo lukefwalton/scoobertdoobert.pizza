@@ -8,9 +8,12 @@
 // concept are lifted verbatim from lukefwalton.com's episode notes (grep-verified
 // against the lmm-episodes collection), so the repo stays standalone.
 //
-// The storefront `podcast` link (links.ts) is the front door; this is the deeper,
-// goblin-mode peek for someone poking the terminal.
+// The storefront `podcast` link (links.ts) is the front door — the show's own
+// site — and `LMM_HOME` reads it so the two can't drift. This file is the
+// deeper, goblin-mode peek for someone poking the terminal.
 // ───────────────────────────────────────────────────────────────────────────
+
+import { destById } from './links';
 
 export type LmmEpisode = {
   /** The episode's title (as published). */
@@ -26,8 +29,8 @@ export type LmmEpisode = {
 export const LMM_CONCEPT =
   'Love Music More, a newsletter + podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert (Luke F. Walton), with guests from every corner of the business. Top 10% of music podcasts.';
 
-/** The storefront's podcast destination (matches links.ts `podcast`). */
-export const LMM_HOME = 'https://lovemusicmore.substack.com/';
+/** The storefront's podcast destination: the show's own site. */
+export const LMM_HOME = destById('podcast')?.href ?? 'https://lovemusicmorepodcast.com/';
 
 // Scoobert's own track/record commentaries first (the in-world songs, from the
 // inside), then notable guests. Verified episode links.

@@ -23,7 +23,7 @@ export default function AboutJp() {
   const listen =
     destById('listen')?.href ?? 'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn';
   const catalog = destById('catalog')?.href ?? 'https://scoobertdoobert.bandcamp.com/';
-  const lmm = destById('podcast')?.href ?? 'https://lovemusicmore.substack.com/';
+  const lmm = destById('podcast')?.href ?? 'https://lovemusicmorepodcast.com/';
 
   // Verified collaborator / placement homes (shared with the English /about).
   const ext = {
@@ -261,7 +261,11 @@ export default function AboutJp() {
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>{' '}
-          のホストも務めています。あらゆるジャンル、あらゆる役割のゲストを迎える、音楽ポッドキャストの上位10%に入る番組です。毎週火曜更新。
+          のホストも務めています。あらゆるジャンル、あらゆる役割のゲストを迎える、音楽ポッドキャストの上位10%に入る番組です。毎週火曜更新。番組のサイトは{' '}
+          <a href={lmm} target="_blank" rel="noopener noreferrer">
+            lovemusicmorepodcast.com
+          </a>
+          。
         </p>
 
         <p>

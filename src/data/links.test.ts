@@ -31,6 +31,10 @@ describe('links — every destination is a real, crawlable anchor', () => {
     }
   });
 
+  it('the podcast menu item is the show’s own site', () => {
+    expect(destById('podcast')?.href).toBe('https://lovemusicmorepodcast.com/');
+  });
+
   // ADDENDUM #8 — the CONVERT pass. The `contact` dest IS the hire CTA (one inbox,
   // one subject filter), and `reel` is the hire-reel playlist, a sanctioned
   // non-duplicate of `listen` (the artist page). Pin both so a copy edit can't
