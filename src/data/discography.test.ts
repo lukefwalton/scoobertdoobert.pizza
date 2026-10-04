@@ -37,7 +37,8 @@ describe('discography JSON-LD (the /catalog graph)', () => {
 
   it('every HUB_ALBUM_SLUG key is a pizza album slug (a renamed album cannot leave a stale key behind)', () => {
     const slugs = new Set(albumNodes().map((a) => a['@id'].split('#album-')[1]));
-    for (const key of Object.keys(HUB_ALBUM_SLUG)) expect(slugs.has(key), `stale key ${key}`).toBe(true);
+    for (const key of Object.keys(HUB_ALBUM_SLUG))
+      expect(slugs.has(key), `stale key ${key}`).toBe(true);
   });
 
   it('hub sameAs points at a real lukefwalton.com album id, only for mapped slugs', () => {

@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { personNode, PERSON_ID, CANONICAL_SAMEAS, PERSON_ALTERNATE_NAMES, SCOOBERT_FOUNDING_DATE } from './identity';
+import {
+  personNode,
+  PERSON_ID,
+  CANONICAL_SAMEAS,
+  PERSON_ALTERNATE_NAMES,
+  SCOOBERT_FOUNDING_DATE,
+} from './identity';
 
 // identity.ts is the single source of truth for the shared Person node, imported
 // by /about and /about/jp. But index.html is static HTML and can't import TS, so
