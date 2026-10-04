@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { personNode, PERSON_ID, CANONICAL_SAMEAS, PERSON_ALTERNATE_NAMES } from './identity';
+import { personNode, PERSON_ID, CANONICAL_SAMEAS, PERSON_ALTERNATE_NAMES, SCOOBERT_FOUNDING_DATE } from './identity';
 
 // identity.ts is the single source of truth for the shared Person node, imported
 // by /about and /about/jp. But index.html is static HTML and can't import TS, so
@@ -52,6 +52,11 @@ describe('identity — homepage Person node mirrors the shared source of truth',
     const projectSameAs = new Set((scoobert!.sameAs as string[]) ?? []);
     const shared = CANONICAL_SAMEAS.filter((url) => projectSameAs.has(url));
     expect(shared, 'URLs on both #person and #scoobert').toEqual([]);
+  });
+
+  it('the #scoobert foundingDate mirrors the year the hub declares', () => {
+    const scoobert = indexGraph().find((n) => n['@type'] === 'MusicGroup');
+    expect(scoobert!.foundingDate).toBe(SCOOBERT_FOUNDING_DATE);
   });
 
   it('the Person never carries the project name as an alternateName', () => {

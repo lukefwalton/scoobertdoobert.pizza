@@ -16,6 +16,12 @@
 /** The canonical Person @id, shared verbatim with the lukefwalton.com hub. */
 export const PERSON_ID = 'https://lukefwalton.com/#person';
 
+// The project's founding year as the hub declares it (SCOOBERT_DOOBERT.founded in
+// lukefwalton.com/src/lib/scoobert-doobert.ts feeds #scoobert's foundingDate there).
+// index.html mirrors it by hand on its #scoobert node; identity.test.ts pins that mirror
+// to this constant so the two sites cannot drift apart silently.
+export const SCOOBERT_FOUNDING_DATE = '2017';
+
 /**
  * The canonical `sameAs` set for the PERSON: only URLs that represent Luke F.
  * Walton himself, matching the hub's #person (lukefwalton.com
