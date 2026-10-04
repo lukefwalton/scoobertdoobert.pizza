@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { albumNodes, recordingNodes, catalogGraph } from './discography';
+import { albumNodes, recordingNodes, catalogGraph, HUB_ALBUM_SLUG } from './discography';
 import { JUKEBOX_TRACKS } from './jukebox';
 
 describe('discography JSON-LD (the /catalog graph)', () => {
@@ -27,5 +27,23 @@ describe('discography JSON-LD (the /catalog graph)', () => {
   it('never re-declares the canonical #scoobert MusicGroup (it would shadow index.html)', () => {
     const graph = JSON.stringify(catalogGraph());
     expect(graph).not.toContain('"MusicGroup"');
+  });
+
+  it('every album names Luke (#person) as copyrightHolder of the masters', () => {
+    for (const a of albumNodes()) {
+      expect(a.copyrightHolder).toEqual({ '@id': 'https://lukefwalton.com/#person' });
+    }
+  });
+
+  it('hub sameAs points at a real lukefwalton.com album id, only for mapped slugs', () => {
+    for (const a of albumNodes()) {
+      const slug = a['@id'].split('#album-')[1];
+      const sameAs = (a as { sameAs?: string }).sameAs;
+      if (HUB_ALBUM_SLUG[slug]) {
+        expect(sameAs).toBe(`https://lukefwalton.com/albums/${HUB_ALBUM_SLUG[slug]}/#album`);
+      } else {
+        expect(sameAs).toBeUndefined();
+      }
+    }
   });
 });

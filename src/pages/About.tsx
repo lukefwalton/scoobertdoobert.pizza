@@ -9,11 +9,14 @@ import { ExternalLink as Ext } from '../components/ExternalLink';
 // engine (and a curious human) sees when they want the story told straight, in
 // contrast to the goblin-mode storefront. Clean, readable, semantic, crawlable.
 //
-// ENTITY GRAPH: the three creative outputs (artist, podcast, audiobook) reuse
-// the canonical @ids that already live on the lukefwalton.com hub — #scoobert,
-// #lovemusicmore-podcast, #apology-audiobook — so a crawler resolves them to one
-// creator with three outputs instead of forking a second set of .pizza-homed
-// entities. lukefwalton.com stays a subtle backlink only (rel=me + JSON-LD @id),
+// ENTITY GRAPH: the project, the podcast and the audiobook reuse the canonical
+// @ids that already live on the lukefwalton.com hub — #scoobert,
+// #lovemusicmore-podcast, #apology-audiobook — so a crawler resolves them to the
+// hub's nodes instead of forking a second set of .pizza-homed entities.
+// Scoobert Doobert is Luke F. Walton's primary music project (founder/member
+// #person; label #beformer). Love Music More is a separate show Luke hosts,
+// co-owned with Beformer and produced by Beformer, not a Scoobert sub-project.
+// lukefwalton.com stays a subtle backlink only (rel=me + JSON-LD @id),
 // never a nav destination here. Collaborator links below point at each artist's
 // own external home (verified via the hub's collaborators data), never at the hub.
 // ───────────────────────────────────────────────────────────────────────────
@@ -65,19 +68,19 @@ export default function About() {
   const faq: { q: string; a: string }[] = [
     {
       q: 'Who is Scoobert Doobert?',
-      a: 'Scoobert Doobert is the recording name of Luke Francis Walton, a musician from San Diego, California: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Scoobert himself.',
+      a: "Scoobert Doobert is Luke F. Walton's primary music project. Luke is a musician from San Diego, California, and the project is his, masters included: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Luke himself. Beformer is the label.",
     },
     {
-      q: 'Does Scoobert Doobert mix or produce records for other artists?',
-      a: 'Yes — he is a mixing engineer & producer for hire. Credits include collaboration with CHAI across Sub Pop and Sony Music Japan and placements on NHK and Fuji TV, and he mixes, produces, and plays on all of his own records.',
+      q: 'Does Luke F. Walton mix or produce records for other artists?',
+      a: 'Yes. Luke F. Walton, who makes Scoobert Doobert, is a mixing engineer and producer for hire. Credits include collaboration with CHAI across Sub Pop and Sony Music Japan and placements on NHK and Fuji TV, and he mixes, produces, and plays on all of his own records.',
     },
     {
-      q: 'How do I hire Scoobert Doobert for mixing or production?',
+      q: 'How do I hire Luke F. Walton for mixing or production?',
       a: 'Email beformer@aol.com with the subject "Mixing / production inquiry". That address reaches him directly.',
     },
     {
       q: 'What is The Reel?',
-      a: 'The Reel is his hire reel on Spotify: productions & collabs throughout the playlist, with the mixes at the bottom, proof of the work before you write.',
+      a: "The Reel is Luke's hire reel on Spotify: productions & collabs throughout the playlist, with the mixes at the bottom, proof of the work before you write.",
     },
   ];
 
@@ -94,39 +97,21 @@ export default function About() {
         about: { '@id': 'https://lukefwalton.com/#scoobert' },
         mainEntity: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
+      // Stub of the project node. lukefwalton.com declares the full #scoobert
+      // node (service IDs, genre, stats); this page only needs the edges that
+      // bridge the page to the person: founder and member -> #person.
       {
         '@type': 'MusicGroup',
         '@id': 'https://lukefwalton.com/#scoobert',
         name: 'Scoobert Doobert',
+        url: 'https://www.scoobertdoobert.pizza/',
         description:
-          'Self-produced San Diego indie pop, chill pop, alt-pop, funk, and lofi music project: nearly 300 compositions written, played, produced, and mixed by Scoobert himself. CHAI collaborator across Sub Pop and Sony Music Japan, with placements on NHK and Fuji TV; host of the Love Music More podcast; reader of Plato’s dialogues in spoken-word audiobook form.',
+          "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label.",
         disambiguatingDescription:
-          'Music, podcast, and audio project of Luke Francis Walton. Not Luke Walton the NBA player and coach.',
-        genre: ['indie pop', 'chill pop', 'alt-pop', 'funk', 'lo-fi', 'bedroom pop'],
-        foundingDate: '2006',
-        foundingLocation: { '@type': 'Place', name: 'San Diego, California' },
-        location: { '@type': 'Place', name: 'San Diego, California' },
+          'The primary music project of Luke F. Walton, not a separate person. Not Luke Walton the NBA player and coach.',
         recordLabel: { '@id': 'https://lukefwalton.com/#beformer' },
-        award: 'San Diego Music Award nomination (Big Hug)',
+        founder: { '@id': 'https://lukefwalton.com/#person' },
         member: { '@id': 'https://lukefwalton.com/#person' },
-        sameAs: [
-          'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn',
-          'https://music.apple.com/us/artist/scoobert-doobert/1240946356',
-          'https://scoobertdoobert.bandcamp.com/',
-          'https://www.youtube.com/@scoobertdoobertburrito',
-          'https://soundcloud.com/mrscoobertdoobert',
-          'https://www.instagram.com/scoobertdoobert.pizza/',
-          'https://www.tiktok.com/@mr.scoobert_doobert',
-          'https://www.threads.net/@scoobertdoobert.pizza',
-          'https://www.reddit.com/user/mrscoobertdoobert',
-          'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
-          'https://www.discogs.com/artist/8593593-Scoobert-Doobert',
-          'https://genius.com/artists/Scoobert-doobert',
-          // Tidal artist, confirmed on the Wikidata item (Q140387739).
-          'https://tidal.com/browse/artist/8793940',
-          'https://discover.ajaxlibrary.ca/Author/Home?author=%22Doobert%2C%20Scoobert%22',
-          'https://koookooorooo.com/scoobert-doobert',
-        ],
       },
       {
         '@type': 'PodcastSeries',
@@ -134,17 +119,22 @@ export default function About() {
         name: 'Love Music More',
         alternateName: 'Love Music More with Scoobert Doobert',
         description:
-          'A newsletter and podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert, with guests from every genre and every role backstage to the stage. Ranked in the top 10% of music podcasts. New episodes Tuesdays.',
+          'A podcast on the craft, philosophy, and history of music, with guests from every genre and every role backstage to the stage. Love Music More is hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer, and produced by Beformer. Ranked in the top 10% of music podcasts. New episodes Tuesdays.',
         url: 'https://lovemusicmorepodcast.com/',
         webFeed: 'https://anchor.fm/s/58fb6244/podcast/rss',
-        author: { '@id': 'https://lukefwalton.com/#scoobert' },
+        author: { '@id': 'https://lukefwalton.com/#person' },
+        copyrightHolder: [
+          { '@id': 'https://lukefwalton.com/#person' },
+          { '@id': 'https://lukefwalton.com/#beformer' },
+        ],
+        productionCompany: { '@id': 'https://lukefwalton.com/#beformer' },
         sameAs: [
-          'https://lukefwalton.com/love-music-more/',
           'https://open.spotify.com/show/60DA9vSxpalAojp3Zp2T8h',
           'https://podcasts.apple.com/us/podcast/love-music-more-with-scoobert-doobert/id1567355195',
           'https://www.youtube.com/playlist?list=PLyFhmc3NqYe5rwvctk4OOb7emnuGVDFc-',
-          'https://lovemusicmore.substack.com/',
         ],
+        // The archive on the hub, not an identity: sameAs stays the show's own listings.
+        archivedAt: 'https://lukefwalton.com/love-music-more/',
       },
       {
         '@type': 'Audiobook',
@@ -153,15 +143,17 @@ export default function About() {
         isPartOf: {
           '@type': 'CreativeWorkSeries',
           name: 'Plato’s Dialogues, as Read by Scoobert Doobert',
+          // Series-level listings (the whole reading series), not this one work.
+          sameAs: [
+            'https://open.spotify.com/show/0sSgSiGIWfaTibSoTD8RgG',
+            'https://tunein.com/radio/Stream-Platos-Dialogues-as-Read-by-Scoobert-Doobert-a115253/',
+          ],
         },
         author: { '@type': 'Person', name: 'Plato' },
-        readBy: { '@id': 'https://lukefwalton.com/#scoobert' },
+        readBy: { '@id': 'https://lukefwalton.com/#person' },
+        publisher: { '@id': 'https://lukefwalton.com/#beformer' },
         inLanguage: 'en',
-        sameAs: [
-          'https://open.spotify.com/show/0sSgSiGIWfaTibSoTD8RgG',
-          'https://books.apple.com/us/audiobook/apology-by-plato/id1710940329',
-          'https://tunein.com/radio/Stream-Platos-Dialogues-as-Read-by-Scoobert-Doobert-a115253/',
-        ],
+        sameAs: ['https://books.apple.com/us/audiobook/apology-by-plato/id1710940329'],
       },
       {
         '@type': 'MusicEvent',
@@ -228,7 +220,7 @@ export default function About() {
         <meta property="og:locale:alternate" content="ja_JP" />
         <meta
           name="description"
-          content="Scoobert Doobert is a self-produced San Diego indie pop, chill pop, funk, and lofi music project, and a mixing engineer & producer for hire (beformer@aol.com). CHAI production across Sub Pop and Sony Music Japan, the MÖBIUS cycle, the Love Music More podcast, and a Plato audiobook."
+          content="Scoobert Doobert is Luke F. Walton's primary music project: self-produced San Diego indie pop, chill pop, funk, and lofi. Luke mixes and produces for hire (beformer@aol.com). CHAI production across Sub Pop and Sony Music Japan, and the MÖBIUS cycle."
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -258,7 +250,7 @@ export default function About() {
         <figure className="about__portrait">
           <img
             src="/press/scoobert-og.jpg"
-            alt="Scoobert Doobert (Luke Francis Walton), googly eyes stuck across his face, one hand raised toward the camera."
+            alt="Luke F. Walton of Scoobert Doobert, googly eyes stuck across his face, one hand raised toward the camera."
             width="320"
             height="320"
           />
@@ -275,17 +267,16 @@ export default function About() {
           Born on the internet and raised near the coast, Scoobert Doobert makes songs that sound
           sunny even when they’re about trying not to collapse. The project lives somewhere between
           songwriter record, bedroom studio experiment, California postcard, comedy bit, and sincere
-          little prayer. Most of the music is written, played, produced, recorded, and mixed by
-          Scoobert himself, which is both the problem and the point.
+          little prayer. Most of the music is written, played, produced, recorded, and mixed by Luke
+          himself, which is both the problem and the point.
         </p>
 
         <h2>The music</h2>
         <p>
-          Before Scoobert Doobert became a full-time recording universe, Scoobert spent years as a
-          working musician, touring as a guitarist and vocalist with The Doobie Brothers and opening
-          for Gregg Allman while playing with Lara Johnston. After the road, the work moved deeper
-          into production, engineering, and collaboration, eventually folding those skills back into
-          the Scoobert catalog.
+          Before Scoobert Doobert, Luke spent years as a working musician, touring as a guitarist
+          and vocalist with The Doobie Brothers and opening for Gregg Allman while playing with Lara
+          Johnston. After the road, the work moved deeper into production, engineering, and
+          collaboration, eventually folding those skills back into the Scoobert catalog.
         </p>
         <p>
           The solo project started from a bedroom and slowly became a many-room house. Early
@@ -373,7 +364,7 @@ export default function About() {
 
         <h2>Love Music More</h2>
         <p>
-          Scoobert Doobert also hosts{' '}
+          Luke also hosts{' '}
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>
@@ -389,7 +380,8 @@ export default function About() {
           <a href="https://lovemusicmore.substack.com/" target="_blank" rel="noopener noreferrer">
             Substack
           </a>
-          .
+          . Love Music More is hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer,
+          and produced by Beformer.
         </p>
 
         <h2>Plato, out loud</h2>
@@ -421,11 +413,11 @@ export default function About() {
           over-reverbed, and usually trying to hand you something warm before it disappears.
         </p>
         <p>
-          Scoobert Doobert is the recording, podcasting, and audio-project name of{' '}
+          Scoobert Doobert is{' '}
           <a href="https://lukefwalton.com/" rel="me">
-            Luke Francis Walton
+            Luke F. Walton
           </a>
-          .
+          's primary music project. Luke owns the project and its masters; Beformer is the label.
         </p>
 
         <h2>The philosophy of the pizza</h2>

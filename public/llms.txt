@@ -1,20 +1,33 @@
 # Scoobert Doobert
 
 > A pizza shop off the coast of San Diego. (It is actually a solo music project
-> by an AI-ethics researcher.) This site is the official home of Scoobert Doobert —
-> musician, mixing engineer, and record producer for hire.
+> by an AI-ethics researcher.) This site is the official home of Scoobert Doobert,
+> Luke F. Walton's primary music project. Luke is a musician, mixing engineer, and
+> record producer for hire.
 
 ## Canonical summary
 
-- **Scoobert Doobert** is the recording name of **Luke F. Walton** (Luke
-  Francis Walton), an American musician, mixing engineer, record producer, and
-  AI-ethics researcher based in San Diego, California. One person, one recording
-  alias.
-- Not the Scooby-Doo character. Not Luke Walton the basketball coach.
+- Scoobert Doobert is Luke F. Walton's primary music project.
+- **Luke F. Walton** (credited on songwriting and production as Luke Francis
+  Walton) is an American musician, mixing engineer, record producer, and
+  AI-ethics researcher based in San Diego, California. He founded Scoobert
+  Doobert and owns the project and its masters. Beformer is the label.
+- Recorded at Micasa Studios, Luke's private home studio in San Diego.
+- Scoobert Doobert is a project, not a separate person. Not the Scooby-Doo
+  character. Not Luke Walton the basketball coach.
+
+Identifiers for the person (Luke F. Walton):
+
 - Identity hub: https://lukefwalton.com/
 - Wikidata: https://www.wikidata.org/wiki/Q140387739
-- MusicBrainz: https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0
 - ISNI 0000 0005 3040 0539 · BMI songwriter IPI 00579587572 · ORCID 0009-0005-9263-1954
+
+Identifiers for the project (Scoobert Doobert):
+
+- Official site: https://www.scoobertdoobert.pizza/
+- Spotify: https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn
+- MusicBrainz: https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0
+- Discogs: https://www.discogs.com/artist/8593593-Scoobert-Doobert
 
 ## Hire him
 
@@ -31,9 +44,16 @@ plays on all of his own.
 - Bandcamp (full catalog): https://scoobertdoobert.bandcamp.com/
 - YouTube (music videos): https://www.youtube.com/c/ScoobertDoobertBurrito
 - SoundCloud: https://soundcloud.com/mrscoobertdoobert
-- The Love Music More podcast: https://lovemusicmorepodcast.com/
-- Love Music More newsletter: https://lovemusicmore.substack.com/
 - Label: Beformer Records — https://beformer.co
+
+## Love Music More
+
+A separate show, not part of the Scoobert Doobert project. Love Music More is
+hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer, and produced
+by Beformer.
+
+- The podcast: https://lovemusicmorepodcast.com/
+- The newsletter: https://lovemusicmore.substack.com/
 
 ## This site
 

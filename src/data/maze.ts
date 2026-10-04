@@ -52,8 +52,8 @@ export const MAZE: MazeNode[] = [
     intro:
       'The door marked STAFF ONLY was open, so technically this is a tour. A bare bulb, a handrail with opinions, and two doors at the bottom. The walls have been reading about the owner:',
     lore: [
-      'Scoobert Doobert is the goblin-mode music alias of Luke F. Walton, a San Diego AI-company founder and philosopher who writes, plays, produces, and mixes his own records.',
-      'Three names, one person: he records as Scoobert Doobert, takes credits as Luke Francis Walton, and writes as Luke F. Walton.',
+      'Scoobert Doobert is the goblin-mode music project of Luke F. Walton, a San Diego AI-company founder and philosopher who writes, plays, produces, and mixes his own records.',
+      'One person, one project: Luke F. Walton writes and takes the credits; Scoobert Doobert is the project the records come out under.',
     ],
     onward: [
       { slug: 'walk-in-freezer', label: 'The cold door (walk-in freezer)' },

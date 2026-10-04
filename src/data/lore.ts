@@ -10,8 +10,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 
 export const LORE: string[] = [
-  'Scoobert Doobert is the goblin-mode music alias of Luke F. Walton, a San Diego AI-company founder and philosopher who writes, plays, produces, and mixes his own records.',
-  'Three names, one person: he records as Scoobert Doobert, takes credits as Luke Francis Walton, and writes as Luke F. Walton.',
+  'Scoobert Doobert is the goblin-mode music project of Luke F. Walton, a San Diego AI-company founder and philosopher who writes, plays, produces, and mixes his own records.',
+  'One person, one project: Luke F. Walton writes and takes the credits; Scoobert Doobert is the project the records come out under.',
   'By day he founded Surmado (managed AI for small businesses) and researches AI "answerability." The philosopher behind the pizza.',
   '"Derrida Makes a Différance" puns deferred meaning against physics, matter the stuff vs. matters the importance. Verdict: "we do not matter much, if at all."',
   'Its escape hatch: "living in the meaningless, a freedom can come out of it", landing on a homophone, "to be the sun / to be a son."',

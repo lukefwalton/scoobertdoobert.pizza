@@ -80,7 +80,8 @@ the *Love Music More* podcast, press, and live shows. Scoobert Doobert work only
 
 ## Love Music More
 
-The music podcast and newsletter hosted by Scoobert Doobert.
+The music podcast and newsletter. Love Music More is hosted by Luke F. Walton, co-owned by
+Luke F. Walton and Beformer, and produced by Beformer.
 
 - [Love Music More — the show](https://lovemusicmorepodcast.com/)
 - [Substack — Love Music More (newsletter)](https://lovemusicmore.substack.com/)
