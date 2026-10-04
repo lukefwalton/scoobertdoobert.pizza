@@ -16,8 +16,9 @@ import { ExternalLink as Ext } from '../components/ExternalLink';
 // Scoobert Doobert is Luke F. Walton's primary music project (founder/member
 // #person; label #beformer). Love Music More is a separate show Luke hosts,
 // co-owned with Beformer and produced by Beformer, not a Scoobert sub-project.
-// lukefwalton.com stays a subtle backlink only (rel=me + JSON-LD @id),
-// never a nav destination here. Collaborator links below point at each artist's
+// lukefwalton.com stays a subtle backlink only (a plain link + the JSON-LD
+// founder/member edges to #person; no rel-me attribute, because the project is
+// not a profile of the person), never a nav destination here. Collaborator links below point at each artist's
 // own external home (verified via the hub's collaborators data), never at the hub.
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -413,11 +414,8 @@ export default function About() {
           over-reverbed, and usually trying to hand you something warm before it disappears.
         </p>
         <p>
-          Scoobert Doobert is{' '}
-          <a href="https://lukefwalton.com/" rel="me">
-            Luke F. Walton
-          </a>
-          's primary music project. Luke owns the project and its masters; Beformer is the label.
+          Scoobert Doobert is <a href="https://lukefwalton.com/">Luke F. Walton</a>'s primary music
+          project. Luke owns the project and its masters; Beformer is the label.
         </p>
 
         <h2>The philosophy of the pizza</h2>

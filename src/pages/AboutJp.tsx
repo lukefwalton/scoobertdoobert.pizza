@@ -263,7 +263,7 @@ export default function AboutJp() {
 
         <p>
           Scoobert Doobert は{' '}
-          <a href="https://lukefwalton.com/jp/" rel="me" hrefLang="ja">
+          <a href="https://lukefwalton.com/jp/" hrefLang="ja">
             ルーク・F・ウォルトン（Luke F. Walton）
           </a>{' '}
           の主要な音楽プロジェクトです。プロジェクトと原盤はルークが所有し、レーベルは Beformer

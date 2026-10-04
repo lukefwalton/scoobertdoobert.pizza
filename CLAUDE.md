@@ -193,9 +193,12 @@ dread.** (The one camera exception is a consensual, fully-local, never-transmitt
 5. **The order form is the one loud exception (Luke).** It's the easter-egg
    entrance: an intentionally prominent period "ORDER ONLINE!" callout (blinking
    NEW! badge, big button) on the otherwise dead-plain page. Don't flatten it.
-6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** Footer `rel=me` +
-   JSON-LD `sameAs`, never a navigation destination. This is Scoobert's site,
-   not Luke's.
+6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** A plain footer link
+   plus the JSON-LD edges (`#scoobert` `founder`/`member` → `#person`; the hub in
+   the Person node's `sameAs`), never a navigation destination. **Never
+   `rel="me"`** (Luke, 2026-10): the person and the project are deliberately
+   distinct entities, so this site is not a profile of Luke, and `rel="me"`
+   would claim it is. This is Scoobert's site, not Luke's.
 7. **IT'S A GAME NOW — DESIGN pillar #6's "no stats / no HUD" is LIFTED (Luke,
    2026-06-21): "let's make a damn game here."** The site embraces a real,
    visible RPG layer — on-screen stats, meters, progression, rewards are now
