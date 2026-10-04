@@ -29,13 +29,13 @@ export default function Storefront() {
         <link rel="canonical" href="https://www.scoobertdoobert.pizza/" />
         <meta
           name="description"
-          content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
+          content="A pizza shop off the coast of San Diego — secretly Scoobert Doobert, Luke F. Walton's primary music project. Luke is an artist, and a mixing engineer & producer for hire. There is a whole world underneath."
         />
         <meta property="og:url" content="https://www.scoobertdoobert.pizza/" />
         <meta property="og:title" content="Electronic Pizza Storefront · Scoobert Doobert" />
         <meta
           property="og:description"
-          content="A pizza shop off the coast of San Diego — secretly the solo music project of Scoobert Doobert: artist, and mixing engineer & producer for hire. There is a whole world underneath."
+          content="A pizza shop off the coast of San Diego — secretly Scoobert Doobert, Luke F. Walton's primary music project. Luke is an artist, and a mixing engineer & producer for hire. There is a whole world underneath."
         />
         {/* Discography: every album in the storefront grid as a MusicAlbum tied
             to the canonical #scoobert artist. Source of truth: albums.json. */}
@@ -48,9 +48,9 @@ export default function Storefront() {
             '@context': 'https://schema.org',
             '@type': 'MusicPlaylist',
             '@id': 'https://www.scoobertdoobert.pizza/#reel',
-            name: 'The Reel, productions, collabs & mixes by Scoobert Doobert',
+            name: 'The Reel, productions, collabs & mixes by Luke F. Walton',
             description:
-              'The hire reel of Scoobert Doobert (Luke F. Walton), mixing engineer & producer for hire: productions & collabs throughout; the mixes are at the bottom. He mixes, produces, and plays on all of his own records.',
+              "Luke F. Walton's hire reel: productions, collabs and mixes, including Scoobert Doobert. Productions & collabs throughout; the mixes are at the bottom. He mixes, produces, and plays on all of his own records.",
             url:
               destById('reel')?.href ?? 'https://open.spotify.com/playlist/7pmgoZlkf6exw4BAJTQs7Q',
             creator: { '@id': PERSON_ID },

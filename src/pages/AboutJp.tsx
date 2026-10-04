@@ -54,29 +54,21 @@ export default function AboutJp() {
         about: { '@id': 'https://lukefwalton.com/#scoobert' },
         mainEntity: { '@id': 'https://lukefwalton.com/#scoobert' },
       },
+      // Stub of the project node (lukefwalton.com declares the full node); the
+      // edges this page needs are founder and member -> #person.
       {
         '@type': 'MusicGroup',
         '@id': 'https://lukefwalton.com/#scoobert',
         name: 'Scoobert Doobert',
         alternateName: 'スクーバート・ドゥーバート',
+        url: 'https://www.scoobertdoobert.pizza/',
         description:
-          'カリフォルニア州サンディエゴ発の自主制作インディーポップ／チルポップ／ファンク／ローファイ・プロジェクト。300曲近くを自ら作曲・演奏・プロデュース・ミックス。Sub Pop および Sony Music Japan を通じてバンド CHAI をリミックス／プロデュースし、NHKドラマ・フジテレビドラマ・映画作品に楽曲を提供。ポッドキャスト『Love Music More』ホスト、プラトン対話篇の朗読オーディオブックの朗読も手がける。',
+          'Scoobert Doobert はルーク・F・ウォルトンの主要な音楽プロジェクトです。サンディエゴ発のインディーポップ／チルポップ。プロジェクトと原盤はルークが所有し、レーベルは Beformer です。',
         disambiguatingDescription:
-          'ルーク・フランシス・ウォルトンの音楽・ポッドキャスト・音声プロジェクト名義。NBAの選手・コーチであるルーク・ウォルトンとは別人。',
-        genre: ['indie pop', 'chill pop', 'alt-pop', 'funk', 'lo-fi', 'bedroom pop'],
-        foundingDate: '2006',
-        foundingLocation: { '@type': 'Place', name: 'San Diego, California' },
-        location: { '@type': 'Place', name: 'San Diego, California' },
+          'ルーク・F・ウォルトンの主要な音楽プロジェクトであり、別の人物ではありません。NBAの選手・コーチであるルーク・ウォルトンとは別人。',
         recordLabel: { '@id': 'https://lukefwalton.com/#beformer' },
+        founder: { '@id': 'https://lukefwalton.com/#person' },
         member: { '@id': 'https://lukefwalton.com/#person' },
-        sameAs: [
-          'https://open.spotify.com/artist/5zKkCi9E4L8p6aRiCSJVTn',
-          'https://music.apple.com/us/artist/scoobert-doobert/1240946356',
-          'https://scoobertdoobert.bandcamp.com/',
-          'https://www.youtube.com/@scoobertdoobertburrito',
-          'https://musicbrainz.org/artist/014129ba-f616-4754-a2a5-22933c639ab0',
-          'https://koookooorooo.com/scoobert-doobert',
-        ],
       },
       {
         '@type': 'MusicEvent',
@@ -133,7 +125,7 @@ export default function AboutJp() {
         <link rel="alternate" hrefLang="x-default" href="https://www.scoobertdoobert.pizza/about" />
         <meta
           name="description"
-          content="スクーバート・ドゥーバート（Scoobert Doobert）＝ルーク・F・ウォルトンの日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ（東京・宮城）など。"
+          content="ルーク・F・ウォルトンの主要な音楽プロジェクト、スクーバート・ドゥーバート（Scoobert Doobert）の日本での活動。CHAI のリミックス／プロデュース（Sub Pop『WINK TOGETHER』、Sony Music Japan）、NHKドラマ『恋せぬふたり』、映画『さかなのこ』、フジテレビドラマ主題歌、『サンレコ』掲載、2024年10月の来日ライブ（東京・宮城）など。"
         />
         <meta name="robots" content="index,follow,max-image-preview:large" />
         <meta property="og:type" content="website" />
@@ -165,7 +157,7 @@ export default function AboutJp() {
         <figure className="about__portrait">
           <img
             src="/press/scoobert-og.jpg"
-            alt="スクーバート・ドゥーバート（ルーク・フランシス・ウォルトン）。顔じゅうにギョロ目のシールを貼り、片手をカメラに向けて上げている。"
+            alt="スクーバート・ドゥーバートのルーク・F・ウォルトン。顔じゅうにギョロ目のシールを貼り、片手をカメラに向けて上げている。"
             width="320"
             height="320"
           />
@@ -178,7 +170,7 @@ export default function AboutJp() {
         </p>
 
         <p>
-          ほとんどの楽曲はスクーバート本人が作曲・演奏・プロデュース・録音・ミックスまで一人で手がけています。それが弱点であり、同時にこのプロジェクトの核でもあります。このページでは、その中でも
+          ほとんどの楽曲はルーク本人が作曲・演奏・プロデュース・録音・ミックスまで一人で手がけています。それが弱点であり、同時にこのプロジェクトの核でもあります。このページでは、その中でも
           <strong>日本での仕事</strong>を中心に紹介します。
         </p>
 
@@ -234,7 +226,7 @@ export default function AboutJp() {
         <h2>音楽</h2>
         <p>
           Scoobert Doobert
-          がフルタイムの録音プロジェクトになる前、スクーバートは長年プロのミュージシャンとして活動していました。ギタリスト兼ヴォーカリストとして
+          を始める前、ルークは長年プロのミュージシャンとして活動していました。ギタリスト兼ヴォーカリストとして
           The Doobie Brothers のツアーに参加し、Lara Johnston との活動では Gregg Allman
           の前座を務めたこともあります。ツアー生活のあとは制作・エンジニアリング・コラボレーションへと軸足を移し、その経験を
           Scoobert のカタログに注ぎ込んでいきました。
@@ -257,7 +249,7 @@ export default function AboutJp() {
 
         <h2>Love Music More</h2>
         <p>
-          スクーバートは、音楽の技術・哲学・歴史をめぐるニュースレター兼ポッドキャスト{' '}
+          ルークは、音楽の技術・哲学・歴史をめぐるニュースレター兼ポッドキャスト{' '}
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             <em>Love Music More</em>
           </a>{' '}
@@ -265,15 +257,17 @@ export default function AboutJp() {
           <a href={lmm} target="_blank" rel="noopener noreferrer">
             lovemusicmorepodcast.com
           </a>
-          。
+          。Love Music More のホストはルーク・F・ウォルトン。番組はルーク・F・ウォルトンと Beformer
+          の共同所有で、制作は Beformer が担当しています。
         </p>
 
         <p>
-          Scoobert Doobert は、ミュージシャン／プロデューサー{' '}
+          Scoobert Doobert は{' '}
           <a href="https://lukefwalton.com/jp/" rel="me" hrefLang="ja">
-            ルーク・フランシス・ウォルトン（Luke Francis Walton）
+            ルーク・F・ウォルトン（Luke F. Walton）
           </a>{' '}
-          の録音・ポッドキャスト・音声プロジェクト名義です。
+          の主要な音楽プロジェクトです。プロジェクトと原盤はルークが所有し、レーベルは Beformer
+          です。
         </p>
 
         <hr />

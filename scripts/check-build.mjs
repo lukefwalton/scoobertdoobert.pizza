@@ -213,6 +213,13 @@ for (const p of identityPages) {
     'hub in sameAs': (person?.sameAs ?? []).includes(HUB_URL),
     disambiguation: (person?.disambiguatingDescription ?? '').includes(p.disambig),
   };
+  // sameAs is identity only: the show is never sameAs its newsletter (Substack) or its hub archive.
+  const podcast = nodes.find((n) => n['@id'] === 'https://lukefwalton.com/#lovemusicmore-podcast');
+  if (podcast) {
+    checks['podcast sameAs identity-only'] = !(podcast.sameAs ?? []).some(
+      (u) => u.includes('substack.com') || u.startsWith('https://lukefwalton.com/'),
+    );
+  }
   if (p.inLanguage) {
     // The about pages carry an AboutPage node; assert the full documented bridge
     // (about/mainEntity -> #scoobert) and the localized language tag.

@@ -1,6 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
-import { personNode, PERSON_ID } from './identity';
+import {
+  personNode,
+  PERSON_ID,
+  CANONICAL_SAMEAS,
+  PERSON_ALTERNATE_NAMES,
+  SCOOBERT_FOUNDING_DATE,
+} from './identity';
 
 // identity.ts is the single source of truth for the shared Person node, imported
 // by /about and /about/jp. But index.html is static HTML and can't import TS, so
@@ -35,5 +41,32 @@ describe('identity — homepage Person node mirrors the shared source of truth',
     const scoobert = indexGraph().find((n) => n['@type'] === 'MusicGroup');
     expect(scoobert, 'index.html @graph must contain the #scoobert MusicGroup').toBeDefined();
     expect((scoobert!.member as { '@id'?: string })?.['@id']).toBe(PERSON_ID);
+  });
+
+  it('#scoobert is founded by the shared #person (founder and member are separate edges)', () => {
+    const scoobert = indexGraph().find((n) => n['@type'] === 'MusicGroup');
+    expect((scoobert!.founder as { '@id'?: string })?.['@id']).toBe(PERSON_ID);
+  });
+
+  it('no Person sameAs URL also appears on the #scoobert node (person and project stay separate)', () => {
+    // Scoobert Doobert is Luke F. Walton's primary music project, not an alias of
+    // the person: project identifiers belong on #scoobert only, person profiles on
+    // #person only. A URL on both would claim the two are the same thing.
+    const scoobert = indexGraph().find(
+      (n) => n['@type'] === 'MusicGroup' && n['@id'] === 'https://lukefwalton.com/#scoobert',
+    );
+    const projectSameAs = new Set((scoobert!.sameAs as string[]) ?? []);
+    const shared = CANONICAL_SAMEAS.filter((url) => projectSameAs.has(url));
+    expect(shared, 'URLs on both #person and #scoobert').toEqual([]);
+  });
+
+  it('the #scoobert foundingDate mirrors the year the hub declares', () => {
+    const scoobert = indexGraph().find((n) => n['@type'] === 'MusicGroup');
+    expect(scoobert!.foundingDate).toBe(SCOOBERT_FOUNDING_DATE);
+  });
+
+  it('the Person never carries the project name as an alternateName', () => {
+    expect(PERSON_ALTERNATE_NAMES).not.toContain('Scoobert Doobert');
+    expect(PERSON_ALTERNATE_NAMES).not.toContain('スクーバート・ドゥーバート');
   });
 });

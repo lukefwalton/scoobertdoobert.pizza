@@ -14,20 +14,48 @@
 import albums from './albums.json';
 import { JUKEBOX_TRACKS } from './jukebox';
 import { SONG_META } from './songMeta';
+import { PERSON_ID } from './identity';
 
 const ORIGIN = 'https://www.scoobertdoobert.pizza';
 const SCOOBERT_ID = 'https://lukefwalton.com/#scoobert';
+const HUB_ALBUMS = 'https://lukefwalton.com/albums';
 
 type AlbumEntry = { slug: string; title: string; art: string };
 
+/**
+ * This site's album slug → the hub's /albums/<slug>/ page, for the albums the
+ * hub has a page for. Most slugs match; three differ because the hub keeps the
+ * stylized titles ("Finding $D", "Dragon Ball $d", "$WAMI$" = Swamis). Albums
+ * not listed here (singles and EPs with no hub album page) get no `sameAs`.
+ */
+export const HUB_ALBUM_SLUG: Record<string, string> = {
+  'big-hug': 'big-hug',
+  'dragon-ball-sd': 'dragon-ball-d',
+  'finding-sd': 'finding-d-remastered',
+  i: 'i',
+  koan: 'koan',
+  'little-hug': 'little-hug',
+  'masks-and-monsters': 'masks-and-monsters',
+  mob: 'mob',
+  'moonlight-beach': 'moonlight-beach',
+  swamis: 'wami',
+  'to-sleep': 'to-sleep',
+};
+
 export function albumNodes() {
-  return (albums as AlbumEntry[]).map((album) => ({
-    '@type': 'MusicAlbum',
-    '@id': `${ORIGIN}/#album-${album.slug}`,
-    name: album.title,
-    byArtist: { '@id': SCOOBERT_ID },
-    image: `${ORIGIN}${album.art}`,
-  }));
+  return (albums as AlbumEntry[]).map((album) => {
+    const hubSlug = HUB_ALBUM_SLUG[album.slug];
+    return {
+      '@type': 'MusicAlbum',
+      '@id': `${ORIGIN}/#album-${album.slug}`,
+      name: album.title,
+      byArtist: { '@id': SCOOBERT_ID },
+      // Luke owns the masters outright; Beformer is the label, not an owner.
+      copyrightHolder: { '@id': PERSON_ID },
+      ...(hubSlug ? { sameAs: `${HUB_ALBUMS}/${hubSlug}/#album` } : {}),
+      image: `${ORIGIN}${album.art}`,
+    };
+  });
 }
 
 // One @graph of MusicAlbum nodes. Each links to the artist via `byArtist`

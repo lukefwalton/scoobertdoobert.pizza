@@ -27,7 +27,7 @@ export type LmmEpisode = {
 };
 
 export const LMM_CONCEPT =
-  'Love Music More, a newsletter + podcast on the craft, philosophy, and history of music, hosted by Scoobert Doobert (Luke F. Walton), with guests from every corner of the business. Top 10% of music podcasts.';
+  'Love Music More, a newsletter + podcast on the craft, philosophy, and history of music, with guests from every corner of the business. Hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer, and produced by Beformer. Top 10% of music podcasts.';
 
 /** The storefront's podcast destination: the show's own site. */
 export const LMM_HOME = destById('podcast')?.href ?? 'https://lovemusicmorepodcast.com/';
