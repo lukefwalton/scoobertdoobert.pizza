@@ -745,7 +745,7 @@ export function WorldHud() {
                 {L.meaning && <p className="hud-lyrics__meaning">{L.meaning}</p>}
                 <pre className="hud-lyrics__words">{L.lyrics}</pre>
                 <p className="hud-lyrics__credit">
-                  © Luke F. Walton dba Scoobert Doobert. All rights reserved.
+                  © Luke F. Walton (Scoobert Doobert). All rights reserved.
                 </p>
               </div>
             </div>

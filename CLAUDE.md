@@ -55,8 +55,10 @@ a liminal/backrooms/90s dive whose reward is sound; read it.
   *grammar* of these references, never the artifacts. (The VRML plugin is
   "Calzone Player™," not "Cosmo Player"; a pizza-tracker loader parodies the
   *stages*, never Domino's mark.)
-- **Scoobert's creative content is © Luke F. Walton dba Scoobert Doobert, ALL
-  RIGHTS RESERVED** (music, lyrics, words/copy, biography, likeness, photos,
+- **Scoobert's creative content is © Luke F. Walton (Scoobert Doobert), ALL
+  RIGHTS RESERVED** (no DBA is registered, so never write "dba" or "doing
+  business as": Scoobert Doobert is his music project, not a trade name; Luke,
+  2026-10) (music, lyrics, words/copy, biography, likeness, photos,
   artwork — everything under `media/`, `public/audio/`, `public/press/`,
   `public/brand/`, and the site's prose). It is only *licensed to* this repo; its
   copyright is never altered by being here. See `LICENSE`. **Any open-source
@@ -193,9 +195,12 @@ dread.** (The one camera exception is a consensual, fully-local, never-transmitt
 5. **The order form is the one loud exception (Luke).** It's the easter-egg
    entrance: an intentionally prominent period "ORDER ONLINE!" callout (blinking
    NEW! badge, big button) on the otherwise dead-plain page. Don't flatten it.
-6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** Footer `rel=me` +
-   JSON-LD `sameAs`, never a navigation destination. This is Scoobert's site,
-   not Luke's.
+6. **`lukefwalton.com` is a SUBTLE backlink only (Luke).** A plain footer link
+   plus the JSON-LD edges (`#scoobert` `founder`/`member` → `#person`; the hub in
+   the Person node's `sameAs`), never a navigation destination. **Never
+   `rel="me"`** (Luke, 2026-10): the person and the project are deliberately
+   distinct entities, so this site is not a profile of Luke, and `rel="me"`
+   would claim it is. This is Scoobert's site, not Luke's.
 7. **IT'S A GAME NOW — DESIGN pillar #6's "no stats / no HUD" is LIFTED (Luke,
    2026-06-21): "let's make a damn game here."** The site embraces a real,
    visible RPG layer — on-screen stats, meters, progression, rewards are now

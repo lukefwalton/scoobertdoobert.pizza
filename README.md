@@ -300,8 +300,8 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md), the
 ## Copyright & licensing
 
 **Scoobert Doobert's creative content, the music, lyrics, words, copy,
-biography, likeness, photographs, and artwork, is © Luke F. Walton dba Scoobert
-Doobert, all rights reserved.** It is only *licensed to* this repository so the
+biography, likeness, photographs, and artwork, is © Luke F. Walton (Scoobert
+Doobert), all rights reserved.** It is only *licensed to* this repository so the
 site can display and play it; being in this repo never changes its copyright.
 There is currently **no open-source license** on the repo (all rights reserved by
 default), and any future code license would cover the **source code only**, never

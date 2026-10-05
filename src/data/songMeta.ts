@@ -8,7 +8,7 @@
 // pause-menu "now playing" subtitle, and the terminal `song` command all read it,
 // so a track's blurb lives in exactly one place. Covers ALL catalog songs
 // (instrumentals + covers too), where lyrics.json only covers ones with words.
-// Luke's content (© Luke F. Walton dba Scoobert Doobert), like the music.
+// Luke's content (© Luke F. Walton (Scoobert Doobert)), like the music.
 // ───────────────────────────────────────────────────────────────────────────
 import data from './songMeta.json';
 

@@ -312,10 +312,7 @@ export function PlainFloor({ floor }: { floor: Floor }) {
           &times; Scoobert Doobert.
         </p>
         <p className="identity">
-          Scoobert Doobert is{' '}
-          <a href="https://lukefwalton.com/" rel="me">
-            Luke F. Walton
-          </a>
+          Scoobert Doobert is <a href="https://lukefwalton.com/">Luke F. Walton</a>
           &#39;s primary music project.
         </p>
         <p className="credit">

@@ -65,7 +65,7 @@ export default function Poke() {
         <CabinetShelf currentSlug="poke" />
       </p>
       <p className="poke-foot poke-foot--copy">
-        Scoobert Doobert&rsquo;s likeness &amp; music &copy; Luke F. Walton dba Scoobert Doobert.
+        Scoobert Doobert&rsquo;s likeness &amp; music &copy; Luke F. Walton (Scoobert Doobert).
       </p>
     </main>
   );

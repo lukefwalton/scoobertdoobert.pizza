@@ -16,8 +16,9 @@ import { ExternalLink as Ext } from '../components/ExternalLink';
 // Scoobert Doobert is Luke F. Walton's primary music project (founder/member
 // #person; label #beformer). Love Music More is a separate show Luke hosts,
 // co-owned with Beformer and produced by Beformer, not a Scoobert sub-project.
-// lukefwalton.com stays a subtle backlink only (rel=me + JSON-LD @id),
-// never a nav destination here. Collaborator links below point at each artist's
+// lukefwalton.com stays a subtle backlink only (a plain link + the JSON-LD
+// founder/member edges to #person; no rel-me attribute, because the project is
+// not a profile of the person), never a nav destination here. Collaborator links below point at each artist's
 // own external home (verified via the hub's collaborators data), never at the hub.
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -68,7 +69,7 @@ export default function About() {
   const faq: { q: string; a: string }[] = [
     {
       q: 'Who is Scoobert Doobert?',
-      a: "Scoobert Doobert is Luke F. Walton's primary music project. Luke is a musician from San Diego, California, and the project is his, masters included: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Luke himself. Beformer is the label.",
+      a: "Scoobert Doobert is Luke F. Walton's primary music project. Luke is a musician from San Diego, California, and the project is his, masters included: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Luke himself. Beformer is the label; some releases are co-signed Beformer x indiemono.",
     },
     {
       q: 'Does Luke F. Walton mix or produce records for other artists?',
@@ -106,10 +107,13 @@ export default function About() {
         name: 'Scoobert Doobert',
         url: 'https://www.scoobertdoobert.pizza/',
         description:
-          "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label.",
+          "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label, and some releases are co-signed Beformer x indiemono.",
         disambiguatingDescription:
           'The primary music project of Luke F. Walton, not a separate person. Not Luke Walton the NBA player and coach.',
-        recordLabel: { '@id': 'https://lukefwalton.com/#beformer' },
+        recordLabel: [
+          { '@id': 'https://lukefwalton.com/#beformer' },
+          { '@id': 'https://lukefwalton.com/#indiemono' },
+        ],
         founder: { '@id': 'https://lukefwalton.com/#person' },
         member: { '@id': 'https://lukefwalton.com/#person' },
       },
@@ -117,7 +121,7 @@ export default function About() {
         '@type': 'PodcastSeries',
         '@id': 'https://lukefwalton.com/#lovemusicmore-podcast',
         name: 'Love Music More',
-        alternateName: 'Love Music More with Scoobert Doobert',
+        alternateName: ['Love Music More with Scoobert Doobert', 'Music Appreciation 101'],
         description:
           'A podcast on the craft, philosophy, and history of music, with guests from every genre and every role backstage to the stage. Love Music More is hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer, and produced by Beformer. Ranked in the top 10% of music podcasts. New episodes Tuesdays.',
         url: 'https://lovemusicmorepodcast.com/',
@@ -413,11 +417,9 @@ export default function About() {
           over-reverbed, and usually trying to hand you something warm before it disappears.
         </p>
         <p>
-          Scoobert Doobert is{' '}
-          <a href="https://lukefwalton.com/" rel="me">
-            Luke F. Walton
-          </a>
-          's primary music project. Luke owns the project and its masters; Beformer is the label.
+          Scoobert Doobert is <a href="https://lukefwalton.com/">Luke F. Walton</a>'s primary music
+          project. Luke owns the project and its masters; Beformer is the label; some releases are
+          co-signed Beformer x indiemono.
         </p>
 
         <h2>The philosophy of the pizza</h2>
