@@ -63,7 +63,7 @@ export default function AboutJp() {
         alternateName: 'スクーバート・ドゥーバート',
         url: 'https://www.scoobertdoobert.pizza/',
         description:
-          'Scoobert Doobert はルーク・F・ウォルトンの主要な音楽プロジェクトです。サンディエゴ発のインディーポップ／チルポップ。プロジェクトと原盤はルークが所有し、レーベルは Beformer です。',
+          'Scoobert Doobert はルーク・F・ウォルトンの主要な音楽プロジェクトです。サンディエゴ発のインディーポップ／チルポップ。プロジェクトと原盤はルークが所有し、レーベルは Beformer です。一部の作品は Beformer x indiemono の共同リリースです。',
         disambiguatingDescription:
           'ルーク・F・ウォルトンの主要な音楽プロジェクトであり、別の人物ではありません。NBAの選手・コーチであるルーク・ウォルトンとは別人。',
         recordLabel: [
@@ -270,7 +270,7 @@ export default function AboutJp() {
             ルーク・F・ウォルトン（Luke F. Walton）
           </a>{' '}
           の主要な音楽プロジェクトです。プロジェクトと原盤はルークが所有し、レーベルは Beformer
-          です。
+          です。一部の作品は Beformer x indiemono の共同リリースです。
         </p>
 
         <hr />

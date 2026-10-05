@@ -107,7 +107,7 @@ export default function About() {
         name: 'Scoobert Doobert',
         url: 'https://www.scoobertdoobert.pizza/',
         description:
-          "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label.",
+          "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label, and some releases are co-signed Beformer x indiemono.",
         disambiguatingDescription:
           'The primary music project of Luke F. Walton, not a separate person. Not Luke Walton the NBA player and coach.',
         recordLabel: [
@@ -121,7 +121,7 @@ export default function About() {
         '@type': 'PodcastSeries',
         '@id': 'https://lukefwalton.com/#lovemusicmore-podcast',
         name: 'Love Music More',
-        alternateName: 'Love Music More with Scoobert Doobert',
+        alternateName: ['Love Music More with Scoobert Doobert', 'Music Appreciation 101'],
         description:
           'A podcast on the craft, philosophy, and history of music, with guests from every genre and every role backstage to the stage. Love Music More is hosted by Luke F. Walton, co-owned by Luke F. Walton and Beformer, and produced by Beformer. Ranked in the top 10% of music podcasts. New episodes Tuesdays.',
         url: 'https://lovemusicmorepodcast.com/',
