@@ -491,6 +491,23 @@ for (const file of distHtmlFiles()) {
   }
 }
 
+// Identity guard (ADDENDUM #6, Luke 2026-10): the person and the project are
+// deliberately distinct entities, so no rendered page may mark any link
+// rel="me" — on lukefwalton.com that would claim this site is Luke's profile,
+// and this site has no other identity to claim. The hub bridge is the JSON-LD
+// above (#scoobert -> #person, hub in sameAs), never a rel-me link. The rule
+// lives in CLAUDE.md; this is the tripwire so a template or shell regression
+// fails the build instead of quietly re-coupling the two.
+const REL_ME = /<(?:a|link)\b[^>]*\brel=["'][^"']*\bme\b[^"']*["'][^>]*>/g;
+for (const file of distHtmlFiles()) {
+  const hits = readFileSync(file, 'utf8').match(REL_ME) ?? [];
+  if (hits.length) {
+    console.error(`  x rel-me ${file}: ${hits.length} link(s) marked rel="me" -> ${hits[0]}`);
+    failed++;
+  }
+}
+console.log('  ok no rendered page marks a link rel="me" (ADDENDUM #6)');
+
 if (failed) {
   console.error(`\npost-build check FAILED (${failed}).`);
   process.exit(1);
