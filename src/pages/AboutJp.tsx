@@ -66,7 +66,10 @@ export default function AboutJp() {
           'Scoobert Doobert はルーク・F・ウォルトンの主要な音楽プロジェクトです。サンディエゴ発のインディーポップ／チルポップ。プロジェクトと原盤はルークが所有し、レーベルは Beformer です。',
         disambiguatingDescription:
           'ルーク・F・ウォルトンの主要な音楽プロジェクトであり、別の人物ではありません。NBAの選手・コーチであるルーク・ウォルトンとは別人。',
-        recordLabel: { '@id': 'https://lukefwalton.com/#beformer' },
+        recordLabel: [
+          { '@id': 'https://lukefwalton.com/#beformer' },
+          { '@id': 'https://lukefwalton.com/#indiemono' },
+        ],
         founder: { '@id': 'https://lukefwalton.com/#person' },
         member: { '@id': 'https://lukefwalton.com/#person' },
       },

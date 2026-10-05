@@ -11,7 +11,8 @@
 - **Luke F. Walton** (credited on songwriting and production as Luke Francis
   Walton) is an American musician, mixing engineer, record producer, and
   AI-ethics researcher based in San Diego, California. He founded Scoobert
-  Doobert and owns the project and its masters. Beformer is the label.
+  Doobert and owns the project and its masters. Beformer is the label; some
+releases are co-signed Beformer x indiemono.
 - Recorded at Micasa Studios, Luke's private home studio in San Diego.
 - Scoobert Doobert is a project, not a separate person. Not the Scooby-Doo
   character. Not Luke Walton the basketball coach.
@@ -44,7 +45,7 @@ plays on all of his own.
 - Bandcamp (full catalog): https://scoobertdoobert.bandcamp.com/
 - YouTube (music videos): https://www.youtube.com/c/ScoobertDoobertBurrito
 - SoundCloud: https://soundcloud.com/mrscoobertdoobert
-- Label: Beformer Records — https://beformer.co
+- Label: Beformer Records — https://beformer.co (some releases co-signed Beformer x indiemono — https://indiemono.com/)
 
 ## Love Music More
 
@@ -72,5 +73,5 @@ The 3D world is progressive enhancement; every destination is a real link.
 ## Rights
 
 All music, lyrics, words, artwork, and likeness on this site are
-© Luke F. Walton dba Scoobert Doobert, all rights reserved. Any open-source
+© Luke F. Walton (Scoobert Doobert), all rights reserved. Any open-source
 license on the site's source code never covers the creative content.

@@ -55,8 +55,10 @@ a liminal/backrooms/90s dive whose reward is sound; read it.
   *grammar* of these references, never the artifacts. (The VRML plugin is
   "Calzone Player™," not "Cosmo Player"; a pizza-tracker loader parodies the
   *stages*, never Domino's mark.)
-- **Scoobert's creative content is © Luke F. Walton dba Scoobert Doobert, ALL
-  RIGHTS RESERVED** (music, lyrics, words/copy, biography, likeness, photos,
+- **Scoobert's creative content is © Luke F. Walton (Scoobert Doobert), ALL
+  RIGHTS RESERVED** (no DBA is registered, so never write "dba" or "doing
+  business as": Scoobert Doobert is his music project, not a trade name; Luke,
+  2026-10) (music, lyrics, words/copy, biography, likeness, photos,
   artwork — everything under `media/`, `public/audio/`, `public/press/`,
   `public/brand/`, and the site's prose). It is only *licensed to* this repo; its
   copyright is never altered by being here. See `LICENSE`. **Any open-source

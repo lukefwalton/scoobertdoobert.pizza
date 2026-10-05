@@ -8,7 +8,7 @@
 // lukefwalton.com pages (a one-time extract, every line + the author's own spellings
 // preserved) so this repo stays STANDALONE — it never reads the lfw repo.
 //
-// These are Luke's OWN words (© Luke F. Walton dba Scoobert Doobert), licensed to
+// These are Luke's OWN words (© Luke F. Walton (Scoobert Doobert)), licensed to
 // this repo like the music. Surfaced two ways: the pause-menu "read the words" panel
 // for whatever's playing, and the terminal `lyrics` command. Instrumentals + covers
 // have no entry (no words to show), so `hasLyrics` is the gate everywhere.

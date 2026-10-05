@@ -108,7 +108,7 @@ export default function Catalog() {
 
       <hr />
       <p>
-        Words &amp; music &copy; Luke F. Walton dba Scoobert Doobert. All rights reserved. The liner
+        Words &amp; music &copy; Luke F. Walton (Scoobert Doobert). All rights reserved. The liner
         notes are the artist&rsquo;s own.
       </p>
     </main>

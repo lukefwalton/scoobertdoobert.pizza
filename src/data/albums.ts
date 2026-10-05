@@ -3,7 +3,7 @@
 // scripts/make-album-covers.mjs (source in media/album-art/, degraded derivatives
 // in public/brand/albums/). Add a cover = drop art in + re-run the script.
 //
-// Luke's covers are his copyright (© Luke F. Walton dba Scoobert Doobert, all rights
+// Luke's covers are his copyright (© Luke F. Walton (Scoobert Doobert), all rights
 // reserved) — only the degraded web derivatives ship; this just indexes them.
 import catalog from './albums.json';
 

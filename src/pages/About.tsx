@@ -69,7 +69,7 @@ export default function About() {
   const faq: { q: string; a: string }[] = [
     {
       q: 'Who is Scoobert Doobert?',
-      a: "Scoobert Doobert is Luke F. Walton's primary music project. Luke is a musician from San Diego, California, and the project is his, masters included: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Luke himself. Beformer is the label.",
+      a: "Scoobert Doobert is Luke F. Walton's primary music project. Luke is a musician from San Diego, California, and the project is his, masters included: self-produced indie pop, chill pop, funk, and lofi, close to 300 registered compositions, written, played, produced, and mixed by Luke himself. Beformer is the label; some releases are co-signed Beformer x indiemono.",
     },
     {
       q: 'Does Luke F. Walton mix or produce records for other artists?',
@@ -110,7 +110,10 @@ export default function About() {
           "Scoobert Doobert is Luke F. Walton's primary music project. Indie pop and chill pop from San Diego. Luke owns the project and its masters; Beformer is the label.",
         disambiguatingDescription:
           'The primary music project of Luke F. Walton, not a separate person. Not Luke Walton the NBA player and coach.',
-        recordLabel: { '@id': 'https://lukefwalton.com/#beformer' },
+        recordLabel: [
+          { '@id': 'https://lukefwalton.com/#beformer' },
+          { '@id': 'https://lukefwalton.com/#indiemono' },
+        ],
         founder: { '@id': 'https://lukefwalton.com/#person' },
         member: { '@id': 'https://lukefwalton.com/#person' },
       },
@@ -415,7 +418,8 @@ export default function About() {
         </p>
         <p>
           Scoobert Doobert is <a href="https://lukefwalton.com/">Luke F. Walton</a>'s primary music
-          project. Luke owns the project and its masters; Beformer is the label.
+          project. Luke owns the project and its masters; Beformer is the label; some releases are
+          co-signed Beformer x indiemono.
         </p>
 
         <h2>The philosophy of the pizza</h2>
