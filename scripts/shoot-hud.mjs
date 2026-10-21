@@ -23,7 +23,6 @@ await page.addInitScript(() => {
       luckEarned: 1,
       luckSpent: 0,
       radioUnlocked: true,
-      itemsHeld: ['pool-locker-key', 'hall-closet-key'],
       // Every objective before collect-tapes in QUESTS order — seed them done so the
       // tapes chip is first. earn-luck / unlock-radio now key off their ritual secrets
       // (shrine-clap / jukebox-roll), not luckEarned / radioUnlocked, so seed those too.

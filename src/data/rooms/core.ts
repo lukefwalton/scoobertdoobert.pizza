@@ -173,19 +173,9 @@ export const CORE_ROOMS: Room[] = [
       // Stepping back out of the classified room: in the hall by the panel,
       // facing on toward the music (clear of the hidden door's radius).
       fromClassified: { position: [0, EYE, -5.5], yaw: Math.PI },
-      // Stepping back out of the supply closet: mid-corridor, facing on down toward
-      // the music (clear of the +X closet door's radius — narrow hall, so face
-      // ALONG it, not at the near wall).
-      fromCloset: { position: [0, EYE, 6], yaw: Math.PI },
     },
-    // The brass closet key sits on the corridor floor by the +X wall — pocket it
-    // to open the SUPPLY door a few steps down. A side reward off the hall, never
-    // on the way deeper (friction budget; key + lock in the same room). A cassette
-    // rests against the other wall, further down the gallery.
-    pickups: [
-      { itemId: 'hall-closet-key', position: [1.6, 0.5, 9] },
-      { itemId: 'tape-internet', position: [-1.6, 0.7, -3] },
-    ],
+    // A cassette rests against the -X wall, part-way down the gallery.
+    pickups: [{ itemId: 'tape-internet', position: [-1.6, 0.7, -3] }],
     doors: [
       {
         id: 'hall-to-shop',
@@ -218,18 +208,6 @@ export const CORE_ROOMS: Room[] = [
         label: 'slip through the gap',
         hidden: true,
         radius: 2.8,
-      },
-      {
-        id: 'hall-to-closet',
-        to: 'closet',
-        toSpawn: 'fromHall',
-        // A "SUPPLY" door in the +X wall, mid-hall. LOCKED until you pocket the
-        // brass key off the corridor floor. Faces -X into the corridor.
-        position: [2.5, 0, 4],
-        rotationY: -Math.PI / 2,
-        label: 'open the SUPPLY closet',
-        requiresKey: 'hall-closet-key',
-        radius: 2.4,
       },
     ],
   },

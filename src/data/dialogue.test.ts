@@ -57,7 +57,7 @@ describe('ratDialogue', () => {
       ...COLD,
       luckEarned: 5,
       radioUnlocked: true,
-      itemsHeld: ['pool-locker-key', 'hall-closet-key', ...CASSETTE_IDS],
+      itemsHeld: [...CASSETTE_IDS],
       secretsFound: [
         'dice-monster',
         'grass-cleared',

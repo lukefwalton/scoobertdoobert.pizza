@@ -16,25 +16,23 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
   const { nodes, edges, vb } = useMemo(() => {
     const visitedSet = new Set([...visited, current]);
 
-    // Frontier: targets of NON-hidden doors off visited rooms you haven't reached.
-    // A requiresKey (locked) door is visible in-world, so its target is a fair
-    // "locked ?" stub; a hidden door reveals nothing until you're through it.
-    const frontier = new Map<string, { locked: boolean }>();
+    // Frontier: targets of NON-hidden doors off visited rooms you haven't reached
+    // (a "?" stub); a hidden door reveals nothing until you're through it.
+    const frontier = new Set<string>();
     for (const r of ROOMS) {
       if (!visitedSet.has(r.id)) continue;
       for (const d of r.doors) {
         if (d.hidden || visitedSet.has(d.to)) continue;
-        const prev = frontier.get(d.to);
-        frontier.set(d.to, { locked: (prev?.locked ?? true) && !!d.requiresKey });
+        frontier.add(d.to);
       }
     }
 
-    const rendered = new Set<string>([...visitedSet, ...frontier.keys()]);
+    const rendered = new Set<string>([...visitedSet, ...frontier]);
 
     // Edges between rendered rooms (dedup pairs). A hidden-door edge only shows
     // once BOTH ends are visited (i.e. you've traversed it), never as a frontier.
     const seen = new Set<string>();
-    const edges: { a: string; b: string; locked: boolean }[] = [];
+    const edges: { a: string; b: string }[] = [];
     for (const r of ROOMS) {
       if (!rendered.has(r.id)) continue;
       for (const d of r.doors) {
@@ -43,7 +41,7 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
         const key = [r.id, d.to].sort().join('|');
         if (seen.has(key)) continue;
         seen.add(key);
-        edges.push({ a: r.id, b: d.to, locked: !!d.requiresKey });
+        edges.push({ a: r.id, b: d.to });
       }
     }
 
@@ -56,7 +54,6 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
         y: c.y,
         visited: isVisited,
         current: id === current,
-        locked: !isVisited && (frontier.get(id)?.locked ?? false),
         title: isVisited ? roomById(id).title : 'Somewhere you haven’t been',
       };
     });
@@ -92,7 +89,7 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
               y1={a.y}
               x2={b.x}
               y2={b.y}
-              className={`hud-map__edge${e.locked ? ' is-locked' : ''}`}
+              className="hud-map__edge"
             />
           );
         })}
@@ -112,11 +109,6 @@ export function WorldMap({ visited, current }: { visited: string[]; current: str
             {!n.visited && (
               <text x={n.x} y={n.y + 0.13} className="hud-map__q">
                 ?
-              </text>
-            )}
-            {n.locked && (
-              <text x={n.x + 0.26} y={n.y - 0.18} className="hud-map__lock">
-                🔒
               </text>
             )}
           </g>

@@ -64,8 +64,6 @@ describe('quests', () => {
       'unlock-radio': { secretsFound: ['jukebox-roll'] },
       'ride-slide': { secretsFound: ['garden-slide'] },
       'play-turtle': { secretsFound: ['turtle-stage'] },
-      'find-locker-key': { itemsHeld: ['pool-locker-key'] },
-      'find-closet-key': { itemsHeld: ['hall-closet-key'] },
       'collect-tapes': { itemsHeld: [...CASSETTE_IDS] },
       'beat-dice': { secretsFound: ['dice-monster'] },
       'clear-goblin': { secretsFound: ['grass-cleared'] },

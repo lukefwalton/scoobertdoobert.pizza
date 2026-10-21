@@ -36,11 +36,6 @@
   border-color: rgba(120, 220, 255, 0.85);
   color: #d6f4ff;
 }
-/* grab-this-collectible cue — pizza-gold, the loot/inventory color. */
-.hud-prompt--pickup {
-  border-color: rgba(255, 196, 92, 0.9);
-  color: #ffe6b0;
-}
 /* ring-the-bell / escape-room interactable cue — bright amber, the "do this and a
    way opens" gold (matches the glowing bell/switch mesh). */
 .hud-prompt--interact {
@@ -867,10 +862,6 @@
   stroke: #4f7490;
   stroke-width: 0.05;
 }
-.hud-map__edge.is-locked {
-  stroke: #b88a4a;
-  stroke-dasharray: 0.18 0.14;
-}
 .hud-map__node {
   stroke: #0c1620;
   stroke-width: 0.04;
@@ -893,10 +884,6 @@
   font-size: 0.36px;
   text-anchor: middle;
   font-family: 'Courier New', monospace;
-}
-.hud-map__lock {
-  font-size: 0.34px;
-  text-anchor: middle;
 }
 .hud-pause__maplegend {
   margin: 4px 0 0;
@@ -921,13 +908,6 @@
 .hud-map__dot.is-current {
   background: #ffd17a;
   border-color: #ffffff;
-}
-
-/* a locked door reads COOL (you can't pass), distinct from the warm "step through"
-   door prompt — so "need a key" is legible at a glance. */
-.hud-prompt--locked {
-  border-color: rgba(150, 200, 230, 0.85);
-  color: #cfe7f5;
 }
 
 .hud-toast {

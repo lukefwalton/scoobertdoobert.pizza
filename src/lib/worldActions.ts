@@ -2,15 +2,14 @@ import { useSceneStore } from '../state/sceneStore';
 import { useRhythmStore } from '../state/rhythmStore';
 import { enterDoor } from './doorTravel';
 import { launchArcadeGame, launchRandomArcade } from './arcade';
-import { collectInventoryItem } from './pickups';
-import { collectLootById } from './loot';
 import { fireInteractable } from './interactables';
 import { restoreAtBench } from './restoration';
 
-// The world's context verbs, shared by the keyboard handler (WorldHud) and the
-// on-screen touch buttons (TouchControls) so the two never drift. Each reads the
+// The world's context verb, shared by the keyboard handler (WorldHud) and the
+// on-screen touch button (TouchControls) so the two never drift. It reads the
 // live scene store and dispatches the nearest interaction — the exact logic that
-// used to live inline in the E/P keydown branches.
+// used to live inline in the E keydown branch. (Collectibles have no verb: you
+// walk over them, or click them.)
 
 type SceneState = ReturnType<typeof useSceneStore.getState>;
 
@@ -43,7 +42,6 @@ export function interactNearby(): void {
       to: st.nearDoor.to,
       spawn: st.nearDoor.spawn,
       albumSlug: st.nearDoor.albumSlug,
-      requiresKey: st.nearDoor.requiresKey,
       opensLevel: st.nearDoor.opensLevel,
     });
   } else if (st.nearInteractable) {
@@ -74,14 +72,4 @@ export function interactNearby(): void {
     // Lowest priority: a flavor curio only opens if nothing else is in reach.
     st.openLookableDialog(st.nearLookable);
   }
-}
-
-/** What the grab button / P does: pick up the nearest collectible (loot or
- *  inventory item). No-op when a modal owns input or nothing's near. */
-export function grabNearby(): void {
-  const st = useSceneStore.getState();
-  if (inputOwnedByModal(st) || st.lyricsSong) return;
-  if (!st.nearPickup) return;
-  if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);
-  else collectInventoryItem(st.nearPickup.id);
 }

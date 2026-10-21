@@ -40,8 +40,6 @@ export type RoomKind =
   | 'grassrooms'
   | 'grove'
   | 'frutiger'
-  | 'lockerroom'
-  | 'closet'
   // The Boardwalk wing — a sweet SoCal surface branch off the shop (NOT the
   // descent): a golden-hour pier, a moonlit beach, a park path. Each plays its
   // own Scoobert song (Room.song) — the reward for wandering out is the music.
@@ -240,12 +238,6 @@ export type RoomDoor = {
    *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
    *  SM64 dive). The slug resolves against src/data/albums. */
   albumSlug?: string;
-  /** LOCKED until the player holds this items.ts key id. The door still renders +
-   *  prompts (you can SEE it's there); E / click just announces "locked" until you
-   *  have the key. SECRET / SIDE TIER ONLY — never a main-descent door (friction
-   *  budget); the dev guard below rejects a requiresKey door that targets a
-   *  descent room. */
-  requiresKey?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };

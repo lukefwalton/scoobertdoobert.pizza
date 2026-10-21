@@ -52,13 +52,12 @@ function DoorMesh({ door }: { door: RoomDoor }) {
   const activate = () => {
     // Click goes through whatever door you clicked — if you can see it you can
     // travel to it (Myst-style line of sight), no walking up required. (E still
-    // wants proximity.) enterDoor honors a key lock (shared with the E path so
-    // the lock can't be bypassed) and goToRoom guards paused / dialog / wipe.
+    // wants proximity.) enterDoor is shared with the E path, and goToRoom guards
+    // paused / dialog / wipe.
     enterDoor({
       to: door.to,
       spawn: door.toSpawn ?? 'default',
       albumSlug: door.albumSlug,
-      requiresKey: door.requiresKey,
       opensLevel: door.opensLevel,
     });
   };
@@ -214,7 +213,6 @@ export function Doors() {
               to: nearest.to,
               spawn: nearest.toSpawn ?? 'default',
               albumSlug: nearest.albumSlug,
-              requiresKey: nearest.requiresKey,
               opensLevel: nearest.opensLevel,
             }
           : null,

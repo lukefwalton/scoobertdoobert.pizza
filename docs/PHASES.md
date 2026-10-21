@@ -255,13 +255,15 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   **shown in the pause menu**, **announced on gain** (`toastStore` + `WorldHud`).
 - ✅ **First dice-combat:** the goblin bout (`D20`/`DicePitRoom`/`monsterStore`) is
   crit-aware — nat 20 auto-wins + +3 luck, crit fail bloats it 3×. `shoot:luck`.
-- ✅ **Inventory + keys (engagement pass):** durable `itemsHeld` (`progressStore`),
-  a pause-menu **"Pockets"** list, `ItemPickup` collectibles (`Room.pickups`), and
-  **locked doors** (`RoomDoor.requiresKey`) via the shared lock-aware `enterDoor`
-  (`src/lib/doorTravel.ts`). First loop: the rusted key on the poolrooms deck opens
-  a **Staff Locker Room** (a safe side nook, +2 luck on first entry). Keys may only
-  gate **side/secret** doors — a dev guard + `MAIN_DESCENT` set reject any
-  `requiresKey` on the descent (friction budget). `shoot:keys`, `doorTravel.test`.
+- ✅ **Inventory (engagement pass):** durable `itemsHeld` (`progressStore`), a
+  pause-menu **"Pockets"** list, `ItemPickup` collectibles (`Room.pickups`) — the
+  cassettes + the spell scrolls, all walk-over auto-grabs.
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): keys + locked doors.** The
+    two key items, `RoomDoor.requiresKey`, the lock-aware `enterDoor`, the
+    `MAIN_DESCENT` guard, the **Staff Locker Room** + **Supply Closet** nooks, their
+    two quests, and the **P grab verb** (which existed only because keys didn't
+    auto-grab) are gone. "Interact → the way opens" is the one progression grammar.
+    `shoot:keys` deleted.
 - ✅ **Dancing entities (engagement pass):** `Wanderer` roams the GLB liminal
   levels (liminal / deeppool / metro-tunnel / terminus, `Room.entities`) and
   **dances** when you get close — never attacks (taste/WCAG: gentle, capped under
@@ -611,7 +613,8 @@ commit + smoke:
   asserts the same-URL guard via a `__sdpLoopStarts` counter.
 - ✅ **Walk-up + press-P pickups** (`world/PickupController.tsx`, `lib/pickups.ts`):
   one per-frame scan (like Doors) publishes the nearest collectible to
-  `sceneStore.nearPickup` → a "Press P to grab …" prompt, and auto-grabs on
+  `sceneStore.nearPickup` → a "Press P to grab …" prompt (🪦 the P verb + prompt
+  went with the keys in the 2026-10 complexity cut — everything auto-grabs now), and auto-grabs on
   walk-over once you've stepped off the spawn. Clicking still works; KEYS are
   excluded from auto-grab (intentional/puzzle items). The collect effect is shared
   (`collectInventoryItem`) so click / walk / P / the smoke hook can't double-collect.

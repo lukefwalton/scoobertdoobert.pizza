@@ -8,7 +8,7 @@
 // trap-door drop table, and the dev guardrails. It RE-EXPORTS ./rooms/types, so
 // external code keeps importing { Room, RoomDoor, ROOM_FADE_MS, ... } from
 // '../data/rooms' unchanged. Adding a room = drop it in the right wing file (+ a
-// geometry component in src/world/); the ids/spawns/keys are guarded below.
+// geometry component in src/world/); the ids/spawns are guarded below.
 //
 // A door is a real 3D object you walk up to and step through (E / click), with a
 // short fade. It carries the target room + which spawn to arrive at, so the graph
@@ -211,7 +211,6 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   // The Kitchen — a sweet back-of-house side room off the shop (left of the lobby).
   kitchen: { x: 3.4, y: -0.4 },
   hallway: { x: 5, y: 1.2 },
-  closet: { x: 6.6, y: 1.5 },
   classified: { x: 3, y: 1.6 },
   jukebox: { x: 5, y: 2.4 },
   // memory lane wing — a side branch WEST off the classified file room, deeper
@@ -232,7 +231,6 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   gallery: { x: 6.8, y: 3.2 },
   daydream: { x: 8, y: 2.6 },
   dicepit: { x: 3.2, y: 4.0 },
-  lockerroom: { x: 2.2, y: 4.6 },
   mobius: { x: 5, y: 4.8 },
   liminal: { x: 5, y: 6.0 },
   deeppool: { x: 5, y: 7.2 },
@@ -253,23 +251,6 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   grove: { x: 8.6, y: 5.9 },
   frutiger: { x: 9.8, y: 6.4 },
 };
-
-// The MAIN DESCENT — the rooms on the way down (the jaunt). Keys may never gate
-// these (friction budget: the descent has zero hard gates); a requiresKey door
-// must target SIDE/SECRET content only. Enforced by the dev guard below + the
-// unit test, so the rule is code, not discipline.
-export const MAIN_DESCENT: ReadonlySet<string> = new Set([
-  'shop',
-  'hallway',
-  'jukebox',
-  'poolrooms',
-  'mobius',
-  'liminal',
-  'deeppool',
-  'shrine',
-  'metro-tunnel',
-  'terminus',
-]);
 
 // Dev guardrail: every door must point at a real room + an existing spawn, and
 // room/door ids must be unique (a duplicate would silently win in BY_ID or
@@ -305,21 +286,6 @@ if (import.meta.env?.DEV) {
       } else if (door.toSpawn && !target.spawns[door.toSpawn]) {
         console.warn(
           `[rooms] door "${door.id}" → "${door.to}" wants spawn "${door.toSpawn}" which doesn't exist`,
-        );
-      }
-      // A key must never gate the way DOWN (friction budget) — only side/secret
-      // doors. This one THROWS (not warn): it's a constitution hard line, and the
-      // smokes only fail on console.error, so a warning could ship green.
-      if (door.requiresKey && MAIN_DESCENT.has(door.to)) {
-        throw new Error(
-          `[rooms] door "${door.id}" locks a MAIN-DESCENT room ("${door.to}") behind key "${door.requiresKey}" — keys may only gate side/secret content`,
-        );
-      }
-      // …and the key it wants must be a real items.ts id, or the door is an
-      // unwinnable lock (no pickup could ever satisfy it).
-      if (door.requiresKey && !itemById(door.requiresKey)) {
-        console.warn(
-          `[rooms] door "${door.id}" requires key "${door.requiresKey}" which has no items.ts entry — it could never be opened`,
         );
       }
     }

@@ -68,9 +68,10 @@ a few beats.
     room one (ring the counter bell → the back-hall door manifests). It stays
     *frictionless* because the action is always **already in view** and unmissable
     (a glowing interactable), the reveal is instant + juicy, and ascending / the
-    side doors are never gated — you can never think "I'm stuck." A door that wants
-    a real KEY is still SIDE/secret-tier only (the dev guard holds). This is ~95% of
-    the experience and it flows.
+    side doors are never gated — you can never think "I'm stuck." (2026-10: the
+    KEY-locked side doors were removed in the complexity cut — there are no keys
+    at all now, only the interact/pickup reveal.) This is ~95% of the experience
+    and it flows.
   - **The secrets / ARG tier (the share fuel):** optional, a little chewier — the
     stuff people *post* about (`/1101` → "save san diego", hidden demos). But the
     difficulty is **noticing the hook, not grinding it.** Once spotted it still

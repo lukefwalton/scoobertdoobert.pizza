@@ -34,8 +34,6 @@ await page.addInitScript(() => {
       // Sessions master reels) so the collect-tapes objective is DONE — keep this in
       // sync with items.ts whenever a music-item (anything with a `track`) is added.
       itemsHeld: [
-        'pool-locker-key',
-        'hall-closet-key',
         'tape-mystery-machine',
         'tape-moonlight',
         'tape-japan',

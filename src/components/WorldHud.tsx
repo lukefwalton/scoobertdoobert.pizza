@@ -23,7 +23,7 @@ import { useToastStore, announce, toastDismissMs } from '../state/toastStore';
 import { useRaceStore } from '../state/raceStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { interactNearby, grabNearby } from '../lib/worldActions';
+import { interactNearby } from '../lib/worldActions';
 import { benchStateFor, benchPrompt } from '../lib/restoration';
 import { LOOP_OPTIONS } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
@@ -33,7 +33,6 @@ import { exposeTestGlobal } from '../lib/testHooks';
 import { useRhythmStore, type Dir } from '../state/rhythmStore';
 import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
-import { itemById } from '../data/items';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
 import { SaveSanDiegoLevel } from './SaveSanDiegoLevel';
@@ -54,7 +53,6 @@ export function WorldHud() {
   const revealed = introRevealed(introStage);
   const settled = introStage === 'settled';
   const nearDoor = useSceneStore((s) => s.nearDoor);
-  const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearRestoreBench = useSceneStore((s) => s.nearRestoreBench);
   const benchBusy = useSceneStore((s) => s.benchBusy);
@@ -108,11 +106,11 @@ export function WorldHud() {
   useModalFocus(tvRef, !!tvVideo);
   useModalFocus(lyricsRef, !!lyricsSong);
   useModalFocus(lookableRef, !!openLookable);
-  // One shallow-compared snapshot of the durable progress drives the whole
-  // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
-  // door prompt). useShallow so re-rendering only happens when a field actually
-  // changes — and never the getSnapshot-not-cached loop a fresh-object selector
-  // would cause. Quest predicates take a whole Progress, which this is.
+  // One shallow-compared snapshot of the durable progress drives the finale +
+  // bench prompt logic here (the pause-menu readouts read their own slice).
+  // useShallow so re-rendering only happens when a field actually changes — and
+  // never the getSnapshot-not-cached loop a fresh-object selector would cause.
+  // Quest predicates take a whole Progress, which this is.
   const progress = useProgressStore(
     useShallow((s) => ({
       visits: s.visits,
@@ -138,9 +136,6 @@ export function WorldHud() {
       lootTotals: s.lootTotals,
     })),
   );
-  // The one durable field WorldHud itself still needs (the locked-door prompt);
-  // every other readout moved into PauseMenu / SpellHotbar with its JSX.
-  const itemsHeld = progress.itemsHeld;
   // The restoration-bench prompt state (null away from the deck). Derived from
   // the SAME live inputs the verb reads — benchBusy (the running latch), the
   // playing slug, the progress — so the line can't drift from what E would do.
@@ -235,12 +230,6 @@ export function WorldHud() {
         // The context verb (door / TV / cabinet / hotspot / NPC / dance), shared
         // with the on-screen touch button so the two never drift.
         interactNearby();
-      }
-      // P grabs the nearest collectible (the keyboard path; walking onto it also
-      // auto-grabs, and clicking still works). Shared with the touch grab button.
-      if (e.key === 'p' || e.key === 'P') {
-        grabNearby();
-        return;
       }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
       // modal/pause; castSpell no-ops when the spell isn't learned, so an unbound
@@ -465,17 +454,9 @@ export function WorldHud() {
 
       <SpellHotbar />
 
-      {nearDoor &&
-        !open &&
-        !paused &&
-        !pendingRoom &&
-        (nearDoor.requiresKey && !itemsHeld.includes(nearDoor.requiresKey) ? (
-          <div className="hud-prompt hud-prompt--door hud-prompt--locked">
-            🔒 Locked: need the {itemById(nearDoor.requiresKey)?.label ?? 'right key'}
-          </div>
-        ) : (
-          <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
-        ))}
+      {nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
+      )}
 
       {/* The escape-room bell/switch prompt — ranks just under a door (matches
           worldActions.interactNearby), so ringing it answers the same Press E. */}
@@ -554,30 +535,8 @@ export function WorldHud() {
           </div>
         )}
 
-      {/* Pickups are ambient + everywhere, so the grab prompt is the LOWEST priority:
-          a fixed fixture (door / TV / cabinet / hotspot / NPC / dance) always shows
-          its own prompt first. Grabbing still works regardless — P reads nearPickup
-          directly and walk-over auto-grabs — so a suppressed prompt never blocks a
-          pickup. */}
-      {nearPickup &&
-        !nearDoor &&
-        !nearInteractable &&
-        !nearTv &&
-        !nearArcade &&
-        !nearBooth &&
-        !nearHs &&
-        !nearNpc &&
-        !nearEntity &&
-        !open &&
-        !paused &&
-        !pendingRoom && (
-          <div className="hud-prompt hud-prompt--pickup">
-            Press P to grab {nearPickup.glyph} {nearPickup.label}
-          </div>
-        )}
-
       {/* Flavor curios are the LOWEST-priority prompt: only when nothing else
-          (door / TV / cabinet / hotspot / NPC / dance / pickup) is in reach. */}
+          (door / TV / cabinet / hotspot / NPC / dance) is in reach. */}
       {nearLookable &&
         !nearDoor &&
         !nearInteractable &&
@@ -587,7 +546,6 @@ export function WorldHud() {
         !nearHs &&
         !nearNpc &&
         !nearEntity &&
-        !nearPickup &&
         !open &&
         !openLookable &&
         !paused &&

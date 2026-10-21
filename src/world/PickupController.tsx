@@ -4,67 +4,45 @@ import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { useScoreStore } from '../state/scoreStore';
-import { itemById } from '../data/items';
-import { lootById, lootDropsForRoom } from '../data/loot';
+import { lootDropsForRoom } from '../data/loot';
 import { collectInventoryItem } from '../lib/pickups';
 import { collectLootById } from '../lib/loot';
 import { inputFrozen } from './inputFrozen';
 import { exposeTestGlobal, isDebugEntrance } from '../lib/testHooks';
 
-// Proximity pickups — the game-feel upgrade over click-only, for BOTH inventory
-// items (items.ts: keys / cassettes / scrolls) and LOOT (loot.ts: the pizza-points
-// collectathon). ONE controller (like Doors) scans the current room each frame and:
-//   • AUTO-GRABS the nearest auto-grab thing (loot / cassettes / scrolls) once you
-//     walk within AUTO_RADIUS — "just walk over it";
-//   • publishes the nearest NON-auto-grab item (a key) in PROMPT_RADIUS to
-//     sceneStore.nearPickup → its "Press P to grab …" prompt (P handled in WorldHud).
-// Each pickup has exactly ONE proximity mechanic: keys = press P, everything else =
-// walk over. (A prompt on TOP of walk-over was redundant — "press OR just walk over"
-// the same drop, which read as weird; the walk-over keeps its toast + ring feedback.)
-// Clicking the mesh still works for anything (ItemPickup / LootPickup). All paths
-// funnel through the same idempotent collectors, so they can't double-collect.
-const PROMPT_RADIUS = 2.7; // show the grab prompt within this (you can press P)
+// Walk-over pickups — the game-feel upgrade over click-only, for BOTH inventory
+// items (items.ts: cassettes / scrolls) and LOOT (loot.ts: the pizza-points
+// collectathon). ONE controller (like Doors) scans the current room each frame and
+// AUTO-GRABS the nearest not-yet-collected thing once you walk within AUTO_RADIUS —
+// "just walk over it". Clicking the mesh still works for anything (ItemPickup /
+// LootPickup). All paths funnel through the same idempotent collectors, so they
+// can't double-collect. (There is no grab VERB: the P key + its "Press P" prompt
+// existed only for the key items, cut in 2026-10 with the locked doors.)
 const AUTO_RADIUS = 1.25; // walk this close and it's pocketed automatically
 // Auto-grab ARMS only after you've walked this far from where you spawned, so you
 // never vacuum a drop the instant you arrive on/near it (and a teleport-then-assert
 // smoke keeps its window — it never moves, so auto-grab never arms).
 const ARM_DIST = 1.6;
 
-type Nearest = {
-  id: string;
-  kind: 'item' | 'loot';
-  label: string;
-  glyph: string;
-  autoGrab: boolean;
-};
+type Nearest = { id: string; kind: 'item' | 'loot' };
 
 export function PickupController() {
   const { camera } = useThree();
   const currentRoom = useSceneStore((s) => s.currentRoom);
   // Re-arm on every (re)spawn — same nonce Controls uses to reposition the camera.
   const roomNonce = useSceneStore((s) => s.roomNonce);
-  const lastNear = useRef<string | null>(null);
   const spawnPos = useRef<{ x: number; z: number } | null>(null);
   const armed = useRef(false);
 
-  // On (re)spawn: remember where you arrived, disarm auto-grab, clear the prompt.
+  // On (re)spawn: remember where you arrived and disarm auto-grab.
   useEffect(() => {
     spawnPos.current = { x: camera.position.x, z: camera.position.z };
     armed.current = false;
-    lastNear.current = null;
-    useSceneStore.getState().setNearPickup(null);
   }, [currentRoom, roomNonce, camera]);
 
   useFrame(() => {
+    if (inputFrozen()) return;
     const st = useSceneStore.getState();
-    const clearPrompt = () => {
-      if (lastNear.current !== null) {
-        lastNear.current = null;
-        st.setNearPickup(null);
-      }
-    };
-    if (inputFrozen()) return clearPrompt();
-
     const room = roomById(st.currentRoom);
     const held = useProgressStore.getState().itemsHeld;
     const taken = useScoreStore.getState().taken;
@@ -75,10 +53,10 @@ export function PickupController() {
       const mdz = camera.position.z - spawnPos.current.z;
       if (Math.hypot(mdx, mdz) > ARM_DIST) armed.current = true;
     }
+    if (!armed.current) return;
 
     // Nearest not-yet-collected thing — items AND loot (horizontal distance; both
-    // bob at floor level so the vertical gap shouldn't count). Assigned inline (not
-    // via a closure) so TS tracks the narrowing.
+    // bob at floor level so the vertical gap shouldn't count).
     const cx = camera.position.x;
     const cz = camera.position.z;
     let nearest: Nearest | null = null;
@@ -87,62 +65,29 @@ export function PickupController() {
       if (held.includes(p.itemId)) continue;
       const dist = Math.hypot(cx - p.position[0], cz - p.position[2]);
       if (dist < nd) {
-        const it = itemById(p.itemId);
         nd = dist;
-        nearest = {
-          id: p.itemId,
-          kind: 'item',
-          label: it?.label ?? 'item',
-          glyph: it?.glyph ?? '🎒',
-          // KEYS are intentional/puzzle items — never auto-grabbed (you walk to a
-          // locked door to learn you need one). Cassettes/scrolls auto-grab.
-          autoGrab: it?.kind !== 'key',
-        };
+        nearest = { id: p.itemId, kind: 'item' };
       }
     }
     for (const d of lootDropsForRoom(room)) {
       if (taken.includes(d.id)) continue;
       const dist = Math.hypot(cx - d.position[0], cz - d.position[2]);
       if (dist < nd) {
-        const lt = lootById(d.type);
         nd = dist;
-        nearest = {
-          id: d.id,
-          kind: 'loot',
-          label: lt?.label ?? 'loot',
-          glyph: lt?.glyph ?? '🍕',
-          autoGrab: true,
-        };
+        nearest = { id: d.id, kind: 'loot' };
       }
     }
 
-    // Walk-over auto-grab (armed only). It'll unmount next frame; clear + recompute.
-    if (nearest && armed.current && nd < AUTO_RADIUS && nearest.autoGrab) {
+    // Walk-over auto-grab. The mesh unmounts next frame; the next scan recomputes.
+    if (nearest && nd < AUTO_RADIUS) {
       if (nearest.kind === 'loot') collectLootById(nearest.id);
       else collectInventoryItem(nearest.id);
-      clearPrompt();
-      return;
-    }
-
-    // Prompt ONLY for things that DON'T auto-grab (keys): for an auto-grab drop the
-    // walk-over IS the mechanic, so a "Press P" prompt on top of it was the redundant
-    // "both" — drop it. Keys never auto-grab, so the prompt is their only proximity
-    // grab (clicking the mesh still works for everything).
-    const inPrompt = nearest && nd < PROMPT_RADIUS && !nearest.autoGrab ? nearest.id : null;
-    if (inPrompt !== lastNear.current) {
-      lastNear.current = inPrompt;
-      st.setNearPickup(
-        nearest && inPrompt
-          ? { id: nearest.id, label: nearest.label, glyph: nearest.glyph, kind: nearest.kind }
-          : null,
-      );
     }
   });
 
-  // Test hooks. Reads (?world / ?debug): the nearest pickup, the run score, and the
-  // current room's remaining loot ids. The grab is an ACTION, so it's ?debug-only.
+  // Test hooks. Reads (?world / ?debug): the run score and the current room's
+  // remaining loot ids. The grab is an ACTION, so it's ?debug-only.
   useEffect(() => {
-    exposeTestGlobal('__sdpNearPickup', () => useSceneStore.getState().nearPickup);
     exposeTestGlobal('__sdpScore', () => {
       const s = useScoreStore.getState();
       return {
@@ -161,7 +106,6 @@ export function PickupController() {
     });
     if (isDebugEntrance()) exposeTestGlobal('__sdpGrabLoot', (id: string) => collectLootById(id));
     return () => {
-      exposeTestGlobal('__sdpNearPickup', undefined);
       exposeTestGlobal('__sdpScore', undefined);
       exposeTestGlobal('__sdpLootIds', undefined);
       exposeTestGlobal('__sdpGrabLoot', undefined);
