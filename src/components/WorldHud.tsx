@@ -130,7 +130,6 @@ export function WorldHud() {
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
       bestFortune: s.bestFortune,
-      lootTotals: s.lootTotals,
     })),
   );
   // The restoration-bench prompt state (null away from the deck). Derived from

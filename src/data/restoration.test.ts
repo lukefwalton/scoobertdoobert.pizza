@@ -26,7 +26,6 @@ const COLD: Progress = {
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
   bestFortune: 0,
-  lootTotals: {},
 };
 
 describe('the master tapes (items.ts master: true)', () => {

@@ -342,8 +342,7 @@ channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
 - **The stats explain themselves once:** the first time luck ever lands, a
   one-time queued line says what LUCK is (you never spend it; the dice tip your
   way), and the pause menu captions it inline. The pause menu keeps ONE progress
-  section (the Trophy case: tallies + lifetime haul + best fortune), not three
-  scattered readouts. (2026-09: it fires only on a luck gain *this session* —
+  section (the Trophy case: tallies + best fortune), not three scattered readouts. (2026-09: it fires only on a luck gain *this session* —
   never at spawn for a save whose luck predates it.)
 - **Entry cadence — level 1, then level 2 (Luke, 2026-09-08: "a shit ton to see
   all at once on load … slow our roll … pace them through").** World entry is
