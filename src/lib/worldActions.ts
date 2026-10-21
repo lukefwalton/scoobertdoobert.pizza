@@ -1,5 +1,5 @@
 import { useSceneStore } from '../state/sceneStore';
-import { useRhythmStore } from '../state/rhythmStore';
+import { rewardDance } from './danceAlong';
 import { enterDoor } from './doorTravel';
 import { launchArcadeGame, launchRandomArcade } from './arcade';
 import { fireInteractable } from './interactables';
@@ -67,7 +67,9 @@ export function interactNearby(): void {
   } else if (st.nearNpc) {
     st.openNpcDialog(st.nearNpc.id);
   } else if (st.nearEntity) {
-    useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
+    // Dance along with a dancing wanderer: the payoff is immediate (a boop, its
+    // flourish, +1 luck the first time) — no minigame in between.
+    rewardDance(st.nearEntity.id, st.nearEntity.label);
   } else if (st.nearLookable) {
     // Lowest priority: a flavor curio only opens if nothing else is in reach.
     st.openLookableDialog(st.nearLookable);

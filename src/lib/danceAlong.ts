@@ -18,8 +18,10 @@ export function dancedCount(secretsFound: string[]): number {
   return secretsFound.filter((s) => s.startsWith('danced:')).length;
 }
 
-/** Pay out a completed dance (called on a rhythm-minigame WIN). Idempotent
- *  reward; always cheers the entity into a flourish. */
+/** Dance along (E / the touch Dance button beside a dancing wanderer). Idempotent
+ *  reward; always cheers the entity into a flourish. (2026-10: the arrow-key
+ *  rhythm minigame that used to sit between the press and this payout was cut —
+ *  the dance IS the beat.) */
 export function rewardDance(id: string, label: string): void {
   const p = useProgressStore.getState();
   audio.unlock();

@@ -1,7 +1,6 @@
 import { roomById } from '../data/rooms';
 import { useSceneStore } from '../state/sceneStore';
 import { useLevelStore } from '../state/levelStore';
-import { useRhythmStore } from '../state/rhythmStore';
 import { isRiding } from './rideState';
 
 // Should world input (camera move/look, door E, pickups) be frozen this frame?
@@ -19,7 +18,6 @@ export function inputFrozen(): boolean {
     st.tvVideo !== null ||
     st.levelOverlay !== null || // a full-screen level (the 1101 adventure) owns input
     st.divingTo !== null ||
-    useRhythmStore.getState().active ||
     isRiding()
   )
     return true;

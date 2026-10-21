@@ -30,8 +30,6 @@ import { useMusicStore } from '../state/musicStore';
 import { ScoreHud } from './ScoreHud';
 import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { useRhythmStore, type Dir } from '../state/rhythmStore';
-import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
@@ -61,7 +59,6 @@ export function WorldHud() {
   const playingSlug = useMusicStore((s) => LOOP_OPTIONS[s.index]?.slug ?? null);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const nearInteractable = useSceneStore((s) => s.nearInteractable);
-  const rhythmActive = useRhythmStore((s) => s.active);
   // The ghost race is on (countdown / racing / the result card): its top-centre
   // band replaces the objective chip for the duration (they collided before).
   const raceLive = useRaceStore((s) => s.phase !== 'idle');
@@ -186,31 +183,6 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
-      // The dance rhythm minigame owns input while it's up: arrow keys feed the
-      // copy (not movement, which is frozen), Esc steps away. Handled first so it
-      // can't fall through to door/pause logic.
-      const rhythm = useRhythmStore.getState();
-      if (rhythm.active) {
-        if (e.key === 'Escape') {
-          rhythm.close();
-          return;
-        }
-        const dir: Dir | null =
-          e.key === 'ArrowUp'
-            ? 'up'
-            : e.key === 'ArrowDown'
-              ? 'down'
-              : e.key === 'ArrowLeft'
-                ? 'left'
-                : e.key === 'ArrowRight'
-                  ? 'right'
-                  : null;
-        if (dir) {
-          e.preventDefault();
-          rhythm.press(dir);
-        }
-        return;
-      }
       // No input during the door wipe OR a painting dive (E or Esc) — both are modal
       // transitions. Blocking Esc on divingTo too is what keeps pause from opening
       // mid-dive and stranding you in the old room after the album already started.
@@ -311,9 +283,9 @@ export function WorldHud() {
 
   // Duck the RADIO (the user's music) while a SOUND-MAKER overlay is up — an arcade
   // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
-  // music video, or the call-and-response rhythm game — so their audio doesn't fight
-  // the music. Restores the moment it closes; composes with music-room ducking.
-  const soundMakerActive = !!arcadeGame || !!tvVideo || rhythmActive || !!levelOverlay;
+  // music video, or the 1101 level — so their audio doesn't fight the music.
+  // Restores the moment it closes; composes with music-room ducking.
+  const soundMakerActive = !!arcadeGame || !!tvVideo || !!levelOverlay;
   useEffect(() => {
     audio.suppressMusic(soundMakerActive);
   }, [soundMakerActive]);
@@ -431,7 +403,6 @@ export function WorldHud() {
       />
       <ScoreHud hidden={objectiveHidden} />
       <RaceHud hidden={modalHidden} />
-      <RhythmGame />
       {toast && settled && (
         <div
           className={`hud-toast hud-toast--${toast.kind}${objectiveShowing ? ' hud-toast--below-objective' : ''}`}
@@ -528,8 +499,7 @@ export function WorldHud() {
         !nearNpc &&
         !open &&
         !paused &&
-        !pendingRoom &&
-        !rhythmActive && (
+        !pendingRoom && (
           <div className="hud-prompt hud-prompt--dance">
             Press E to dance along with {nearEntity.label}
           </div>

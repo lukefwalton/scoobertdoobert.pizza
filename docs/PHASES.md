@@ -267,7 +267,12 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
 - ✅ **Dancing entities (engagement pass):** `Wanderer` roams the GLB liminal
   levels (liminal / deeppool / metro-tunnel / terminus, `Room.entities`) and
   **dances** when you get close — never attacks (taste/WCAG: gentle, capped under
-  reduced-motion, GLB-only). `shoot:entities`.
+  reduced-motion, GLB-only). Press E beside a dancer to **dance along** (a boop,
+  its flourish, +1 luck the first time per entity — `lib/danceAlong`). `shoot:entities`.
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): the arrow-key rhythm
+    minigame** (`rhythmStore` / `RhythmGame`, a Simon-says the wanderer demoed and
+    you copied) that used to sit between the E press and the payout. The dance IS
+    the beat now; the reward path is unchanged.
 - ✅ **Arrival-spawn contract guard:** fixed grove/frutiger spawning ON their exit
   prompt; `spawnFacingInward` + a dev guard + `rooms.test` assert every spawn lands
   clear of, and facing away from, its doors (the "wrong side of the map" fix).
