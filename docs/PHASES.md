@@ -212,29 +212,18 @@ descent, each covered by a `shoot:*` smoke:
   Wayside Shrine — the first "use the ENGINE for in-room effects" (Luke). ✅ The
   deep instrument ROOM (vs. surface cabinet) landed — **The Aerial**, a proximity-
   played theremin off the liminal (Phase 8, 2026-06-29). ⬜ More in-room/"odd-thing"
-  uses remain; the webcam thread has now SHIPPED (see below).
-- ✅ **The webcam thread — PIZZA CAM™ (shipped, 2026-07-08).** The Webcam
-  policy's "own gated thread," built to the letter (DESIGN → Webcam policy, which
-  records the settled decisions): one fake peripheral hosting TWO instruments as
-  channels — **AIR DOUGH** (motion centroid → D-pentatonic `audio.startVoice`)
-  and **TOPPING DRUMS** (an EyeToy demake: six topping zones → panned
-  `audio.playChime`, hysteresis + refractory). Zero-dependency lo-fi CV: the
-  whole camera pipeline is ONE auditable pure file (`src/lib/pizzacam.ts`, unit-
-  tested with deterministic pixel arrays) — 32×24 luma grid, frame differencing,
-  self-calibrating noise floor. Hosts: the **`/booth`** cabinet page and the
-  kitchen's tripod prop (`PizzaCamProp` → the same `PizzaCamBooth` in the
-  ArcadeModal; `rollable:false`, never dealt by the slot machine). Consent:
-  the booth's full gate, at point of use, and nothing earlier (2026-09-08: the
-  boot-screen arming row was removed — see the entry-cadence chunk below);
-  getUserMedia fires ONLY at point of use; a fixed ● CAMERA ON chip
-  is the kill switch; the raw feed renders nowhere (Bayer-dithered grid only);
-  a source-text unit test (`pizzacam.firewall.test.ts`) pins the dread firewall.
-  Desktop-only (touch gets a parallel-port gag). First-play banks a secret
-  (+1 luck). Covered by `shoot:booth` (Chromium fake-camera flags; consent
-  honesty probe — zero pre-consent getUserMedia calls, tracks truly ended on
-  kill; instruments driven deterministically via `__sdpBoothInject`). ⚠️ Not
-  yet device-validated: real-webcam feel pass (noise floor in low light, drum
-  thresholds, scale range, mirror feel, OS camera light on kill) needs Luke.
+  uses remain.
+- 🪦 **The webcam thread — PIZZA CAM™ — shipped 2026-07-08, REMOVED 2026-10-21
+  (the complexity cut, Luke).** It was the largest shipped-but-never-device-
+  validated chunk (~1,900 lines + a camera permission): the `/booth` cabinet page
+  + route, `PizzaCamBooth` (AIR DOUGH + TOPPING DRUMS over a 32×24 luma grid in
+  `src/lib/pizzacam.ts`), `useCameraGrid`, the `cameraConsent` session flag, the
+  kitchen's `PizzaCamProp` tripod + `nearBooth`, the `rollable:false` registry
+  flag (every cabinet rolls now), `booth.css`, the firewall unit test, and
+  `shoot:booth` (plus the smoke harness's fake-camera launch flags). Nothing on
+  the site asks for a camera now. DESIGN's Webcam policy stays as POLICY, with
+  the settled decisions kept for the record, should a camera instrument ever be
+  rebuilt.
 - ⬜/❓ **The Doom / Freedoom shrine — likely DROPPED.** The point of it (a hidden,
   lazy, dread-tinged liminal level) is effectively already delivered by our OWN
   GLB levels (deep pool / liminal / backrooms) — without taking on Freedoom's

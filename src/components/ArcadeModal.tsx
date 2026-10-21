@@ -16,7 +16,6 @@ import { BurritoBelt } from './BurritoBelt';
 import { DeliveryDash } from './DeliveryDash';
 import { OrderUp } from './OrderUp';
 import { SaveSanDiego } from './SaveSanDiego';
-import { PizzaCamBooth } from './PizzaCamBooth';
 import { type ArcadeGameId, arcadeGameTitle } from '../data/arcadeGames';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -40,7 +39,6 @@ const GAME: Record<ArcadeGameId, ComponentType> = {
   poke: FaceStretch,
   chimes: ChimesCabinet,
   cultures: CulturesCabinet,
-  booth: PizzaCamBooth, // never rolled — reached only via the kitchen's Pizza Cam prop
 };
 
 export function ArcadeModal({ id, onClose }: { id: ArcadeGameId; onClose: () => void }) {

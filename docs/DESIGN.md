@@ -194,7 +194,7 @@ mixes, produces, and plays on all his own records).
   **exhale-valves found by going deep**, not surface toys — bright goofy rooms
   that double as dread relief. Seed *one* light "you can make sound here" touch
   near the surface so the idea's planted early; the real instrument rooms pay off
-  deep. (Optionally hand-played via the webcam — see policy.)
+  deep.
   - **SHIPPED — the Practice Room** (`src/world/PracticeRoom.tsx`), backstage
     through the jukebox's stage door: a wall of six pentatonic pads you can
     actually play (mute-aware `audio.playTone()` through the limiter), kept a
@@ -745,10 +745,18 @@ mapping, maybe a "record your poke" share.
 
 **Pointer/touch ONLY — no webcam, ever, for this toy (Luke).** Poke-Scoobert is
 complete as a finger/mouse instrument; there is no camera-driven version of it.
-The webcam is a **wholly separate idea** (its own future thread, gated by the
-Webcam policy below) — NOT a layer or a camera-mode of this. Don't couple them.
+(The webcam was a **wholly separate idea**, gated by the Webcam policy below —
+never a layer or a camera-mode of this.)
 
-### Webcam policy (the one narrow exception to "no real camera")
+### Webcam policy (the one narrow exception to "no real camera") — 🪦 the instrument is REMOVED
+**Status (2026-10-21, Luke's complexity cut): the PIZZA CAM™ — the one shipped
+camera instrument — was removed** (its ~1,900 lines: the booth page/route, the CV
+pipeline, the consent gate, the kitchen tripod, `shoot:booth`). Nothing on the
+site asks for a camera now, and PHASES had flagged it as never device-validated.
+**The policy below stands as POLICY** — if a camera instrument is ever rebuilt, it
+is built to these lines. The "SHIPPED" notes after it record what the removed
+build settled, for the record.
+
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
 now means: never for the dread beat, never transmitted, never without explicit
 opt-in. A real camera is allowed **only** as a consensual, fully-local *surface*
@@ -774,7 +782,8 @@ instrument:
   in doubt: mic / device-tilt / gesture-control get most of the "you play the
   site" delight with less surveillance charge.)
 
-**SHIPPED (2026-07-08) as the PIZZA CAM™ — the settled decisions:**
+**WAS SHIPPED (2026-07-08) as the PIZZA CAM™, REMOVED 2026-10-21 — the decisions
+that build settled, kept for the record:**
 - **Lo-fi own-code CV, no ML dependency.** Not MediaPipe/hand-skeletons: the feed
   is downscaled to a **32×24 luminance grid** and read by ~250 lines of our own
   frame-differencing (peak-hold field, self-calibrating noise floor, motion
