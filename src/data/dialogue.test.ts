@@ -60,7 +60,6 @@ describe('ratDialogue', () => {
       itemsHeld: [...CASSETTE_IDS],
       secretsFound: [
         'dice-monster',
-        'grass-cleared',
         'danced:x',
         'garden-slide',
         'turtle-stage',

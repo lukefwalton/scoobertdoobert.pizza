@@ -122,15 +122,15 @@ const cache = new Map<string, LootDrop[]>();
 
 /**
  * The loot scattered in a room: deterministic (seeded by room id), inside the
- * camera clamp, never on a spawn or a doorway. Skips GLB levels and the transient
- * grass-battle frame. Cached per room id (placement never changes within a build).
+ * camera clamp, never on a spawn or a doorway. Skips GLB levels. Cached per room
+ * id (placement never changes within a build).
  */
 export function lootDropsForRoom(room: Room): LootDrop[] {
   const hit = cache.get(room.id);
   if (hit) return hit;
 
-  // No loot in GLB levels (unpredictable floors) or the battle frame.
-  if (room.glb || room.kind === 'grassbattle') {
+  // No loot in GLB levels (unpredictable floors).
+  if (room.glb) {
     cache.set(room.id, []);
     return [];
   }

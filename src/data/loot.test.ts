@@ -20,12 +20,12 @@ describe('loot catalog', () => {
 });
 
 describe('loot scatter (deterministic, bounded, resolvable)', () => {
-  const stockable = ROOMS.filter((r) => !r.glb && r.kind !== 'grassbattle');
+  const stockable = ROOMS.filter((r) => !r.glb);
 
-  it('stocks every procedural room with drops, none in a GLB level / battle frame', () => {
+  it('stocks every procedural room with drops, none in a GLB level', () => {
     expect(stockable.length).toBeGreaterThan(0);
     for (const r of stockable) expect(lootDropsForRoom(r).length, r.id).toBeGreaterThan(0);
-    for (const r of ROOMS.filter((x) => x.glb || x.kind === 'grassbattle')) {
+    for (const r of ROOMS.filter((x) => x.glb)) {
       expect(lootDropsForRoom(r), r.id).toEqual([]);
     }
   });

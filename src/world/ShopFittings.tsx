@@ -14,8 +14,7 @@ import { fortuneByRank } from '../data/omikuji';
 //   · the 100% finale AWARD (a little gold record) takes pride of place once the
 //     durable 'finale' secret banks;
 //   · collected cassettes line up on the shelf (itemsHeld ∩ CASSETTE_IDS);
-//   · a lucky clover once your luck is up (≥3);
-//   · a goblin trophy once you've seen off the grass goblin ('grass-cleared').
+//   · a lucky clover once your luck is up (≥3).
 // Each gated on its durable progress signal (the same reactive pattern as the 2D
 // storefront's PlainFloor), so returning deeper/luckier visibly changes the lobby.
 // Sweet, PS1, original-parody — the surface zone stays goofy (taste guardrail).
@@ -48,7 +47,6 @@ function Cassette({
 export function ShopFittings() {
   // Reactive hall-of-fame signals — mirror PlainFloor's storefront twin.
   const finale = useProgressStore((s) => s.secretsFound.includes('finale'));
-  const grassCleared = useProgressStore((s) => s.secretsFound.includes('grass-cleared'));
   const luck = useProgressStore(selectLuck);
   const tapes = useProgressStore(
     (s) => s.itemsHeld.filter((id) => CASSETTE_IDS.includes(id)).length,
@@ -92,8 +90,6 @@ export function ShopFittings() {
   const goldDarkMat = useMemo(() => flatMat('#8a6a1a'), []);
   const cassetteMat = useMemo(() => flatMat('#2a2a30'), []);
   const cloverMat = useMemo(() => flatMat('#3f9a3a', { side: THREE.DoubleSide }), []);
-  const goblinMat = useMemo(() => flatMat('#5a8a3a'), []);
-  const goblinEyeMat = useMemo(() => flatMat('#d84a3a'), []);
   const menuMat = useMemo(() => new THREE.MeshBasicMaterial({ map: menuTex }), [menuTex]);
   const neonMat = useMemo(
     () => new THREE.MeshBasicMaterial({ map: neonTex, transparent: true }),
@@ -164,8 +160,6 @@ export function ShopFittings() {
     goldDarkMat,
     cassetteMat,
     cloverMat,
-    goblinMat,
-    goblinEyeMat,
     menuMat,
     neonMat,
     plaqueMat,
@@ -252,24 +246,8 @@ export function ShopFittings() {
           ))}
         </group>
       )}
-      {/* the goblin trophy once you've seen off the grass goblin */}
-      {grassCleared && (
-        <group position={[-7.25, 2.02, 0.4]}>
-          <mesh material={goldDarkMat} position={[0, -0.02, 0]}>
-            <boxGeometry args={[0.24, 0.06, 0.14]} />
-          </mesh>
-          <mesh material={goblinMat} position={[0, 0.16, 0]}>
-            <boxGeometry args={[0.22, 0.24, 0.18]} />
-          </mesh>
-          {[-0.05, 0.05].map((x, i) => (
-            <mesh key={i} material={goblinEyeMat} position={[x, 0.18, 0.1]}>
-              <boxGeometry args={[0.04, 0.04, 0.02]} />
-            </mesh>
-          ))}
-        </group>
-      )}
-      {/* your best おみくじ slip, framed on the upper shelf (between finale + goblin) —
-          it hangs the moment you've drawn one, and upgrades to your finest rank */}
+      {/* your best おみくじ slip, framed on the upper shelf — it hangs the moment
+          you've drawn one, and upgrades to your finest rank */}
       {fortuneMat && (
         <group position={[-7.22, 2.16, -0.35]} rotation-y={Math.PI / 2}>
           <mesh material={woodDarkMat} position={[0, 0, -0.015]}>

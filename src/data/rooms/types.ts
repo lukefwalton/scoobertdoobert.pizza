@@ -31,7 +31,6 @@ export type RoomKind =
   | 'metro'
   | 'practice'
   | 'grass'
-  | 'grassbattle'
   // The Grassrooms (草の間) — the backrooms after nature won: a white office
   // interior gone to grass + indoor trees + blue wildflowers, the low ceiling
   // broken open to an impossible blue sky. A FULLY SWEET liminal breather off the
@@ -220,8 +219,8 @@ export type RoomDoor = {
    *  Defaults to 'secret'. */
   revealOn?: 'secret' | 'mobius';
   /** Or reveal — for good — once a durable progress secret is earned
-   *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
-   *  after you beat the grass goblin. Takes precedence over revealOn when set. */
+   *  (progressStore.secretsFound includes this id), e.g. the vault door the "1101"
+   *  reel opens. Takes precedence over revealOn when set. */
   revealSecret?: string;
   /** ESCAPE-ROOM reveal (Luke, 2026-07): a `hidden` door that appears once a
    *  matching TRIGGER fires this session — an interactable click (Room.interactables)

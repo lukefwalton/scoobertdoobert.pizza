@@ -394,14 +394,13 @@ starfield). Surface-safe + sweet (taste guardrail): the whole layer is goofy, ne
 dread. Placement stays inside the camera clamp and off spawns/doors (friction
 budget — never a drop in a wall or blocking a door).
 
-### A grass level — a rare, dumb-fun Pokémon battle (SHIPPED — see PHASES, `shoot:grass`)
-A level with **tall GRASS**; walk through it and you may **encounter a wild
-"pokémon" that's the big-eyed dice-goblin** (`DiceMonster`). The fight is
-**dice-filtered** (the universal d20 above — nat 20 / crit fail / luck), **not**
-action combat: a goofy turn or two, "not often," never traumatic, losing just
-unblocks you (same anticlimax as the dice pit). Rides the engine already shipped;
-the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
-it stays a delight, not a grind.
+### A grass level — 🪦 the Pokémon battle was REMOVED (2026-10-21, the complexity cut)
+The **tall GRASS** off the shrine stays (`GrassRoom`, `shoot:grass`), and wading to
+its far edge now simply leads on into the grove. The wild-goblin ambush + its
+screen-to-black battle room (a second d20 roll-off against the same dice monster)
+were cut: the **dice pit is the one dice fight**. The original idea, for the
+record: walk the grass, a wild "pokémon" (the big-eyed dice-goblin) leaps out, a
+goofy dice-filtered turn or two, losing just unblocks you.
 
 ### The Grassrooms (草の間) — nature reclaims the backrooms + a 3D race (SHIPPED, inspiration from Luke)
 The backrooms after nature wins: a BIG white office/mall interior whose floor has
@@ -449,8 +448,8 @@ way to outrun it). Click the ghost (a billboarded bilingual banner marks it) →
 persistence spine reaching the surface. **Live now (`PlainFloor.tsx` news section),
 each keyed to a DIFFERENT axis of play, all sweet (never dread):** the **rat
 greeting** (returning / how deep you've been), the **four-leaf clover** once LUCK
-is high, a **goblin-shaped trophy** once you beat the grass goblin
-(`secretsFound`), and the **lost-and-found cassette count** (the tape collectible).
+is high, and the **lost-and-found cassette count** (the tape collectible). (The
+goblin trophy went with the grass battle in the 2026-10 cut.)
 The deep-diver curdled copy is the one bitter tell, gated on max-`unease`. **Hard
 line held + smoke-verified:** all of it is post-hydration, `useMounted`-gated,
 JS-only — the prerendered / JS-off front door is byte-for-byte unchanged (none of

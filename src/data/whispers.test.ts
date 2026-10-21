@@ -19,6 +19,6 @@ describe('room whispers', () => {
   });
 
   it('the safe spawn + arcade arenas stay quiet (no whisper pulls focus there)', () => {
-    for (const quiet of ['shop', 'grassbattle']) expect(whisperFor(quiet)).toBeUndefined();
+    for (const quiet of ['shop']) expect(whisperFor(quiet)).toBeUndefined();
   });
 });

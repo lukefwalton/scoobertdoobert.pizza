@@ -292,16 +292,6 @@ export const LOOKABLES: Lookable[] = [
     story: 'Something big walked through here recently. It was humming. It seemed happy.',
   },
   {
-    id: 'grassbattle-look',
-    room: 'grassbattle',
-    anchor: 'right',
-    height: 1.2,
-    label: 'a foam sword',
-    glyph: '🗡️',
-    story:
-      'Dropped by the last challenger, still warm. They lost, which here just means they got unstuck.',
-  },
-  {
     id: 'grove-look',
     room: 'grove',
     anchor: 'back-left',

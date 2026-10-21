@@ -1,8 +1,7 @@
-// Verifies the grass level end-to-end: the field mounts, the wild-goblin encounter
-// fires (screen-to-black into the battle room), and WINNING the d20 roll-off opens
-// the new room (the grove) + records the durable unlock. The encounter chance + the
-// d20 tumble are random/luck-tuned, so we drive deterministic test hooks
-// (__sdpGrassEncounter, __sdpBattleRoll) rather than walking + clicking the 3D die.
+// Verifies the grass level: the field mounts off the shrine, and wading to its far
+// edge reaches the plain (un-gated) path into the grove — the real door, walked
+// to, not teleported. (The wild-goblin ambush + battle room that used to sit
+// between the two were cut in 2026-10; the dice pit is the one dice fight.)
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
@@ -32,73 +31,36 @@ await page.waitForTimeout(400);
 
 const inGrass = await roomLabel();
 if (!/grass/i.test(inGrass)) bad(`grass: expected to land in the grass, saw "${inGrass}"`);
-const encHook = await page
-  .waitForFunction(() => typeof window.__sdpGrassEncounter === 'function', null, { timeout: 8000 })
+await page.screenshot({ path: '.shots/grass-field.png' });
+
+// Wade straight down the field (-Z) to the far edge: the grove door's prompt
+// should come up on its own — no fight, no reveal, just the walk.
+await page.keyboard.down('w');
+const pathPrompt = await page
+  .waitForFunction(
+    () => document.body.innerText.toLowerCase().includes('trodden path into the grove'),
+    null,
+    { timeout: 12000 },
+  )
   .then(
     () => true,
     () => false,
   );
-if (!encHook) bad('grass: __sdpGrassEncounter hook never appeared');
-await page.screenshot({ path: '.shots/grass-field.png' });
+await page.keyboard.up('w');
+if (!pathPrompt) bad('grass: wading to the far edge never raised the grove path prompt');
 
-// Trigger the wild encounter → screen-to-black → the battle room.
-let inBattle = '';
-let battleHook = false;
-if (encHook) {
-  await page.evaluate(() => window.__sdpGrassEncounter());
-  await page.waitForTimeout(700); // room fade + mid-wipe commit
-  inBattle = await roomLabel();
-  if (!/goblin/i.test(inBattle))
-    bad(`grass: encounter did not reach the battle, saw "${inBattle}"`);
-  battleHook = await page.evaluate(() => typeof window.__sdpBattleRoll === 'function');
-  if (!battleHook) bad('grass: __sdpBattleRoll hook missing in the battle');
-  await page.screenshot({ path: '.shots/grass-battle.png' });
-}
-
-// Win the bout (NAT 20) → opens the grove (the new room) + records the unlock.
+// Step through the real door → the grove.
 let inGrove = '';
-let cleared = false;
-if (battleHook) {
-  await page.evaluate(() => window.__sdpBattleRoll(20, 'nat20'));
-  await page.waitForTimeout(1700); // the outcome beat (1200ms) + the room fade
+if (pathPrompt) {
+  await page.keyboard.press('e');
+  await page.waitForTimeout(700); // room fade + mid-wipe commit
   inGrove = await roomLabel();
-  if (!/grove/i.test(inGrove)) bad(`grass: winning did not open the grove, saw "${inGrove}"`);
-  cleared = await page.evaluate(() => {
-    try {
-      const p = JSON.parse(localStorage.getItem('sdp_progress_v1') || '{}');
-      return (p.secretsFound || []).includes('grass-cleared');
-    } catch {
-      return false;
-    }
-  });
-  if (!cleared) bad('grass: a win did not record the grass-cleared unlock');
+  if (!/grove/i.test(inGrove)) bad(`grass: the path did not lead to the grove, saw "${inGrove}"`);
   await page.screenshot({ path: '.shots/grass-grove.png' });
 }
 
-// Durable unlock: from the grove back to the field, the goblin's beaten — so the
-// grass is calm (no forced ambush) and a revealed path to the grove has opened at
-// the far edge. Proves the 'grass-cleared' flag is actually CONSUMED, not dead.
-let revisit = false;
-if (cleared) {
-  await page.evaluate(() => window.__sdpGoToRoom?.('grassfield', 'fromGrove'));
-  await page.waitForTimeout(700);
-  await page.keyboard.down('w'); // wade to the field's far edge in peace
-  revisit = await page
-    .waitForFunction(
-      () => document.body.innerText.toLowerCase().includes('opened path to the grove'),
-      null,
-      { timeout: 9000 },
-    )
-    .then(
-      () => true,
-      () => false,
-    );
-  await page.keyboard.up('w');
-  if (!revisit) bad('grass: the grove path did not durably re-open after a win');
-}
-
 console.log(
-  `grass    -> field="${inGrass}" battle="${inBattle}" grove="${inGrove}" cleared=${cleared} revisit=${revisit} errors=${failures()}`,
+  `grass    -> field="${inGrass}" path=${pathPrompt} grove="${inGrove}" errors=${failures()}`,
 );
 
 await ctx.close();

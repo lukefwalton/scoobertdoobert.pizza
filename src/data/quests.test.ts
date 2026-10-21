@@ -66,7 +66,6 @@ describe('quests', () => {
       'play-turtle': { secretsFound: ['turtle-stage'] },
       'collect-tapes': { itemsHeld: [...CASSETTE_IDS] },
       'beat-dice': { secretsFound: ['dice-monster'] },
-      'clear-goblin': { secretsFound: ['grass-cleared'] },
       'dance-with-entity': { secretsFound: ['danced:deep-lurker'] },
       'reach-terminus': { visitedRooms: ['terminus'] },
       // a bench rite counts; a held master tape is the other path (restoration.test)

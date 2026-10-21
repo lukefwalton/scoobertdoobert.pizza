@@ -390,10 +390,13 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   jumped the dial to the rolled track; now a **nat 20 = "the pristine pressing"**
   (sparkle) and a **nat 1 = "the cursed pressing"** (a detuned womp + `crit-bad`
   toast) — DESIGN's share-fuel beat, goofy-sweet (taste). `shoot:dice` forces both.
-- ✅ **The grass encounter (in DESIGN, now shipped):** a **rare Pokémon-style
-  grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
-  to a battle room, and winning the d20 roll-off opens the grove + records the
-  unlock. `shoot:grass`.
+- 🪦 **The grass encounter — REMOVED 2026-10-21 (the complexity cut, Luke).** The
+  rare Pokémon-style ambush in the tall grass, its battle room (`GrassBattleRoom`,
+  a second d20 roll-off against the shared dice monster), the `grass-cleared`
+  unlock, the "See off the grass goblin" objective and the goblin trophies (shop
+  shelf + storefront line) are gone — the dice pit is the one dice fight. The
+  **tall grass stays** and its far-edge path into the grove is a plain door now
+  (`shoot:grass` walks it).
 - ✅ **The Grassrooms (草の間) + the 3D ghost race (2026-06-28, from Luke's
   r/LiminalSpace inspiration):** a **fully sweet liminal breather** off the
   `liminal` GLB level — the backrooms after nature wins (white office bones gone to

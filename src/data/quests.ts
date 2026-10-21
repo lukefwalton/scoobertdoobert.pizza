@@ -113,13 +113,6 @@ export const QUESTS: Quest[] = [
     done: (p) => p.secretsFound.includes('dice-monster'),
   },
   {
-    id: 'clear-goblin',
-    label: 'See off the grass goblin',
-    hint: 'Wander the tall grass off the shrine until something leaps out.',
-    room: 'grassfield',
-    done: (p) => p.secretsFound.includes('grass-cleared'),
-  },
-  {
     id: 'dance-with-entity',
     label: 'Dance with a wanderer',
     hint: 'Down in the deep levels, get close to a wandering thing and press E.',

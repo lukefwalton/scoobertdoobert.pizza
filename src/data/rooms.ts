@@ -247,7 +247,6 @@ export const ROOM_MAP: Record<string, { x: number; y: number }> = {
   'metro-tunnel': { x: 7, y: 5.6 },
   terminus: { x: 7, y: 6.8 },
   grassfield: { x: 8.6, y: 4.9 },
-  grassbattle: { x: 9.8, y: 5.4 },
   grove: { x: 8.6, y: 5.9 },
   frutiger: { x: 9.8, y: 6.4 },
 };

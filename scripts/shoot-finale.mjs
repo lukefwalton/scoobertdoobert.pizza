@@ -49,7 +49,6 @@ await page.addInitScript(() => {
         // the shrine clap below completes the FINAL objective and trips the finale.
         'jukebox-roll',
         'dice-monster',
-        'grass-cleared',
         'danced:seed',
         'garden-slide',
         'turtle-stage',

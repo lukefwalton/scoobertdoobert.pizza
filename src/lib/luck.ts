@@ -28,7 +28,7 @@ export * from './luck-core';
 
 /**
  * Roll the universal d20 against the durable save. `useLuck` (default true) gates
- * the luck economy: a STAKES roll (the dice-monster, the grass goblin) reads your
+ * the luck economy: a STAKES roll (the dice-monster, the trap door) reads your
  * current luck and, if you have any, rolls with advantage and debits the one luck
  * it spent. A LOW-STAKES roll — the jukebox/dice MUSIC selector, where a "high"
  * roll means nothing — passes `useLuck: false` so it's a plain d20 that never burns

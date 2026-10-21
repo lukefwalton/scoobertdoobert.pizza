@@ -1,22 +1,17 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
+import { useMemo } from 'react';
 import * as THREE from 'three';
 import { flatMat, makeGrassTexture, seededRandom } from './ps1';
 import { useDispose } from '../lib/useDispose';
-import { exposeTestGlobal } from '../lib/testHooks';
-import { useSceneStore } from '../state/sceneStore';
-import { useProgressStore, selectLuck } from '../state/progressStore';
-import { announce } from '../state/toastStore';
-import { audio } from '../audio/engine';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
 // GrassRoom — the "tall grass" off the shrine's torii (Luke). An overgrown lot
 // under the shrine's golden-hour haze: a worn dirt path in, knee-high grass you
 // wade through (crossed alpha quads, PS1), a few mossy stones and trees melting
-// into the fog. SWEET surface space (taste guardrail). The wild-goblin encounter
-// + the screen-to-black battle ride on top of this in a later slice; this is the
-// field + its way back to the shrine.
+// into the fog. SWEET surface space (taste guardrail). Wade to the far edge and
+// the trodden path on into the grove is right there (rooms/japan.ts).
+// (2026-10: the wild-goblin ambush that used to ride on this field — and its
+// battle room — were cut; the dice pit is the one dice fight.)
 // ───────────────────────────────────────────────────────────────────────────
 
 type Tuft = { x: number; z: number; s: number; r: number };
@@ -45,7 +40,8 @@ export function GrassRoom({ room }: { room: Room }) {
   useDispose(grassTex, grassMat, groundMat, pathMat, toriiMat, rockMat, trunkMat, leafMat);
 
   // Scatter tufts on a jittered grid; keep a clear strip down the entrance path
-  // (+Z, x≈0) so you can walk in.
+  // (+Z, x≈0) so you can walk in, and another at the far (-Z) edge where the
+  // trodden path leads on into the grove.
   const tufts = useMemo<Tuft[]>(() => {
     const out: Tuft[] = [];
     const rnd = seededRandom(90210);
@@ -54,6 +50,7 @@ export function GrassRoom({ room }: { room: Room }) {
         const x = gx + (rnd() - 0.5) * 1.0;
         const z = gz + (rnd() - 0.5) * 1.0;
         if (Math.abs(x) < 1.6 && z > 6) continue; // keep the entrance path walkable
+        if (Math.abs(x) < 1.6 && z < -D + 5) continue; // …and the far path to the grove
         out.push({ x, z, s: 0.65 + rnd() * 0.7, r: rnd() * Math.PI });
       }
     }
@@ -69,54 +66,6 @@ export function GrassRoom({ room }: { room: Room }) {
     }));
   }, [W, D]);
 
-  // ── the wild-grass encounter ───────────────────────────────────────────────
-  // Wade into the field and the grass can rustle: each ~stride rolls a luck-tuned
-  // chance (luck tips the site's randomness your way — you WANT the rare fight) to
-  // ambush you with a wild goblin, dropping you into the screen-to-black battle.
-  const { camera } = useThree();
-  const last = useRef(new THREE.Vector2());
-  const walked = useRef(0);
-  const grace = useRef(1.2); // a breath after arrival before the grass can ambush
-  const fired = useRef(false);
-
-  const triggerEncounter = () => {
-    if (fired.current) return;
-    fired.current = true;
-    audio.unlock();
-    announce('the grass rustles — a wild GOBLIN leaps out!', 'info');
-    useSceneStore.getState().goToRoom('grassbattle', 'default');
-  };
-
-  useEffect(() => {
-    exposeTestGlobal('__sdpGrassEncounter', triggerEncounter);
-    return () => exposeTestGlobal('__sdpGrassEncounter', undefined);
-  }, []);
-
-  useFrame((_, dt) => {
-    if (fired.current) return;
-    const st = useSceneStore.getState();
-    if (st.transitioning || st.paused) return;
-    // Once you've bested the goblin the grass goes calm — no more forced ambushes,
-    // so the opened grove path (the revealed -Z door) is yours to walk in peace.
-    if (useProgressStore.getState().secretsFound.includes('grass-cleared')) return;
-    const px = camera.position.x;
-    const pz = camera.position.z;
-    if (grace.current > 0) {
-      grace.current -= dt;
-      last.current.set(px, pz);
-      return;
-    }
-    const dist = Math.hypot(px - last.current.x, pz - last.current.y);
-    last.current.set(px, pz);
-    if (pz > D - 3) return; // no ambush while loitering by the entrance torii
-    walked.current += dist;
-    if (walked.current >= 2.0) {
-      walked.current = 0;
-      const luck = selectLuck(useProgressStore.getState());
-      if (Math.random() < Math.min(0.6, 0.2 + luck * 0.03)) triggerEncounter();
-    }
-  });
-
   const toriiH = 3.6;
   const toriiPx = 1.5;
 
@@ -129,12 +78,16 @@ export function GrassRoom({ room }: { room: Room }) {
       <directionalLight position={[7, 11, 5]} intensity={0.85} color="#ffd9a0" />
 
       {/* ground (extends past the camera clamp, dissolving into fog) + a worn dirt
-          path leading in from the entrance torii */}
+          path leading in from the entrance torii, and a second trodden strip out
+          the far edge toward the grove */}
       <mesh material={groundMat} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[W * 2 + 8, D * 2 + 8]} />
       </mesh>
       <mesh material={pathMat} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, D - 4]}>
         <planeGeometry args={[2.4, 9]} />
+      </mesh>
+      <mesh material={pathMat} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, -D + 3]}>
+        <planeGeometry args={[2.0, 7]} />
       </mesh>
 
       {/* the entrance torii (the way back to the shrine) near the +Z edge */}
