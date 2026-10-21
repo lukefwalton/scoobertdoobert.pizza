@@ -29,8 +29,9 @@ const readArrow = async () => {
 };
 const cam = () => page.evaluate(() => window.__sdpCam);
 
-// Seed progress so the next undone objective is "pocket the rusted key" (poolrooms),
-// which is reachable from the jukebox via the +X juke-to-pool door at [5.95,0,0].
+// Seed progress so the next undone objective is "Beat the thing at dice" (the
+// dice pit off the poolrooms), whose next hop from the jukebox is the +X
+// juke-to-pool door at [5.95,0,0] (jukebox → poolrooms → dicepit).
 await page.addInitScript(() => {
   localStorage.setItem(
     'sdp_progress_v1',
@@ -39,10 +40,10 @@ await page.addInitScript(() => {
       luckEarned: 2,
       radioUnlocked: true,
       visitedRooms: ['shop', 'hallway', 'jukebox'],
-      // The objectives ahead of the rusted key in QUESTS order — seed them done so
-      // the chip points at the poolrooms key this smoke walks toward. earn-luck /
-      // unlock-radio now key off their own ritual secrets (shrine-clap / jukebox-
-      // roll), not luckEarned / radioUnlocked, so seed those too.
+      // The objectives ahead of beat-dice in QUESTS order — seed them done so the
+      // chip points at the dice pit this smoke walks toward. earn-luck /
+      // unlock-radio key off their own ritual secrets (shrine-clap / jukebox-roll),
+      // not luckEarned / radioUnlocked, so seed those too.
       secretsFound: [
         'jump-unlocked',
         'shrine-clap',
@@ -50,7 +51,17 @@ await page.addInitScript(() => {
         'garden-slide',
         'turtle-stage',
       ],
-      itemsHeld: [],
+      // collect-tapes sits just before beat-dice: every cassette in CASSETTE_IDS
+      // (keep in sync with items.ts whenever a `track` item is added).
+      itemsHeld: [
+        'tape-mystery-machine',
+        'tape-moonlight',
+        'tape-japan',
+        'tape-internet',
+        'tape-information',
+        'tape-1101',
+        'tape-jolly-roger-bay',
+      ],
     }),
   );
 });
@@ -69,7 +80,7 @@ const chip = await page.waitForSelector('.hud-objective', { timeout: 6000 }).cat
 if (!chip) bad('objective: chip never appeared');
 else {
   label = (await page.$eval('.hud-objective__label', (e) => e.textContent || '')).trim();
-  if (!/rusted key/i.test(label)) bad(`objective: wrong label ${JSON.stringify(label)}`);
+  if (!/dice/i.test(label)) bad(`objective: wrong label ${JSON.stringify(label)}`);
 
   // Arrow matches the bearing to the next-hop door from the live camera pose.
   const c1 = await cam();
