@@ -332,7 +332,7 @@ channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
 - **Direct feedback** ("you just did a thing — here's the result": a fortune
   draw, a dice crit, a spell, a clap) **shows immediately**, replacing whatever
   is up. An action's result never waits in line.
-- **Passive chatter** (quest ✓s, perception whispers, song unlocks, first-entry
+- **Passive chatter** (quest ✓s, room whispers, song unlocks, first-entry
   rewards) **queues** behind the current toast — deduped, capped — instead of
   clobbering it. This replaced every hand-tuned per-call-site setTimeout stagger.
 - **Right channel for the right info:** the loot collectathon no longer toasts

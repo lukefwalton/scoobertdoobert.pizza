@@ -2,9 +2,9 @@
 // src/data/whispers.ts — room-themed "you notice…" lore whispers.
 //
 // One curated Scoobert detail per room (mined from lore.ts / the lfw catalog),
-// surfaced by a PERCEPTION check on first entry this session (see
-// PerceptionWhisper). It's the lfw-as-brain sprinkle with a D&D wrapper: beat the
-// DC and you notice something true about the philosopher-who-makes-pizza-music.
+// surfaced on first entry this session (see RoomWhisper). It's the lfw-as-brain
+// sprinkle: step in and you notice something true about the philosopher-who-
+// makes-pizza-music.
 //
 // TASTE GUARDRAIL: every whisper is sweet/funny, never dread, the depths stay
 // eerie by their environment, but what you NOTICE in them is a warm fact (the

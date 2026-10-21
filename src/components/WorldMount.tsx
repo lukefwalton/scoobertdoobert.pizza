@@ -7,7 +7,7 @@ import { useSaveSanDiegoWin } from '../lib/useSaveSanDiegoWin';
 import { useSceneStore } from '../state/sceneStore';
 import { WorldHud } from './WorldHud';
 import { TouchControls } from './TouchControls';
-import { PerceptionWhisper } from './PerceptionWhisper';
+import { RoomWhisper } from './RoomWhisper';
 import { DreadVignette } from './DreadVignette';
 import { LevelLoader } from './LevelLoader';
 import '../styles/world.css';
@@ -100,7 +100,7 @@ export function WorldMount() {
           <LevelLoader />
           <DreadVignette />
           <WorldHud />
-          <PerceptionWhisper />
+          <RoomWhisper />
           {touch && <TouchControls />}
           <button
             type="button"

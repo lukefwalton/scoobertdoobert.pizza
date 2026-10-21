@@ -24,7 +24,7 @@ unless the work is genuinely ambiguous.
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
 | 7+ | instruments (vendored from Luke's `fun` playground) → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
-| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
+| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, room whispers, the full arcade | ✅ core shipped (trimmed 2026-10, see below) |
 | — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
 | — | The audio-museum pass — RESTORATION (hi-fi masters + the bench), the Listening Room, /catalog | ✅ shipped |
 | — | The CONVERT pass — hire block + The Reel, legible game door, the link maze, SEO/AEO | ✅ shipped |
@@ -343,10 +343,12 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   (two monotonic counters in `progressStore`), **rest restores slots** (shrine clap
   / breather rooms), and a cast feeds the dread-**relief** pool — a sanctioned way
   to push the unease back. Multi-spell hotbar in the HUD. `shoot:spell`.
-- ✅ **Perception whispers (2026-06-26):** each room entry rolls a **plain d20
-  perception check** (DC 12; luck stays reserved for the stakes rolls, so a
-  high-frequency check never drains it); on a hit you catch a room-specific whisper
-  (lore mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **Room whispers (2026-06-26):** the first time you enter a room this session
+  you catch its room-specific whisper (lore mined from lukefwalton.com, so the repo
+  stays standalone) — `RoomWhisper` + `src/data/whispers.ts`. `shoot:whisper`.
+  - 🪦 **2026-10-21 (the complexity cut):** this used to be a hidden **d20
+    Perception check** (DC 12) that only decided whether you saw the line at all,
+    which read as nothing; the whisper always shows now (once per room per session).
 - ✅ **Luck you can SEE + the shrine おみくじ (2026-07-07, Luke: "turn luck into
   clearer outcomes; more chances for BAD or GREAT; more ways to ROLL"):** three
   moves that make the invisible luck economy legible and give the d20 more surfaces.
