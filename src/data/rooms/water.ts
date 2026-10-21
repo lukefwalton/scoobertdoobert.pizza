@@ -184,12 +184,12 @@ export const WATER_ROOMS: Room[] = [
     id: 'grassrooms',
     kind: 'grassrooms',
     title: 'The Grassrooms',
-    // A BIG low-ceilinged white interior gone to grass (the photo's vibe), sized
-    // as a racecourse: you race the ghost around the loop of gates (GhostRace).
-    // The central skylight breaks the low ceiling open over the infield.
+    // A BIG low-ceilinged white interior gone to grass (the photo's vibe) — a wide
+    // open hall to wander. The central skylight breaks the low ceiling open over
+    // the middle. (2026-10: the ghost lap race that ran around it was cut.)
     dims: { halfW: 24, halfD: 24, height: 5, eye: EYE },
     // Soft warm-white interior haze — bright, airy, endless-feeling fog (pushed
-    // back for the big arena so you can see across the course).
+    // back for the big hall so you can see across it).
     palette: { background: '#eef1ea', fog: '#eef1ea', fogNear: 8, fogFar: 64 },
     // The space owns its own audio (wind pad + furin chimes off the indoor trees);
     // the carried jukebox voice fades out (RoomEnvironment). A SWEET relief beat.

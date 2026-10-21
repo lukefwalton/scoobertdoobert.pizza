@@ -20,7 +20,6 @@ import { FinaleCard } from './FinaleCard';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDismissMs } from '../state/toastStore';
-import { useRaceStore } from '../state/raceStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { interactNearby } from '../lib/worldActions';
@@ -28,7 +27,6 @@ import { benchStateFor, benchPrompt } from '../lib/restoration';
 import { LOOP_OPTIONS } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
 import { ScoreHud } from './ScoreHud';
-import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
 import { ratDialogue } from '../data/dialogue';
 import { YoutubeFacade } from './YoutubeFacade';
@@ -59,9 +57,6 @@ export function WorldHud() {
   const playingSlug = useMusicStore((s) => LOOP_OPTIONS[s.index]?.slug ?? null);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const nearInteractable = useSceneStore((s) => s.nearInteractable);
-  // The ghost race is on (countdown / racing / the result card): its top-centre
-  // band replaces the objective chip for the duration (they collided before).
-  const raceLive = useRaceStore((s) => s.phase !== 'idle');
   const nearNpc = useSceneStore((s) => s.nearNpc);
   const openNpc = useSceneStore((s) => s.openNpc);
   const closeNpc = useSceneStore((s) => s.closeNpcDialog);
@@ -382,25 +377,16 @@ export function WorldHud() {
     paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame || !!levelOverlay;
   // `!revealed` (the entry cadence) is folded in here so the chip AND the score
   // badge wait for their beat through the same gate the toast-below-chip test reads.
-  // (The race band takes modalHidden alone — a live race is direct feedback on
-  // something you started, never intro chatter.)
   const objectiveHidden = modalHidden || !revealed;
-  // The RaceHud's live band and the objective chip share the top-centre slot —
-  // while a race is running the race owns it (the chip was rendering underneath).
   const objectiveShowing = objectiveChipVisible(progress, {
     on: objectiveHudOn,
-    hidden: objectiveHidden || raceLive,
+    hidden: objectiveHidden,
   });
 
   return (
     <>
-      <ObjectiveHud
-        progress={progress}
-        currentRoom={currentRoom}
-        hidden={objectiveHidden || raceLive}
-      />
+      <ObjectiveHud progress={progress} currentRoom={currentRoom} hidden={objectiveHidden} />
       <ScoreHud hidden={objectiveHidden} />
-      <RaceHud hidden={modalHidden} />
       {toast && settled && (
         <div
           className={`hud-toast hud-toast--${toast.kind}${objectiveShowing ? ' hud-toast--below-objective' : ''}`}

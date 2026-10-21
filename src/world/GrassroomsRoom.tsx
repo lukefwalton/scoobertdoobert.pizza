@@ -6,7 +6,6 @@ import { useDispose } from '../lib/useDispose';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 import { useSceneStore } from '../state/sceneStore';
-import { GhostRace } from './GhostRace';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -15,10 +14,9 @@ import { type Room } from '../data/rooms';
 // interior whose floor has gone wall-to-wall GRASS, flecked with blue wildflowers,
 // low-poly trees growing INDOORS, one lonely white dresser — and the low white
 // ceiling broken open over the middle to an impossibly blue, wispy-cloud sky.
-//
-// It's also a RACECOURSE: a wide arena you race a floating GHOST around, lap by
-// lap, in first person (see GhostRace — the gates, the rival, the lap logic). The
-// pillars sit in the infield + corners so the racing ring stays clear.
+// A big open hall (48×48) — the pillars sit in the middle + corners so the floor
+// stays wide and wanderable. (2026-10: the ghost lap race that used to run around
+// it was cut in the complexity pass; the room is a pure breather now.)
 //
 // REGISTER: a FULLY SWEET breather (Luke's call). baseUnease sits below SAFE (it
 // DECAYS — see dread.ts), so it never curdles; a relief exhale among the bitter
@@ -34,9 +32,8 @@ import { type Room } from '../data/rooms';
 // 青函トンネル, 二拍手).
 // ───────────────────────────────────────────────────────────────────────────
 
-// White partition slabs + square pillars (the office bones), kept to the INFIELD
-// (inside the racing ring) + the corners so the loop at radius ~18 stays clear.
-// [x, z, w, d, h, rotY].
+// White partition slabs + square pillars (the office bones), kept to the middle
+// cluster + the corners so a wide ring of floor stays open. [x, z, w, d, h, rotY].
 const SLABS: [number, number, number, number, number, number][] = [
   // infield cluster (inside the loop)
   [-6, 5, 3.2, 0.6, 4.2, 0.15],
@@ -152,8 +149,8 @@ export function GrassroomsRoom({ room }: { room: Room }) {
     audio.playColony(noteToFreq('A', 2), 0, 0.05); // the breeze, straight away
   }, []);
   useFrame((_, delta) => {
-    // Freeze the ambient scheduler under the pause menu / a room wipe, like
-    // GhostRace — don't keep scheduling chimes while the world is paused.
+    // Freeze the ambient scheduler under the pause menu / a room wipe — don't
+    // keep scheduling chimes while the world is paused.
     const sc = useSceneStore.getState();
     if (sc.paused || sc.transitioning) return;
     const dt = Math.min(delta, 0.05);
@@ -301,9 +298,6 @@ export function GrassroomsRoom({ room }: { room: Room }) {
           </mesh>
         ))}
       </group>
-
-      {/* the 3D race — checkpoint gates + the ghost rival + the lap logic */}
-      <GhostRace />
     </group>
   );
 }

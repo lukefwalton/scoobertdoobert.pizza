@@ -387,18 +387,20 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   shelf + storefront line) are gone — the dice pit is the one dice fight. The
   **tall grass stays** and its far-edge path into the grove is a plain door now
   (`shoot:grass` walks it).
-- ✅ **The Grassrooms (草の間) + the 3D ghost race (2026-06-28, from Luke's
-  r/LiminalSpace inspiration):** a **fully sweet liminal breather** off the
-  `liminal` GLB level — the backrooms after nature wins (white office bones gone to
-  grass + indoor trees + blue wildflowers, the low ceiling broken open to an
-  impossibly blue sky), **sized as a 48×48 racecourse**. A `musicRoom` with its own
-  wind + furin ambient; `baseUnease` below SAFE. Hosts **ゴーストレース / RACE THE
-  GHOST** — a real in-world, first-person **lap race** against a floating ghost
-  character (checkpoint gates, 3·2·1·GO countdown, hold SHIFT to sprint, first to 2
-  laps; `raceStore` + `world/GhostRace` + `components/RaceHud`). Losing is an
-  anticlimax + auto-rematch; winning gives +3 luck + the clear. Words stay EN + JP.
-  `shoot:grassrooms` drives the countdown→racing→won state machine (+ the room
-  graph/map/dread/whisper wiring; full unit suite green).
+- ✅ **The Grassrooms (草の間) (2026-06-28, from Luke's r/LiminalSpace
+  inspiration):** a **fully sweet liminal breather** off the `liminal` GLB level —
+  the backrooms after nature wins (white office bones gone to grass + indoor trees
+  + blue wildflowers, the low ceiling broken open to an impossibly blue sky), a big
+  48×48 hall. A `musicRoom` with its own wind + furin ambient; `baseUnease` below
+  SAFE. Words stay EN + JP. `shoot:grassrooms` mounts the room (+ the room
+  graph/map/dread/whisper wiring).
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): the 3D ghost race +
+    the Shift sprint.** ゴーストレース / RACE THE GHOST (`raceStore` /
+    `world/GhostRace` / `components/RaceHud`, a first-person lap race vs a floating
+    ghost — gates, 3·2·1·GO, first to 2 laps, +3 luck + a remembered clear) was a
+    second genre in one room; the **Shift sprint** (×1.7 + an FOV kick in
+    `Controls`) existed only to win it, so it went too (`shoot:sprint` deleted,
+    the footstep cadence lost its "fast" branch). The walk is one speed now.
 - ✅ **The Kitchen (厨房) — the thesis at its source (2026-06-28):** a warm,
   goofy **surface relief room** off the shop's **-X "EMPLOYEES ONLY" door** (a
   lateral side room, never the way down — the descent rule is untouched). Original

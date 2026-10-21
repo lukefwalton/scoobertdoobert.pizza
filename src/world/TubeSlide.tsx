@@ -217,7 +217,7 @@ export function TubeSlide() {
       camera.position.copy(pos.current);
       curve.getPointAt(Math.min(1, e + 0.04), look.current);
       camera.lookAt(look.current);
-      // FOV kicks with real speed (same speed-feel grammar as sprint).
+      // FOV kicks with real speed (the ride's own speed-feel).
       const speed = pos.current.distanceTo(prev.current) / Math.max(dt, 1e-4);
       prev.current.copy(pos.current);
       const pcam = camera as THREE.PerspectiveCamera;
