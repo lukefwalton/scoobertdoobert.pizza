@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useSceneStore } from '../state/sceneStore';
 import { useProgressStore } from '../state/progressStore';
 import { JUMP_SECRET } from '../data/abilities';
-import { interactNearby, grabNearby } from '../lib/worldActions';
+import { interactNearby } from '../lib/worldActions';
 import { castEquippedSpell } from '../lib/spellcast';
 import { setTouchMove, queueTouchJump, resetTouchInput } from '../world/touchInput';
 import '../styles/touch.css';
@@ -48,7 +48,6 @@ export function TouchControls() {
       hotspot: s.nearHotspot,
       npc: s.nearNpc,
       entity: s.nearEntity,
-      pickup: s.nearPickup,
     })),
   );
   const canJump = useProgressStore((s) => s.secretsFound.includes(JUMP_SECRET));
@@ -123,7 +122,7 @@ export function TouchControls() {
   if (hidden) return null;
 
   // Context button: the nearest interaction, in the SAME priority as the DOM
-  // prompts. Interact targets fall to interactNearby; a lone pickup to grabNearby.
+  // prompts. (Collectibles have no verb — you walk over them.)
   const hasInteract =
     near.door ||
     near.interactable ||
@@ -141,9 +140,7 @@ export function TouchControls() {
         ? 'Touch'
         : 'Ring';
   const label = near.door
-    ? near.door.requiresKey
-      ? '🔒'
-      : 'Enter'
+    ? 'Enter'
     : near.interactable
       ? interactVerb
       : near.tv
@@ -156,16 +153,12 @@ export function TouchControls() {
               ? 'Talk'
               : near.entity
                 ? 'Dance'
-                : near.pickup
-                  ? 'Grab'
-                  : 'Use';
-  const idle = !hasInteract && !near.pickup;
-  // A words-only accessible name for the context button (its visible label can be
-  // a bare glyph like 🔒). A phone screen-reader user taps this, so it must read.
+                : 'Use';
+  const idle = !hasInteract;
+  // A words-only accessible name for the context button. A phone screen-reader
+  // user taps this, so it must read.
   const actionAria = near.door
-    ? near.door.requiresKey
-      ? 'Locked door'
-      : 'Enter door'
+    ? 'Enter door'
     : near.interactable
       ? near.interactable.label
       : near.tv
@@ -178,9 +171,7 @@ export function TouchControls() {
               ? 'Talk'
               : near.entity
                 ? 'Dance'
-                : near.pickup
-                  ? 'Grab item'
-                  : 'Interact';
+                : 'Interact';
 
   // NOTE: no aria-hidden on the container — these are focusable buttons a phone
   // screen-reader user can tap, so hiding the subtree would be the aria-hidden-focus
@@ -231,10 +222,7 @@ export function TouchControls() {
           type="button"
           className={`touch-btn touch-btn--action${idle ? ' is-idle' : ''}`}
           aria-label={actionAria}
-          onClick={() => {
-            if (hasInteract) interactNearby();
-            else grabNearby();
-          }}
+          onClick={() => interactNearby()}
         >
           <span aria-hidden="true">{label}</span>
         </button>

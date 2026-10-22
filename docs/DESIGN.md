@@ -68,9 +68,10 @@ a few beats.
     room one (ring the counter bell → the back-hall door manifests). It stays
     *frictionless* because the action is always **already in view** and unmissable
     (a glowing interactable), the reveal is instant + juicy, and ascending / the
-    side doors are never gated — you can never think "I'm stuck." A door that wants
-    a real KEY is still SIDE/secret-tier only (the dev guard holds). This is ~95% of
-    the experience and it flows.
+    side doors are never gated — you can never think "I'm stuck." (2026-10: the
+    KEY-locked side doors were removed in the complexity cut — there are no keys
+    at all now, only the interact/pickup reveal.) This is ~95% of the experience
+    and it flows.
   - **The secrets / ARG tier (the share fuel):** optional, a little chewier — the
     stuff people *post* about (`/1101` → "save san diego", hidden demos). But the
     difficulty is **noticing the hook, not grinding it.** Once spotted it still
@@ -193,7 +194,7 @@ mixes, produces, and plays on all his own records).
   **exhale-valves found by going deep**, not surface toys — bright goofy rooms
   that double as dread relief. Seed *one* light "you can make sound here" touch
   near the surface so the idea's planted early; the real instrument rooms pay off
-  deep. (Optionally hand-played via the webcam — see policy.)
+  deep.
   - **SHIPPED — the Practice Room** (`src/world/PracticeRoom.tsx`), backstage
     through the jukebox's stage door: a wall of six pentatonic pads you can
     actually play (mute-aware `audio.playTone()` through the limiter), kept a
@@ -331,7 +332,7 @@ channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
 - **Direct feedback** ("you just did a thing — here's the result": a fortune
   draw, a dice crit, a spell, a clap) **shows immediately**, replacing whatever
   is up. An action's result never waits in line.
-- **Passive chatter** (quest ✓s, perception whispers, song unlocks, first-entry
+- **Passive chatter** (quest ✓s, room whispers, song unlocks, first-entry
   rewards) **queues** behind the current toast — deduped, capped — instead of
   clobbering it. This replaced every hand-tuned per-call-site setTimeout stagger.
 - **Right channel for the right info:** the loot collectathon no longer toasts
@@ -341,8 +342,7 @@ channel, and that channel now has **two lanes** (`src/state/toastStore.ts`):
 - **The stats explain themselves once:** the first time luck ever lands, a
   one-time queued line says what LUCK is (you never spend it; the dice tip your
   way), and the pause menu captions it inline. The pause menu keeps ONE progress
-  section (the Trophy case: tallies + lifetime haul + best fortune), not three
-  scattered readouts. (2026-09: it fires only on a luck gain *this session* —
+  section (the Trophy case: tallies + best fortune), not three scattered readouts. (2026-09: it fires only on a luck gain *this session* —
   never at spawn for a save whose luck predates it.)
 - **Entry cadence — level 1, then level 2 (Luke, 2026-09-08: "a shit ton to see
   all at once on load … slow our roll … pace them through").** World entry is
@@ -393,16 +393,15 @@ starfield). Surface-safe + sweet (taste guardrail): the whole layer is goofy, ne
 dread. Placement stays inside the camera clamp and off spawns/doors (friction
 budget — never a drop in a wall or blocking a door).
 
-### A grass level — a rare, dumb-fun Pokémon battle (SHIPPED — see PHASES, `shoot:grass`)
-A level with **tall GRASS**; walk through it and you may **encounter a wild
-"pokémon" that's the big-eyed dice-goblin** (`DiceMonster`). The fight is
-**dice-filtered** (the universal d20 above — nat 20 / crit fail / luck), **not**
-action combat: a goofy turn or two, "not often," never traumatic, losing just
-unblocks you (same anticlimax as the dice pit). Rides the engine already shipped;
-the new work is the grass-encounter trigger + a tiny battle frame. Keep it rare so
-it stays a delight, not a grind.
+### A grass level — 🪦 the Pokémon battle was REMOVED (2026-10-21, the complexity cut)
+The **tall GRASS** off the shrine stays (`GrassRoom`, `shoot:grass`), and wading to
+its far edge now simply leads on into the grove. The wild-goblin ambush + its
+screen-to-black battle room (a second d20 roll-off against the same dice monster)
+were cut: the **dice pit is the one dice fight**. The original idea, for the
+record: walk the grass, a wild "pokémon" (the big-eyed dice-goblin) leaps out, a
+goofy dice-filtered turn or two, losing just unblocks you.
 
-### The Grassrooms (草の間) — nature reclaims the backrooms + a 3D race (SHIPPED, inspiration from Luke)
+### The Grassrooms (草の間) — nature reclaims the backrooms (SHIPPED, inspiration from Luke; 🪦 its 3D race was cut 2026-10)
 The backrooms after nature wins: a BIG white office/mall interior whose floor has
 gone wall-to-wall GRASS, flecked with blue wildflowers, low-poly trees growing
 INDOORS, one lonely white dresser — and the low ceiling broken open over the
@@ -416,40 +415,29 @@ r/LiminalSpace piece "The Grassrooms" — Luke: "good inspiration for a level.")
 - **Branches off the `liminal` GLB level** via a visible (un-keyed) side door — a
   sweet place you FIND by wandering the sterile beige nothing (the sterile→reclaimed
   contrast is the whole beat). PS1 register throughout: unlit flat-white office
-  bones, crossed-alpha grass quads, fog, a broken-ceiling skybox. **Sized as a
-  racecourse** (48×48): the pillars sit in the infield + corners so the racing ring
-  stays clear.
-- **Words stay EN + JP** (a bilingual entrance plaque 草の間 / THE GRASSROOMS, the
-  race banner ゴーストレース / RACE THE GHOST), like 青函トンネル / 二拍手 elsewhere
-  (Luke). `shoot:grassrooms`.
+  bones, crossed-alpha grass quads, fog, a broken-ceiling skybox. A **big open
+  hall** (48×48): the pillars sit in the middle + corners so the floor stays wide.
+- **Words stay EN + JP** (a bilingual entrance plaque 草の間 / THE GRASSROOMS), like
+  青函トンネル / 二拍手 elsewhere (Luke). `shoot:grassrooms`.
 
-#### The ghost race — ゴーストレース / RACE THE GHOST (SHIPPED, Luke)
-"A 3D game… a race around the level, you race another 3D character around it"
-(Luke). A real in-world **lap race** through the Grassrooms — NOT a 2D minigame.
-You race a floating **ghost character** around a loop of checkpoint gates, **on
-foot in first person** (the existing controls; **hold SHIFT to sprint** — the only
-way to outrun it). Click the ghost (a billboarded bilingual banner marks it) →
-**3·2·1·GO** → first to **2 laps** wins.
-- **Architecture:** `state/raceStore.ts` (the phase/lap/progress machine, three-
-  free, shared across the Canvas boundary) + `world/GhostRace.tsx` (the gates, the
-  ghost rival floating the racing line, the countdown + per-frame gate detection,
-  mounted inside the room so it lives/dies/resets with it) + `components/RaceHud.tsx`
-  (the DOM countdown · LAP · standing · win/lose card). The course is a loop of
-  `RACE_GATES`; the player's next gate beacon pulses gold; the ghost floats THROUGH
-  the pillars (it's a ghost) at a beatable-but-real clip.
-- **Taste guardrail (hard):** sweet + non-traumatic — **losing is an anticlimax**
-  ("the ghost won this one — rematch? もういっかい？", auto-resets for a rematch, no
-  game-over of doom). Winning rewards **+3 luck + the clear remembered**
-  (`progressStore.clearGame('ghost-race')`). WCAG 2.3.1: the countdown is a
-  scale-pop, never a flash/strobe; all audio mute-aware + voice-capped.
+#### 🪦 The ghost race — ゴーストレース / RACE THE GHOST — REMOVED 2026-10-21 (the complexity cut)
+It was "a 3D game… a race around the level, you race another 3D character around
+it" (Luke): a real in-world first-person **lap race** against a floating ghost
+through the Grassrooms — a loop of checkpoint gates, a 3·2·1·GO countdown, first
+to 2 laps, **hold SHIFT to sprint** as the only way to outrun it; losing was an
+anticlimax + auto-rematch, winning +3 luck + a remembered clear. Cut as a second
+genre stapled into one room (`raceStore` / `GhostRace` / `RaceHud`), and the
+**Shift sprint went with it** — sprint existed only to win the race; the walk is
+one speed now (the tube slide keeps its own speed-FOV kick). The Grassrooms stays
+as the pure breather above.
 
 ### The shop remembers your deeds — storefront reactivity (SHIPPED, Luke)
 "What you did IN the game changes how the top-level pizza shop looks." This is the
 persistence spine reaching the surface. **Live now (`PlainFloor.tsx` news section),
 each keyed to a DIFFERENT axis of play, all sweet (never dread):** the **rat
 greeting** (returning / how deep you've been), the **four-leaf clover** once LUCK
-is high, a **goblin-shaped trophy** once you beat the grass goblin
-(`secretsFound`), and the **lost-and-found cassette count** (the tape collectible).
+is high, and the **lost-and-found cassette count** (the tape collectible). (The
+goblin trophy went with the grass battle in the 2026-10 cut.)
 The deep-diver curdled copy is the one bitter tell, gated on max-`unease`. **Hard
 line held + smoke-verified:** all of it is post-hydration, `useMounted`-gated,
 JS-only — the prerendered / JS-off front door is byte-for-byte unchanged (none of
@@ -746,10 +734,18 @@ mapping, maybe a "record your poke" share.
 
 **Pointer/touch ONLY — no webcam, ever, for this toy (Luke).** Poke-Scoobert is
 complete as a finger/mouse instrument; there is no camera-driven version of it.
-The webcam is a **wholly separate idea** (its own future thread, gated by the
-Webcam policy below) — NOT a layer or a camera-mode of this. Don't couple them.
+(The webcam was a **wholly separate idea**, gated by the Webcam policy below —
+never a layer or a camera-mode of this.)
 
-### Webcam policy (the one narrow exception to "no real camera")
+### Webcam policy (the one narrow exception to "no real camera") — 🪦 the instrument is REMOVED
+**Status (2026-10-21, Luke's complexity cut): the PIZZA CAM™ — the one shipped
+camera instrument — was removed** (its ~1,900 lines: the booth page/route, the CV
+pipeline, the consent gate, the kitchen tripod, `shoot:booth`). Nothing on the
+site asks for a camera now, and PHASES had flagged it as never device-validated.
+**The policy below stands as POLICY** — if a camera instrument is ever rebuilt, it
+is built to these lines. The "SHIPPED" notes after it record what the removed
+build settled, for the record.
+
 The old bolded rule "**NEVER real camera/mic**" is **amended**, not dropped. It
 now means: never for the dread beat, never transmitted, never without explicit
 opt-in. A real camera is allowed **only** as a consensual, fully-local *surface*
@@ -775,7 +771,8 @@ instrument:
   in doubt: mic / device-tilt / gesture-control get most of the "you play the
   site" delight with less surveillance charge.)
 
-**SHIPPED (2026-07-08) as the PIZZA CAM™ — the settled decisions:**
+**WAS SHIPPED (2026-07-08) as the PIZZA CAM™, REMOVED 2026-10-21 — the decisions
+that build settled, kept for the record:**
 - **Lo-fi own-code CV, no ML dependency.** Not MediaPipe/hand-skeletons: the feed
   is downscaled to a **32×24 luminance grid** and read by ~250 lines of our own
   frame-differencing (peak-hold field, self-calibrating noise floor, motion

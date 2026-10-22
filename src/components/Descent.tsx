@@ -53,8 +53,8 @@ const AGE_PHASES: Phase[] = ['aging', 'crash', 'prompt', 'installing', 'error'];
 // (The boot log used to carry a PIZZA CAM opt-in row here — ENABLE HAND CONTROL /
 // NO THANKS — that stretched the boot and put a camera question in front of the
 // world. Gone, per Luke (2026-09): "let them get into the world before we throw up
-// road blocks." Camera consent now lives ONLY at point of use, the kitchen booth's
-// own gate (PizzaCamBooth) — see DESIGN.md "Webcam policy".)
+// road blocks." The Pizza Cam itself was removed in the 2026-10 complexity cut;
+// nothing on the site asks for a camera now.)
 
 export function Descent() {
   const [phase, setPhase] = useState<Phase>('idle');

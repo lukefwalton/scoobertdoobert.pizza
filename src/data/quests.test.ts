@@ -32,7 +32,6 @@ const COLD: Progress = {
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
   bestFortune: 0,
-  lootTotals: {},
 };
 
 describe('quests', () => {
@@ -64,11 +63,8 @@ describe('quests', () => {
       'unlock-radio': { secretsFound: ['jukebox-roll'] },
       'ride-slide': { secretsFound: ['garden-slide'] },
       'play-turtle': { secretsFound: ['turtle-stage'] },
-      'find-locker-key': { itemsHeld: ['pool-locker-key'] },
-      'find-closet-key': { itemsHeld: ['hall-closet-key'] },
       'collect-tapes': { itemsHeld: [...CASSETTE_IDS] },
       'beat-dice': { secretsFound: ['dice-monster'] },
-      'clear-goblin': { secretsFound: ['grass-cleared'] },
       'dance-with-entity': { secretsFound: ['danced:deep-lurker'] },
       'reach-terminus': { visitedRooms: ['terminus'] },
       // a bench rite counts; a held master tape is the other path (restoration.test)

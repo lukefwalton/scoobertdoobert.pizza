@@ -49,7 +49,7 @@ it drops you into the world below.
 | <img src=".github/media/05-world-shop.png" alt="PS1 beach shop" /> | <img src=".github/media/06-jukebox.png" alt="the jukebox room" /> |
 | **the world**, a PS1 shop on the seafloor | **the jukebox**, the music payoff (+ a d20 to gamble for a track) |
 | <img src=".github/media/07-boardwalk.png" alt="the boardwalk" /> | <img src=".github/media/08-grassrooms.png" alt="the grassrooms" /> |
-| **the boardwalk**, a golden-hour surface wing | **the grassrooms**, liminal grass + a first-person ghost race |
+| **the boardwalk**, a golden-hour surface wing | **the grassrooms**, the backrooms after nature wins |
 | <img src=".github/media/09-gallery.png" alt="the sunken gallery" /> | <img src=".github/media/10-arcade.png" alt="the arcade" /> |
 | **the sunken gallery**, vaporwave-Greek ruins, knee-deep | **the arcade**, a shelf of touch-first cabinets (this one's Asteroids) |
 
@@ -328,11 +328,11 @@ The site is well past its original phases. Shipped and live: the dead-plain
 storefront fallback + the data-driven era-floor descent; the full PS1/N64 3D
 world (a rooms graph, the jukebox, lazy GLB levels, the boids rat, the hidden
 terminal, the `unease` dread conductor); a real **game layer** (LUCK + a
-universal d20, spells, perception, the d20 dice-monster); the **arcade** (the
+universal d20, spells, room whispers, the d20 dice-monster); the **arcade** (the
 touch-first cabinets registered in `src/data/arcadeGames.ts`, each with a
 standalone route), **PIZZA POINTS** + the leaderboard;
 and a growing set of surface and album-themed wings (the Boardwalk, the Kitchen,
-the Basement Sessions studio, the Sunken Gallery, the Grassrooms ghost race, …).
+the Basement Sessions studio, the Sunken Gallery, the Grassrooms, …).
 
 **`docs/PHASES.md` is the live, agent-maintained status**, read it for exactly
 what's built and what's next, and `docs/DESIGN.md` for the vision each piece

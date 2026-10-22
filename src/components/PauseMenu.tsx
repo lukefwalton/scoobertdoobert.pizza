@@ -10,7 +10,6 @@ import { JUKEBOX_TRACKS, LOOP_OPTIONS } from '../data/music';
 import { restoredCount } from '../data/restoration';
 import { ROOMS } from '../data/rooms';
 import { itemById, CASSETTE_IDS } from '../data/items';
-import { LOOT } from '../data/loot';
 import { fortuneByRank } from '../data/omikuji';
 import { SPELLS, SPELL_SLOTS_MAX, isCantrip } from '../data/spells';
 import { songMeaning } from '../data/songMeta';
@@ -87,7 +86,6 @@ export function PauseMenu() {
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
       bestFortune: s.bestFortune,
-      lootTotals: s.lootTotals,
     })),
   );
 
@@ -155,10 +153,9 @@ export function PauseMenu() {
             </div>
           )}
           {/* The TROPHY CASE: everything you've turned up, in ONE place — the tally
-              row (rooms/secrets/games/…), the lifetime loot haul, and your best
-              shrine fortune (the pause-menu twin of the 3D case in the shop lobby).
-              These used to be three separate readouts scattered down the panel;
-              one section is the legible version (the game-design cleanup). */}
+              row (rooms/secrets/games/…) and your best shrine fortune. These used
+              to be separate readouts scattered down the panel; one section is the
+              legible version (the game-design cleanup). */}
           <div className="hud-pause__inventory">
             <p className="hud-pause__invtitle">Trophy case</p>
             <div className="hud-pause__progress" title="What you've turned up so far">
@@ -193,25 +190,17 @@ export function PauseMenu() {
                 </span>
               )}
             </div>
-            {(Object.values(progress.lootTotals).some((n) => n > 0) ||
-              progress.bestFortune > 0) && (
-              <ul className="hud-pause__invlist">
-                {LOOT.filter((l) => (progress.lootTotals[l.id] ?? 0) > 0).map((l) => (
-                  <li key={l.id} title={`${progress.lootTotals[l.id]} collected, all-time`}>
-                    <span aria-hidden="true">{l.glyph}</span> {l.label} ×{progress.lootTotals[l.id]}
-                  </li>
-                ))}
-                {progress.bestFortune > 0 &&
-                  (() => {
-                    const f = fortuneByRank(progress.bestFortune);
-                    return f ? (
-                      <li title={`Your best shrine fortune: ${f.jp} ${f.en}`}>
-                        <span aria-hidden="true">🎴</span> Best fortune {f.jp} {f.en}
-                      </li>
-                    ) : null;
-                  })()}
-              </ul>
-            )}
+            {progress.bestFortune > 0 &&
+              (() => {
+                const f = fortuneByRank(progress.bestFortune);
+                return f ? (
+                  <ul className="hud-pause__invlist">
+                    <li title={`Your best shrine fortune: ${f.jp} ${f.en}`}>
+                      <span aria-hidden="true">🎴</span> Best fortune {f.jp} {f.en}
+                    </li>
+                  </ul>
+                ) : null;
+              })()}
           </div>
           <div className="hud-pause__todo">
             <p className="hud-pause__invtitle">

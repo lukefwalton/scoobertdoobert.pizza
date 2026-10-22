@@ -52,13 +52,10 @@ export function PlainFloor({ floor }: { floor: Floor }) {
   // never shows it; sweet, never dread.
   const luck = useProgressStore(selectLuck);
   const lucky = mounted && luck >= 3;
-  // More surface tells keyed to the persistence spine (the shop reflecting your
-  // deeds), each a DIFFERENT axis of play, all sweet + post-hydration only:
-  //  • beat the optional grass goblin → a little trophy by the register.
-  //  • cassettes you turned up downstairs collect in the lost-and-found.
-  const secretsFound = useProgressStore((s) => s.secretsFound);
+  // One more surface tell keyed to the persistence spine (the shop reflecting your
+  // deeds), sweet + post-hydration only: cassettes you turned up downstairs
+  // collect in the lost-and-found.
   const itemsHeld = useProgressStore((s) => s.itemsHeld);
-  const beatGoblin = mounted && secretsFound.includes('grass-cleared');
   const tapes = mounted ? itemsHeld.filter((id) => CASSETTE_IDS.includes(id)).length : 0;
 
   return (
@@ -199,12 +196,6 @@ export function PlainFloor({ floor }: { floor: Floor }) {
             <i>
               Someone has taped a four-leaf clover to the door. Fortune favors the bold and tangy.
             </i>
-          </p>
-        )}
-        {beatGoblin && (
-          <p className="news-lucky" title="You got lucky downstairs">
-            <span aria-hidden="true">🏆</span>{' '}
-            <i>A little goblin-shaped trophy has appeared by the register. You got lucky&hellip;</i>
           </p>
         )}
         {tapes > 0 && (

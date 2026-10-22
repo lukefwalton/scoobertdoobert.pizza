@@ -8,9 +8,8 @@ import { useDispose } from '../lib/useDispose';
 import { type Room } from '../data/rooms';
 
 // ───────────────────────────────────────────────────────────────────────────
-// GroveRoom — the hidden grove, the reward for beating the goblin (Luke: "winning
-// gives you a new room"). A hush after the bright field: dusk settling cool and
-// blue. The reward is SOUND, made playable — the grove is a little SOUND GARDEN:
+// GroveRoom — the hidden grove at the far end of the tall grass. A hush after the
+// bright field: dusk settling cool and blue. The reward is SOUND, made playable — the grove is a little SOUND GARDEN:
 // glowing blooms tuned to the site's D6/9 pentatonic that SING as you wander near
 // them (any path is consonant, so it always sounds nice), over a slow root drone
 // pulsing from the orb on its altar. A soft chord greets you on arrival, then the

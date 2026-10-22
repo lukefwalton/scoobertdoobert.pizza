@@ -36,11 +36,6 @@
   border-color: rgba(120, 220, 255, 0.85);
   color: #d6f4ff;
 }
-/* grab-this-collectible cue — pizza-gold, the loot/inventory color. */
-.hud-prompt--pickup {
-  border-color: rgba(255, 196, 92, 0.9);
-  color: #ffe6b0;
-}
 /* ring-the-bell / escape-room interactable cue — bright amber, the "do this and a
    way opens" gold (matches the glowing bell/switch mesh). */
 .hud-prompt--interact {
@@ -409,78 +404,6 @@
   color: #5a5a5a;
 }
 
-/* the dance rhythm minigame — a centered panel; arrow beats light in sequence. */
-.hud-rhythm {
-  position: fixed;
-  inset: 0;
-  z-index: 78;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-.hud-rhythm__card {
-  width: min(360px, 90vw);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
-}
-.hud-rhythm__cue {
-  margin: 4px 0 10px;
-  font-size: 0.95em;
-  color: #2a2a2a;
-}
-.hud-rhythm__seq {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  margin: 0 0 10px;
-}
-.hud-rhythm__beat {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  font-size: 1.6rem;
-  color: #8a8a8a;
-  background: #d8d8d8;
-  border: 2px solid #b0b0b0;
-  box-shadow: inset 1px 1px 0 #ffffff;
-}
-.hud-rhythm__beat.is-lit {
-  color: #2a2a2a;
-  background: #ffe9a8;
-  border-color: #caa14a;
-}
-.hud-rhythm__beat.is-cur {
-  border-color: #d86a2a;
-  color: #b8431a;
-}
-/* a brief horizontal nudge on a wrong key (keyed re-mount) — no flash. */
-.hud-rhythm__seq.is-miss {
-  animation: hud-rhythm-miss 0.22s ease;
-}
-@keyframes hud-rhythm-miss {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  33% {
-    transform: translateX(-5px);
-  }
-  66% {
-    transform: translateX(5px);
-  }
-}
-.hud-rhythm__hint {
-  margin: 0;
-  font-size: 0.72em;
-  color: #777;
-}
-@media (prefers-reduced-motion: reduce) {
-  .hud-rhythm__seq.is-miss {
-    animation: none;
-  }
-}
 .hud-dialog .window-body p {
   margin: 8px 0;
 }
@@ -867,10 +790,6 @@
   stroke: #4f7490;
   stroke-width: 0.05;
 }
-.hud-map__edge.is-locked {
-  stroke: #b88a4a;
-  stroke-dasharray: 0.18 0.14;
-}
 .hud-map__node {
   stroke: #0c1620;
   stroke-width: 0.04;
@@ -893,10 +812,6 @@
   font-size: 0.36px;
   text-anchor: middle;
   font-family: 'Courier New', monospace;
-}
-.hud-map__lock {
-  font-size: 0.34px;
-  text-anchor: middle;
 }
 .hud-pause__maplegend {
   margin: 4px 0 0;
@@ -921,13 +836,6 @@
 .hud-map__dot.is-current {
   background: #ffd17a;
   border-color: #ffffff;
-}
-
-/* a locked door reads COOL (you can't pass), distinct from the warm "step through"
-   door prompt — so "need a key" is legible at a glance. */
-.hud-prompt--locked {
-  border-color: rgba(150, 200, 230, 0.85);
-  color: #cfe7f5;
 }
 
 .hud-toast {
@@ -1147,93 +1055,6 @@
   font-size: 13px;
   padding: 6px 18px;
   cursor: pointer;
-}
-
-/* ── Ghost race (ゴーストレース) — countdown · lap/standing · win-lose card ───── */
-.hud-race {
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-/* the big 3·2·1·GO countdown, dead centre — a scale-pop per number (no flash) */
-.hud-race__count {
-  margin-top: 33vh;
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  font-size: 84px;
-  color: #ffe98a;
-  text-shadow: 0 3px 0 #1b2b40;
-  animation: hud-race-pop 0.5s ease-out;
-}
-@keyframes hud-race-pop {
-  from {
-    transform: scale(1.8);
-    opacity: 0.2;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hud-race__count {
-    animation: none;
-  }
-}
-/* the live readout — a tidy top-centre band */
-.hud-race--live {
-  flex-direction: row;
-  gap: 10px;
-  justify-content: center;
-  align-items: flex-start;
-  top: 12px;
-  inset: auto 0 auto 0;
-}
-.hud-race__lap,
-.hud-race__place {
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  font-size: 15px;
-  letter-spacing: 0.08em;
-  padding: 5px 12px;
-  background: #1b2b40dd;
-  border: 2px solid #ffd23a;
-  color: #ffe98a;
-}
-.hud-race__place--behind {
-  border-color: #cdb8ff;
-  color: #e7dcff;
-}
-/* the sweet win / lose card */
-.hud-race__card {
-  margin-top: 28vh;
-  text-align: center;
-  padding: 18px 26px;
-  background: #1b2b40f2;
-  border: 3px solid #ffd23a;
-  max-width: 80vw;
-}
-.hud-race__card--lose {
-  border-color: #cdb8ff;
-}
-.hud-race__title {
-  margin: 0 0 6px;
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  font-size: 26px;
-  color: #ffe98a;
-}
-.hud-race__card--lose .hud-race__title {
-  color: #e7dcff;
-}
-.hud-race__sub {
-  margin: 0;
-  font-size: 13px;
-  color: #cfe9f0;
 }
 
 /* The 100% capstone card (FinaleCard) — a sweet, celebratory gold plaque that

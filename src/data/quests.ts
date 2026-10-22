@@ -98,20 +98,6 @@ export const QUESTS: Quest[] = [
     done: (p) => p.secretsFound.includes('turtle-stage'),
   },
   {
-    id: 'find-locker-key',
-    label: 'Pocket the rusted key',
-    hint: 'It rests on the poolrooms deck, then find the door it opens.',
-    room: 'poolrooms',
-    done: (p) => p.itemsHeld.includes('pool-locker-key'),
-  },
-  {
-    id: 'find-closet-key',
-    label: 'Pocket the brass key',
-    hint: 'It’s on the back-hall floor, it opens the SUPPLY closet nearby.',
-    room: 'hallway',
-    done: (p) => p.itemsHeld.includes('hall-closet-key'),
-  },
-  {
     id: 'collect-tapes',
     label: 'Find the lost cassettes',
     // Count derived from CASSETTE_IDS so it never drifts when a `track` item is
@@ -125,13 +111,6 @@ export const QUESTS: Quest[] = [
     hint: 'Duck into the back room off the pool and roll the bone against it.',
     room: 'dicepit',
     done: (p) => p.secretsFound.includes('dice-monster'),
-  },
-  {
-    id: 'clear-goblin',
-    label: 'See off the grass goblin',
-    hint: 'Wander the tall grass off the shrine until something leaps out.',
-    room: 'grassfield',
-    done: (p) => p.secretsFound.includes('grass-cleared'),
   },
   {
     id: 'dance-with-entity',

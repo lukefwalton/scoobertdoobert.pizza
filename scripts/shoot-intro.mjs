@@ -12,7 +12,7 @@
 //      with luck that predates the 'luck-explained' secret gets NO 🍀 lecture on
 //      entry (it now only ever follows a luck gain this session).
 // Pass 1 enters the KITCHEN (procedural → stocked with loot for the pickup hooks,
-// and a curated perception whisper): &debug=1 forces the whisper's d20, so a queued
+// and a curated room whisper, which always fires on first entry), so a queued
 // toast is guaranteed to be waiting behind the cadence from the moment you arrive.
 // (The shop has no whisper, and one loot is far short of the 🏆 new-best line.)
 import { mkdirSync } from 'node:fs';
@@ -164,7 +164,7 @@ const noGameLayer = (l) => !l.chip && !l.score && !l.hotbar && !l.toast;
   if (!l.hotbar) bad('returning: the spell hotbar did not reveal with the chip');
   if (l.score) bad('returning: the score badge showed with 0 points');
   // The bug: the 🍀 explainer used to fire on mount for exactly this save. Give it a
-  // generous window; the only toast allowed here is the (debug-forced) whisper.
+  // generous window; the only toast allowed here is the room whisper.
   const lecture = await page
     .waitForFunction(
       () => /LUCK works on its own/.test(document.querySelector('.hud-toast')?.textContent || ''),

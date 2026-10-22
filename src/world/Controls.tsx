@@ -17,19 +17,19 @@ import { audio } from '../audio/engine';
 // world smokes under ?world / ?debug) — never re-detected in the hot useFrame.
 const EXPOSE_CAM = isTestEntrance();
 
-// The Canvas camera's resting fov (World.tsx); sprint kicks it a touch wider.
-const BASE_FOV = 72;
 const REDUCED =
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-// Walk-feel constants. STEP_HZ = footfalls per second at full walk (sprint scales
-// it up); BOB_AMP = the vertical head-bob amplitude (world units) — both are pure
-// GAME FEEL and disabled entirely under reduced motion (the bob is; footsteps are
-// audio, so they stay, mute-gated in the engine).
+// Walk-feel constants. STEP_HZ = footfalls per second at full walk; BOB_AMP = the
+// vertical head-bob amplitude (world units) — both are pure GAME FEEL and
+// disabled entirely under reduced motion (the bob is; footsteps are audio, so
+// they stay, mute-gated in the engine).
 const STEP_HZ = 1.9;
 const BOB_AMP = 0.05;
-// Base walk speed (metres/sec; sprint ×1.7). Shared by the move integrator AND the
-// footstep cadence so the two can't drift.
+// Base walk speed (metres/sec). Shared by the move integrator AND the footstep
+// cadence so the two can't drift. (2026-10: the Shift sprint — ×1.7 + an FOV kick —
+// was cut with the ghost race it existed to win; the tube slide keeps its own
+// speed-FOV kick.)
 const WALK_SPEED = 6;
 
 // First-person look + move, now room-aware. Drag to look (no pointer-lock, so it
@@ -239,22 +239,12 @@ export function Controls() {
     // [-1,1] per axis (same cap as a single key) so touch can't out-run WASD.
     const tm = getTouchMove();
     const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
-    // SPRINT: hold Shift to move faster, with a little FOV kick for speed-feel
-    // (the kick is dropped under reduced motion). Pure feel — the world clamps
-    // still hold. W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT = TURN.
+    // W/S or Up/Down = forward/back. A/D = strafe. LEFT/RIGHT = TURN.
     const fwd = clamp1(
       (k['w'] || k['arrowup'] ? 1 : 0) - (k['s'] || k['arrowdown'] ? 1 : 0) + tm.y,
     );
     const strafe = clamp1((k['d'] ? 1 : 0) - (k['a'] ? 1 : 0) + tm.x);
-    const moving = Math.abs(fwd) > 0.001 || Math.abs(strafe) > 0.001;
-    const sprinting = !!k['shift'] && moving;
-    const speed = WALK_SPEED * (sprinting ? 1.7 : 1) * dt;
-    const pcam = camera as THREE.PerspectiveCamera;
-    const targetFov = BASE_FOV + (REDUCED ? 0 : sprinting ? 7 : 0);
-    if (Math.abs(pcam.fov - targetFov) > 0.05) {
-      pcam.fov += (targetFov - pcam.fov) * Math.min(1, dt * 8);
-      pcam.updateProjectionMatrix();
-    }
+    const speed = WALK_SPEED * dt;
     const turn = (k['arrowleft'] ? 1 : 0) - (k['arrowright'] ? 1 : 0);
     yaw.current += turn * 2.0 * dt; // left arrow turns left, right turns right
 
@@ -347,8 +337,8 @@ export function Controls() {
     // Keyed off ACTUAL horizontal displacement this frame (post-clamp), NOT intended
     // input — so walking into a wall / the room clamp doesn't tick phantom footsteps
     // or bob. Normalizing the move by one walk-step makes the cadence scale with real
-    // speed (sprint quickens it; being blocked stops it — no separate multiplier). A
-    // footfall phase advances with distance; each integer crossing fires a soft step,
+    // speed (being blocked stops it — no separate multiplier). A footfall phase
+    // advances with distance; each integer crossing fires a soft step,
     // and its sine drives a subtle vertical head-bob, enveloped so it fades in/out
     // instead of jerking. The settle spring recovers from a jump-landing dip. Bob +
     // settle are MOTION (reduced-motion zeroes them → the y math collapses to the
@@ -360,9 +350,8 @@ export function Controls() {
       const prev = stepPhase.current;
       stepPhase.current += (STEP_HZ * movedDist) / WALK_SPEED;
       if (Math.floor(prev) !== Math.floor(stepPhase.current)) {
-        const fast = movedDist / dt > WALK_SPEED * 1.2; // outrunning a walk = sprinting
         const alt = Math.floor(stepPhase.current) % 2 === 0 ? 1 : 0.88; // L/R foot variety
-        audio.playFootstep((fast ? 0.095 : 0.07) * alt, (fast ? 820 : 660) * alt);
+        audio.playFootstep(0.07 * alt, 660 * alt);
       }
     }
     const bobTarget = movingReal && !REDUCED ? 1 : 0;

@@ -20,20 +20,15 @@ import { FinaleCard } from './FinaleCard';
 import { SpellHotbar } from './SpellHotbar';
 import { PauseMenu } from './PauseMenu';
 import { useToastStore, announce, toastDismissMs } from '../state/toastStore';
-import { useRaceStore } from '../state/raceStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
-import { interactNearby, grabNearby } from '../lib/worldActions';
+import { interactNearby } from '../lib/worldActions';
 import { benchStateFor, benchPrompt } from '../lib/restoration';
 import { LOOP_OPTIONS } from '../data/music';
 import { useMusicStore } from '../state/musicStore';
 import { ScoreHud } from './ScoreHud';
-import { RaceHud } from './RaceHud';
 import { exposeTestGlobal } from '../lib/testHooks';
-import { useRhythmStore, type Dir } from '../state/rhythmStore';
-import { RhythmGame } from './RhythmGame';
 import { ratDialogue } from '../data/dialogue';
-import { itemById } from '../data/items';
 import { YoutubeFacade } from './YoutubeFacade';
 import { ArcadeModal } from './ArcadeModal';
 import { SaveSanDiegoLevel } from './SaveSanDiegoLevel';
@@ -54,7 +49,6 @@ export function WorldHud() {
   const revealed = introRevealed(introStage);
   const settled = introStage === 'settled';
   const nearDoor = useSceneStore((s) => s.nearDoor);
-  const nearPickup = useSceneStore((s) => s.nearPickup);
   const nearTv = useSceneStore((s) => s.nearTv);
   const nearRestoreBench = useSceneStore((s) => s.nearRestoreBench);
   const benchBusy = useSceneStore((s) => s.benchBusy);
@@ -63,10 +57,6 @@ export function WorldHud() {
   const playingSlug = useMusicStore((s) => LOOP_OPTIONS[s.index]?.slug ?? null);
   const nearEntity = useSceneStore((s) => s.nearEntity);
   const nearInteractable = useSceneStore((s) => s.nearInteractable);
-  const rhythmActive = useRhythmStore((s) => s.active);
-  // The ghost race is on (countdown / racing / the result card): its top-centre
-  // band replaces the objective chip for the duration (they collided before).
-  const raceLive = useRaceStore((s) => s.phase !== 'idle');
   const nearNpc = useSceneStore((s) => s.nearNpc);
   const openNpc = useSceneStore((s) => s.openNpc);
   const closeNpc = useSceneStore((s) => s.closeNpcDialog);
@@ -81,7 +71,6 @@ export function WorldHud() {
   const tvVideo = useSceneStore((s) => s.tvVideo);
   const closeTv = useSceneStore((s) => s.closeTv);
   const nearArcade = useSceneStore((s) => s.nearArcade);
-  const nearBooth = useSceneStore((s) => s.nearBooth);
   const arcadeGame = useSceneStore((s) => s.arcadeGame);
   const closeArcade = useSceneStore((s) => s.closeArcade);
   // A full-screen LEVEL overlay a door opened into (the 1101 text adventure), or
@@ -108,11 +97,11 @@ export function WorldHud() {
   useModalFocus(tvRef, !!tvVideo);
   useModalFocus(lyricsRef, !!lyricsSong);
   useModalFocus(lookableRef, !!openLookable);
-  // One shallow-compared snapshot of the durable progress drives the whole
-  // pause-menu game layer (luck, Pockets, Progress readout, To-Do, the locked-
-  // door prompt). useShallow so re-rendering only happens when a field actually
-  // changes — and never the getSnapshot-not-cached loop a fresh-object selector
-  // would cause. Quest predicates take a whole Progress, which this is.
+  // One shallow-compared snapshot of the durable progress drives the finale +
+  // bench prompt logic here (the pause-menu readouts read their own slice).
+  // useShallow so re-rendering only happens when a field actually changes — and
+  // never the getSnapshot-not-cached loop a fresh-object selector would cause.
+  // Quest predicates take a whole Progress, which this is.
   const progress = useProgressStore(
     useShallow((s) => ({
       visits: s.visits,
@@ -135,12 +124,8 @@ export function WorldHud() {
       spellSlotsGained: s.spellSlotsGained,
       spellSlotsSpent: s.spellSlotsSpent,
       bestFortune: s.bestFortune,
-      lootTotals: s.lootTotals,
     })),
   );
-  // The one durable field WorldHud itself still needs (the locked-door prompt);
-  // every other readout moved into PauseMenu / SpellHotbar with its JSX.
-  const itemsHeld = progress.itemsHeld;
   // The restoration-bench prompt state (null away from the deck). Derived from
   // the SAME live inputs the verb reads — benchBusy (the running latch), the
   // playing slug, the progress — so the line can't drift from what E would do.
@@ -191,31 +176,6 @@ export function WorldHud() {
       // through the door you just used.
       if (e.repeat) return;
       const st = useSceneStore.getState();
-      // The dance rhythm minigame owns input while it's up: arrow keys feed the
-      // copy (not movement, which is frozen), Esc steps away. Handled first so it
-      // can't fall through to door/pause logic.
-      const rhythm = useRhythmStore.getState();
-      if (rhythm.active) {
-        if (e.key === 'Escape') {
-          rhythm.close();
-          return;
-        }
-        const dir: Dir | null =
-          e.key === 'ArrowUp'
-            ? 'up'
-            : e.key === 'ArrowDown'
-              ? 'down'
-              : e.key === 'ArrowLeft'
-                ? 'left'
-                : e.key === 'ArrowRight'
-                  ? 'right'
-                  : null;
-        if (dir) {
-          e.preventDefault();
-          rhythm.press(dir);
-        }
-        return;
-      }
       // No input during the door wipe OR a painting dive (E or Esc) — both are modal
       // transitions. Blocking Esc on divingTo too is what keeps pause from opening
       // mid-dive and stranding you in the old room after the album already started.
@@ -235,12 +195,6 @@ export function WorldHud() {
         // The context verb (door / TV / cabinet / hotspot / NPC / dance), shared
         // with the on-screen touch button so the two never drift.
         interactNearby();
-      }
-      // P grabs the nearest collectible (the keyboard path; walking onto it also
-      // auto-grabs, and clicking still works). Shared with the touch grab button.
-      if (e.key === 'p' || e.key === 'P') {
-        grabNearby();
-        return;
       }
       // A spell hotkey (f = fireball, l = light) casts that spell. Blocked in any
       // modal/pause; castSpell no-ops when the spell isn't learned, so an unbound
@@ -322,9 +276,9 @@ export function WorldHud() {
 
   // Duck the RADIO (the user's music) while a SOUND-MAKER overlay is up — an arcade
   // game with its own notes/SFX (Jazz Snake, the chimes/cultures cabinets), a CRT
-  // music video, or the call-and-response rhythm game — so their audio doesn't fight
-  // the music. Restores the moment it closes; composes with music-room ducking.
-  const soundMakerActive = !!arcadeGame || !!tvVideo || rhythmActive || !!levelOverlay;
+  // music video, or the 1101 level — so their audio doesn't fight the music.
+  // Restores the moment it closes; composes with music-room ducking.
+  const soundMakerActive = !!arcadeGame || !!tvVideo || !!levelOverlay;
   useEffect(() => {
     audio.suppressMusic(soundMakerActive);
   }, [soundMakerActive]);
@@ -423,26 +377,16 @@ export function WorldHud() {
     paused || !!pendingRoom || !!open || !!tvVideo || !!arcadeGame || !!levelOverlay;
   // `!revealed` (the entry cadence) is folded in here so the chip AND the score
   // badge wait for their beat through the same gate the toast-below-chip test reads.
-  // (The race band takes modalHidden alone — a live race is direct feedback on
-  // something you started, never intro chatter.)
   const objectiveHidden = modalHidden || !revealed;
-  // The RaceHud's live band and the objective chip share the top-centre slot —
-  // while a race is running the race owns it (the chip was rendering underneath).
   const objectiveShowing = objectiveChipVisible(progress, {
     on: objectiveHudOn,
-    hidden: objectiveHidden || raceLive,
+    hidden: objectiveHidden,
   });
 
   return (
     <>
-      <ObjectiveHud
-        progress={progress}
-        currentRoom={currentRoom}
-        hidden={objectiveHidden || raceLive}
-      />
+      <ObjectiveHud progress={progress} currentRoom={currentRoom} hidden={objectiveHidden} />
       <ScoreHud hidden={objectiveHidden} />
-      <RaceHud hidden={modalHidden} />
-      <RhythmGame />
       {toast && settled && (
         <div
           className={`hud-toast hud-toast--${toast.kind}${objectiveShowing ? ' hud-toast--below-objective' : ''}`}
@@ -465,17 +409,9 @@ export function WorldHud() {
 
       <SpellHotbar />
 
-      {nearDoor &&
-        !open &&
-        !paused &&
-        !pendingRoom &&
-        (nearDoor.requiresKey && !itemsHeld.includes(nearDoor.requiresKey) ? (
-          <div className="hud-prompt hud-prompt--door hud-prompt--locked">
-            🔒 Locked: need the {itemById(nearDoor.requiresKey)?.label ?? 'right key'}
-          </div>
-        ) : (
-          <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
-        ))}
+      {nearDoor && !open && !paused && !pendingRoom && (
+        <div className="hud-prompt hud-prompt--door">Press E to {nearDoor.label}</div>
+      )}
 
       {/* The escape-room bell/switch prompt — ranks just under a door (matches
           worldActions.interactNearby), so ringing it answers the same Press E. */}
@@ -504,23 +440,11 @@ export function WorldHud() {
         !paused &&
         !pendingRoom && <div className="hud-prompt hud-prompt--arcade">Press E to play</div>}
 
-      {nearBooth &&
-        !nearDoor &&
-        !nearInteractable &&
-        !nearTv &&
-        !nearArcade &&
-        !open &&
-        !paused &&
-        !pendingRoom && (
-          <div className="hud-prompt hud-prompt--arcade">Press E to try the Pizza Cam™</div>
-        )}
-
       {nearHs &&
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
         !nearArcade &&
-        !nearBooth &&
         !open &&
         !paused &&
         !pendingRoom && <div className="hud-prompt">{nearHs.prompt}</div>}
@@ -529,7 +453,6 @@ export function WorldHud() {
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
-        !nearBooth &&
         !nearHs &&
         !open &&
         !openNpc &&
@@ -542,52 +465,26 @@ export function WorldHud() {
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
-        !nearBooth &&
         !nearHs &&
         !nearNpc &&
         !open &&
         !paused &&
-        !pendingRoom &&
-        !rhythmActive && (
+        !pendingRoom && (
           <div className="hud-prompt hud-prompt--dance">
             Press E to dance along with {nearEntity.label}
           </div>
         )}
 
-      {/* Pickups are ambient + everywhere, so the grab prompt is the LOWEST priority:
-          a fixed fixture (door / TV / cabinet / hotspot / NPC / dance) always shows
-          its own prompt first. Grabbing still works regardless — P reads nearPickup
-          directly and walk-over auto-grabs — so a suppressed prompt never blocks a
-          pickup. */}
-      {nearPickup &&
-        !nearDoor &&
-        !nearInteractable &&
-        !nearTv &&
-        !nearArcade &&
-        !nearBooth &&
-        !nearHs &&
-        !nearNpc &&
-        !nearEntity &&
-        !open &&
-        !paused &&
-        !pendingRoom && (
-          <div className="hud-prompt hud-prompt--pickup">
-            Press P to grab {nearPickup.glyph} {nearPickup.label}
-          </div>
-        )}
-
       {/* Flavor curios are the LOWEST-priority prompt: only when nothing else
-          (door / TV / cabinet / hotspot / NPC / dance / pickup) is in reach. */}
+          (door / TV / cabinet / hotspot / NPC / dance) is in reach. */}
       {nearLookable &&
         !nearDoor &&
         !nearInteractable &&
         !nearTv &&
         !nearArcade &&
-        !nearBooth &&
         !nearHs &&
         !nearNpc &&
         !nearEntity &&
-        !nearPickup &&
         !open &&
         !openLookable &&
         !paused &&

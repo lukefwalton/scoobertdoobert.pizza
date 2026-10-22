@@ -83,7 +83,7 @@
 .touch-btn--action:active {
   background: #c4862a;
 }
-/* Nothing to interact with: dimmed but still tappable (grab falls through). */
+/* Nothing to interact with: dimmed but still tappable (a no-op). */
 .touch-btn--action.is-idle {
   opacity: 0.4;
 }

@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────────────────
    cabinet.css — the shared period arcade-cabinet shell for the
-   touch-first instrument routes: /poke, /chimes, /cultures, /booth. They wear the same
+   touch-first instrument routes: /poke, /chimes, /cultures. They wear the same
    grammar (sharp corners, beveled inset/outset chrome, a flat palette, a hard
    zero-blur RGB chroma-split marquee), so the skeleton lives here ONCE instead
    of being copy-pasted into three near-identical stylesheets.

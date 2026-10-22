@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // src/lib/loot.ts — the shared "grab this loot" action (the interactive-music half).
 //
-// Every way of grabbing loot — clicking it, walking onto it, pressing P, the smoke
-// hook — funnels through collectLootById so they can't double-collect and all get
+// Every way of grabbing loot — clicking it, walking onto it, the smoke hook —
+// funnels through collectLootById so they can't double-collect and all get
 // the same reward: points (scoreStore) and a musical note. The note is the
 // interactive-music hook: each grab plays the next step of a climbing pentatonic
 // scale, so a collection COMBO literally plays an ascending melody and a broken
@@ -17,7 +17,6 @@ import { audio } from '../audio/engine';
 import { noteToFreq } from './chimes';
 import { announce } from '../state/toastStore';
 import { useScoreStore } from '../state/scoreStore';
-import { useProgressStore } from '../state/progressStore';
 import { lootById, lootDropById } from '../data/loot';
 
 // C-major pentatonic up two-plus octaves — the "collect" ladder. The combo index
@@ -48,10 +47,6 @@ export function collectLootById(id: string): boolean {
   if (!type) return false;
   const res = useScoreStore.getState().collectLoot(id, type.points, type.grow);
   if (!res) return false; // already taken this run
-
-  // Tally the lifetime haul (the trophy case's "how many pizza slices, ever" count).
-  // The run score is ephemeral; this durable per-type total is not.
-  useProgressStore.getState().addLoot(type.id);
 
   audio.unlock();
   // Climb the scale with the combo — collecting IS a melody.

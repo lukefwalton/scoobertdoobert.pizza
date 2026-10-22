@@ -21,8 +21,8 @@ export function DiceMonster({
 }: {
   position: [number, number, number];
   /** A flat size multiplier ON TOP of the loss-based monsterScale — lets a room
-   *  stage a hero-sized goblin (the grass encounter, where it's the star) without
-   *  touching the shared loss-growth. Default 1 (the dice pit's normal size). */
+   *  stage a hero-sized goblin without touching the shared loss-growth. Default 1
+   *  (the dice pit's normal size). */
   scale?: number;
 }) {
   const { camera } = useThree();

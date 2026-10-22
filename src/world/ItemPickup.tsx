@@ -8,8 +8,8 @@ import { itemById, type ItemKind } from '../data/items';
 import { collectInventoryItem } from '../lib/pickups';
 import { emitBurst } from './burstBus';
 
-// Per-KIND art so a key, a cassette, and a scroll never read as the same gold box
-// (they used to). Cheap PS1 primitives + flat materials; each gets a faint emissive
+// Per-KIND art so a cassette and a scroll never read as the same gold box (they
+// used to). Cheap PS1 primitives + flat materials; each gets a faint emissive
 // glint so it pops "pick me up" in a dim room. Built once per pickup, disposed on
 // unmount. The parent group does the bob + spin, so each shape can pose freely.
 function useItemArt(kind: ItemKind | undefined) {
@@ -56,17 +56,13 @@ function useItemArt(kind: ItemKind | undefined) {
           </group>
         );
       }
-      // a key (default) — a tall gold shaft with a ring bow on top.
+      // fallback (an unknown kind) — the plain gold box, so a typo'd item still
+      // renders as SOMETHING pick-up-able rather than nothing.
       const gold = mk('#e8c66a', '#5a4410');
       return (
-        <group>
-          <mesh material={gold} position={[0, -0.05, 0]}>
-            <boxGeometry args={[0.13, 0.34, 0.13]} />
-          </mesh>
-          <mesh material={gold} position={[0, 0.21, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[0.1, 0.035, 8, 16]} />
-          </mesh>
-        </group>
+        <mesh material={gold}>
+          <boxGeometry args={[0.3, 0.3, 0.3]} />
+        </mesh>
       );
     };
     return { node: build(), mats };
@@ -150,8 +146,8 @@ export function ItemPickup({
         gl.domElement.style.cursor = 'grab';
       }}
     >
-      {/* a generous INVISIBLE hit target so the thinner silhouettes (the key, the
-          scroll) stay as easy to click as the old box — the visible art sits on top.
+      {/* a generous INVISIBLE hit target so the thinner silhouettes (the scroll)
+          stay as easy to click as the old box — the visible art sits on top.
           A real (visible-to-the-raycaster) mesh at opacity 0, so it catches the
           click/hover but draws nothing and never occludes. */}
       <mesh>

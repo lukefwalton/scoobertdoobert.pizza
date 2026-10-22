@@ -4,13 +4,11 @@ import { announce } from '../state/toastStore';
 import { audio } from '../audio/engine';
 import { noteToFreq } from '../lib/chimes';
 
-// The shared payoff for a reward nook (the locker room, the supply closet, …):
+// The shared payoff for a reward nook (the grotto, the bamboo grove, the diner, …):
 // the FIRST time you step in it hums a soft major triad and tips a little luck,
 // gated once-only by a durable secret so re-entry is silent (no luck farm). The
-// reward IS sound. Render it as a child of the room; it draws nothing.
-//
-// Pulled out of LockerRoom so every nook shares one correct payoff path instead
-// of re-spelling the secret/luck/announce/chord dance per room.
+// reward IS sound. Render it as a child of the room; it draws nothing. One shared
+// path so every nook gets the same correct secret/luck/announce/chord dance.
 export function FirstEntryReward({
   secret,
   message,

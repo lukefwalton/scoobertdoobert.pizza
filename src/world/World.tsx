@@ -25,12 +25,9 @@ import { DicePitRoom } from './DicePitRoom';
 import { ShrineRoom } from './ShrineRoom';
 import { PracticeRoom } from './PracticeRoom';
 import { GrassRoom } from './GrassRoom';
-import { GrassBattleRoom } from './GrassBattleRoom';
 import { GrassroomsRoom } from './GrassroomsRoom';
 import { GroveRoom } from './GroveRoom';
 import { FrutigerRoom } from './FrutigerRoom';
-import { LockerRoom } from './LockerRoom';
-import { ClosetRoom } from './ClosetRoom';
 import { BoardwalkRoom } from './BoardwalkRoom';
 import { OceanviewRoom } from './OceanviewRoom';
 import { BalboaRoom } from './BalboaRoom';
@@ -150,12 +147,9 @@ export const ROOM_SCENES: Partial<Record<RoomKind, RoomRenderer>> = {
   shrine: (room) => <ShrineRoom room={room} />,
   practice: (room) => <PracticeRoom room={room} />,
   grass: (room) => <GrassRoom room={room} />,
-  grassbattle: (room) => <GrassBattleRoom room={room} />,
   grassrooms: (room) => <GrassroomsRoom room={room} />,
   grove: (room) => <GroveRoom room={room} />,
   frutiger: () => <FrutigerRoom />,
-  lockerroom: (room) => <LockerRoom room={room} />,
-  closet: (room) => <ClosetRoom room={room} />,
   boardwalk: (room) => <BoardwalkRoom room={room} />,
   oceanview: (room) => <OceanviewRoom room={room} />,
   balboa: (room) => <BalboaRoom room={room} />,
@@ -360,8 +354,8 @@ export default function World() {
       {/* Escape-room interactables: click one → it fires a trigger → a hidden door
           shimmers into its wall ("do something → the way opens"). */}
       <Interactables />
-      {/* Proximity pickups: publishes the "Press P to grab" prompt + auto-grabs on
-          walk-over (the meshes themselves are RoomPickups; this is the controller). */}
+      {/* Proximity pickups: auto-grabs on walk-over (the meshes themselves are
+          RoomPickups / RoomLoot; this is the controller). */}
       <PickupController />
       <Controls />
       {/* After <Controls/> so its useFrame runs last — layers the dread fog +

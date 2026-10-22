@@ -34,8 +34,6 @@ await page.addInitScript(() => {
       // Sessions master reels) so the collect-tapes objective is DONE — keep this in
       // sync with items.ts whenever a music-item (anything with a `track`) is added.
       itemsHeld: [
-        'pool-locker-key',
-        'hall-closet-key',
         'tape-mystery-machine',
         'tape-moonlight',
         'tape-japan',
@@ -51,7 +49,6 @@ await page.addInitScript(() => {
         // the shrine clap below completes the FINAL objective and trips the finale.
         'jukebox-roll',
         'dice-monster',
-        'grass-cleared',
         'danced:seed',
         'garden-slide',
         'turtle-stage',

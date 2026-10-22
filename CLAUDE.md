@@ -168,8 +168,10 @@ depths is the whole effect; if everything is oppressive, none of it lands.
 Restraint is the craft. Safety lines: **WCAG 2.3.1** (≤3 flashes/sec, no
 full-field luminance flash; audio dropouts fade back, never spike).
 **The "machine sees you" beat is always FAKED — never real camera/mic for
-dread.** (The one camera exception is a consensual, fully-local, never-transmitted
-*instrument* opt-in, firewalled from dread — see DESIGN's "Webcam policy.")
+dread.** (The one sanctioned camera exception — a consensual, fully-local,
+never-transmitted *instrument* opt-in, firewalled from dread — is DESIGN's
+"Webcam policy"; its only build, the Pizza Cam, was removed in the 2026-10
+complexity cut, so nothing on the site asks for a camera today.)
 
 ---
 

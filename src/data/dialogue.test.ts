@@ -25,7 +25,6 @@ const COLD: Progress = {
   spellSlotsGained: 0,
   spellSlotsSpent: 0,
   bestFortune: 0,
-  lootTotals: {},
 };
 
 describe('ratDialogue', () => {
@@ -57,10 +56,9 @@ describe('ratDialogue', () => {
       ...COLD,
       luckEarned: 5,
       radioUnlocked: true,
-      itemsHeld: ['pool-locker-key', 'hall-closet-key', ...CASSETTE_IDS],
+      itemsHeld: [...CASSETTE_IDS],
       secretsFound: [
         'dice-monster',
-        'grass-cleared',
         'danced:x',
         'garden-slide',
         'turtle-stage',

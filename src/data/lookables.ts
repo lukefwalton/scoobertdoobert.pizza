@@ -76,14 +76,6 @@ export const LOOKABLES: Lookable[] = [
       'A photo of the shop, empty. You lean in. It becomes a photo of this hallway. You lean back.',
   },
   {
-    id: 'closet-look',
-    room: 'closet',
-    anchor: 'left',
-    label: "a coat that isn't yours",
-    glyph: '🧥',
-    story: 'One coat, one hook. Still your size. Still warm.',
-  },
-  {
     id: 'classified-look',
     room: 'classified',
     anchor: 'back',
@@ -203,14 +195,6 @@ export const LOOKABLES: Lookable[] = [
       'It only rolls twenties. The thing in the corner insists it is fair. You agree. You have to.',
   },
   {
-    id: 'lockerroom-look',
-    room: 'lockerroom',
-    anchor: 'left',
-    label: 'locker 13',
-    glyph: '🔒',
-    story: "Your name's on the tape, faded but yours. You never went out for the team.",
-  },
-  {
     id: 'mobius-look',
     room: 'mobius',
     anchor: 'right',
@@ -306,16 +290,6 @@ export const LOOKABLES: Lookable[] = [
     label: 'a bent stalk',
     glyph: '🌾',
     story: 'Something big walked through here recently. It was humming. It seemed happy.',
-  },
-  {
-    id: 'grassbattle-look',
-    room: 'grassbattle',
-    anchor: 'right',
-    height: 1.2,
-    label: 'a foam sword',
-    glyph: '🗡️',
-    story:
-      'Dropped by the last challenger, still warm. They lost, which here just means they got unstuck.',
   },
   {
     id: 'grove-look',

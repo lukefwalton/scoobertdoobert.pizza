@@ -19,17 +19,13 @@ export type ArcadeGameId =
   | 'burrito-belt'
   | 'delivery-dash'
   | 'order-up'
-  | 'save-san-diego'
-  | 'booth';
+  | 'save-san-diego';
 
 // `slug` is the cabinet's standalone route (no leading slash). It's the id for
 // every cabinet EXCEPT pizza-run, whose route predates the id and lives at
 // /arcade. Carrying it here lets the cross-link shelf + a route-parity test
 // derive from this one registry instead of re-listing the cabinets by hand.
-// `rollable: false` keeps a cabinet OUT of the slot-machine roll while it
-// stays on the shelf/routes — the Pizza Cam is a camera-consent instrument,
-// so it's only ever entered deliberately, never dealt as a surprise.
-export type ArcadeGame = { id: ArcadeGameId; title: string; slug: string; rollable?: boolean };
+export type ArcadeGame = { id: ArcadeGameId; title: string; slug: string };
 
 // Order is just display order; the roll is uniform across all of them.
 export const ARCADE_GAMES: readonly ArcadeGame[] = [
@@ -45,15 +41,11 @@ export const ARCADE_GAMES: readonly ArcadeGame[] = [
   { id: 'poke', title: 'POKE SCOOBERT', slug: 'poke' },
   { id: 'chimes', title: 'PENDULUM CHIMES', slug: 'chimes' },
   { id: 'cultures', title: 'CULTURES', slug: 'cultures' },
-  { id: 'booth', title: 'PIZZA CAM', slug: 'booth', rollable: false },
 ];
 
-const ROLLABLE = ARCADE_GAMES.filter((g) => g.rollable !== false);
-
-/** Roll a random cabinet game, the "what'll it be this time" surprise.
- *  Non-rollable cabinets (the Pizza Cam) never come up here. */
+/** Roll a random cabinet game, the "what'll it be this time" surprise. */
 export const rollArcadeGame = (): ArcadeGame =>
-  ROLLABLE[Math.floor(Math.random() * ROLLABLE.length)];
+  ARCADE_GAMES[Math.floor(Math.random() * ARCADE_GAMES.length)];
 
 /** The display title for a game id (for the modal chrome / announce). */
 export const arcadeGameTitle = (id: ArcadeGameId): string =>

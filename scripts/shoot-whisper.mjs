@@ -1,8 +1,8 @@
-// Perception-whisper smoke: entering a room with a curated lore whisper surfaces a
-// "✦ You notice…" toast (a Perception check on first entry). With &debug the check
-// always succeeds (deterministic), so this pins the wiring: the right whisper for
-// the room, exposed on __sdpWhisper, and a sweet info toast — without depending on
-// the random d20. Also checks a whisper-less room (the safe shop) stays quiet.
+// Room-whisper smoke: entering a room with a curated lore whisper surfaces a
+// "✦ You notice…" toast on first entry (always — the old d20 Perception gate was
+// cut in 2026-10). Pins the wiring: the right whisper for the room, exposed on
+// __sdpWhisper, and a sweet info toast. Also checks a whisper-less room (the safe
+// shop) stays quiet. (&debug is for the __sdpGoToRoom teleport hook.)
 import { mkdirSync } from 'node:fs';
 import { startSmoke, watchPageErrors } from './lib/smoke.mjs';
 
@@ -12,8 +12,7 @@ mkdirSync('.shots', { recursive: true });
 const { ctx, page, fail: bad, finish, failures } = await startSmoke({ deviceScaleFactor: 1 });
 watchPageErrors(page, bad);
 
-// ?room=california drops straight into a whisper room; &debug forces the check to
-// succeed so the whisper is deterministic.
+// ?room=california drops straight into a whisper room.
 await page.goto(base + '/?room=california&debug=1', { waitUntil: 'commit' });
 const canvas = await page.waitForSelector('canvas', { timeout: 12000 }).catch(() => null);
 if (!canvas) bad('whisper: world canvas never mounted');

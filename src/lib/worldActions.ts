@@ -1,16 +1,15 @@
 import { useSceneStore } from '../state/sceneStore';
-import { useRhythmStore } from '../state/rhythmStore';
+import { rewardDance } from './danceAlong';
 import { enterDoor } from './doorTravel';
 import { launchArcadeGame, launchRandomArcade } from './arcade';
-import { collectInventoryItem } from './pickups';
-import { collectLootById } from './loot';
 import { fireInteractable } from './interactables';
 import { restoreAtBench } from './restoration';
 
-// The world's context verbs, shared by the keyboard handler (WorldHud) and the
-// on-screen touch buttons (TouchControls) so the two never drift. Each reads the
+// The world's context verb, shared by the keyboard handler (WorldHud) and the
+// on-screen touch button (TouchControls) so the two never drift. It reads the
 // live scene store and dispatches the nearest interaction — the exact logic that
-// used to live inline in the E/P keydown branches.
+// used to live inline in the E keydown branch. (Collectibles have no verb: you
+// walk over them, or click them.)
 
 type SceneState = ReturnType<typeof useSceneStore.getState>;
 
@@ -43,7 +42,6 @@ export function interactNearby(): void {
       to: st.nearDoor.to,
       spawn: st.nearDoor.spawn,
       albumSlug: st.nearDoor.albumSlug,
-      requiresKey: st.nearDoor.requiresKey,
       opensLevel: st.nearDoor.opensLevel,
     });
   } else if (st.nearInteractable) {
@@ -60,28 +58,16 @@ export function interactNearby(): void {
     // A dedicated cabinet launches ITS game; the mystery cabinet (null) rolls.
     if (st.nearArcadeGame) launchArcadeGame(st.nearArcadeGame);
     else launchRandomArcade();
-  } else if (st.nearBooth) {
-    // The kitchen's Pizza Cam™ tripod — always the booth, never a roll (the
-    // camera instrument is entered on purpose; consent gate lives inside).
-    st.openArcade('booth');
   } else if (st.nearHotspot) {
     st.openHotspotDialog(st.nearHotspot);
   } else if (st.nearNpc) {
     st.openNpcDialog(st.nearNpc.id);
   } else if (st.nearEntity) {
-    useRhythmStore.getState().start(st.nearEntity.id, st.nearEntity.label);
+    // Dance along with a dancing wanderer: the payoff is immediate (a boop, its
+    // flourish, +1 luck the first time) — no minigame in between.
+    rewardDance(st.nearEntity.id, st.nearEntity.label);
   } else if (st.nearLookable) {
     // Lowest priority: a flavor curio only opens if nothing else is in reach.
     st.openLookableDialog(st.nearLookable);
   }
-}
-
-/** What the grab button / P does: pick up the nearest collectible (loot or
- *  inventory item). No-op when a modal owns input or nothing's near. */
-export function grabNearby(): void {
-  const st = useSceneStore.getState();
-  if (inputOwnedByModal(st) || st.lyricsSong) return;
-  if (!st.nearPickup) return;
-  if (st.nearPickup.kind === 'loot') collectLootById(st.nearPickup.id);
-  else collectInventoryItem(st.nearPickup.id);
 }

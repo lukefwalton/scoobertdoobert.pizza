@@ -31,7 +31,6 @@ export type RoomKind =
   | 'metro'
   | 'practice'
   | 'grass'
-  | 'grassbattle'
   // The Grassrooms (草の間) — the backrooms after nature won: a white office
   // interior gone to grass + indoor trees + blue wildflowers, the low ceiling
   // broken open to an impossible blue sky. A FULLY SWEET liminal breather off the
@@ -40,8 +39,6 @@ export type RoomKind =
   | 'grassrooms'
   | 'grove'
   | 'frutiger'
-  | 'lockerroom'
-  | 'closet'
   // The Boardwalk wing — a sweet SoCal surface branch off the shop (NOT the
   // descent): a golden-hour pier, a moonlit beach, a park path. Each plays its
   // own Scoobert song (Room.song) — the reward for wandering out is the music.
@@ -222,8 +219,8 @@ export type RoomDoor = {
    *  Defaults to 'secret'. */
   revealOn?: 'secret' | 'mobius';
   /** Or reveal — for good — once a durable progress secret is earned
-   *  (progressStore.secretsFound includes this id), e.g. the grove path that opens
-   *  after you beat the grass goblin. Takes precedence over revealOn when set. */
+   *  (progressStore.secretsFound includes this id), e.g. the vault door the "1101"
+   *  reel opens. Takes precedence over revealOn when set. */
   revealSecret?: string;
   /** ESCAPE-ROOM reveal (Luke, 2026-07): a `hidden` door that appears once a
    *  matching TRIGGER fires this session — an interactable click (Room.interactables)
@@ -240,12 +237,6 @@ export type RoomDoor = {
    *  (CoverArt.FramedCover) instead of a doorway and LUNGES at you on entry (the
    *  SM64 dive). The slug resolves against src/data/albums. */
   albumSlug?: string;
-  /** LOCKED until the player holds this items.ts key id. The door still renders +
-   *  prompts (you can SEE it's there); E / click just announces "locked" until you
-   *  have the key. SECRET / SIDE TIER ONLY — never a main-descent door (friction
-   *  budget); the dev guard below rejects a requiresKey door that targets a
-   *  descent room. */
-  requiresKey?: string;
   /** How close (world units) to trigger the prompt. */
   radius?: number;
 };

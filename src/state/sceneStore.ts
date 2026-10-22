@@ -72,23 +72,16 @@ type SceneState = {
    *  frozen through the reveal, not just until the swap. Outlives pendingRoom. */
   transitioning: boolean;
   /** the door the camera is near, resolved to its target (or null). albumSlug marks
-   *  a PAINTING portal (E dives into the cover instead of a plain door wipe);
-   *  requiresKey marks a LOCKED door (WorldHud shows the lock + E announces it). */
+   *  a PAINTING portal (E dives into the cover instead of a plain door wipe). */
   nearDoor: {
     id: string;
     label: string;
     to: string;
     spawn: string;
     albumSlug?: string;
-    requiresKey?: string;
     /** This door OPENS A LEVEL overlay instead of traveling (the 1101 adventure). */
     opensLevel?: string;
   } | null;
-  /** the collectible the camera is near (its id + how it reads + which collector
-   *  owns it), or null — drives the "Press P to grab …" prompt + the P action.
-   *  `kind` routes the grab: an items.ts inventory item vs a loot drop. Walk closer
-   *  still auto-grabs; this is the prompt/keyboard path. Set by PickupController. */
-  nearPickup: { id: string; label: string; glyph: string; kind: 'item' | 'loot' } | null;
   /** the room TV the camera is standing in front of (its already-resolved clip), or
    *  null — drives the "Press E to switch on the TV" prompt + the E action (openTv).
    *  The TV is also clickable; this is the keyboard/proximity path, like doors. */
@@ -110,10 +103,6 @@ type SceneState = {
    *  null for the MYSTERY cabinet that rolls a random game. Drives the E action so it
    *  launches the right thing. One cabinet per room (see above), so this never collides. */
   nearArcadeGame: ArcadeGameId | null;
-  /** the camera is standing at the kitchen's Pizza Cam™ tripod — drives its
-   *  "Press E" prompt + the E action (openArcade('booth'), the consent-gated
-   *  camera instrument). Boolean like nearArcade: one prop, one room. */
-  nearBooth: boolean;
   /** A dancing Wanderer the camera is close to (its id + a friendly label), or
    *  null — drives the "Press E to dance along" prompt + the E action. Set by the
    *  nearest dancing entity each frame, like nearDoor/nearTv. */
@@ -214,7 +203,6 @@ type SceneState = {
   openLyrics: (slug: string) => void;
   closeLyrics: () => void;
   setNearArcade: (near: boolean, game?: ArcadeGameId | null) => void;
-  setNearBooth: (near: boolean) => void;
   setPaused: (paused: boolean) => void;
   togglePaused: () => void;
   requestDescent: () => void;
@@ -240,12 +228,8 @@ type SceneState = {
       to: string;
       spawn: string;
       albumSlug?: string;
-      requiresKey?: string;
       opensLevel?: string;
     } | null,
-  ) => void;
-  setNearPickup: (
-    pickup: { id: string; label: string; glyph: string; kind: 'item' | 'loot' } | null,
   ) => void;
   setNearTv: (video: TvVideo | null) => void;
   setNearRestoreBench: (near: boolean) => void;
@@ -297,7 +281,6 @@ export const useSceneStore = create<SceneState>((set) => ({
   queuedRoom: null,
   transitioning: false,
   nearDoor: null,
-  nearPickup: null,
   nearTv: null,
   nearRestoreBench: false,
   benchBusy: null,
@@ -316,7 +299,6 @@ export const useSceneStore = create<SceneState>((set) => ({
   lyricsSong: null,
   nearArcade: false,
   nearArcadeGame: null,
-  nearBooth: false,
   secretRevealed: false,
   mobiusLoops: 0,
   roomNonce: 0,
@@ -356,7 +338,6 @@ export const useSceneStore = create<SceneState>((set) => ({
       openLookable: null,
       nearLookable: null,
       nearDoor: null,
-      nearPickup: null,
       nearTv: null,
       nearRestoreBench: false,
       nearEntity: null,
@@ -365,7 +346,6 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       nearArcadeGame: null,
-      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
     });
@@ -384,7 +364,6 @@ export const useSceneStore = create<SceneState>((set) => ({
       openLookable: null,
       nearLookable: null,
       nearDoor: null,
-      nearPickup: null,
       nearTv: null,
       nearRestoreBench: false,
       nearEntity: null,
@@ -393,7 +372,6 @@ export const useSceneStore = create<SceneState>((set) => ({
       openNpc: null,
       nearArcade: false,
       nearArcadeGame: null,
-      nearBooth: false,
       arcadeGame: null,
       lyricsSong: null,
       triggersFired: [],
@@ -428,7 +406,6 @@ export const useSceneStore = create<SceneState>((set) => ({
   closeLyrics: () => set({ lyricsSong: null }),
   setNearArcade: (near, game = null) =>
     set({ nearArcade: near, nearArcadeGame: near ? game : null }),
-  setNearBooth: (near) => set({ nearBooth: near }),
   setPaused: (paused) => set({ paused }),
   togglePaused: () => set((s) => ({ paused: !s.paused })),
   requestDescent: () => set({ descentRequested: true }),
@@ -456,7 +433,6 @@ export const useSceneStore = create<SceneState>((set) => ({
         transitioning: true,
         queuedRoom: null,
         nearDoor: null,
-        nearPickup: null,
         nearHotspot: null,
         nearLookable: null,
         nearTv: null,
@@ -484,7 +460,6 @@ export const useSceneStore = create<SceneState>((set) => ({
       return {
         divingTo: to,
         nearDoor: null,
-        nearPickup: null,
         nearHotspot: null,
         nearLookable: null,
         nearTv: null,
@@ -510,7 +485,6 @@ export const useSceneStore = create<SceneState>((set) => ({
     ),
   endTransition: () => set({ transitioning: false }),
   setNearDoor: (door) => set({ nearDoor: door }),
-  setNearPickup: (pickup) => set({ nearPickup: pickup }),
   setNearTv: (video) => set({ nearTv: video }),
   setNearRestoreBench: (near) => set({ nearRestoreBench: near }),
   setBenchBusy: (slug) => set({ benchBusy: slug }),

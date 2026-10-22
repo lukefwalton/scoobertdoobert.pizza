@@ -24,7 +24,7 @@ unless the work is genuinely ambiguous.
 | 6 | World-content (GLB levels, loader, möbius, dice, shrine→metro→terminus, practice) | ✅ largely shipped |
 | — | CI + smoke gate, repo DRY pass | ✅ shipped |
 | 7+ | instruments (vendored from Luke's `fun` playground) → `/chimes` + `/cultures` cabinets + reusable bell engine (shrine furin) | ✅ shipped; small tail |
-| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, perception, the full arcade | ✅ core shipped |
+| 8 | The game layer — LUCK + universal d20 (nat 20 / crit fail 3×), spells, room whispers, the full arcade | ✅ core shipped (trimmed 2026-10, see below) |
 | — | GifCities pass — own GIF89a encoder + original GIFs, retro floor furniture, mobile "try desktop" gag | ✅ shipped |
 | — | The audio-museum pass — RESTORATION (hi-fi masters + the bench), the Listening Room, /catalog | ✅ shipped |
 | — | The CONVERT pass — hire block + The Reel, legible game door, the link maze, SEO/AEO | ✅ shipped |
@@ -212,29 +212,18 @@ descent, each covered by a `shoot:*` smoke:
   Wayside Shrine — the first "use the ENGINE for in-room effects" (Luke). ✅ The
   deep instrument ROOM (vs. surface cabinet) landed — **The Aerial**, a proximity-
   played theremin off the liminal (Phase 8, 2026-06-29). ⬜ More in-room/"odd-thing"
-  uses remain; the webcam thread has now SHIPPED (see below).
-- ✅ **The webcam thread — PIZZA CAM™ (shipped, 2026-07-08).** The Webcam
-  policy's "own gated thread," built to the letter (DESIGN → Webcam policy, which
-  records the settled decisions): one fake peripheral hosting TWO instruments as
-  channels — **AIR DOUGH** (motion centroid → D-pentatonic `audio.startVoice`)
-  and **TOPPING DRUMS** (an EyeToy demake: six topping zones → panned
-  `audio.playChime`, hysteresis + refractory). Zero-dependency lo-fi CV: the
-  whole camera pipeline is ONE auditable pure file (`src/lib/pizzacam.ts`, unit-
-  tested with deterministic pixel arrays) — 32×24 luma grid, frame differencing,
-  self-calibrating noise floor. Hosts: the **`/booth`** cabinet page and the
-  kitchen's tripod prop (`PizzaCamProp` → the same `PizzaCamBooth` in the
-  ArcadeModal; `rollable:false`, never dealt by the slot machine). Consent:
-  the booth's full gate, at point of use, and nothing earlier (2026-09-08: the
-  boot-screen arming row was removed — see the entry-cadence chunk below);
-  getUserMedia fires ONLY at point of use; a fixed ● CAMERA ON chip
-  is the kill switch; the raw feed renders nowhere (Bayer-dithered grid only);
-  a source-text unit test (`pizzacam.firewall.test.ts`) pins the dread firewall.
-  Desktop-only (touch gets a parallel-port gag). First-play banks a secret
-  (+1 luck). Covered by `shoot:booth` (Chromium fake-camera flags; consent
-  honesty probe — zero pre-consent getUserMedia calls, tracks truly ended on
-  kill; instruments driven deterministically via `__sdpBoothInject`). ⚠️ Not
-  yet device-validated: real-webcam feel pass (noise floor in low light, drum
-  thresholds, scale range, mirror feel, OS camera light on kill) needs Luke.
+  uses remain.
+- 🪦 **The webcam thread — PIZZA CAM™ — shipped 2026-07-08, REMOVED 2026-10-21
+  (the complexity cut, Luke).** It was the largest shipped-but-never-device-
+  validated chunk (~1,900 lines + a camera permission): the `/booth` cabinet page
+  + route, `PizzaCamBooth` (AIR DOUGH + TOPPING DRUMS over a 32×24 luma grid in
+  `src/lib/pizzacam.ts`), `useCameraGrid`, the `cameraConsent` session flag, the
+  kitchen's `PizzaCamProp` tripod + `nearBooth`, the `rollable:false` registry
+  flag (every cabinet rolls now), `booth.css`, the firewall unit test, and
+  `shoot:booth` (plus the smoke harness's fake-camera launch flags). Nothing on
+  the site asks for a camera now. DESIGN's Webcam policy stays as POLICY, with
+  the settled decisions kept for the record, should a camera instrument ever be
+  rebuilt.
 - ⬜/❓ **The Doom / Freedoom shrine — likely DROPPED.** The point of it (a hidden,
   lazy, dread-tinged liminal level) is effectively already delivered by our OWN
   GLB levels (deep pool / liminal / backrooms) — without taking on Freedoom's
@@ -255,17 +244,24 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   **shown in the pause menu**, **announced on gain** (`toastStore` + `WorldHud`).
 - ✅ **First dice-combat:** the goblin bout (`D20`/`DicePitRoom`/`monsterStore`) is
   crit-aware — nat 20 auto-wins + +3 luck, crit fail bloats it 3×. `shoot:luck`.
-- ✅ **Inventory + keys (engagement pass):** durable `itemsHeld` (`progressStore`),
-  a pause-menu **"Pockets"** list, `ItemPickup` collectibles (`Room.pickups`), and
-  **locked doors** (`RoomDoor.requiresKey`) via the shared lock-aware `enterDoor`
-  (`src/lib/doorTravel.ts`). First loop: the rusted key on the poolrooms deck opens
-  a **Staff Locker Room** (a safe side nook, +2 luck on first entry). Keys may only
-  gate **side/secret** doors — a dev guard + `MAIN_DESCENT` set reject any
-  `requiresKey` on the descent (friction budget). `shoot:keys`, `doorTravel.test`.
+- ✅ **Inventory (engagement pass):** durable `itemsHeld` (`progressStore`), a
+  pause-menu **"Pockets"** list, `ItemPickup` collectibles (`Room.pickups`) — the
+  cassettes + the spell scrolls, all walk-over auto-grabs.
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): keys + locked doors.** The
+    two key items, `RoomDoor.requiresKey`, the lock-aware `enterDoor`, the
+    `MAIN_DESCENT` guard, the **Staff Locker Room** + **Supply Closet** nooks, their
+    two quests, and the **P grab verb** (which existed only because keys didn't
+    auto-grab) are gone. "Interact → the way opens" is the one progression grammar.
+    `shoot:keys` deleted.
 - ✅ **Dancing entities (engagement pass):** `Wanderer` roams the GLB liminal
   levels (liminal / deeppool / metro-tunnel / terminus, `Room.entities`) and
   **dances** when you get close — never attacks (taste/WCAG: gentle, capped under
-  reduced-motion, GLB-only). `shoot:entities`.
+  reduced-motion, GLB-only). Press E beside a dancer to **dance along** (a boop,
+  its flourish, +1 luck the first time per entity — `lib/danceAlong`). `shoot:entities`.
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): the arrow-key rhythm
+    minigame** (`rhythmStore` / `RhythmGame`, a Simon-says the wanderer demoed and
+    you copied) that used to sit between the E press and the payout. The dance IS
+    the beat now; the reward path is unchanged.
 - ✅ **Arrival-spawn contract guard:** fixed grove/frutiger spawning ON their exit
   prompt; `spawnFacingInward` + a dev guard + `rooms.test` assert every spawn lands
   clear of, and facing away from, its doors (the "wrong side of the map" fix).
@@ -336,10 +332,12 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   (two monotonic counters in `progressStore`), **rest restores slots** (shrine clap
   / breather rooms), and a cast feeds the dread-**relief** pool — a sanctioned way
   to push the unease back. Multi-spell hotbar in the HUD. `shoot:spell`.
-- ✅ **Perception whispers (2026-06-26):** each room entry rolls a **plain d20
-  perception check** (DC 12; luck stays reserved for the stakes rolls, so a
-  high-frequency check never drains it); on a hit you catch a room-specific whisper
-  (lore mined from lukefwalton.com, so the repo stays standalone). `shoot:whisper`.
+- ✅ **Room whispers (2026-06-26):** the first time you enter a room this session
+  you catch its room-specific whisper (lore mined from lukefwalton.com, so the repo
+  stays standalone) — `RoomWhisper` + `src/data/whispers.ts`. `shoot:whisper`.
+  - 🪦 **2026-10-21 (the complexity cut):** this used to be a hidden **d20
+    Perception check** (DC 12) that only decided whether you saw the line at all,
+    which read as nothing; the whisper always shows now (once per room per session).
 - ✅ **Luck you can SEE + the shrine おみくじ (2026-07-07, Luke: "turn luck into
   clearer outcomes; more chances for BAD or GREAT; more ways to ROLL"):** three
   moves that make the invisible luck economy legible and give the d20 more surfaces.
@@ -364,17 +362,16 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
     mortified (sweet, no penalty). Covered by `shoot:luck` (the draw → toast + secret),
     `omikuji.test.ts` / `luck-core.test.ts` / `luck.test.ts` (raw/`lucky`/`luckTag`).
   - **…and they hang in the Trophy Case (2026-07-07, Luke: "can this hang in their
-    trophy case? can it track pizza slices too?").** Two new durable stats feed the
-    shop's reactive back-bar hall of fame (`ShopFittings`): **`bestFortune`** (your
-    finest おみくじ rank, 1..5) hangs a framed slip on the upper shelf, and
-    **`lootTotals`** (lifetime per-type loot counts, banked in `collectLootById`)
-    grows a pizza-slice tally on the lower shelf — distinct from `pizzaPointsBest`
-    (a single run's score) since it's the cumulative haul across every descent. The
-    pause menu gets a "Trophy case" readout too (the full per-type breakdown + best
-    fortune). Both trophies are value-keyed textures (≤128px, disposed on change),
-    gated so they only appear once earned; `shoot:trophy` seeds + mounts them,
-    `progressStore.test` covers `recordFortune` (monotonic) + `addLoot` (per-type,
-    fresh-disk accumulate). Also folded in PR #123's review: the omikuji slip texture
+    trophy case? can it track pizza slices too?").** 🪦 **TRIMMED 2026-10-21 (the
+    complexity cut):** the framed おみくじ slip + the lifetime pizza-slice tally on
+    the shop's back-bar shelves, the `lootTotals` durable map (`addLoot`), and the
+    pause menu's per-type loot breakdown are gone. What stays: **`bestFortune`**
+    (your finest おみくじ rank, 1..5, `recordFortune`, monotonic) as ONE line in the
+    pause menu's Trophy case, and the shop shelf's original trophies (the finale
+    award, the cassette row, the clover — `shoot:trophy` still mounts those).
+    The original pass, for the record, hung both as value-keyed textures (≤128px,
+    disposed on change), gated so they only appeared once earned. Also folded in
+    PR #123's review: the omikuji slip texture
     dropped 128×160 → 96×128 (the hard PS1 ≤128px cap), the 大吉 note-burst timers are
     cancelled on unmount (no cross-room audio bleed), and `shoot:luck`'s fixed sleeps
     became concrete state waits.
@@ -383,22 +380,27 @@ ADDENDUM 7); the taste/WCAG/crawlable lines are untouched.
   jumped the dial to the rolled track; now a **nat 20 = "the pristine pressing"**
   (sparkle) and a **nat 1 = "the cursed pressing"** (a detuned womp + `crit-bad`
   toast) — DESIGN's share-fuel beat, goofy-sweet (taste). `shoot:dice` forces both.
-- ✅ **The grass encounter (in DESIGN, now shipped):** a **rare Pokémon-style
-  grass-level encounter** vs the wild goblin — the field mounts, the encounter fades
-  to a battle room, and winning the d20 roll-off opens the grove + records the
-  unlock. `shoot:grass`.
-- ✅ **The Grassrooms (草の間) + the 3D ghost race (2026-06-28, from Luke's
-  r/LiminalSpace inspiration):** a **fully sweet liminal breather** off the
-  `liminal` GLB level — the backrooms after nature wins (white office bones gone to
-  grass + indoor trees + blue wildflowers, the low ceiling broken open to an
-  impossibly blue sky), **sized as a 48×48 racecourse**. A `musicRoom` with its own
-  wind + furin ambient; `baseUnease` below SAFE. Hosts **ゴーストレース / RACE THE
-  GHOST** — a real in-world, first-person **lap race** against a floating ghost
-  character (checkpoint gates, 3·2·1·GO countdown, hold SHIFT to sprint, first to 2
-  laps; `raceStore` + `world/GhostRace` + `components/RaceHud`). Losing is an
-  anticlimax + auto-rematch; winning gives +3 luck + the clear. Words stay EN + JP.
-  `shoot:grassrooms` drives the countdown→racing→won state machine (+ the room
-  graph/map/dread/whisper wiring; full unit suite green).
+- 🪦 **The grass encounter — REMOVED 2026-10-21 (the complexity cut, Luke).** The
+  rare Pokémon-style ambush in the tall grass, its battle room (`GrassBattleRoom`,
+  a second d20 roll-off against the shared dice monster), the `grass-cleared`
+  unlock, the "See off the grass goblin" objective and the goblin trophies (shop
+  shelf + storefront line) are gone — the dice pit is the one dice fight. The
+  **tall grass stays** and its far-edge path into the grove is a plain door now
+  (`shoot:grass` walks it).
+- ✅ **The Grassrooms (草の間) (2026-06-28, from Luke's r/LiminalSpace
+  inspiration):** a **fully sweet liminal breather** off the `liminal` GLB level —
+  the backrooms after nature wins (white office bones gone to grass + indoor trees
+  + blue wildflowers, the low ceiling broken open to an impossibly blue sky), a big
+  48×48 hall. A `musicRoom` with its own wind + furin ambient; `baseUnease` below
+  SAFE. Words stay EN + JP. `shoot:grassrooms` mounts the room (+ the room
+  graph/map/dread/whisper wiring).
+  - 🪦 **REMOVED 2026-10-21 (the complexity cut, Luke): the 3D ghost race +
+    the Shift sprint.** ゴーストレース / RACE THE GHOST (`raceStore` /
+    `world/GhostRace` / `components/RaceHud`, a first-person lap race vs a floating
+    ghost — gates, 3·2·1·GO, first to 2 laps, +3 luck + a remembered clear) was a
+    second genre in one room; the **Shift sprint** (×1.7 + an FOV kick in
+    `Controls`) existed only to win it, so it went too (`shoot:sprint` deleted,
+    the footstep cadence lost its "fast" branch). The walk is one speed now.
 - ✅ **The Kitchen (厨房) — the thesis at its source (2026-06-28):** a warm,
   goofy **surface relief room** off the shop's **-X "EMPLOYEES ONLY" door** (a
   lateral side room, never the way down — the descent rule is untouched). Original
@@ -611,7 +613,8 @@ commit + smoke:
   asserts the same-URL guard via a `__sdpLoopStarts` counter.
 - ✅ **Walk-up + press-P pickups** (`world/PickupController.tsx`, `lib/pickups.ts`):
   one per-frame scan (like Doors) publishes the nearest collectible to
-  `sceneStore.nearPickup` → a "Press P to grab …" prompt, and auto-grabs on
+  `sceneStore.nearPickup` → a "Press P to grab …" prompt (🪦 the P verb + prompt
+  went with the keys in the 2026-10 complexity cut — everything auto-grabs now), and auto-grabs on
   walk-over once you've stepped off the spawn. Clicking still works; KEYS are
   excluded from auto-grab (intentional/puzzle items). The collect effect is shared
   (`collectInventoryItem`) so click / walk / P / the smoke hook can't double-collect.
