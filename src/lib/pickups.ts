@@ -18,7 +18,7 @@ import { useMusicStore } from '../state/musicStore';
 import { announce } from '../state/toastStore';
 
 /**
- * Pocket an inventory item (a key / cassette / spell scroll) into the durable
+ * Pocket an inventory item (a cassette / a spell scroll) into the durable
  * inventory, with its kind-specific reward + a toast. IDEMPOTENT: returns false
  * and does nothing if it's already held, so a click, a walk-over auto-grab, a P
  * press, and the smoke hook can all converge here with no dup risk. Returns true
@@ -31,7 +31,7 @@ export function collectInventoryItem(itemId: string): boolean {
   audio.unlock();
   audio.playChime(noteToFreq('E', 6), 0, 0.14, 0.6); // a bright little pickup ring
   prog.collectItem(itemId);
-  // Trinkets (the cassettes) tip a little luck; keys' reward is the door.
+  // Trinkets (the cassettes) tip a little luck.
   if (item?.kind === 'trinket') prog.gainLuck(1);
   // ESCAPE-ROOM reveal: some items open a way when pocketed (the "1101" reel →
   // the Save San Diego level door). Bank the DURABLE secret so the matching

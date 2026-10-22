@@ -23,16 +23,21 @@ export function RoomWhisper() {
 
   useEffect(() => {
     if (transitioning) return; // wait until you've actually arrived (not mid-wipe)
+    const whisper = whisperFor(currentRoom);
+    // The test hook mirrors the CURRENT room — its whisper, or nothing to notice —
+    // so a ?debug read can't see a previous room's line linger (test-hook convention).
+    exposeTestGlobal('__sdpWhisper', whisper ? { room: currentRoom, text: whisper } : undefined);
+    if (!whisper) return; // nothing to notice here
     if (noticed.current.has(currentRoom)) return; // once per room per session
     noticed.current.add(currentRoom);
-    const whisper = whisperFor(currentRoom);
-    if (!whisper) return; // nothing to notice here
 
     // Passive chatter: queued behind the room's own arrival toast (a song unlock,
     // a first-entry reward) — no hand-tuned stagger needed.
     announce(`✦ You notice ${whisper}`, 'info', { queue: true });
-    exposeTestGlobal('__sdpWhisper', { room: currentRoom, text: whisper });
   }, [currentRoom, transitioning]);
+
+  // Leaving the world: no room, so no whisper to read.
+  useEffect(() => () => exposeTestGlobal('__sdpWhisper', undefined), []);
 
   return null;
 }
