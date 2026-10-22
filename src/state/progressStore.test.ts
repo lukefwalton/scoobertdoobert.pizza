@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { itemById } from '../data/items';
+import { questStatus } from '../data/quests';
 
 // The durable store reads/writes localStorage, which the node test env lacks — so
 // give it a tiny in-memory one (matching real browser behaviour) and re-import the
@@ -157,6 +159,43 @@ describe('progressStore trophy-case stats', () => {
     expect(useProgressStore.getState().bestFortune).toBe(4);
     useProgressStore.getState().recordFortune(5); // 大吉 — better, wins
     expect(useProgressStore.getState().bestFortune).toBe(5);
+  });
+});
+
+describe('old-save compatibility (the 2026-10 complexity cut)', () => {
+  // A save written BEFORE the cut: it holds a key item id (the items are gone), a
+  // lootTotals map (the field is gone), and the grass-cleared secret (its system
+  // is gone). None of it may break reading, progression, or the next write.
+  const PRE_CUT = {
+    everEnteredWorld: true,
+    itemsHeld: ['pool-locker-key', 'tape-japan'],
+    secretsFound: ['grass-cleared', 'jump-unlocked'],
+    lootTotals: { pizza: 3, sushi: 1 },
+    luckEarned: 2,
+    luckSpent: 0,
+  };
+
+  it('reads a pre-cut blob: stale ids stay harmlessly, the dropped field is ignored', async () => {
+    localStorage.setItem(KEY, JSON.stringify(PRE_CUT));
+    const { useProgressStore } = await freshStore();
+    const s = useProgressStore.getState();
+    expect(s.itemsHeld).toEqual(['pool-locker-key', 'tape-japan']); // kept as-is, no crash
+    expect(itemById('pool-locker-key')).toBeUndefined(); // …the Pockets list skips it
+    expect((s as unknown as Record<string, unknown>).lootTotals).toBeUndefined();
+    // The quest view still derives cleanly (collect-tapes counts only real cassettes).
+    const status = questStatus(s);
+    expect(status.find((q) => q.quest.id === 'collect-tapes')?.done).toBe(false);
+    expect(status.find((q) => q.quest.id === 'learn-jump')?.done).toBe(true);
+  });
+
+  it('a later write preserves the unknown pre-cut key on disk (forward-compat path)', async () => {
+    localStorage.setItem(KEY, JSON.stringify(PRE_CUT));
+    const { useProgressStore } = await freshStore();
+    useProgressStore.getState().gainLuck(1);
+    const disk = JSON.parse(localStorage.getItem(KEY)!);
+    expect(disk.luckEarned).toBe(3);
+    expect(disk.lootTotals).toEqual({ pizza: 3, sushi: 1 }); // not stripped by the older-shape write
+    expect(disk.itemsHeld).toContain('pool-locker-key');
   });
 });
 
