@@ -51,7 +51,9 @@
          forked .pizza-homed copy. The Person node below is a hand-maintained
          MIRROR of personNode() in src/data/identity.ts (static HTML can't import
          TS), keep its @id, alternateName, identifier, and sameAs in sync with
-         that module, which the /about and /about/jp pages import. -->
+         that module, which the /about and /about/jp pages import. Surmado is the
+         WebSite's provider and sdPublisher only (it builds, hosts and generates
+         this markup); it never publishes or owns the work. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -65,7 +67,15 @@
             "description": "A pizza shop off the coast of San Diego. (It is actually a solo music project by a philosopher.)",
             "inLanguage": "en",
             "publisher": { "@id": "https://lukefwalton.com/#person" },
-            "about": { "@id": "https://lukefwalton.com/#scoobert" }
+            "about": { "@id": "https://lukefwalton.com/#scoobert" },
+            "provider": { "@id": "https://www.surmado.com#organization" },
+            "sdPublisher": { "@id": "https://www.surmado.com#organization" }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://www.surmado.com#organization",
+            "name": "Surmado",
+            "url": "https://www.surmado.com/"
           },
           {
             "@type": "MusicGroup",
